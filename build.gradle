@@ -1,4 +1,68 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.5.1.RELEASE'
+    }
+}
+apply plugin: 'org.springframework.boot'
 apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+group = 'com.vivareal.search'
+version = '0.0.1'
+
+eclipse {
+    classpath {
+        downloadSources = true
+        downloadJavadoc = false
+    }
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = false
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'VivaReal Search API', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    mavenLocal()
+}
+
+configurations {
+    compile.exclude module: 'spring-boot-starter-tomcat'
+}
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-devtools'
+    compile 'org.springframework.boot:spring-boot-starter-undertow'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+
+    // compile 'org.elasticsearch.client:rest:5.1.2'
+    compile 'org.elasticsearch.client:transport:5.2.0'
+    compile 'org.elasticsearch:elasticsearch:5.2.0'
+
+    compile 'org.glowroot:glowroot-agent-api:0.9.7'
+    compile 'com.newrelic.agent.java:newrelic-api:3.37.0'
+
+    compile 'org.apache.logging.log4j:log4j-web:2.6.2'
+    compile 'org.slf4j:slf4j-api:1.7.21'
+
+    testCompile 'junit:junit:4.12'
+    // testCompile 'org.springframework:spring-test:4.3.6.RELEASE'
+}
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '3.4.1'
