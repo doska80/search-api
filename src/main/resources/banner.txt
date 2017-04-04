@@ -1,0 +1,21 @@
+                .-""-.--.
+               ( Search? )
+                (       )
+                 '--'--'
+                   ()
+     /"""""       O
+    |  (')')   o
+    C     _)
+     \   _|
+      \__/
+     <___Y>
+    /  \ :\\
+   /   |  :|\
+   |___|  :|/\
+    | |   :|\ \
+    \ \   :| \ \_
+     \ \==L|  \\\
+     ///` ||
+      |   ||
+
+${application.title}: ${application.version} (a.k.a. "${application.codename}"), Spring Boot: ${spring-boot.version}
