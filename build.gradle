@@ -62,7 +62,8 @@ dependencies {
     compile 'org.apache.logging.log4j:log4j-web:2.6.2'
     compile 'org.slf4j:slf4j-api:1.7.21'
 
-    testCompile 'junit:junit:4.12'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    // testCompile 'junit:junit:4.12'
     // testCompile 'org.springframework:spring-test:4.3.6.RELEASE'
 }
 
