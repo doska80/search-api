@@ -7,7 +7,7 @@ services:
       - ES_HOSTNAME=es
     ports:
       - "4000:4000"
-      - "8080:8080"
+      - "8482:8482"
     depends_on:
       - es
     networks:
