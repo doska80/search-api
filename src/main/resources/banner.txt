@@ -18,4 +18,4 @@
      ///` ||
       |   ||
 
-${application.title}: ${application.version} (a.k.a. "${application.codename}"), Spring Boot: ${spring-boot.version}
+${application.title}: ${application.version} (a.k.a. "${application.codename}"), profile: ${spring.profiles.active}, Spring Boot: ${spring-boot.version}
