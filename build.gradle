@@ -1,12 +1,21 @@
 buildscript {
+    ext {
+        springBootVersion = '2.0.0.BUILD-SNAPSHOT'
+    }
+
     repositories {
         jcenter()
         mavenCentral()
+//        maven { url "http://repo.spring.io/release" }
+//        maven { url "http://repo.spring.io/milestone" }
+        maven { url "http://repo.spring.io/snapshot" }
     }
     dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.5.2.RELEASE'
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     }
 }
+
+apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'java'
 apply plugin: 'eclipse'
@@ -38,6 +47,9 @@ jar {
 repositories {
     jcenter()
     mavenCentral()
+//    maven { url "http://repo.spring.io/release" }
+//    maven { url "http://repo.spring.io/milestone" }
+    maven { url "http://repo.spring.io/snapshot" }
     mavenLocal()
 }
 
@@ -67,7 +79,7 @@ dependencies {
     // testCompile 'org.springframework:spring-test:4.3.6.RELEASE'
 }
 
-task copyJarForDockerCompose(dependsOn: 'bootRepackage', type: Copy) {
+task copyJarForDockerCompose(dependsOn: 'bootJar', type: Copy) {
     from jar
     into './build/libs/'
     rename { String fileName ->
@@ -83,6 +95,13 @@ bootRun {
     systemProperties = System.properties
 }
 
-bootRepackage.doLast {
-    tasks.copyJarForDockerCompose.execute()
+build.doLast {
+    bootJar.execute()
+    copyJarForDockerCompose.execute()
+}
+
+bootJar {
+    launchScript {
+        included = true
+    }
 }
