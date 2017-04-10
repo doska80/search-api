@@ -55,6 +55,7 @@ repositories {
 
 configurations {
     compile.exclude module: 'spring-boot-starter-tomcat'
+    compile.exclude module: 'undertow-websockets-jsr'
 }
 
 dependencies {
