@@ -2,10 +2,10 @@ package com.vivareal.search.api.model;
 
 import java.util.List;
 
-public class SearchRequest {
+public final class SearchRequest {
 
-    protected List<String> fields;
-    protected String q;
+    private List<String> fields;
+    private String q;
 
     public List<String> getFields() {
         return fields;
@@ -20,7 +20,6 @@ public class SearchRequest {
     }
 
     public void setQ(String q) {
-        if (q == null) return;
-        this.q = q.trim();
+        if (q != null) this.q = q.trim();
     }
 }

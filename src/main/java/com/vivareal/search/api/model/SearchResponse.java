@@ -1,6 +1,17 @@
 package com.vivareal.search.api.model;
 
-import org.springframework.stereotype.Component;
+public final class SearchResponse {
+    private final String listings;
 
-public class SearchResponse {
+    public SearchResponse() {
+        this("{}");
+    }
+
+    public SearchResponse(String listings) {
+        this.listings = listings;
+    }
+
+    public String getListings() {
+        return listings;
+    }
 }
