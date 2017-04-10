@@ -16,6 +16,6 @@ public class ListingController {
 
     @RequestMapping("/")
     public SearchResponse getListings(SearchRequest request) {
-        return new SearchResponse("foi");
+        return new SearchResponse("foi memo!");
     }
 }

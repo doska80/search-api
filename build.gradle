@@ -67,10 +67,22 @@ dependencies {
     // testCompile 'org.springframework:spring-test:4.3.6.RELEASE'
 }
 
+task copyJarForDockerCompose(dependsOn: 'bootRepackage', type: Copy) {
+    from jar
+    into './build/libs/'
+    rename { String fileName ->
+        fileName = 'search-api.jar'
+    }
+}
+
 task wrapper(type: Wrapper) {
 	gradleVersion = '3.4.1'
 }
 
 bootRun {
     systemProperties = System.properties
+}
+
+bootRepackage.doLast {
+    tasks.copyJarForDockerCompose.execute()
 }

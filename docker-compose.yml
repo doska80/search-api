@@ -8,6 +8,8 @@ services:
     ports:
       - "4000:4000"
       - "8482:8482"
+    volumes:
+      - ./build/libs/search-api.jar:/usr/local/search-api.jar
     depends_on:
       - es
     networks:

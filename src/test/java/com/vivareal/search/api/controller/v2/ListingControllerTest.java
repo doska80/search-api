@@ -25,6 +25,6 @@ public class ListingControllerTest {
         SearchResponse response = this.restTemplate.getForObject("/v2/listings/", SearchResponse.class);
 
         assertNotNull(response);
-        assertThat(response.getListings()).isEqualTo("foi");
+        assertThat(response.getListings()).isEqualTo("foi memo!");
     }
 }
