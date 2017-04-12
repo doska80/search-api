@@ -1,7 +1,6 @@
 package com.vivareal.search.api.controller.v2;
 
-import com.vivareal.search.api.model.SearchResponse;
-import org.junit.Assert;
+import com.vivareal.search.api.model.SearchApiResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,7 @@ public class ListingControllerTest {
 
     @Test
     public void exampleTest() {
-        SearchResponse response = this.restTemplate.getForObject("/v2/listings/", SearchResponse.class);
+        SearchApiResponse response = this.restTemplate.getForObject("/v2/listings/", SearchApiResponse.class);
 
         assertNotNull(response);
         assertThat(response.getListings()).isEqualTo("foi memo!");

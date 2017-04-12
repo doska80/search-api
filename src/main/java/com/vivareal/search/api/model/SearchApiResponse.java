@@ -1,13 +1,13 @@
 package com.vivareal.search.api.model;
 
-public final class SearchResponse {
+public final class SearchApiResponse {
     private final String listings;
 
-    public SearchResponse() {
+    public SearchApiResponse() {
         this("{}");
     }
 
-    public SearchResponse(String listings) {
+    public SearchApiResponse(String listings) {
         this.listings = listings;
     }
 

@@ -5,11 +5,11 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-public class SearchRequestTest {
+public class SearchApiRequestTest {
 
     @Test
     public void shouldValidateQueryString() {
-        SearchRequest request = new SearchRequest();
+        SearchApiRequest request = new SearchApiRequest();
         System.out.println(request);
     }
 
