@@ -14,7 +14,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Controller
+@Controller // FIXME: logar melhor isso ae
 public class ExceptionController implements ErrorController {
     private static final String ERROR_PATH = "/error";
 
