@@ -20,7 +20,7 @@ import java.util.stream.IntStream;
 @RequestMapping("/v2/listings")
 public class ListingController {
 
-    @RequestMapping("/")
+    @RequestMapping
     public SearchApiResponse getListings(SearchApiRequest request) {
         return new SearchApiResponse("foi memo!");
     }
