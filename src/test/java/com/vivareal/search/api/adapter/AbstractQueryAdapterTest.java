@@ -48,6 +48,13 @@ public class AbstractQueryAdapterTest {
         assertThat("valor2", is(equalTo(field2.getValue())));
     }
 
+    @Test
+    public void avoidCreatingUnneededObjects() {
+        List<AbstractQueryAdapter.Field> invalidQueryOne = abstractQueryAdapter.parseQuery("invalid query 1");
+        List<AbstractQueryAdapter.Field> invalidQueryTwo = abstractQueryAdapter.parseQuery("another unparseable query");
+        assertThat(invalidQueryOne, is(invalidQueryTwo));
+    }
+
     @Test(expected = UnsupportedOperationException.class)
     public void queryShouldBeImmutable() {
         List<AbstractQueryAdapter.Field> parsedQuery = abstractQueryAdapter.parseQuery("campo:valor campo2:valor2");

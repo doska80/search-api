@@ -13,12 +13,16 @@ abstract class AbstractQueryAdapter {
 
     public List<Field> parseQuery(final String query) {
         Matcher m = FIELD_VALUES.matcher(query);
-//        if (!m.matches())
-//            return EMPTY_LIST;
+
+        boolean found = m.find();
+        if (!found)
+            return EMPTY_LIST;
+
         ImmutableList.Builder<Field> fieldListBuilder = ImmutableList.builder();
-        while (m.find()) {
+        do {
             fieldListBuilder.add(new Field(m.group(1), m.group(2), m.group(3)));
-        }
+        } while (m.find());
+
         return fieldListBuilder.build();
     }
 
