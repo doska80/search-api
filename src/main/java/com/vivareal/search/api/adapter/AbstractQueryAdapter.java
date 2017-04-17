@@ -1,67 +1,89 @@
 package com.vivareal.search.api.adapter;
 
-import org.elasticsearch.common.regex.Regex;
+import com.google.common.collect.ImmutableList;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 abstract class AbstractQueryAdapter {
 
-    // (\s+OR\s+)([a-z0-9_\-]+)\s*:\s* // OR separator
-    // ^\s*([a-z0-9_\-]+)\s*:\s*(.*)\s*$ // Field/Value
-    protected static final String FIELD = "\\s*([a-z0-9_\\-]+)\\s*:";
-    protected static final Pattern FIELD_VALUE = Pattern.compile("^\\s*([a-z0-9_\\-]+)\\s*:\\s*(.*)\\s*$", Pattern.CASE_INSENSITIVE);
-    protected static final Pattern OR = Pattern.compile("(.+)(\\s+OR\\s+)([a-z0-9_\\-]+\\s*:\\s*.+)", Pattern.CASE_INSENSITIVE);
+    protected static final ImmutableList<Field> EMPTY_LIST = ImmutableList.of();
+    protected static final Pattern FIELD_VALUES = Pattern.compile("\\s*(\\w+)(:|>=|<=|>|<)\\s*(?:\")?(.*?(?=\"?\\s+\\w+(:|>=|<=|>|<)|(?:\"?)$))");
 
-//    Pattern.compile("(\\s+OR\\s+)([a-z0-9_\\-]+)\\s*:\\s*");
+    public List<Field> parseQuery(final String query) {
+        Matcher m = FIELD_VALUES.matcher(query);
+//        if (!m.matches())
+//            return EMPTY_LIST;
+        ImmutableList.Builder<Field> fieldListBuilder = ImmutableList.builder();
+        while (m.find()) {
+            fieldListBuilder.add(new Field(m.group(1), m.group(2), m.group(3)));
+        }
+        return fieldListBuilder.build();
+    }
 
-    public static void main(String[] args) {
-//        Matcher matches = OR.matcher("Campo1: valor or campoDois:lallaala");
-//        matches.groupCount();
-////        matches.group
-//        System.out.println(matches);
-//        String[] splitted = OR.split("Campo1: valor or campoDois:lallaala  or campoTres: lelele");
-//        System.out.println(splitted);
+    public class Field {
 
+        public String name;
+        public Expression expression;
+        public Object value;
 
-//        Pattern fdp = Pattern.compile("(\\s+OR\\s+)([a-z0-9_\\-]+\\s*:.*)", Pattern.CASE_INSENSITIVE);
-        String filterQuery = "Campo1: valor or campoDois:lallaala or campo3:valor4";
-        do {
-            Matcher matchedFieldValue = FIELD_VALUE.matcher(filterQuery);
-            if (!matchedFieldValue.matches())
-                break;
-            String field = matchedFieldValue.group(1);
-            String value = matchedFieldValue.group(2);
-            Matcher splittedValue = OR.matcher(value);
-            if (splittedValue.find()) {
-                value = splittedValue.group(1);
-                filterQuery = splittedValue.group(2);
-                System.out.println(field + ": " + value);
-            } else {
-                System.out.println(field + ": " + value);
-                break;
+        protected Field(String name, String expression, String value) {
+            this(name, Expression.get(expression), value);
+        }
+
+        protected Field(String name, Expression expression, String value) {
+            this.setName(name);
+            this.setExpression(expression);
+            this.setValue(value);
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public Expression getExpression() {
+            return expression;
+        }
+
+        public void setExpression(Expression expression) {
+            this.expression = expression;
+        }
+
+        public Object getValue() {
+            return value;
+        }
+
+        public void setValue(Object value) {
+            this.value = value;
+        }
+    }
+
+    public enum Expression {
+        //        DIFFERENT("!:"),
+        EQUAL(":"),
+        GREATER(">"),
+        GREATER_EQUAL(">="),
+        LESS("<"),
+        LESS_EQUAL("<=");
+
+        private String expr;
+
+        Expression(String expr) {
+            this.expr = expr;
+        }
+
+        public static Expression get(String expression) { // FIXME this is going to be slow
+            for (Expression e : Expression.values()) {
+                if (e.expr.equals(expression)) return e;
             }
-        } while (true);
-//        Matcher matchedFieldValue = FIELD_VALUE.matcher("Campo1: valor or campoDois:lallaala or campo3:valor4");
-////        if
-//
-////Matcher matcher = pattern.matcher(s);
-//        while (fdp2.find()) {
-//            System.out.println(fdp2.group(1));
-//            System.out.println(fdp2.group(2));
-//        }
-//
-////
-////
-//System.out.println(fdp2.find());
-//System.out.println(fdp2.groupCount());
-//System.out.println(fdp2.group(1));
-
-
-
-
-
-
+            throw new IllegalArgumentException("Expression \"" + expression + "\" not found!");
+        }
 
     }
+
 }
