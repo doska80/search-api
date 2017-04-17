@@ -9,6 +9,7 @@ public final class ResponseStream {
     private OutputStream stream;
 
     private ResponseStream(OutputStream stream) {
+        if (stream == null) throw new IllegalArgumentException("stream cannot be null");
         this.stream = stream;
     }
 
@@ -23,7 +24,7 @@ public final class ResponseStream {
         stream.close();
     }
 
-    private void write(byte[] bytes) throws IOException {
+    public void write(byte[] bytes) throws IOException {
         stream.write(bytes);
         stream.flush();
     }
