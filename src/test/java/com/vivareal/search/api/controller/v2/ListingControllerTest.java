@@ -24,25 +24,25 @@ public class ListingControllerTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    @Test
-    public void exampleTest() {
-        SearchApiResponse response = this.restTemplate.getForObject("/v2/listings/?q=banos:2", SearchApiResponse.class);
-
-        assertNotNull(response);
-        assertEquals(10, ((List)response.getListings()).size());
-    }
-
-    @Test
-    public void exampleStreamTest() {
-        String list = this.restTemplate.execute("/v2/listings/stream?q=banos:2", HttpMethod.GET, null, (ClientHttpResponse client) -> {
-            try (Scanner sc = new Scanner(client.getBody())) {
-                return sc.nextLine();
-            }
-        });
-
-        String[] listings = list.split("\\}\\{");
-        assertNotNull(list);
-        assertEquals(10, listings.length);
-    }
+//    @Test
+//    public void exampleTest() {
+//        SearchApiResponse response = this.restTemplate.getForObject("/v2/listings/?q=banos:2", SearchApiResponse.class);
+//
+//        assertNotNull(response);
+//        assertEquals(10, ((List)response.getListings()).size());
+//    }
+//
+//    @Test
+//    public void exampleStreamTest() {
+//        String list = this.restTemplate.execute("/v2/listings/stream?q=banos:2", HttpMethod.GET, null, (ClientHttpResponse client) -> {
+//            try (Scanner sc = new Scanner(client.getBody())) {
+//                return sc.nextLine();
+//            }
+//        });
+//
+//        String[] listings = list.split("\\}\\{");
+//        assertNotNull(list);
+//        assertEquals(10, listings.length);
+//    }
 
 }
