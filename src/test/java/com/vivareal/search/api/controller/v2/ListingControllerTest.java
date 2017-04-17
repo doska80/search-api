@@ -24,6 +24,11 @@ public class ListingControllerTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    @Test
+    public void dummyTest() {
+        assert 1==1;
+    }
+
 //    @Test
 //    public void exampleTest() {
 //        SearchApiResponse response = this.restTemplate.getForObject("/v2/listings/?q=banos:2", SearchApiResponse.class);
