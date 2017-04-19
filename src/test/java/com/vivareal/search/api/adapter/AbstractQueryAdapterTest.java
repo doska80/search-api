@@ -1,7 +1,9 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.model.Expression;
-import com.vivareal.search.api.model.Field;
+import com.vivareal.search.api.model.query.Expression;
+import com.vivareal.search.api.model.query.Field;
+import com.vivareal.search.api.model.query.Order;
+import com.vivareal.search.api.model.query.Sort;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -9,7 +11,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 
-import static com.sun.tools.classfile.AccessFlags.Kind.Field;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -83,6 +84,71 @@ public class AbstractQueryAdapterTest {
     public void queryShouldBeImmutable() {
         List<Field> parsedQuery = abstractQueryAdapter.parseQuery("campo:valor campo2:valor2");
         parsedQuery.add(new Field("campo3", Expression.GREATER, "valor3"));
+    }
+
+    @Test
+    public void shouldKeepSortedFieldsOrderTest() {
+        List<Sort> parsedSort = abstractQueryAdapter.parseSort("field1 field2 field3 field4");
+        assertThat(parsedSort.size(), is(equalTo(4)));
+        assertThat(parsedSort.get(0).getName(), is(equalTo("field1")));
+        assertThat(parsedSort.get(1).getName(), is(equalTo("field2")));
+        assertThat(parsedSort.get(2).getName(), is(equalTo("field3")));
+        assertThat(parsedSort.get(3).getName(), is(equalTo("field4")));
+    }
+
+    @Test
+    public void simplestAscendingSortTest() {
+        List<Sort> parsedSort = abstractQueryAdapter.parseSort("campo");
+        assertThat(parsedSort.size(), is(equalTo(1)));
+
+        Sort sort1 = parsedSort.get(0);
+        assertThat(sort1.getName(), is(equalTo("campo")));
+        assertThat(sort1.getOrder(), is(equalTo(Order.ASC)));
+    }
+
+    @Test
+    public void ascendingSortTest() {
+        List<Sort> parsedSort = abstractQueryAdapter.parseSort("campo ASC");
+        assertThat(parsedSort.size(), is(equalTo(1)));
+
+        Sort sort1 = parsedSort.get(0);
+        assertThat(sort1.getName(), is(equalTo("campo")));
+        assertThat(sort1.getOrder(), is(equalTo(Order.ASC)));
+    }
+
+    @Test
+    public void descendingSortTest() {
+        List<Sort> parsedSort = abstractQueryAdapter.parseSort("outroCampo DESC");
+        assertThat(parsedSort.size(), is(equalTo(1)));
+
+        Sort sort1 = parsedSort.get(0);
+        assertThat(sort1.getName(), is(equalTo("outroCampo")));
+        assertThat(sort1.getOrder(), is(equalTo(Order.DESC)));
+    }
+
+    @Test
+    public void multipleSortingTest() {
+        List<Sort> parsedSort = abstractQueryAdapter.parseSort("firstCampo secondCampo DESC, thirdCampo ASC, defaultSorting, anotherDefaultSorting");
+        assertThat(parsedSort.size(), is(equalTo(5)));
+        Sort sort1 = parsedSort.get(0);
+        assertThat(sort1.getName(), is(equalTo("firstCampo")));
+        assertThat(sort1.getOrder(), is(equalTo(Order.ASC)));
+
+        Sort sort2 = parsedSort.get(1);
+        assertThat(sort2.getName(), is(equalTo("secondCampo")));
+        assertThat(sort2.getOrder(), is(equalTo(Order.DESC)));
+
+        Sort sort3 = parsedSort.get(2);
+        assertThat(sort3.getName(), is(equalTo("thirdCampo")));
+        assertThat(sort3.getOrder(), is(equalTo(Order.ASC)));
+
+        Sort sort4 = parsedSort.get(3);
+        assertThat(sort4.getName(), is(equalTo("defaultSorting")));
+        assertThat(sort4.getOrder(), is(equalTo(Order.ASC)));
+
+        Sort sort5 = parsedSort.get(4);
+        assertThat(sort5.getName(), is(equalTo("anotherDefaultSorting")));
+        assertThat(sort5.getOrder(), is(equalTo(Order.ASC)));
     }
 
 }

@@ -1,4 +1,4 @@
-package com.vivareal.search.api.model;
+package com.vivareal.search.api.model.query;
 
 import java.util.HashMap;
 import java.util.Map;
