@@ -3,6 +3,8 @@
 .classpath
 .project
 
+.settings/
+
 *.class
 
 # Mobile Tools for Java (J2ME)
@@ -19,3 +21,4 @@ hs_err_pid*
 /classes/
 
 !gradle-wrapper.jar
+/bin/
