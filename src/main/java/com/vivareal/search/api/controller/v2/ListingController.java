@@ -42,6 +42,8 @@ public class ListingController {
     public void stream(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
         SearchResponse response = getSearchResponse(request);
 
+        httpResponse.setContentType("application/x-ndjson");
+
         ResponseStream.create(httpResponse.getOutputStream())
                 .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
     }
