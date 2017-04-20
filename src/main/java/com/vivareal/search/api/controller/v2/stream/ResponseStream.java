@@ -2,7 +2,11 @@ package com.vivareal.search.api.controller.v2.stream;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public final class ResponseStream {
 
@@ -17,15 +21,33 @@ public final class ResponseStream {
         return new ResponseStream(stream);
     }
 
-    public <T> void withIterable(Iterable<T> iterable, Function<T, byte[]> fn) throws IOException {
-        for (T t : iterable) {
-            write(fn.apply(t));
-        }
-        stream.close();
+    public <T> void withIterator(Iterator<T[]> iterator, Function<T, byte[]> byteFn) throws IOException {
+        iterator.forEachRemaining(t -> write(flatArray(t, byteFn)));
     }
 
-    public void write(byte[] bytes) throws IOException {
-        stream.write(bytes);
-        stream.flush();
+    <T> byte[] flatArray(T[] array, Function<T, byte[]> byteFn) {
+        List<byte[]> bytes = new ArrayList<>(array.length);
+
+        Stream.of(array).map(byteFn).forEach(bytes::add);
+
+        int offset = 0, size = bytes.stream().map(t -> t.length).reduce(0, (a, b) -> a + b);
+
+        byte[] flat = new byte[size];
+
+        for (byte[] by : bytes) {
+            System.arraycopy(by, 0, flat, offset, by.length);
+            offset += by.length;
+        }
+
+        return flat;
+    }
+
+    void write(byte[] bytes) {
+        try {
+            stream.write(bytes);
+            stream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
