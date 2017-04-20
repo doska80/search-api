@@ -22,11 +22,12 @@ public class ApiBeans {
     public TransportClient elasticSearchClientBean(
             @Value("${es.hostname}") final String hostname,
             @Value("${es.port}") final Integer port,
-            @Value("${es.cluster.name}") final String clusterName) throws UnknownHostException {
+            @Value("${es.cluster.name}") final String clusterName,
+            @Value("${es.tcp.compress}") final boolean tcpCompress) throws UnknownHostException {
         Settings settings = Settings.builder()
                 .put("client.transport.sniff", false)
+                .put("transport.tcp.compress", tcpCompress)
                 .put("cluster.name", clusterName)
-                .put("transport.tcp.compress", true)
                 .build();
         InetSocketTransportAddress address = new InetSocketTransportAddress(InetAddress.getByName(hostname), port);
         TransportClient esClient = new PreBuiltTransportClient(settings).addTransportAddress(address);
