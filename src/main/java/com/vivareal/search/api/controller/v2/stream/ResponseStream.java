@@ -1,5 +1,8 @@
 package com.vivareal.search.api.controller.v2.stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -9,6 +12,8 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public final class ResponseStream {
+
+    private Logger LOG = LoggerFactory.getLogger(ResponseStream.class);
 
     private OutputStream stream;
 
@@ -21,8 +26,14 @@ public final class ResponseStream {
         return new ResponseStream(stream);
     }
 
-    public <T> void withIterator(Iterator<T[]> iterator, Function<T, byte[]> byteFn) throws IOException {
-        iterator.forEachRemaining(t -> write(flatArray(t, byteFn)));
+    public <T> void withIterator(Iterator<T[]> iterator, Function<T, byte[]> byteFn) {
+        try {
+            while (iterator.hasNext()) {
+                write(flatArray(iterator.next(), byteFn));
+            }
+        } catch (IOException e) {
+            LOG.error("write error on iterator stream", e);
+        }
     }
 
     <T> byte[] flatArray(T[] array, Function<T, byte[]> byteFn) {
@@ -42,12 +53,8 @@ public final class ResponseStream {
         return flat;
     }
 
-    void write(byte[] bytes) {
-        try {
-            stream.write(bytes);
-            stream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    void write(byte[] bytes) throws IOException {
+        stream.write(bytes);
+        stream.flush();
     }
 }
