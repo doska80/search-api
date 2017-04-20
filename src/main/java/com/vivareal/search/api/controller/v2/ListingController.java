@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 @RestController
-@RequestMapping("/v2/listing")
+@RequestMapping({"/v2/listing", "/v2/listings"})
 public class ListingController {
 
     @Autowired
@@ -39,7 +39,7 @@ public class ListingController {
         return searchApiResponse;
     }
 
-    @RequestMapping("s") // Plural - listingS :P
+    @RequestMapping
     public SearchApiResponse getListings(SearchApiRequest request) {
 
         SearchResponse searchResponse = getSearchResponse(request);
@@ -51,7 +51,7 @@ public class ListingController {
         return searchApiResponse;
     }
 
-    @RequestMapping("s/stream")
+    @RequestMapping("/stream")
     public void stream(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
         SearchResponse response = getSearchResponse(request);
 
