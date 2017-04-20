@@ -4,24 +4,25 @@ import java.util.List;
 
 public final class SearchApiRequest {
 
-    private List<String> fields;
-    private List<String> filters;
+    private List<String> field;
+    private List<String> filter;
     private String q;
+    private List<String> sort;
 
-    public List<String> getFields() {
-        return fields;
+    public List<String> getField() {
+        return field;
     }
 
-    public void setFields(List<String> fields) {
-        this.fields = fields;
+    public void setField(List<String> fields) {
+        this.field = fields;
     }
 
-    public List<String> getFilters() {
-        return filters;
+    public List<String> getFilter() {
+        return filter;
     }
 
-    public void setFilters(List<String> filters) {
-        this.filters = filters;
+    public void setFilter(List<String> filters) {
+        this.filter = filters;
     }
 
     public String getQ() {
@@ -31,4 +32,13 @@ public final class SearchApiRequest {
     public void setQ(String q) {
         if (q != null) this.q = q.trim();
     }
+
+    public List<String> getSort() {
+        return sort;
+    }
+
+    public void setSort(List<String> sort) {
+        this.sort = sort;
+    }
+
 }

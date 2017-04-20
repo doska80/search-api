@@ -27,7 +27,7 @@ public class AbstractQueryAdapterTest {
 
     @Test
     public void simplestQueryPossibleTest() {
-        List<Field> parsedQuery = abstractQueryAdapter.parseQuery("campo:valor");
+        List<Field> parsedQuery = abstractQueryAdapter.parseFilter("campo:valor");
         assertThat(parsedQuery.size(), is(equalTo(1)));
 
         Field field = parsedQuery.get(0);
@@ -38,7 +38,7 @@ public class AbstractQueryAdapterTest {
 
     @Test
     public void queryWithTwoFieldsPossibleTest() {
-        List<Field> parsedQuery = abstractQueryAdapter.parseQuery("campo:valor campo2 EQ valor2");
+        List<Field> parsedQuery = abstractQueryAdapter.parseFilter("campo:valor campo2 EQ valor2");
         assertThat(parsedQuery.size(), is(equalTo(2)));
 
         Field field1 = parsedQuery.get(0);
@@ -54,7 +54,7 @@ public class AbstractQueryAdapterTest {
 
     @Test
     public void queryWithThreeFieldsPossibleTest() {
-        List<Field> parsedQuery = abstractQueryAdapter.parseQuery("campo:valor campo2 GTE valor2 campo3:valor3");
+        List<Field> parsedQuery = abstractQueryAdapter.parseFilter("campo:valor campo2 GTE valor2 campo3:valor3");
         assertThat(parsedQuery.size(), is(equalTo(3)));
 
         Field field1 = parsedQuery.get(0);
@@ -75,14 +75,14 @@ public class AbstractQueryAdapterTest {
 
     @Test
     public void avoidCreatingUnneededObjects() {
-        List<Field> invalidQueryOne = abstractQueryAdapter.parseQuery("invalid query 1");
-        List<Field> invalidQueryTwo = abstractQueryAdapter.parseQuery("another unparseable query");
+        List<Field> invalidQueryOne = abstractQueryAdapter.parseFilter("invalid query 1");
+        List<Field> invalidQueryTwo = abstractQueryAdapter.parseFilter("another unparseable query");
         assertThat(invalidQueryOne, is(invalidQueryTwo));
     }
 
     @Test(expected = UnsupportedOperationException.class)
     public void queryShouldBeImmutable() {
-        List<Field> parsedQuery = abstractQueryAdapter.parseQuery("campo:valor campo2:valor2");
+        List<Field> parsedQuery = abstractQueryAdapter.parseFilter("campo:valor campo2:valor2");
         parsedQuery.add(new Field("campo3", Expression.GREATER, "valor3"));
     }
 

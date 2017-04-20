@@ -19,7 +19,7 @@ public final class SearchApiResponse {
         return listings;
     }
 
-    public void addList(Object source) {
+    public void addListing(Object source) {
         this.listings.add(source);
     }
 }

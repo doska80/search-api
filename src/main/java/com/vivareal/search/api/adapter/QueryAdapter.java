@@ -1,6 +1,7 @@
 package com.vivareal.search.api.adapter;
 
 import com.google.common.collect.ImmutableList;
+import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.Expression;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.Sort;
@@ -10,15 +11,22 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-abstract class AbstractQueryAdapter {
+abstract class QueryAdapter<Q,F,S> {
 
     protected static final ImmutableList<Field> EMPTY_FIELD_LIST = ImmutableList.of();
     protected static final ImmutableList<Sort> EMPTY_SORT_LIST = ImmutableList.of();
     protected static final Pattern FIELD_VALUES = Pattern.compile("\\s*(\\w+)\\s*(" + Expression.getPattern() + ")\\s*(?:\")?(.*?(?=\"?\\s+\\w+\\s*(" + Expression.getPattern() + ")|(?:\"?)$))");
     protected static final Pattern SORT_VALUES = Pattern.compile("\\s*(\\w+)(\\s+(ASC|DESC))?\\s*(,)?");
 
-    public List<Field> parseQuery(final String query) {
-        Matcher fieldMatcher = FIELD_VALUES.matcher(query);
+
+    public abstract Object getById(String collection, String id);
+    public abstract Q getQuery(SearchApiRequest request);
+
+    protected abstract F getFilter(List<String> filter);
+    protected abstract S getSort(List<String> sort);
+
+    protected List<Field> parseFilter(final String filter) {
+        Matcher fieldMatcher = FIELD_VALUES.matcher(filter);
 
         boolean found = fieldMatcher.find();
         if (!found)
@@ -32,7 +40,7 @@ abstract class AbstractQueryAdapter {
         return fieldListBuilder.build();
     }
 
-    public List<Sort> parseSort(final String sort) {
+    protected List<Sort> parseSort(final String sort) {
         Matcher sortMatcher = SORT_VALUES.matcher(sort);
 
         boolean found = sortMatcher.find();
