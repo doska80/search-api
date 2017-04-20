@@ -13,16 +13,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends QueryAdapter<ActionRequestBuilder, QueryBuilder, Void> {
+public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<ActionRequestBuilder, QueryBuilder, Void> {
 
     private final TransportClient transportClient;
 

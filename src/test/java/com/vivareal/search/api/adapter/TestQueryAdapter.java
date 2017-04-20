@@ -4,7 +4,7 @@ import com.vivareal.search.api.model.SearchApiRequest;
 
 import java.util.List;
 
-public class TestQueryAdapter extends QueryAdapter<Void, Void, Void> {
+public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
 
     @Override
     public Void getQuery(SearchApiRequest request) {
