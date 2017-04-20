@@ -26,6 +26,7 @@ public class ApiBeans {
         Settings settings = Settings.builder()
                 .put("client.transport.sniff", false)
                 .put("cluster.name", clusterName)
+                .put("transport.tcp.compress", true)
                 .build();
         InetSocketTransportAddress address = new InetSocketTransportAddress(InetAddress.getByName(hostname), port);
         TransportClient esClient = new PreBuiltTransportClient(settings).addTransportAddress(address);
