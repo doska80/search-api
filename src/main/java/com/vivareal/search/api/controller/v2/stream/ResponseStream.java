@@ -12,7 +12,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * Using NDJSON Format: http://specs.okfnlabs.org/ndjson/
+ * Using NDJSON Format: http://ndjson.org/
  */
 public final class ResponseStream {
 
