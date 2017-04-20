@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+/**
+ * Using NDJSON Format: http://specs.okfnlabs.org/ndjson/
+ */
 public final class ResponseStream {
 
     private Logger LOG = LoggerFactory.getLogger(ResponseStream.class);
