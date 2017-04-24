@@ -27,7 +27,7 @@ public class ListingService {
     }
 
     public List<Object> query(SearchApiRequest request) {
-        List<Object> response = this.queryAdapter.getQueryMamud(request);
+        List<Object> response = this.queryAdapter.getQueryMarcao(request);
         return response;
     }
 }
