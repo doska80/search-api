@@ -7,7 +7,7 @@ import java.util.List;
 public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
 
     @Override
-    public Object getById(String collection, String id) {
+    public Object getById(SearchApiRequest request, String id) {
         return null;
     }
 
