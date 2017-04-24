@@ -8,6 +8,7 @@ import com.vivareal.search.api.model.query.Sort;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 
 import org.elasticsearch.search.SearchHit;
@@ -59,6 +60,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     public List<Map<String, Object>> getQueryMarcao(SearchApiRequest request) {
         List<Map<String, Object>> response = new ArrayList<>();
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
+
         request.getFilter().forEach(filter -> {
             if (filter.size() == 1) {
                 Field orFilter = filter.get(0);
@@ -76,6 +78,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
         return response;
     }
 
+    @Override
     public List<SearchHit> getQueryMamud(SearchApiRequest request) {
         BoolQueryBuilder boolQuery = new BoolQueryBuilder();
         QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
@@ -86,7 +89,8 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
                 .setScroll(new TimeValue(60000));
         searchBuilder.setQuery(boolQuery);
 
-        return null;
+        SearchResponse searchResponse = searchBuilder.get();
+        return Arrays.asList(searchResponse.getHits().getHits());
     }
 
     @Override

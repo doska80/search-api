@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping({"/v2/listing", "/v2/listings"})
@@ -41,41 +40,27 @@ public class ListingController {
 
     @RequestMapping
     public SearchApiResponse getListings(SearchApiRequest request) {
-
-        SearchApiResponse response = listingService.query(request);
-
-        //Stream.of(searchResponse.getHits().getHits()).forEach(doc -> searchApiResponse.addListing(doc.getSource()));
-
+        SearchApiResponse response = new SearchApiResponse();
+        response.addListing(listingService.query(request));
         return response;
-    }
-
-    @RequestMapping("/test")
-    public SearchApiResponse getListingsFromService(SearchApiRequest request) {
-        SearchApiResponse searchApiResponse = new SearchApiResponse();
-        searchApiResponse.addListings(this.listingService.getListings(request));
-        return searchApiResponse;
     }
 
     @RequestMapping("/stream")
     public void stream(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
-        //SearchResponse response = getSearchResponse(request);
+        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
+        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
+        boolQuery.must().add(queryString);
 
-//        httpResponse.setContentType("application/x-ndjson");
-//
-//        ResponseStream.create(httpResponse.getOutputStream())
-//                .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
+        SearchRequestBuilder core = client.prepareSearch("inmuebles")
+                .setSize(100) // TODO we must configure timeouts
+                .setScroll(new TimeValue(60000));
+        core.setQuery(boolQuery);
+
+        SearchResponse response = core.get();
+
+        httpResponse.setContentType("application/x-ndjson");
+
+        ResponseStream.create(httpResponse.getOutputStream())
+                .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
     }
-
-//    private SearchResponse getSearchResponse(SearchApiRequest request) {
-//        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-//        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
-//        boolQuery.must().add(queryString);
-//
-//        SearchRequestBuilder core = client.prepareSearch("inmuebles")
-//                .setSize(100) // TODO we must configure timeouts
-//                .setScroll(new TimeValue(60000));
-//        core.setQuery(boolQuery);
-//
-//        return core.get();
-//    }
 }

@@ -21,14 +21,13 @@ public class ListingService {
         return (Map<String, Object>) this.queryAdapter.getById(request, id);
     }
 
-    public SearchApiResponse query(SearchApiRequest request) {
-        queryAdapter.getQueryMamud(request);
-
-        return null;
-    }
-
     public List<Object> getListings(SearchApiRequest request) {
         List<Object> response = this.queryAdapter.getQueryMarcao(request);
+        return response;
+    }
+
+    public List<Object> query(SearchApiRequest request) {
+        List<Object> response = this.queryAdapter.getQueryMamud(request);
         return response;
     }
 }
