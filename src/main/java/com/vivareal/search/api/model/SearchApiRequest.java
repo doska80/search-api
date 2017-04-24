@@ -13,7 +13,7 @@ import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseSort;
 public final class SearchApiRequest {
 
     private List<String> field = Collections.emptyList();
-    private List<Field> filter = Collections.emptyList();
+    private List<List<Field>> filter = Collections.emptyList();
     private List<Sort> sort = Collections.emptyList();
 
     private String q;
@@ -28,14 +28,14 @@ public final class SearchApiRequest {
         this.field = fields;
     }
 
-    public List<Field> getFilter() {
+    public List<List<Field>> getFilter() {
         return filter;
     }
 
     public void setFilter(List<String> filters) {
         this.filter = new ArrayList();
         filters.forEach(filter -> {
-            this.filter.addAll(parseFilter(filter));
+            this.filter.add(parseFilter(filter));
         });
     }
 

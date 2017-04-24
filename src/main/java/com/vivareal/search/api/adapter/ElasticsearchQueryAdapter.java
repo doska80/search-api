@@ -14,15 +14,15 @@ import org.elasticsearch.search.SearchHit;
 
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -56,12 +56,24 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     }
 
     @Override
-    public List<SearchHit> getQueryMarcao(SearchApiRequest request) {
+    public List<Map<String, Object>> getQueryMarcao(SearchApiRequest request) {
+        List<Map<String, Object>> response = new ArrayList<>();
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
         request.getFilter().forEach(filter -> {
+            if (filter.size() == 1) {
+                Field orFilter = filter.get(0);
+
+            } else  {
+                filter.forEach(andFilter -> {
+
+                });
+            }
             System.out.println(filter);
         });
-        return Arrays.asList(searchBuilder.execute().actionGet().getHits().getHits()); // FIXME should be async if possible
+        searchBuilder.execute().actionGet().getHits().forEach(hit -> {  // FIXME should be async if possible
+            response.add(hit.getSource()); // FIXME avoid iterating twice!
+        });
+        return response;
     }
 
     public List<SearchHit> getQueryMamud(SearchApiRequest request) {

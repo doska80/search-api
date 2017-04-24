@@ -3,6 +3,7 @@ package com.vivareal.search.api.adapter;
 import com.vivareal.search.api.model.SearchApiRequest;
 
 import java.util.List;
+import java.util.Map;
 
 public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
 
@@ -12,7 +13,7 @@ public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
     }
 
     @Override
-    public List<Void> getQueryMarcao(SearchApiRequest request) {
+    public List<Map<String, Object>> getQueryMarcao(SearchApiRequest request) {
         return null;
     }
 
