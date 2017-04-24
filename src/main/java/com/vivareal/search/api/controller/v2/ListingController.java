@@ -40,9 +40,7 @@ public class ListingController {
 
     @RequestMapping
     public SearchApiResponse getListings(SearchApiRequest request) {
-        SearchApiResponse response = new SearchApiResponse();
-        response.addListing(listingService.query(request));
-        return response;
+        return new SearchApiResponse(listingService.query(request));
     }
 
     @RequestMapping("/stream")
