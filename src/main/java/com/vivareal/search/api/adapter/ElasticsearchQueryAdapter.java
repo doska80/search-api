@@ -61,17 +61,19 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
         List<Map<String, Object>> response = new ArrayList<>();
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
 
-        request.getFilter().forEach(filter -> {
-            if (filter.size() == 1) {
-                Field orFilter = filter.get(0);
+        if (request.getFilter().size() > 0) {
+            request.getFilter().forEach(filter -> {
+                if (filter.size() == 1) {
+                    Field orFilter = filter.get(0);
 
-            } else  {
-                filter.forEach(andFilter -> {
+                } else {
+                    filter.forEach(andFilter -> {
 
-                });
-            }
-            System.out.println(filter);
-        });
+                    });
+                }
+                System.out.println(filter);
+            });
+        }
         searchBuilder.execute().actionGet().getHits().forEach(hit -> {  // FIXME should be async if possible
             response.add(hit.getSource()); // FIXME avoid iterating twice!
         });
