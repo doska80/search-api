@@ -22,4 +22,8 @@ public final class SearchApiResponse {
     public void addListing(Object source) {
         this.listings.add(source);
     }
+
+    public void addListings(List<Object> listings) {
+        this.listings.addAll(listings);
+    }
 }

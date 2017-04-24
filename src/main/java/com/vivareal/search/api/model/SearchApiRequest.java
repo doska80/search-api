@@ -1,13 +1,14 @@
 package com.vivareal.search.api.model;
 
+import java.util.Collections;
 import java.util.List;
 
 public final class SearchApiRequest {
 
-    private List<String> field;
-    private List<String> filter;
+    private List<String> field = Collections.emptyList();
+    private List<String> filter = Collections.emptyList();
     private String q;
-    private List<String> sort;
+    private List<String> sort = Collections.emptyList();
 
     public List<String> getField() {
         return field;

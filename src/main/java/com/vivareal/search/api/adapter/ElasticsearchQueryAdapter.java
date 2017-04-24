@@ -2,16 +2,18 @@ package com.vivareal.search.api.adapter;
 
 
 import com.vivareal.search.api.model.SearchApiRequest;
-import org.elasticsearch.action.ActionRequestBuilder;
+import com.vivareal.search.api.model.query.Field;
+import com.vivareal.search.api.model.query.Sort;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -20,7 +22,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<ActionRequestBuilder, QueryBuilder, Void> {
+public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,List<Field>,List<Sort>> {
 
     private final TransportClient transportClient;
 
@@ -42,21 +44,22 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<ActionReques
     }
 
     @Override
-    public ActionRequestBuilder getQuery(SearchApiRequest request) {
+    public List<SearchHit> getQuery(SearchApiRequest request) {
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
         request.getFilter().forEach(filter -> {
-            System.out.println(filter);
+            List<Field> x = this.parseFilter(filter);
+            System.out.println(x);
         });
-        return searchBuilder;
+        return Arrays.asList(searchBuilder.execute().actionGet().getHits().getHits()); // FIXME should be async if possible
     }
 
     @Override
-    protected QueryBuilder getFilter(List<String> filter) {
+    protected List<Field> getFilter(List<String> filter) {
         return null;
     }
 
     @Override
-    protected Void getSort(List<String> sort) {
+    protected List<Sort> getSort(List<String> sort) {
         return null;
     }
 

@@ -51,6 +51,13 @@ public class ListingController {
         return searchApiResponse;
     }
 
+    @RequestMapping("/test")
+    public SearchApiResponse getListingsFromService(SearchApiRequest request) {
+        SearchApiResponse searchApiResponse = new SearchApiResponse();
+        searchApiResponse.addListings(this.listingService.getListings(request));
+        return searchApiResponse;
+    }
+
     @RequestMapping("/stream")
     public void stream(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
         SearchResponse response = getSearchResponse(request);
