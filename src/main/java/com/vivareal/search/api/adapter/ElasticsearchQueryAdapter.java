@@ -22,6 +22,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -62,10 +63,12 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
 
         if (request.getFilter().size() > 0) {
+            BoolQueryBuilder filterBuilder = new BoolQueryBuilder();
             request.getFilter().forEach(filter -> {
                 if (filter.size() == 1) {
                     Field orFilter = filter.get(0);
-
+                    QueryStringQueryBuilder filterQuery = new QueryStringQueryBuilder(orFilter.getName() + ":" + orFilter.getValue());
+                    filterBuilder.filter().add(filterQuery);
                 } else {
                     filter.forEach(andFilter -> {
 
