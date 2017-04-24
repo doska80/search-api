@@ -1,13 +1,19 @@
 package com.vivareal.search.api.model;
 
+import com.vivareal.search.api.model.query.Field;
+import com.vivareal.search.api.model.query.Sort;
+
 import java.util.Collections;
 import java.util.List;
+
+import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseFilter;
+import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseSort;
 
 public final class SearchApiRequest {
 
     private List<String> field = Collections.emptyList();
-    private List<String> filter = Collections.emptyList();
-    private List<String> sort = Collections.emptyList();
+    private List<Field> filter = Collections.emptyList();
+    private List<Sort> sort = Collections.emptyList();
 
     private String q;
     private String from;
@@ -21,12 +27,14 @@ public final class SearchApiRequest {
         this.field = fields;
     }
 
-    public List<String> getFilter() {
+    public List<Field> getFilter() {
         return filter;
     }
 
     public void setFilter(List<String> filters) {
-        this.filter = filters;
+        filters.forEach(filter -> {
+            this.filter.addAll(parseFilter(filter));
+        });
     }
 
     public String getQ() {
@@ -37,12 +45,14 @@ public final class SearchApiRequest {
         if (q != null) this.q = q.trim();
     }
 
-    public List<String> getSort() {
+    public List<Sort> getSort() {
         return sort;
     }
 
-    public void setSort(List<String> sort) {
-        this.sort = sort;
+    public void setSort(List<String> sorts) {
+        sorts.forEach(sort -> {
+            this.sort.addAll(parseSort(sort));
+        });
     }
 
     public String getFrom() {

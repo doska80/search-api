@@ -22,7 +22,7 @@ public class ListingService {
     }
 
     public SearchApiResponse query(SearchApiRequest request) {
-        queryAdapter.getQuery(request);
+        queryAdapter.getQueryMamud(request);
 
         return null;
     }

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-abstract class AbstractQueryAdapter<Q,F,S> implements QueryAdapter<Q,F,S> {
+public abstract class AbstractQueryAdapter<Q,F,S> implements QueryAdapter<Q,F,S> {
 
     protected static final ImmutableList<Field> EMPTY_FIELD_LIST = ImmutableList.of();
     protected static final ImmutableList<Sort> EMPTY_SORT_LIST = ImmutableList.of();
@@ -20,7 +20,7 @@ abstract class AbstractQueryAdapter<Q,F,S> implements QueryAdapter<Q,F,S> {
     protected abstract F getFilter(List<String> filter);
     protected abstract S getSort(List<String> sort);
 
-    protected List<Field> parseFilter(final String filter) {
+    public static final List<Field> parseFilter(final String filter) {
         Matcher fieldMatcher = FIELD_VALUES.matcher(filter);
 
         boolean found = fieldMatcher.find();
@@ -35,7 +35,7 @@ abstract class AbstractQueryAdapter<Q,F,S> implements QueryAdapter<Q,F,S> {
         return fieldListBuilder.build();
     }
 
-    protected List<Sort> parseSort(final String sort) {
+    public static final List<Sort> parseSort(final String sort) {
         Matcher sortMatcher = SORT_VALUES.matcher(sort);
 
         boolean found = sortMatcher.find();

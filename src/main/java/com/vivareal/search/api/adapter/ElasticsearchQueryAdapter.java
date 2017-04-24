@@ -59,8 +59,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     public List<SearchHit> getQueryMarcao(SearchApiRequest request) {
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
         request.getFilter().forEach(filter -> {
-            List<Field> x = this.parseFilter(filter);
-            System.out.println(x);
+            System.out.println(filter);
         });
         return Arrays.asList(searchBuilder.execute().actionGet().getHits().getHits()); // FIXME should be async if possible
     }
