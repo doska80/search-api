@@ -44,7 +44,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     }
 
     @Override
-    public List<SearchHit> getQuery(SearchApiRequest request) {
+    public List<SearchHit> getQueryMarcao(SearchApiRequest request) {
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
         request.getFilter().forEach(filter -> {
             List<Field> x = this.parseFilter(filter);
