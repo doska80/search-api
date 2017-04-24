@@ -35,20 +35,18 @@ public class ListingController {
     @GetMapping("/{id:[a-z0-9\\-]+}")
     public SearchApiResponse getListingById(SearchApiRequest request, @PathVariable String id) { // FIXME accept request for non-filter params
         SearchApiResponse searchApiResponse = new SearchApiResponse();
-        searchApiResponse.addListing(listingService.getListingById(id));
+        searchApiResponse.addListing(listingService.getListingById(request, id));
         return searchApiResponse;
     }
 
     @RequestMapping
     public SearchApiResponse getListings(SearchApiRequest request) {
 
-        SearchResponse searchResponse = getSearchResponse(request);
+        SearchApiResponse response = listingService.query(request);
 
-        SearchApiResponse searchApiResponse = new SearchApiResponse();
+        //Stream.of(searchResponse.getHits().getHits()).forEach(doc -> searchApiResponse.addListing(doc.getSource()));
 
-        Stream.of(searchResponse.getHits().getHits()).forEach(doc -> searchApiResponse.addListing(doc.getSource()));
-
-        return searchApiResponse;
+        return response;
     }
 
     @RequestMapping("/test")
@@ -60,24 +58,24 @@ public class ListingController {
 
     @RequestMapping("/stream")
     public void stream(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
-        SearchResponse response = getSearchResponse(request);
+        //SearchResponse response = getSearchResponse(request);
 
-        httpResponse.setContentType("application/x-ndjson");
-
-        ResponseStream.create(httpResponse.getOutputStream())
-                .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
+//        httpResponse.setContentType("application/x-ndjson");
+//
+//        ResponseStream.create(httpResponse.getOutputStream())
+//                .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
     }
 
-    private SearchResponse getSearchResponse(SearchApiRequest request) {
-        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
-        boolQuery.must().add(queryString);
-
-        SearchRequestBuilder core = client.prepareSearch("inmuebles")
-                .setSize(100) // TODO we must configure timeouts
-                .setScroll(new TimeValue(60000));
-        core.setQuery(boolQuery);
-
-        return core.get();
-    }
+//    private SearchResponse getSearchResponse(SearchApiRequest request) {
+//        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
+//        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
+//        boolQuery.must().add(queryString);
+//
+//        SearchRequestBuilder core = client.prepareSearch("inmuebles")
+//                .setSize(100) // TODO we must configure timeouts
+//                .setScroll(new TimeValue(60000));
+//        core.setQuery(boolQuery);
+//
+//        return core.get();
+//    }
 }

@@ -7,8 +7,11 @@ public final class SearchApiRequest {
 
     private List<String> field = Collections.emptyList();
     private List<String> filter = Collections.emptyList();
-    private String q;
     private List<String> sort = Collections.emptyList();
+
+    private String q;
+    private String from;
+    private String size;
 
     public List<String> getField() {
         return field;
@@ -42,4 +45,19 @@ public final class SearchApiRequest {
         this.sort = sort;
     }
 
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public String getSize() {
+        return size;
+    }
+
+    public void setSize(String size) {
+        this.size = size;
+    }
 }

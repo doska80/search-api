@@ -7,6 +7,10 @@ import java.util.List;
 public final class SearchApiResponse {
     private final List<Object> listings;
 
+    // qtime
+    // rows
+    //
+
     public SearchApiResponse() {
         this(new ArrayList<>());
     }

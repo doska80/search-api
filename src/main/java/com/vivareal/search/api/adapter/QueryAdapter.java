@@ -6,7 +6,8 @@ import java.util.List;
 
 public interface QueryAdapter<Q, F, S> {
 
-    Object getById(String collection, String id);
+    Object getById(SearchApiRequest request, String id);
     List<Q> getQueryMarcao(SearchApiRequest request);
+	List<Q> getQueryMamud(SearchApiRequest request);
 
 }
