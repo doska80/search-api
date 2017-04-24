@@ -3,6 +3,7 @@ package com.vivareal.search.api.model;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.Sort;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +33,7 @@ public final class SearchApiRequest {
     }
 
     public void setFilter(List<String> filters) {
+        this.filter = new ArrayList();
         filters.forEach(filter -> {
             this.filter.addAll(parseFilter(filter));
         });
@@ -50,6 +52,7 @@ public final class SearchApiRequest {
     }
 
     public void setSort(List<String> sorts) {
+        this.sort = new ArrayList();
         sorts.forEach(sort -> {
             this.sort.addAll(parseSort(sort));
         });
