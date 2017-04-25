@@ -1,6 +1,8 @@
 package com.vivareal.search.api.controller.v2;
 
+import com.vivareal.search.api.SearchAPI;
 import com.vivareal.search.api.controller.v2.stream.ResponseStream;
+import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
@@ -44,23 +46,23 @@ public class ListingController {
         return new SearchApiResponse(listingService.query(request));
     }
 
-//
-//    @RequestMapping("/stream-spring")
-//    public StreamingResponseBody streamSpring(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
-//        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-//        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
-//        boolQuery.must().add(queryString);
-//
-//        SearchRequestBuilder core = client.prepareSearch("inmuebles")
-//                .setSize(100) // TODO we must configure timeouts
-//                .setScroll(new TimeValue(60000));
-//        core.setQuery(boolQuery);
-//
-//        SearchResponse response = core.get();
-//
-//        httpResponse.setContentType("application/x-ndjson");
-//
-//        return out -> ResponseStream.create(out)
-//                .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
-//    }
+
+    @RequestMapping("/stream-spring")
+    public StreamingResponseBody streamSpring(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
+        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
+        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
+        boolQuery.must().add(queryString);
+
+        SearchRequestBuilder core = client.prepareSearch(SearchApiIndex.of(request).getIndex())
+                .setSize(100) // TODO we must configure timeouts
+                .setScroll(new TimeValue(60000));
+        core.setQuery(boolQuery);
+
+        SearchResponse response = core.get();
+
+        httpResponse.setContentType("application/x-ndjson");
+
+        return out -> ResponseStream.create(out)
+                .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
+    }
 }
