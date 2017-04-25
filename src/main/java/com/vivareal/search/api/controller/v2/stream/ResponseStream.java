@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -42,7 +43,7 @@ public final class ResponseStream {
     <T> byte[] flatArray(T[] array, Function<T, byte[]> byteFn) {
         List<byte[]> bytes = new ArrayList<>(array.length);
 
-        Stream.of(array).map(byteFn).forEach(bytes::add);
+        Stream.of(array).map(byteFn.andThen(this::appendNewLine)).forEach(bytes::add);
 
         int offset = 0, size = bytes.stream().map(t -> t.length).reduce(0, (a, b) -> a + b);
 
@@ -54,6 +55,12 @@ public final class ResponseStream {
         }
 
         return flat;
+    }
+
+    <T> byte[] appendNewLine(byte[] bytes) {
+        byte[] newLineArray = Arrays.copyOfRange(bytes, 0, bytes.length + 1);
+        newLineArray[bytes.length] = '\n';
+        return newLineArray;
     }
 
     void write(byte[] bytes) throws IOException {
