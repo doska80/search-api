@@ -23,6 +23,9 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
 
 @RestController
 @RequestMapping({"/v2/listing", "/v2/listings"})
@@ -54,8 +57,9 @@ public class ListingController {
         boolQuery.must().add(queryString);
 
         SearchRequestBuilder core = client.prepareSearch(SearchApiIndex.of(request).getIndex())
-                .setSize(100) // TODO we must configure timeouts
-                .setScroll(new TimeValue(60000));
+                .setSize(ofNullable(request.getSize()).map(Integer::parseInt).orElse(10))
+                .setFrom(ofNullable(request.getFrom()).map(Integer::parseInt).orElse(0))
+                .setScroll(new TimeValue(60000)); // TODO we must configure timeouts
         core.setQuery(boolQuery);
 
         SearchResponse response = core.get();
