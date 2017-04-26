@@ -1,6 +1,8 @@
 package com.vivareal.search.api.controller.v2;
 
+import com.vivareal.search.api.SearchAPI;
 import com.vivareal.search.api.controller.v2.stream.ResponseStream;
+import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
@@ -17,9 +19,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
+
+import static java.util.Optional.ofNullable;
 
 @RestController
 @RequestMapping({"/v2/listing", "/v2/listings"})
@@ -43,22 +49,24 @@ public class ListingController {
         return new SearchApiResponse(listingService.query(request));
     }
 
-    @RequestMapping("/stream")
-    public void stream(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
+
+    @RequestMapping("/stream-spring")
+    public StreamingResponseBody streamSpring(SearchApiRequest request, HttpServletResponse httpResponse) throws IOException {
         BoolQueryBuilder boolQuery = new BoolQueryBuilder();
         QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
         boolQuery.must().add(queryString);
 
-        SearchRequestBuilder core = client.prepareSearch("inmuebles")
-                .setSize(100) // TODO we must configure timeouts
-                .setScroll(new TimeValue(60000));
+        SearchRequestBuilder core = client.prepareSearch(SearchApiIndex.of(request).getIndex())
+                .setSize(ofNullable(request.getSize()).map(Integer::parseInt).orElse(10))
+                .setFrom(ofNullable(request.getFrom()).map(Integer::parseInt).orElse(0))
+                .setScroll(new TimeValue(60000)); // TODO we must configure timeouts
         core.setQuery(boolQuery);
 
         SearchResponse response = core.get();
 
         httpResponse.setContentType("application/x-ndjson");
 
-        ResponseStream.create(httpResponse.getOutputStream())
+        return out -> ResponseStream.create(out)
                 .withIterator(new SearchApiIterator<>(client, response), SearchHit::source);
     }
 }

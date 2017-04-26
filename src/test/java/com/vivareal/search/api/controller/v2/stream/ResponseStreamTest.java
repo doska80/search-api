@@ -30,6 +30,21 @@ public class ResponseStreamTest {
     }
 
     @Test
+    public void shouldAppendNewLine() {
+        OutputStream mockStream = mock(OutputStream.class);
+
+
+        byte[] array = new byte[]{1, 2, 3};
+
+        byte[] bytesWithNewLine = ResponseStream.create(mockStream)
+                .appendNewLine(array);
+
+        assertEquals(3, array.length);
+        assertEquals(4, bytesWithNewLine.length);
+        assertEquals('\n', bytesWithNewLine[bytesWithNewLine.length - 1]);
+    }
+
+    @Test
     public void shouldCreateFlatedByteArray() {
         OutputStream mockStream = mock(OutputStream.class);
 
@@ -53,10 +68,10 @@ public class ResponseStreamTest {
 
         byte[] result = ResponseStream.create(mockStream).flatArray(data, ByteArray::getArray);
 
-        assertEquals(12, result.length);
+        assertEquals(15, result.length);
 
         assertTrue(Arrays.equals(data[0].array, new byte[]{result[0], result[1], result[2]}));
-        assertTrue(Arrays.equals(data[1].array, new byte[]{result[3], result[4], result[5], result[6]}));
-        assertTrue(Arrays.equals(data[2].array, new byte[]{result[7], result[8], result[9], result[10], result[11]}));
+        assertTrue(Arrays.equals(data[1].array, new byte[]{result[4], result[5], result[6], result[7]}));
+        assertTrue(Arrays.equals(data[2].array, new byte[]{result[9], result[10], result[11], result[12], result[13]}));
     }
 }
