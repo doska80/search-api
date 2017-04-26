@@ -64,6 +64,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
 
     compile 'com.google.guava:guava:21.0'
+    compile 'org.jparsec:jparsec:3.0'
 
     // compile 'org.elasticsearch.client:rest:5.1.2'
     compile 'org.elasticsearch.client:transport:5.3.0'
