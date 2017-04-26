@@ -9,8 +9,11 @@ import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
 
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 
 import org.elasticsearch.common.unit.TimeValue;
@@ -61,22 +64,25 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     public List<Map<String, Object>> getQueryMarcao(SearchApiRequest request) {
         List<Map<String, Object>> response = new ArrayList<>();
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
+        searchBuilder.setPreference("_replica_first"); // <3
 
         if (request.getFilter().size() > 0) {
-            BoolQueryBuilder filterBuilder = new BoolQueryBuilder();
+            BoolQueryBuilder filterQuery = new BoolQueryBuilder();
             request.getFilter().forEach(filter -> {
                 if (filter.size() == 1) {
                     Field orFilter = filter.get(0);
-                    QueryStringQueryBuilder filterQuery = new QueryStringQueryBuilder(orFilter.getName() + ":" + orFilter.getValue());
-                    filterBuilder.filter().add(filterQuery);
+                    filterQuery.should().add(QueryBuilders.matchQuery(orFilter.getName(), orFilter.getValue()));
                 } else {
+                    BoolQueryBuilder andFilterQuery = new BoolQueryBuilder();
                     filter.forEach(andFilter -> {
-
+                        andFilterQuery.must().add(QueryBuilders.matchQuery(andFilter.getName(), andFilter.getValue()));
                     });
+                    filterQuery.should().add(andFilterQuery);
                 }
-                System.out.println(filter);
             });
+            searchBuilder.setQuery(filterQuery);
         }
+        System.out.println(searchBuilder);
         searchBuilder.execute().actionGet().getHits().forEach(hit -> {  // FIXME should be async if possible
             response.add(hit.getSource()); // FIXME avoid iterating twice!
         });
