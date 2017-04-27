@@ -32,11 +32,11 @@ public class FilterParser {
 
     public static Parser<FieldNode> parser = fieldNodeParser.from(TOKENIZER, Scanners.WHITESPACES);
 
-    static final BinaryOperator<String> EQUAL = (a, b) -> new Kct(a, b);
-
-    static final Parser<String> kctParser = new OperatorTable<String>()
-            .infixl(isChar('=').retn(EQUAL), 10)
-            .build(TOKENIZER.cast());
+//    static final BinaryOperator<Kct> EQUAL = (a, b) -> new Kct(a, b);
+//
+//    static final Parser<String> kctParser = new OperatorTable<String>()
+//            .infixl(isChar('=').retn(EQUAL), 10)
+//            .build(TOKENIZER.cast());
 
     private static class Kct {
         private final Object a;
@@ -69,7 +69,7 @@ public class FilterParser {
 //        String FUCKING_TEST = "bla EQ 'ble AND bli' AND foo='abc' AND bar<>'def' OR (biz IN ['a', 'b', 'c'] AND NOT baz = 'foo')";
         String SMALL_FUCKING_TEST = "\"bla\"=\"bleeeeeeeee\"";
 //        Kct response =
-        System.out.println(kctParser.parse(SMALL_FUCKING_TEST));
+//        System.out.println(kctParser.parse(SMALL_FUCKING_TEST));
 //        System.out.println(response);
 //        List<?> tokenizerResult = Parsers.or(TOKENIZER, Scanners.WHITESPACES.cast()).many().parse(FUCKING_TEST);
 //        tokenizerResult.forEach(x -> {

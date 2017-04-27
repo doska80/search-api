@@ -1,8 +1,8 @@
 package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.SearchApiRequest;
-import org.elasticsearch.search.SearchHit;
 
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -19,9 +19,7 @@ public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
     }
 
     @Override
-    public List<Void> getQueryMamud(SearchApiRequest request) {
-        return null;
-    }
+    public void stream(SearchApiRequest request, OutputStream stream) { }
 
     @Override
     protected Void getFilter(List<String> filter) {
