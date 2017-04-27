@@ -1,35 +1,33 @@
 package com.vivareal.search.api.adapter;
 
 
+import com.vivareal.search.api.controller.v2.stream.ResponseStream;
 import com.vivareal.search.api.model.SearchApiIndex;
+import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.Sort;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
-
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
-
+import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.Optional.ofNullable;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Component
@@ -90,18 +88,21 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     }
 
     @Override
-    public List<SearchHit> getQueryMamud(SearchApiRequest request) {
+    public void stream(SearchApiRequest request, OutputStream stream) {
         BoolQueryBuilder boolQuery = new BoolQueryBuilder();
         QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
         boolQuery.must().add(queryString);
 
-        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(INDEX)
-                .setSize(100) // TODO we must configure timeouts
-                .setScroll(new TimeValue(60000));
-        searchBuilder.setQuery(boolQuery);
+        SearchRequestBuilder core = transportClient.prepareSearch(SearchApiIndex.of(request).getIndex())
+                .setSearchType(SearchType.QUERY_THEN_FETCH)
+                .setSize(ofNullable(request.getSize()).map(Integer::parseInt).orElse(10))
+                .setFrom(ofNullable(request.getFrom()).map(Integer::parseInt).orElse(0))
+                .setScroll(new TimeValue(200)); // TODO we must configure timeouts
 
-        SearchResponse searchResponse = searchBuilder.get();
-        return Arrays.asList(searchResponse.getHits().getHits());
+        core.setQuery(boolQuery);
+
+        ResponseStream.create(stream)
+                .withIterator(new SearchApiIterator<>(transportClient, core.get()), SearchHit::source);
     }
 
     @Override
