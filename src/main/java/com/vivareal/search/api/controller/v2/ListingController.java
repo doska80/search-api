@@ -5,13 +5,12 @@ import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.service.ListingService;
 import org.elasticsearch.client.transport.TransportClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
 import java.io.IOException;
+
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 @RequestMapping({"/v2/listing", "/v2/listings"})
@@ -36,8 +35,8 @@ public class ListingController {
     }
 
 
-    @RequestMapping(value = "/stream-spring", produces = "application/x-ndjson")
-    public StreamingResponseBody streamSpring(SearchApiRequest request) throws IOException {
+    @RequestMapping(value = "/stream-spring", method = GET, produces = "application/x-ndjson")
+    public StreamingResponseBody streamSpring(SearchApiRequest request) {
         return out -> listingService.stream(request, out);
     }
 }
