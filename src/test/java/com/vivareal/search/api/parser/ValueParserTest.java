@@ -4,6 +4,8 @@ import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class ValueParserTest {
 
     @Test
@@ -11,7 +13,7 @@ public class ValueParserTest {
         String unparsed = "unquoted";
         Parser<String> parser = ValueParser.get();
         String parsed = parser.parse(unparsed);
-        unparsed.equals(parsed);
+        assertEquals(unparsed, parsed);
     }
 
     @Test(expected = ParserException.class)
@@ -25,7 +27,7 @@ public class ValueParserTest {
         String unparsed = "'single-quoted and with a lot of spaces'";
         Parser<String> parser = ValueParser.get();
         String parsed = parser.parse(unparsed);
-        unparsed.equals(parsed);
+        assertEquals(unparsed, parsed);
     }
 
     @Test
@@ -33,7 +35,7 @@ public class ValueParserTest {
         String unparsed = "\"single-quoted and with a lot of spaces and sôme spécial chars\"";
         Parser<String> parser = ValueParser.get();
         String parsed = parser.parse(unparsed);
-        unparsed.equals(parsed);
+        assertEquals(unparsed, parsed);
     }
 
 }
