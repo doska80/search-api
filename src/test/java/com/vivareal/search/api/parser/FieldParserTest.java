@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-public class FilterParserTest {
+public class FieldParserTest {
 
     @Test
     public void testValidFieldNames() {
