@@ -1,18 +1,16 @@
 package com.vivareal.search.api.parser;
 
-import com.vivareal.search.api.model.query.Expression;
-
 public class Filter {
 
     private Field field;
-    private Expression comparison;
+    private Comparison comparison;
     private Value value;
 
-    public Filter() {
-        // do nothing
+    public Filter(Object[] parsers) {
+        this((Field) parsers[0], (Comparison) parsers[1], (Value) parsers[2]);
     }
 
-    public Filter(Field field, Expression expression, Value value) {
+    public Filter(Field field, Comparison expression, Value value) {
         this.field = field;
         this.comparison = expression;
         this.value = value;
@@ -26,11 +24,11 @@ public class Filter {
         this.field = field;
     }
 
-    public Expression getComparison() {
+    public Comparison getComparison() {
         return comparison;
     }
 
-    public void setComparison(Expression comparison) {
+    public void setComparison(Comparison comparison) {
         this.comparison = comparison;
     }
 

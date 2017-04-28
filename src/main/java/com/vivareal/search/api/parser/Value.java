@@ -4,10 +4,6 @@ public class Value {
 
     private String content;
 
-    public Value() {
-        // do nothing
-    }
-
     public Value(String content) {
         this.setContent(content);
     }

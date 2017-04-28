@@ -8,9 +8,13 @@ import org.jparsec.Terminals;
 
 public class ValueParser {
 
-    public static final Parser<String> STRING_PARSER = Parsers.or(Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER, Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER, Scanners.IDENTIFIER);
+    public static final Parser<Value> STRING_PARSER = Parsers.or(
+            Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
+            Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER,
+            Scanners.IDENTIFIER)
+        .map(Value::new);
 
-    public static Parser<String> get() {
+    public static Parser<Value> get() {
         return STRING_PARSER;
     }
 
