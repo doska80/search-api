@@ -6,7 +6,7 @@ import org.jparsec.*;
 
 import java.util.List;
 
-public class FilterParser {
+public class GambiFilterParser {
 
     static final Parser<Void> IGNORED = Scanners.WHITESPACES.skipMany();
     static final Parser<String> STRING_TOKENIZER = Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER.or(Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER).or(Scanners.IDENTIFIER);
