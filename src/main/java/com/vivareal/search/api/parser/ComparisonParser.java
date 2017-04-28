@@ -1,6 +1,5 @@
 package com.vivareal.search.api.parser;
 
-import com.vivareal.search.api.model.query.Expression;
 import org.jparsec.Parser;
 import org.jparsec.Scanners;
 import org.jparsec.Terminals;
