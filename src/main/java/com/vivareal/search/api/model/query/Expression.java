@@ -15,6 +15,7 @@ public enum Expression {
     IN_START,
     LESS,
     LESS_EQUAL,
+    SEPARATOR, // TODO check if really needed!
     SUB_END,  // TODO check if needed after making jparsec really recursive
     SUB_START; // TODO check if needed after making jparsec really recursive
 
@@ -36,6 +37,7 @@ public enum Expression {
         EXPRESSIONS.put("<", LESS);
         EXPRESSIONS.put("LTE", LESS_EQUAL);
         EXPRESSIONS.put("<=", LESS_EQUAL);
+        EXPRESSIONS.put(",", SEPARATOR);
         EXPRESSIONS.put(")", SUB_END); // TODO check if needed after making jparsec really recursive
         EXPRESSIONS.put("(", SUB_START); // TODO check if needed after making jparsec really recursive
     }
