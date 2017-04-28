@@ -8,7 +8,7 @@ import java.util.List;
 
 public class FilterParser {
 
-    static final Parser<Void> IGNORED = Parsers.or(Scanners.WHITESPACES).skipMany();
+    static final Parser<Void> IGNORED = Scanners.WHITESPACES.skipMany();
     static final Parser<String> STRING_TOKENIZER = Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER.or(Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER).or(Scanners.IDENTIFIER);
     static final Terminals OPERATORS = Terminals
             .operators(new String[] { ":", "=", "EQ", "NEQ", "GT", "LT", "GTE", "LTE", "(", ")", "[", "]", ",", "<>" });
@@ -16,10 +16,10 @@ public class FilterParser {
             .words(Scanners.IDENTIFIER)
             .keywords(new String[] { "OR", "AND", "NOT", "IN" })
             .build();
-    static Parser<Expression> EXPRESSION_PARSER = Parsers.sequence(Terminals.fragment(Tokens.Tag.RESERVED).map(e -> {
+    static Parser<Expression> EXPRESSION_PARSER = Terminals.fragment(Tokens.Tag.RESERVED).map(e -> {
         System.out.println(e);
         return Expression.get(e);
-    })).cast();
+    }).cast();
 
 //    static Parser<Field> FIELD_PARSER = Parsers.sequence(Terminals.fragment(Tokens.Tag.RESERVED).map(e -> {
 //        System.out.println(e);

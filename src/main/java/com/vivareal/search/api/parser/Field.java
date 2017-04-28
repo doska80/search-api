@@ -1,7 +1,15 @@
 package com.vivareal.search.api.parser;
 
-/**
- * Created by marcossobrinho on 28/04/17.
- */
 public class Field {
+
+    private final String name;
+
+    public Field(final String name) {
+        this.name = name.intern();
+    }
+
+    public String getName() {
+        return name;
+    }
+
 }
