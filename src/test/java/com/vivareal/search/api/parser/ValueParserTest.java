@@ -4,11 +4,6 @@ import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-
-/**
- * Created by marcossobrinho on 28/04/17.
- */
 public class ValueParserTest {
 
     @Test
