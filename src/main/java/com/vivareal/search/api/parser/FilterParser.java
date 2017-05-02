@@ -23,12 +23,20 @@ public class FilterParser {
             new Filter((Field) expression[0], (RelationalOperator) expression[1], (Value) expression[2])
     ).cast();
 
-    private static final Parser<Filter> MULTI_EXPRESSION_PARSER = Parsers.array(FIELD_PARSER, RELATIONAL_OP_PARSER, VALUE_PARSER).map((Object[] expression) ->
-            new Filter((Field) expression[0], (RelationalOperator) expression[1], (Value) expression[2]) // TODO consider all LogicalOperators and recursiveness ("(" and ")")
-    ).cast();
+    private static final Parser<Filter> MULTI_EXPRESSION_PARSER;
+
+    static {
+        Parser.Reference<Filter> ref = Parser.newReference();
+        MULTI_EXPRESSION_PARSER = ref.lazy().between(isChar('('), isChar(')')).or(SINGLE_EXPRESSION_PARSER);
+        ref.set(MULTI_EXPRESSION_PARSER);
+    }
 
     public static Parser<Filter> getOne() {
         return SINGLE_EXPRESSION_PARSER;
+    }
+
+    public static Parser<Filter> getMulti() {
+        return MULTI_EXPRESSION_PARSER;
     }
 
     public static Parser<List<Filter>> getList() {

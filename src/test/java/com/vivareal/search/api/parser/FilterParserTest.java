@@ -20,4 +20,17 @@ public class FilterParserTest {
         assertEquals("pedrito EQUAL gringo mardito", filter.toString());
     }
 
+    @Test
+    public void testSingleExpressionWithParentheses() {
+        Parser<Filter> parser = FilterParser.getMulti();
+        parser.parse("(pedrito=gringo)");
+    }
+
+    @Test
+    public void testExpressionWithSpacesAndParentheses() {
+        Parser<Filter> parser = FilterParser.getMulti();
+        Filter filter = parser.parse("(pedrito = 'gringo mardito')");
+        assertEquals("pedrito EQUAL gringo mardito", filter.toString());
+    }
+
 }
