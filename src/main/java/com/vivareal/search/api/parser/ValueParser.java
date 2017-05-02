@@ -9,6 +9,7 @@ import org.jparsec.Terminals;
 public class ValueParser {
 
     public static final Parser<Value> STRING_PARSER = Parsers.or(
+            Scanners.DECIMAL,
             Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
             Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER,
             Scanners.IDENTIFIER)

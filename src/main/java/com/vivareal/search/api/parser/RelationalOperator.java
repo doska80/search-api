@@ -14,9 +14,7 @@ public enum RelationalOperator {
     IN_START,
     LESS,
     LESS_EQUAL,
-    SEPARATOR, // TODO check if really needed!
-    SUB_END,  // TODO check if needed after making jparsec really recursive
-    SUB_START; // TODO check if needed after making jparsec really recursive
+    SEPARATOR; // TODO check if really needed!
 
     private static final Map<String, RelationalOperator> OPERATORS = new HashMap<>(25);
 
@@ -37,8 +35,6 @@ public enum RelationalOperator {
         OPERATORS.put("LTE", LESS_EQUAL);
         OPERATORS.put("<=", LESS_EQUAL);
         OPERATORS.put(",", SEPARATOR); // TODO check if really needed!
-        OPERATORS.put(")", SUB_END); // TODO check if needed after making jparsec really recursive
-        OPERATORS.put("(", SUB_START); // TODO check if needed after making jparsec really recursive
     }
 
     protected static String[] getOperators() {
