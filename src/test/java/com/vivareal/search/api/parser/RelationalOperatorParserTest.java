@@ -5,15 +5,15 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class ComparisonParserTest {
+public class RelationalOperatorParserTest {
 
     @Test
     public void testEqualitySymbol() {
-        Parser<Comparison> parser = ComparisonParser.get();
+        Parser<RelationalOperator> parser = RelationalOperatorParser.get();
         String[] validEqualitySymbols = new String[]{ ":", "=", "EQ" };
         for (String equalitySymbol: validEqualitySymbols) {
-            Comparison equalEnum = parser.parse(equalitySymbol);
-            assertEquals(equalEnum, Comparison.EQUAL);
+            RelationalOperator equalEnum = parser.parse(equalitySymbol);
+            assertEquals(equalEnum, RelationalOperator.EQUAL);
         }
     }
 

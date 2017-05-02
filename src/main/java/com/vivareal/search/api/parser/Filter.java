@@ -3,12 +3,12 @@ package com.vivareal.search.api.parser;
 public class Filter {
 
     private Field field;
-    private Comparison comparison;
+    private RelationalOperator relationalOperator;
     private Value value;
 
-    public Filter(Field field, Comparison expression, Value value) {
+    public Filter(Field field, RelationalOperator expression, Value value) {
         this.field = field;
-        this.comparison = expression;
+        this.relationalOperator = expression;
         this.value = value;
     }
 
@@ -20,12 +20,12 @@ public class Filter {
         this.field = field;
     }
 
-    public Comparison getComparison() {
-        return comparison;
+    public RelationalOperator getRelationalOperator() {
+        return relationalOperator;
     }
 
-    public void setComparison(Comparison comparison) {
-        this.comparison = comparison;
+    public void setRelationalOperator(RelationalOperator relationalOperator) {
+        this.relationalOperator = relationalOperator;
     }
 
     public Value getValue() {
@@ -38,7 +38,7 @@ public class Filter {
 
     @Override
     public String toString() {
-        return field.getName() + " " + comparison.toString() + " " + value.getContent();
+        return field.getName() + " " + relationalOperator.toString() + " " + value.getContent();
     }
 
 }

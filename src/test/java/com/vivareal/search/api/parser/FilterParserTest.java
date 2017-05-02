@@ -9,13 +9,13 @@ public class FilterParserTest {
 
     @Test
     public void testSingleExpression() {
-        Parser<Filter> parser = FilterParser.get();
+        Parser<Filter> parser = FilterParser.getOne();
         parser.parse("pedrito=gringo");
     }
 
     @Test
     public void testSingleExpressionWithSpaces() {
-        Parser<Filter> parser = FilterParser.get();
+        Parser<Filter> parser = FilterParser.getOne();
         Filter filter = parser.parse("pedrito = 'gringo mardito'");
         assertEquals("pedrito EQUAL gringo mardito", filter.toString());
     }
