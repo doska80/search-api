@@ -6,10 +6,6 @@ public class Filter {
     private Comparison comparison;
     private Value value;
 
-    public Filter(Object[] parsers) {
-        this((Field) parsers[0], (Comparison) parsers[1], (Value) parsers[2]);
-    }
-
     public Filter(Field field, Comparison expression, Value value) {
         this.field = field;
         this.comparison = expression;
