@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 import static org.jparsec.Scanners.isChar;
-import static org.jparsec.pattern.CharPredicates.among;
 
 public class FilterParser {
 
@@ -36,14 +35,18 @@ public class FilterParser {
         return SINGLE_EXPRESSION_PARSER.many();
     }
 
+    /**
+     * Source of inspiration: https://github.com/jparsec/jparsec/blob/master/jparsec-examples/src/main/java/org/jparsec/examples/calculator/Calculator.java
+     * @return
+     */
     public static Parser<Filter> get() {
         Parser.Reference<Filter> ref = Parser.newReference();
         Parser<Filter> term = ref.lazy().between(isChar('('), isChar(')')).or(MULTI_EXPRESSION_PARSER);
-        Parser<Filter> parser = new OperatorTable<Integer>()
+        Parser<Filter> parser = new OperatorTable<Filter>()
                 .prefix(op("NOT", NOT), 100)
-                .infixl(op("&&", AND), 10)
-                .infixl(op("AND", AND), 10)
-                .infixl(op("OR", OR), 10)
+//                .infixl(op("&&", AND), 10) // FIXME wrong, expecting BinaryOperator and not UnaryOperator
+//                .infixl(op("AND", AND), 10) // FIXME wrong, expecting BinaryOperator and not UnaryOperator
+//                .infixl(op("OR", OR), 10) // FIXME wrong, expecting BinaryOperator and not UnaryOperator
                 .build(term);
         ref.set(term);
         return parser;
