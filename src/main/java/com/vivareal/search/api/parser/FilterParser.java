@@ -50,15 +50,15 @@ public class FilterParser {
         return SINGLE_EXPRESSION_PARSER.many();
     }
 
-    public static void main(String[] args) {
-        List<Expression> foi = FilterParser.getMulti().parse("title=lalla AND (bathrooms=10 OR mamud=viadim) AND garages=123");
-//        List<Expression> foi = FilterParser.getMulti().parse("title=lalla");
-
-        foi.forEach(expression -> {
-            System.out.println(expression);
-        });
-
-    }
+//    public static void main(String[] args) {
+//        List<Expression> foi = FilterParser.getMulti().parse("title=lalla AND (bathrooms=10 OR mamud=viadim) AND garages=123");
+////        List<Expression> foi = FilterParser.getMulti().parse("title=lalla");
+//
+//        foi.forEach(expression -> {
+//            System.out.println(expression);
+//        });
+//
+//    }
 
 
 //    static {

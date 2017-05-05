@@ -54,7 +54,7 @@ public class AbstractQueryAdapterTest {
 
     @Test
     public void queryWithThreeFieldsPossibleTest() {
-        List<Field> parsedQuery = abstractQueryAdapter.parseFilter("campo:valor campo2 GTE valor2 campo3:valor3");
+        List<Field> parsedQuery = abstractQueryAdapter.parseFilter("campo:valor campo2 GT valor2 campo3:valor3");
         assertThat(parsedQuery.size(), is(equalTo(3)));
 
         Field field1 = parsedQuery.get(0);
@@ -64,7 +64,7 @@ public class AbstractQueryAdapterTest {
 
         Field field2 = parsedQuery.get(1);
         assertThat("campo2", is(equalTo(field2.getName())));
-        assertThat(Expression.GREATER_EQUAL, is(equalTo(field2.getExpression())));
+        assertThat(Expression.GREATER, is(equalTo(field2.getExpression())));
         assertThat("valor2", is(equalTo(field2.getValue())));
 
         Field field3 = parsedQuery.get(2);

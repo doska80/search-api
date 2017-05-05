@@ -38,8 +38,8 @@ public enum Expression {
         EXPRESSIONS.put("LTE", LESS_EQUAL);
         EXPRESSIONS.put("<=", LESS_EQUAL);
         EXPRESSIONS.put(",", SEPARATOR);
-        EXPRESSIONS.put(")", SUB_END); // TODO check if needed after making jparsec really recursive
-        EXPRESSIONS.put("(", SUB_START); // TODO check if needed after making jparsec really recursive
+//        EXPRESSIONS.put(")", SUB_END); // TODO check if needed after making jparsec really recursive
+//        EXPRESSIONS.put("(", SUB_START); // TODO check if needed after making jparsec really recursive
     }
 
     public static String getPattern() {
