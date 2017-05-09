@@ -10,16 +10,9 @@ import java.util.Optional;
 public class QueryParser {
 
     private static final Parser<Filter> FILTER_PARSER = FilterParser.get();
-
     private static final Parser<LogicalOperator> LOGICAL_OPERATOR_PARSER = LogicalOperatorParser.get();
-//
-//    private static final UnaryOperator<QueryFragment> AND = e -> e.setRelationalOperator(LogicalOperator.AND);
-//    private static final UnaryOperator<QueryFragment> NOT = e -> e.setRelationalOperator(LogicalOperator.NOT);
-//    private static final UnaryOperator<QueryFragment> OR = e -> e.setRelationalOperator(LogicalOperator.OR);
-
-    private static final Parser<Filter> NEXT_SINGLE_EXPRESSION_PARSER = Parsers.array(LOGICAL_OPERATOR_PARSER, FILTER_PARSER).cast();
-
-    private static final Parser<List<QueryFragment>> MULTI_EXPRESSION_PARSER = Parsers.array(FILTER_PARSER, NEXT_SINGLE_EXPRESSION_PARSER.asOptional().many()).map(objects -> {
+    private static final Parser<List<Optional<Object>>> NEXT_SINGLE_EXPRESSION_PARSER = Parsers.array(LOGICAL_OPERATOR_PARSER, FILTER_PARSER).cast().asOptional().many();
+    private static final Parser<List<QueryFragment>> MULTI_EXPRESSION_PARSER = Parsers.array(FILTER_PARSER, NEXT_SINGLE_EXPRESSION_PARSER).map(objects -> {
         List<QueryFragment> queryFragments = new ArrayList<>();
         queryFragments.add(new QueryFragment((Filter) objects[0]));
         for (Optional<Object> expression : (ArrayList<Optional<Object>>) objects[1]) {
@@ -32,7 +25,13 @@ public class QueryParser {
         return queryFragments;
     }).cast();
 
-    public static Parser<List<QueryFragment>> getMulti() {
+//
+//    private static final UnaryOperator<QueryFragment> AND = e -> e.setRelationalOperator(LogicalOperator.AND);
+//    private static final UnaryOperator<QueryFragment> NOT = e -> e.setRelationalOperator(LogicalOperator.NOT);
+//    private static final UnaryOperator<QueryFragment> OR = e -> e.setRelationalOperator(LogicalOperator.OR);
+
+
+    public static Parser<List<QueryFragment>> get() {
         return MULTI_EXPRESSION_PARSER;
     }
 

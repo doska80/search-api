@@ -10,7 +10,7 @@ public class QueryFragment {
 
     private Filter filter;
     private LogicalOperator logicalOperator;
-    private List<QueryFragment> queryFragments;
+    private List<QueryFragment> subQueries;
     private final Type type;
 
     public QueryFragment(Filter filter) {
@@ -23,8 +23,8 @@ public class QueryFragment {
         this.type = Type.LOGICAL_OPERATOR;
     }
 
-    public QueryFragment(List<QueryFragment> queryFragments) {
-        this.queryFragments = queryFragments;
+    public QueryFragment(List<QueryFragment> subQueries) {
+        this.subQueries = subQueries;
         this.type = Type.EXPRESSION_LIST;
     }
 
@@ -34,9 +34,28 @@ public class QueryFragment {
         } else if (!Type.LOGICAL_OPERATOR.equals(this.type)) {
             return (T) this.logicalOperator;
         } else if (!Type.EXPRESSION_LIST.equals(this.type)) {
-            return (T) this.queryFragments;
+            return (T) this.subQueries;
         }
         throw new IllegalStateException("Burro!");
     }
 
+    @Override
+    public String toString() {
+        if (this.logicalOperator == null && this.filter == null && (this.subQueries == null || this.subQueries.size() == 0))
+            return super.toString();
+
+        StringBuilder query = new StringBuilder();
+        if (this.filter != null) {
+            query.append(this.filter.toString());
+        } else if (this.logicalOperator != null) {
+            query.append(this.logicalOperator.name());
+        } else if (this.subQueries != null && this.subQueries.size() > 0) {
+            for (QueryFragment subQuery: this.subQueries) {
+                query.append("(");
+                query.append(subQuery.toString());
+                query.append(")");
+            }
+        }
+        return query.toString().trim();
+    }
 }
