@@ -3,6 +3,7 @@ package com.vivareal.search.api.parser;
 import org.jparsec.OperatorTable;
 import org.jparsec.Parser;
 import org.jparsec.Parsers;
+import org.jparsec.Scanners;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +37,9 @@ public class QueryParser {
         Parser<List<QueryFragment>> unit = ref.lazy().between(LogicalOperatorParser.getToken("("), LogicalOperatorParser.getToken(")")).or(MULTI_EXPRESSION_PARSER);
 //        Parser<List<QueryFragment>> parser = new OperatorTable<List<QueryFragment>>().build(unit); // TODO understand WHY we need this :/
 //        ref.set(parser);
-//        return parser;
+//        return parser.from(MULTI_EXPRESSION_PARSER, Scanners.WHITESPACES.skipMany());
         ref.set(unit);
-        return unit;
+        return unit.from(MULTI_EXPRESSION_PARSER, Scanners.WHITESPACES.skipMany());
     }
 
 }
