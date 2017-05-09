@@ -35,6 +35,13 @@ public class QueryParser {
         return MULTI_EXPRESSION_PARSER;
     }
 
+    public static Parser<List<QueryFragment>> getRecursive() {
+        Parser.Reference<List<QueryFragment>> ref = Parser.newReference();
+        Parser<List<QueryFragment>> parenthesized = ref.lazy().between(LogicalOperatorParser.getToken("("), LogicalOperatorParser.getToken(")")).or(MULTI_EXPRESSION_PARSER);
+        ref.set(parenthesized);
+        return parenthesized;
+    }
+
 
 //    public static void main(String[] args) {
 //        List<QueryFragment> foi = FilterParser.getMulti().parse("title=lalla AND (bathrooms=10 OR mamud=viadim) AND garages=123");

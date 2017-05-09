@@ -11,12 +11,18 @@ import static org.junit.Assert.assertEquals;
 public class QueryParserTest {
 
     Parser<List<QueryFragment>> parser = QueryParser.get();
+    Parser<List<QueryFragment>> recursiveParser = QueryParser.getRecursive();
 
     @Test
     public void nonRecursiveMultipleConditionsTest() {
-        List<QueryFragment> query = parser.parse("field1 EQ value1 AND field2 NE value2 OR field3 GT 123");
-        assertEquals("field1 EQUAL value1 AND field2 DIFFERENT value2 OR field3 GREATER 123", Joiner.on(' ').join(query));
+        List<QueryFragment> query = parser.parse("field1 EQ value1 AND field2 NE value2 OR field3 GT 123 AND field4 NE 42");
+        assertEquals("field1 EQUAL value1 AND field2 DIFFERENT value2 OR field3 GREATER 123 AND field4 DIFFERENT 42", Joiner.on(' ').join(query));
     }
 
+    @Test
+    public void oneRecursionAndMultipleConditionsTest() {
+        List<QueryFragment> query = recursiveParser.parse("field1 EQ value1 AND (field2 NE value2 OR field3 GT 123) AND field4 NE 42");
+        assertEquals("field1 EQUAL value1 AND (field2 DIFFERENT value2 OR field3 GREATER 123) AND field4 DIFFERENT 42", Joiner.on(' ').join(query));
+    }
 
 }

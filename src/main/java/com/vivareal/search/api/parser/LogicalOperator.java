@@ -8,7 +8,9 @@ import static java.util.Optional.ofNullable;
 public enum LogicalOperator {
     AND,
     NOT, // TODO check if here or in RelationalOperator
-    OR;
+    OR,
+    PARENS_CLOSE,
+    PARENS_OPEN;
 
     private static final Map<String, LogicalOperator> OPERATORS = new HashMap<>(25);
 
@@ -18,6 +20,8 @@ public enum LogicalOperator {
         OPERATORS.put("NOT", NOT); // TODO check if here or in RelationalOperator
         OPERATORS.put("||", OR);
         OPERATORS.put("OR", OR);
+        OPERATORS.put(")", PARENS_CLOSE);
+        OPERATORS.put("(", PARENS_OPEN);
     }
 
     protected static String[] getOperators() {
