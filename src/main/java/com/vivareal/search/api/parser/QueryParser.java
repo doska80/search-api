@@ -13,33 +13,33 @@ public class QueryParser {
 
     private static final Parser<LogicalOperator> LOGICAL_OPERATOR_PARSER = LogicalOperatorParser.get();
 //
-//    private static final UnaryOperator<Expression> AND = e -> e.setRelationalOperator(LogicalOperator.AND);
-//    private static final UnaryOperator<Expression> NOT = e -> e.setRelationalOperator(LogicalOperator.NOT);
-//    private static final UnaryOperator<Expression> OR = e -> e.setRelationalOperator(LogicalOperator.OR);
+//    private static final UnaryOperator<QueryFragment> AND = e -> e.setRelationalOperator(LogicalOperator.AND);
+//    private static final UnaryOperator<QueryFragment> NOT = e -> e.setRelationalOperator(LogicalOperator.NOT);
+//    private static final UnaryOperator<QueryFragment> OR = e -> e.setRelationalOperator(LogicalOperator.OR);
 
     private static final Parser<Filter> NEXT_SINGLE_EXPRESSION_PARSER = Parsers.array(LOGICAL_OPERATOR_PARSER, FILTER_PARSER).cast();
 
-    private static final Parser<List<Expression>> MULTI_EXPRESSION_PARSER = Parsers.array(FILTER_PARSER, NEXT_SINGLE_EXPRESSION_PARSER.asOptional().many()).map(objects -> {
-        List<Expression> expressions = new ArrayList<>();
-        expressions.add(new Expression((Filter) objects[0]));
+    private static final Parser<List<QueryFragment>> MULTI_EXPRESSION_PARSER = Parsers.array(FILTER_PARSER, NEXT_SINGLE_EXPRESSION_PARSER.asOptional().many()).map(objects -> {
+        List<QueryFragment> queryFragments = new ArrayList<>();
+        queryFragments.add(new QueryFragment((Filter) objects[0]));
         for (Optional<Object> expression : (ArrayList<Optional<Object>>) objects[1]) {
             Object[] expressionList = (Object[]) expression.orElse(new Object[0]);
             if (expressionList.length == 0)
                 break;
-            expressions.add(new Expression((LogicalOperator) expressionList[0]));
-            expressions.add(new Expression((Filter) expressionList[1]));
+            queryFragments.add(new QueryFragment((LogicalOperator) expressionList[0]));
+            queryFragments.add(new QueryFragment((Filter) expressionList[1]));
         }
-        return expressions;
+        return queryFragments;
     }).cast();
 
-    public static Parser<List<Expression>> getMulti() {
+    public static Parser<List<QueryFragment>> getMulti() {
         return MULTI_EXPRESSION_PARSER;
     }
 
 
 //    public static void main(String[] args) {
-//        List<Expression> foi = FilterParser.getMulti().parse("title=lalla AND (bathrooms=10 OR mamud=viadim) AND garages=123");
-////        List<Expression> foi = FilterParser.getMulti().parse("title=lalla");
+//        List<QueryFragment> foi = FilterParser.getMulti().parse("title=lalla AND (bathrooms=10 OR mamud=viadim) AND garages=123");
+////        List<QueryFragment> foi = FilterParser.getMulti().parse("title=lalla");
 //
 //        foi.forEach(expression -> {
 //            System.out.println(expression);
