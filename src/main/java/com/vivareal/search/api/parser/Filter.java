@@ -6,6 +6,11 @@ public class Filter {
     private RelationalOperator relationalOperator;
     private Value value;
 
+    public Filter(Object[] expression) {
+        // TODO array validation?
+        this((Field) expression[0], (RelationalOperator) expression[1], (Value) expression[2]);
+    }
+
     public Filter(Field field, RelationalOperator expression, Value value) {
         this.field = field;
         this.relationalOperator = expression;
