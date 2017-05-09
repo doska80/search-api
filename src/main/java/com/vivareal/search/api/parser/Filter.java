@@ -5,7 +5,6 @@ public class Filter {
     private Field field;
     private RelationalOperator relationalOperator;
     private Value value;
-    private LogicalOperator logicalOperator;
 
     public Filter(Field field, RelationalOperator expression, Value value) {
         this.field = field;
@@ -35,15 +34,6 @@ public class Filter {
 
     public void setValue(Value value) {
         this.value = value;
-    }
-
-    public Filter setLogicalOperator(LogicalOperator logicalOperator) {
-        this.logicalOperator = logicalOperator;
-        return this;
-    }
-
-    public LogicalOperator getLogicalOperator() {
-        return logicalOperator;
     }
 
     @Override

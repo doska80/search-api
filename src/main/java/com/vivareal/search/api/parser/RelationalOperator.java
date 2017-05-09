@@ -45,6 +45,6 @@ public enum RelationalOperator {
         return ofNullable(relation)
                 .map(String::toUpperCase)
                 .map(OPERATORS::get)
-                .orElseThrow(() -> new IllegalArgumentException("Relational Operator \"" + relation + "\" not found!"));
+                .orElseThrow(() -> new IllegalArgumentException("Relational Operator \"" + relation + "\" is not recognized!"));
     }
 }

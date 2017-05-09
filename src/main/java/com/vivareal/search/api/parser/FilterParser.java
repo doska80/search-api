@@ -14,10 +14,10 @@ public class FilterParser {
     private static final Parser<RelationalOperator> RELATIONAL_OP_PARSER = RelationalOperatorParser.get();
     private static final Parser<Value> VALUE_PARSER = ValueParser.get();
     private static final Parser<LogicalOperator> LOGICAL_OPERATOR_PARSER = LogicalOperatorParser.get();
-
-    private static final UnaryOperator<Filter> AND = f -> f.setLogicalOperator(LogicalOperator.AND);
-    private static final UnaryOperator<Filter> NOT = f -> f.setLogicalOperator(LogicalOperator.NOT);
-    private static final UnaryOperator<Filter> OR = f -> f.setLogicalOperator(LogicalOperator.OR);
+//
+//    private static final UnaryOperator<Expression> AND = e -> e.setRelationalOperator(LogicalOperator.AND);
+//    private static final UnaryOperator<Expression> NOT = e -> e.setRelationalOperator(LogicalOperator.NOT);
+//    private static final UnaryOperator<Expression> OR = e -> e.setRelationalOperator(LogicalOperator.OR);
 
     private static final Parser<Filter> SINGLE_EXPRESSION_PARSER = Parsers.array(FIELD_PARSER, RELATIONAL_OP_PARSER, VALUE_PARSER).map((Object[] expression) ->
             new Filter((Field) expression[0], (RelationalOperator) expression[1], (Value) expression[2]) // FIXME that's ugly. Fix me.

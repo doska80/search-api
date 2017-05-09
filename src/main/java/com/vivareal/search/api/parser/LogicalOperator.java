@@ -28,7 +28,7 @@ public enum LogicalOperator {
         return ofNullable(logic)
                 .map(String::toUpperCase)
                 .map(OPERATORS::get)
-                .orElseThrow(() -> new IllegalArgumentException("Logical Operator \"" + logic + "\" not found!"));
+                .orElseThrow(() -> new IllegalArgumentException("Logical Operator \"" + logic + "\" is not recognized!"));
     }
 
 }
