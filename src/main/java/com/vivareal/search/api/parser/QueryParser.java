@@ -1,5 +1,6 @@
 package com.vivareal.search.api.parser;
 
+import org.jparsec.OperatorTable;
 import org.jparsec.Parser;
 import org.jparsec.Parsers;
 
@@ -37,9 +38,10 @@ public class QueryParser {
 
     public static Parser<List<QueryFragment>> getRecursive() {
         Parser.Reference<List<QueryFragment>> ref = Parser.newReference();
-        Parser<List<QueryFragment>> parenthesized = ref.lazy().between(LogicalOperatorParser.getToken("("), LogicalOperatorParser.getToken(")")).or(MULTI_EXPRESSION_PARSER);
-        ref.set(parenthesized);
-        return parenthesized;
+        Parser<List<QueryFragment>> unit = ref.lazy().between(LogicalOperatorParser.getToken("("), LogicalOperatorParser.getToken(")")).or(MULTI_EXPRESSION_PARSER);
+        Parser<List<QueryFragment>> parser = new OperatorTable<List<QueryFragment>>().build(unit); // TODO understand WHY we need this :/
+        ref.set(parser);
+        return parser;
     }
 
 
