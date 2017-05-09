@@ -3,7 +3,7 @@ package com.vivareal.search.api.parser;
 import org.jparsec.Parser;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class RelationalOperatorParserTest {
 
