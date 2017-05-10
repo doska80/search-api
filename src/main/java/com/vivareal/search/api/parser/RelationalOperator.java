@@ -10,11 +10,13 @@ public enum RelationalOperator {
     EQUAL,
     GREATER,
     GREATER_EQUAL,
-    IN_END,
-    IN_START,
+    IN,
+//    IN_END,
+//    IN_START,
     LESS,
     LESS_EQUAL,
-    SEPARATOR; // TODO check if really needed!
+//    SEPARATOR
+    ; // TODO check if really needed!
 
     private static final Map<String, RelationalOperator> OPERATORS = new HashMap<>(25);
 
@@ -28,13 +30,14 @@ public enum RelationalOperator {
         OPERATORS.put(">", GREATER);
         OPERATORS.put("GTE", GREATER_EQUAL);
         OPERATORS.put(">=", GREATER_EQUAL);
-        OPERATORS.put("]", IN_END);
-        OPERATORS.put("[", IN_START);
+        OPERATORS.put("IN", IN);
+//        OPERATORS.put("]", IN_END);
+//        OPERATORS.put("[", IN_START);
         OPERATORS.put("LT", LESS);
         OPERATORS.put("<", LESS);
         OPERATORS.put("LTE", LESS_EQUAL);
         OPERATORS.put("<=", LESS_EQUAL);
-        OPERATORS.put(",", SEPARATOR); // TODO check if really needed!
+//        OPERATORS.put(",", SEPARATOR); // TODO check if really needed!
     }
 
     protected static String[] getOperators() {

@@ -34,15 +34,25 @@ public class Filter {
     }
 
     public Value getValue() {
-        return value;
+        return this.value;
     }
 
-    public void setValue(Value value) {
+    public void setValue(Value values) {
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return field.getName() + " " + relationalOperator.toString() + " " + value.getContent();
+        if (this.field == null && this.relationalOperator == null && this.value == null)
+            return super.toString();
+
+        StringBuilder query = new StringBuilder();
+        query.append(field.getName());
+        query.append(" ");
+        query.append(relationalOperator.name());
+        query.append(" ");
+        query.append(value.toString());
+        return query.toString().trim();
     }
+
 }

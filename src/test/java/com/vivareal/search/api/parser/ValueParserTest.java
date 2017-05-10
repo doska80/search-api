@@ -13,7 +13,7 @@ public class ValueParserTest {
         String unparsed = "unquoted";
         Parser<Value> parser = ValueParser.get();
         Value parsed = parser.parse(unparsed);
-        assertEquals(unparsed, parsed.getContent());
+        assertEquals(unparsed, parsed.getFirstContent());
     }
 
     @Test(expected = ParserException.class)
@@ -27,7 +27,7 @@ public class ValueParserTest {
         String unparsed = "'single-quoted and with a lot of spaces'";
         Parser<Value> parser = ValueParser.get();
         Value parsed = parser.parse(unparsed);
-        assertEquals(unparsed.substring(1, unparsed.length() - 1), parsed.getContent());
+        assertEquals(unparsed.substring(1, unparsed.length() - 1), parsed.getFirstContent());
     }
 
     @Test
@@ -35,7 +35,7 @@ public class ValueParserTest {
         String unparsed = "\"single-quoted and with a lot of spaces and sôme spécial chars\"";
         Parser<Value> parser = ValueParser.get();
         Value parsed = parser.parse(unparsed);
-        assertEquals(unparsed.substring(1, unparsed.length() - 1), parsed.getContent());
+        assertEquals(unparsed.substring(1, unparsed.length() - 1), parsed.getFirstContent());
     }
 
 }
