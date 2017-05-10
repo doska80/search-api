@@ -1,9 +1,6 @@
 package com.vivareal.search.api.parser;
 
-import org.jparsec.Parser;
-import org.jparsec.Scanners;
-import org.jparsec.Terminals;
-import org.jparsec.Tokens;
+import org.jparsec.*;
 
 public class RelationalOperatorParser {
 
@@ -15,5 +12,9 @@ public class RelationalOperatorParser {
         return OPERATOR_PARSER;
     }
 
+    /** A Parser that recognizes a token identified by any of {@code names}. */
+    public static Parser<Token> getToken(String... names) {
+        return OPERATORS.token(names);
+    }
 
 }
