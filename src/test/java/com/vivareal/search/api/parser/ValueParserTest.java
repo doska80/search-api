@@ -1,5 +1,6 @@
 package com.vivareal.search.api.parser;
 
+import org.jparsec.ParseTree;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
@@ -7,6 +8,22 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 public class ValueParserTest {
+
+    @Test
+    public void testInteger() {
+        String unparsed = "123456";
+        Parser<Value> parser = ValueParser.getSimple();
+        Value parsed = parser.parse(unparsed);
+        assertEquals(unparsed, parsed.getFirstContent());
+    }
+
+    @Test
+    public void testFloat() {
+        String unparsed = "123.456";
+        Parser<Value> parser = ValueParser.getSimple();
+        Value parsed = parser.parse(unparsed);
+        assertEquals(unparsed, parsed.getFirstContent());
+    }
 
     @Test
     public void testUnquotedString() {
@@ -40,10 +57,17 @@ public class ValueParserTest {
 
     @Test
     public void testUsingIN() {
-        String unparsed = "[1,'2',\"3\",'4 with spaces']";
+//        String unparsed = "[1,'2',\"3\",'4 [with] spaces']";
+        String unparsed = "[   1.2 ,'2   ',          3    ,   \"   4   \"     ]";
         Parser<?> parser = ValueParser.get();
-        Object parsed = parser.parse(unparsed);
-        System.out.println(parsed);
+        try {
+            Object parsed = parser.parse(unparsed, Parser.Mode.DEBUG);
+            System.out.println(parsed);
+        } catch (ParserException e) {
+            ParseTree tree = e.getParseTree();
+            System.out.println(tree.toString());
+            throw e;
+        }
     }
 
 }
