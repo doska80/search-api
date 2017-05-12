@@ -5,7 +5,6 @@ import com.vivareal.search.api.controller.v2.stream.ResponseStream;
 import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.parser.QueryFragment;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -15,7 +14,6 @@ import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -69,14 +67,14 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
             BoolQueryBuilder filterQuery = new BoolQueryBuilder();
             request.getFilter().forEach(filter -> {
                 if (filter.size() == 1) {
-                    QueryFragment orFilter = filter.get(0);
-                    filterQuery.should().add(QueryBuilders.matchQuery(orFilter.getName(), orFilter.getValue()));
+//                    QueryFragment orFilter = filter.get(0);
+//                    filterQuery.should().add(QueryBuilders.matchQuery(orFilter.getName(), orFilter.getValue()));
                 } else {
-                    BoolQueryBuilder andFilterQuery = new BoolQueryBuilder();
-                    filter.forEach(andFilter -> {
-                        andFilterQuery.must().add(QueryBuilders.matchQuery(andFilter.getName(), andFilter.getValue()));
-                    });
-                    filterQuery.should().add(andFilterQuery);
+//                    BoolQueryBuilder andFilterQuery = new BoolQueryBuilder();
+//                    filter.forEach(andFilter -> {
+//                        andFilterQuery.must().add(QueryBuilders.matchQuery(andFilter.getName(), andFilter.getValue()));
+//                    });
+//                    filterQuery.should().add(andFilterQuery);
                 }
             });
             searchBuilder.setQuery(filterQuery);
