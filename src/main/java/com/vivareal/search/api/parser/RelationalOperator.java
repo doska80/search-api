@@ -10,7 +10,7 @@ public enum RelationalOperator {
     EQUAL,
     GREATER,
     GREATER_EQUAL,
-//    IN,
+    IN,
     IN_END,
     IN_START,
     LESS,
@@ -29,7 +29,7 @@ public enum RelationalOperator {
         OPERATORS.put(">", GREATER);
         OPERATORS.put("GTE", GREATER_EQUAL);
         OPERATORS.put(">=", GREATER_EQUAL);
-//        OPERATORS.put("IN", IN);
+        OPERATORS.put("IN", IN);
         OPERATORS.put("]", IN_END);
         OPERATORS.put("[", IN_START);
         OPERATORS.put("LT", LESS);

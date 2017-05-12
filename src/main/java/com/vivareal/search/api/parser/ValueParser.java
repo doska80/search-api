@@ -26,7 +26,7 @@ public class ValueParser {
             VALUE_SYNTATIC_PARSER.sepBy(OPERATORS.token(",")).from(TOKENIZER, Scanners.WHITESPACES.skipMany()),
             Scanners.isChar(']')
     );
-    private static Parser<Void> IN_PARSER = Parsers.sequence(Scanners.WHITESPACES.skipAtLeast(1), Scanners.isChar('I'), Scanners.isChar('N'), Scanners.WHITESPACES.skipAtLeast(1)); // FIXME: "IN"
+//    private static Parser<Void> IN_PARSER = Parsers.sequence(Scanners.WHITESPACES.skipAtLeast(1), Scanners.isChar('I'), Scanners.isChar('N'), Scanners.WHITESPACES.skipAtLeast(1)); // FIXME: "IN"
 
     private static Parser<Value> SINGLE_VALUE_PARSER = VALUE_SYNTATIC_PARSER.from(VALUE_TOKENIZER, Scanners.WHITESPACES.skipMany()).map(Value::new);
     private static Parser<Value> MULTI_VALUE_PARSER = LIST_PARSER.map(Value::new);
