@@ -1,19 +1,19 @@
 package com.vivareal.search.api.model;
 
-import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.Sort;
+import com.vivareal.search.api.parser.QueryFragment;
+import com.vivareal.search.api.parser.QueryParser;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseFilter;
 import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseSort;
 
 public final class SearchApiRequest {
 
     private List<String> field = Collections.emptyList();
-    private List<List<Field>> filter = Collections.emptyList();
+    private List<List<QueryFragment>> filter = Collections.emptyList();
     private List<Sort> sort = Collections.emptyList();
 
     private String q;
@@ -28,14 +28,14 @@ public final class SearchApiRequest {
         this.field = fields;
     }
 
-    public List<List<Field>> getFilter() {
+    public List<List<QueryFragment>> getFilter() {
         return filter;
     }
 
     public void setFilter(List<String> filters) {
         this.filter = new ArrayList();
         filters.forEach(filter -> {
-            this.filter.add(parseFilter(filter));
+            this.filter.add(QueryParser.get().parse(filter));
         });
     }
 

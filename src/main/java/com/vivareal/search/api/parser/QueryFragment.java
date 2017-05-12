@@ -39,6 +39,10 @@ public class QueryFragment {
         throw new IllegalStateException("Burro!");
     }
 
+    public Type getType() {
+        return type;
+    }
+
     @Override
     public String toString() {
         if (this.logicalOperator == null && this.filter == null && (this.subQueries == null || this.subQueries.size() == 0))

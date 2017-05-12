@@ -7,6 +7,7 @@ import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.Sort;
+import com.vivareal.search.api.parser.QueryFragment;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -33,7 +34,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,List<Field>,List<Sort>> {
+public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,List<QueryFragment>,List<Sort>> {
 
     public static final String INDEX = "inmuebles";
 
@@ -64,11 +65,11 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
         searchBuilder.setPreference("_replica_first"); // <3
 
-        if (request.getFilter().size() > 0) {
+        if (request.getFilter().isEmpty()) {
             BoolQueryBuilder filterQuery = new BoolQueryBuilder();
             request.getFilter().forEach(filter -> {
                 if (filter.size() == 1) {
-                    Field orFilter = filter.get(0);
+                    QueryFragment orFilter = filter.get(0);
                     filterQuery.should().add(QueryBuilders.matchQuery(orFilter.getName(), orFilter.getValue()));
                 } else {
                     BoolQueryBuilder andFilterQuery = new BoolQueryBuilder();
@@ -106,7 +107,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     }
 
     @Override
-    protected List<Field> getFilter(List<String> filter) {
+    protected List<QueryFragment> getFilter(List<String> filter) {
         return null;
     }
 
