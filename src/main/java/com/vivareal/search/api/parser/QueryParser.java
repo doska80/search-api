@@ -1,6 +1,5 @@
 package com.vivareal.search.api.parser;
 
-import org.jparsec.OperatorTable;
 import org.jparsec.Parser;
 import org.jparsec.Parsers;
 import org.jparsec.Scanners;

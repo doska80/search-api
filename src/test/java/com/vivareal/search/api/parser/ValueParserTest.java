@@ -1,6 +1,5 @@
 package com.vivareal.search.api.parser;
 
-import org.jparsec.ParseTree;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;

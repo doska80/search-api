@@ -1,6 +1,7 @@
 package com.vivareal.search.api.parser;
 
-import org.jparsec.*;
+import org.jparsec.Parser;
+import org.jparsec.Scanners;
 
 public class FieldParser {
 
