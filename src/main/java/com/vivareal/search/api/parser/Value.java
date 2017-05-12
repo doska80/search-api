@@ -57,9 +57,9 @@ public class Value {
                 query.append(simpleValue);
             }
         } else {
-            query.append("[");
-            query.append(Joiner.on(", ").join(contents));
-            query.append("]");
+            query.append("[\"");
+            query.append(Joiner.on("\", \"").join(contents));
+            query.append("\"]");
         }
         return query.toString();
     }

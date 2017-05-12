@@ -58,7 +58,7 @@ public class ValueParserTest {
         String unparsed = "[   1.2 ,'2   ',          3    ,   \"   4   \"     ]";
         Parser<Value> parser = ValueParser.getMulti();
         Value parsed = parser.parse(unparsed);
-        assertEquals("[1.2, 2   , 3,    4   ]", parsed.toString());
+        assertEquals("[\"1.2\", \"2   \", \"3\", \"   4   \"]", parsed.toString());
     }
 
     @Test(expected = ParserException.class)
