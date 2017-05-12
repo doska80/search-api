@@ -1,104 +1,40 @@
 package com.vivareal.search.api.parser;
 
 
-import org.jparsec.*;
+import org.jparsec.Parser;
+import org.jparsec.Parsers;
+import org.jparsec.Scanners;
+import org.jparsec.Terminals;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class ValueParser {
 
-//    public static final Terminals OPERATORS = Terminals.operators("[", "]", ",");
-//    public static final Parser<Void> IGNORED = Scanners.WHITESPACES.skipMany();
-//
-//    public static final Parser<?> SCANNER_VALUE_PARSER = Parsers.or(
-//            Scanners.DECIMAL,
-//            Scanners.IDENTIFIER,
-//            Scanners.SINGLE_QUOTE_STRING,
-//            Scanners.DOUBLE_QUOTE_STRING
-//    );
-//
-//    public static final Parser<?> TERMINAL_VALUE_PARSER = Parsers.or(
-//            Terminals.DecimalLiteral.TOKENIZER,
-//            Terminals.Identifier.TOKENIZER,
-//            Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
-//            Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER
-//    );
-//
-//    public static final Parser<?> SIMPLE_VALUE_PARSER = Parsers.or(
-////            SCANNER_VALUE_PARSER//,
-//            TERMINAL_VALUE_PARSER
-//    );
-//
-//    public Object x = Terminals.DecimalLiteral.TOKENIZER;
-//
-//    public static final Parser<?> VALUE_TOKENIZER = Parsers.or(OPERATORS.tokenizer().cast(), TERMINAL_VALUE_PARSER);
-//
-//    public static final Parser<List<Value>> MULTI_VALUE_PARSER = Parsers.between(
-//            OPERATORS.token("["),
-//            SIMPLE_VALUE_PARSER.sepBy(OPERATORS.token(",")),
-//            OPERATORS.token("]")
-//    ).from(VALUE_TOKENIZER, IGNORED).cast();
-//
-//
-////            .from(VALUE_TOKENIZER, Scanners.WHITESPACES.skipMany()).cast();
-//
-////            RelationalOperatorParser.getToken("IN").followedBy(
-////            Parsers.between(RelationalOperatorParser.getToken("["), SIMPLE_VALUE_PARSER, RelationalOperatorParser.getToken("]"))
-////    );
-//
-//    public static final Parser<Value> VALUE_PARSER = Parsers.or(
-//            Scanners.DECIMAL,
-//            Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
-//            Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER,
-//            Scanners.IDENTIFIER
-//    ).map(Value::new);
+    static Terminals OPERATORS = Terminals.operators(","); // only one operator supported (for IN)
+    static Parser<?> VALUE_TOKENIZER = Parsers.or(
+            Terminals.DecimalLiteral.TOKENIZER,
+            Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
+            Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER
+    );
+    static Parser<String> VALUE_SYNTATIC_PARSER = Parsers.or(
+            Terminals.DecimalLiteral.PARSER,
+            Terminals.StringLiteral.PARSER
+    );
+    static Parser<?> TOKENIZER = Parsers.or(OPERATORS.tokenizer(), VALUE_TOKENIZER); // tokenizes the OPERATORS and values
+    static Parser<List<String>> LIST_PARSER = Parsers.between(
+            Scanners.isChar('['),
+            VALUE_SYNTATIC_PARSER.sepBy(OPERATORS.token(",")).from(TOKENIZER, Scanners.WHITESPACES.skipMany()),
+            Scanners.isChar(']')
+    );
+    static Parser<Void> IN_PARSER = Parsers.sequence(Scanners.WHITESPACES.skipAtLeast(1), Scanners.isChar('I'), Scanners.isChar('N'), Scanners.WHITESPACES.skipAtLeast(1)); // FIXME: "IN"
 
-    public static Parser<Value> getSimple() {
-//        return SIMPLE_VALUE_PARSER.cast();
-//        return MULTI_VALUE_PARSER;
-        Terminals operators = Terminals.operators(","); // only one operator supported so far
-        Parser<?> valueTokenizer = Parsers.or(
-                Terminals.DecimalLiteral.TOKENIZER,
-//                Terminals.IntegerLiteral.TOKENIZER,
-                Terminals.Identifier.TOKENIZER,
-                Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
-                Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER
-        );
-        Parser<String> valueSyntacticParser = Parsers.or(
-                Terminals.DecimalLiteral.PARSER,
-//                Terminals.IntegerLiteral.PARSER,
-                Terminals.StringLiteral.PARSER
-        );
-        Parser<?> tokenizer = Parsers.or(operators.tokenizer(), valueTokenizer); // tokenizes the operators and integer
-//        Parser<List<String>> integers =  Parsers.between(
-//                Scanners.isChar('['),
-//                valueSyntacticParser.from(tokenizer, Scanners.WHITESPACES.skipMany());
-//                Scanners.isChar(']')
-//        );
-        return valueSyntacticParser.from(valueTokenizer, Scanners.WHITESPACES.skipMany()).map(Value::new);
-    }
+    static Parser<List<String>> SINGLE_VALUE_PARSER = VALUE_SYNTATIC_PARSER.from(VALUE_TOKENIZER, Scanners.WHITESPACES.skipMany()).map(Arrays::asList);
+    static Parser<List<String>> MULTI_VALUE_PARSER = Parsers.sequence(IN_PARSER, LIST_PARSER);
+    static Parser<Value> FULL_VALUE_PARSER = Parsers.or(MULTI_VALUE_PARSER, SINGLE_VALUE_PARSER).map(Value::new);
 
-    public static Parser<List<Value>> get() {
-//        return MULTI_VALUE_PARSER;
-        Terminals operators = Terminals.operators(","); // only one operator supported so far
-        Parser<?> valueTokenizer = Parsers.or(
-                Terminals.DecimalLiteral.TOKENIZER,
-//                Terminals.IntegerLiteral.TOKENIZER,
-                Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
-                Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER
-        );
-        Parser<String> valueSyntacticParser = Parsers.or(
-                Terminals.DecimalLiteral.PARSER,
-//                Terminals.IntegerLiteral.PARSER,
-                Terminals.StringLiteral.PARSER
-        );
-        Parser<?> tokenizer = Parsers.or(operators.tokenizer(), valueTokenizer); // tokenizes the operators and integer
-        Parser<List<String>> integers =  Parsers.between(
-                Scanners.isChar('['),
-                valueSyntacticParser.sepBy(operators.token(",")).from(tokenizer, Scanners.WHITESPACES.skipMany()),
-                Scanners.isChar(']')
-        );
-        return integers.cast();
+    public static Parser<Value> get() {
+        return FULL_VALUE_PARSER;
     }
 
 }

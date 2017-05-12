@@ -6,7 +6,7 @@ public class LogicalOperatorParser {
 
     protected static final Terminals OPERATORS = Terminals.operators(LogicalOperator.getOperators());
     protected static final Parser<LogicalOperator> OPERATOR_MAPPER = Terminals.fragment(Tokens.Tag.RESERVED).map(LogicalOperator::get).cast();
-    protected static final Parser<LogicalOperator> OPERATOR_PARSER = OPERATOR_MAPPER.from(OPERATORS.tokenizer(), Scanners.WHITESPACES.optional(null)).cast();
+    protected static final Parser<LogicalOperator> OPERATOR_PARSER = OPERATOR_MAPPER.from(OPERATORS.tokenizer(), Scanners.WHITESPACES.skipMany()).cast();
 
     public static Parser<LogicalOperator> get() {
         return OPERATOR_PARSER;
