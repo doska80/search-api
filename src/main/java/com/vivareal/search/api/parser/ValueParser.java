@@ -33,7 +33,7 @@ public class ValueParser {
     static Parser<List<String>> MULTI_VALUE_PARSER = Parsers.sequence(IN_PARSER, LIST_PARSER);
     static Parser<Value> FULL_VALUE_PARSER = Parsers.or(MULTI_VALUE_PARSER, SINGLE_VALUE_PARSER).map(Value::new);
 
-    public static Parser<Value> get() {
+    static Parser<Value> get() {
         return FULL_VALUE_PARSER;
     }
 

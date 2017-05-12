@@ -6,9 +6,9 @@ import org.jparsec.Scanners;
 public class FieldParser {
 
     // TODO check if we need to block fields starting with special chars like "_"
-    protected static final Parser<Field> SIMPLE_KEYWORD_PARSER = Scanners.IDENTIFIER.map(Field::new).cast();
+    private static final Parser<Field> SIMPLE_KEYWORD_PARSER = Scanners.IDENTIFIER.map(Field::new).cast();
 
-    public static Parser<Field> get() {
+    static Parser<Field> get() {
         return SIMPLE_KEYWORD_PARSER;
     }
 
