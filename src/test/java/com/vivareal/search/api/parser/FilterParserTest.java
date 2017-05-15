@@ -24,7 +24,7 @@ public class FilterParserTest {
     public void testSingleExpressionWithINAndSpaces() {
         Parser<Filter> parser = FilterParser.get();
         Filter filter = parser.parse("pedrito IN ['gringo', 'mardito']");
-        assertEquals("pedrito IN [gringo, mardito]", filter.toString());
+        assertEquals("pedrito IN [\"gringo\", \"mardito\"]", filter.toString());
     }
 
 }
