@@ -66,10 +66,12 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
         if (request.getFilter().isEmpty()) {
             BoolQueryBuilder filterQuery = new BoolQueryBuilder();
             request.getFilter().forEach(filter -> {
-                if (filter.size() == 1) {
+                if (QueryFragment.Type.EXPRESSION_LIST.equals(filter.getType())) {
+                    System.out.println(filter);
 //                    QueryFragment orFilter = filter.get(0);
 //                    filterQuery.should().add(QueryBuilders.matchQuery(orFilter.getName(), orFilter.getValue()));
                 } else {
+                    System.out.println(filter);
 //                    BoolQueryBuilder andFilterQuery = new BoolQueryBuilder();
 //                    filter.forEach(andFilter -> {
 //                        andFilterQuery.must().add(QueryBuilders.matchQuery(andFilter.getName(), andFilter.getValue()));

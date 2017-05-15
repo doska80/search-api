@@ -4,7 +4,7 @@ import java.util.List;
 
 public class QueryFragment {
 
-    enum Type {
+    public enum Type {
         FILTER, LOGICAL_OPERATOR, EXPRESSION_LIST;
     }
 
