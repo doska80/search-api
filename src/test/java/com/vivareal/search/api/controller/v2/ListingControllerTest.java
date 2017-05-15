@@ -41,7 +41,7 @@ public class ListingControllerTest {
     public void exampleStreamTest() throws Exception {
         String json = "{\"a\":1,\"b\":2,\"c\":3}";
 
-        mvc.perform(get("/v2/listings/stream-spring"))
+        mvc.perform(get("/v2/listings/stream"))
                 .andDo(handler -> handler.getResponse().getWriter().write(json))
                 .andExpect(status().isOk())
                 //.andExpect(content().contentTypeCompatibleWith("application/x-ndjson"))
