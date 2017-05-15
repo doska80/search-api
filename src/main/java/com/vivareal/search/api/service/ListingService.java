@@ -1,6 +1,7 @@
 package com.vivareal.search.api.service;
 
 import com.vivareal.search.api.adapter.QueryAdapter;
+import com.vivareal.search.api.controller.v2.stream.ElasticSearchStream;
 import com.vivareal.search.api.model.SearchApiRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,6 +18,9 @@ public class ListingService {
     @Qualifier("ElasticsearchQuery")
     protected QueryAdapter queryAdapter;
 
+    @Autowired
+    private ElasticSearchStream elasticSearch;
+
     public Map<String, Object> getListingById(SearchApiRequest request, String id) {
         return (Map<String, Object>) this.queryAdapter.getById(request, id);
     }
@@ -27,6 +31,6 @@ public class ListingService {
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {
-        this.queryAdapter.stream(request, stream);
+        elasticSearch.stream(request, stream);
     }
 }
