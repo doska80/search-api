@@ -1,38 +1,31 @@
 package com.vivareal.search.api.adapter;
 
 
-import com.vivareal.search.api.controller.v2.stream.ResponseStream;
 import com.vivareal.search.api.model.SearchApiIndex;
-import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.parser.QueryFragment;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.Optional.ofNullable;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,List<QueryFragment>,List<Sort>> {
+public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, List<QueryFragment>, List<Sort>> {
 
     public static final String INDEX = "inmuebles";
 
@@ -97,14 +90,5 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     protected List<Sort> getSort(List<String> sort) {
         return null;
     }
-
-//
-//    public Object getFilter(SearchApiRequest searchApiRequest, String... indices) {
-//        SearchRequestBuilder builder = this.transportClient.prepareSearch(indices);
-//        return builder;
-//    }
-
-
-//    public
 
 }
