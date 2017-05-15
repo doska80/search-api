@@ -19,9 +19,6 @@ public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
     }
 
     @Override
-    public void stream(SearchApiRequest request, OutputStream stream) { }
-
-    @Override
     protected Void getFilter(List<String> filter) {
         return null;
     }

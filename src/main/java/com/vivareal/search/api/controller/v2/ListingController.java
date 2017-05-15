@@ -35,9 +35,8 @@ public class ListingController {
         return new SearchApiResponse(listingService.getListings(request));
     }
 
-
-    @RequestMapping(value = "/stream-spring", method = GET, produces = "application/x-ndjson")
-    public StreamingResponseBody streamSpring(SearchApiRequest request) {
+    @RequestMapping(value = "/stream", method = GET, produces = "application/x-ndjson")
+    public StreamingResponseBody stream(SearchApiRequest request) {
         return out -> listingService.stream(request, out);
     }
 }

@@ -89,24 +89,6 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit,Li
     }
 
     @Override
-    public void stream(SearchApiRequest request, OutputStream stream) {
-        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
-        boolQuery.must().add(queryString);
-
-        SearchRequestBuilder core = transportClient.prepareSearch(SearchApiIndex.of(request).getIndex())
-                .setSearchType(SearchType.QUERY_THEN_FETCH)
-                .setSize(ofNullable(request.getSize()).map(Integer::parseInt).orElse(10))
-                .setFrom(ofNullable(request.getFrom()).map(Integer::parseInt).orElse(0))
-                .setScroll(new TimeValue(200)); // TODO we must configure timeouts
-
-        core.setQuery(boolQuery);
-
-        ResponseStream.create(stream)
-                .withIterator(new SearchApiIterator<>(transportClient, core.get()), SearchHit::source);
-    }
-
-    @Override
     protected List<QueryFragment> getFilter(List<String> filter) {
         return null;
     }
