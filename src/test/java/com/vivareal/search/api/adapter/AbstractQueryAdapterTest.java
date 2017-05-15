@@ -74,8 +74,8 @@ public class AbstractQueryAdapterTest {
 
     @Test
     public void avoidCreatingUnneededObjects() {
-        List<QueryFragment> invalidQueryOne = abstractQueryAdapter.parseFilter("invalid query 1");
-        List<QueryFragment> invalidQueryTwo = abstractQueryAdapter.parseFilter("another unparseable query");
+        List<QueryFragment> invalidQueryOne = abstractQueryAdapter.parseFilter("");
+        List<QueryFragment> invalidQueryTwo = abstractQueryAdapter.parseFilter("");
         assertThat(invalidQueryOne, is(invalidQueryTwo));
     }
 
