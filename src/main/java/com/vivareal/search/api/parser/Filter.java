@@ -37,7 +37,7 @@ public class Filter {
         return this.value;
     }
 
-    public void setValue(Value values) {
+    public void setValue(Value value) {
         this.value = value;
     }
 

@@ -5,6 +5,6 @@ public enum Order {
     DESC;
 
     public Order get(String order) {
-        return this.valueOf(order);
+        return Order.valueOf(order);
     }
 }

@@ -2,7 +2,6 @@ package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.SearchApiRequest;
 
-import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 

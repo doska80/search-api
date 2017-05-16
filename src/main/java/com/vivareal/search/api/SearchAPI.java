@@ -6,14 +6,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableAsync
 //@Import({ApiBeans.class, ServiceConfig.class})
 @ComponentScan("com.vivareal.search.api") // FIXME list all packages that have Spring components/beans to reduce boot time
 @EnableAutoConfiguration
-public class SearchAPI extends WebMvcConfigurerAdapter {
+public class SearchAPI implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
