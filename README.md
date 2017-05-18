@@ -36,7 +36,7 @@ java -jar build/libs/search-api.jar
 ## Docker
 
 ```sh
-docker run --rm vivareal/search-api:<VERSION>
+docker run --rm -it -p 8482:8482 vivareal/search-api:<VERSION>
 ```
 
 # How to Test
