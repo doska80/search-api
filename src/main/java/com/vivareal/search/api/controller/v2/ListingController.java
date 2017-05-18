@@ -3,7 +3,6 @@ package com.vivareal.search.api.controller.v2;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.service.ListingService;
-import org.elasticsearch.client.transport.TransportClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,9 +15,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RestController
 @RequestMapping({"/v2/listing", "/v2/listings"})
 public class ListingController {
-
-    @Autowired
-    private TransportClient client;
 
     @Autowired
     private ListingService listingService;
