@@ -60,7 +60,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
 
         BoolQueryBuilder query = new BoolQueryBuilder();
 
-        if (request.getFilter().isEmpty()) {
+        if (!request.getFilter().isEmpty()) {
             BoolQueryBuilder filterQuery = new BoolQueryBuilder();
             request.getFilter().forEach(filterFragment -> {
                 QueryFragment.Type type = filterFragment.getType();
@@ -68,7 +68,14 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
                     throw new UnsupportedOperationException("Subqueries aren't supported yet :("); // TODO TUDO!
                 } else if (QueryFragment.Type.FILTER.equals(type)) {
                     Filter filter = filterFragment.get();
-                    filterQuery.must().add(QueryBuilders.matchQuery(filter.getField().getName(), filter.getValue()));
+                    List<String> values = filter.getValue().getContents();
+                    if (values != null && !values.isEmpty()) {
+                        if (values.size() == 1) {
+                            filterQuery.must().add(QueryBuilders.matchQuery(filter.getField().getName(), values.get(0)));
+                        } else {
+                            filterQuery.must().add(QueryBuilders.termsQuery(filter.getField().getName(), values));
+                        }
+                    }
                 } else {
                     System.out.println(filterFragment);
                 }
