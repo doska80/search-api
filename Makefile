@@ -11,9 +11,7 @@ include make/env/Makefile
 ARTIFACT_NAME:=$(ORG)-$(PROJECT_NAME)-$(VERSION).jar
 include make/gra/Makefile
 
-include diff-tests/Makefile
-
-CONTAINER_ID:=$(ENV)-$(PROJECT_NAME)-$(VERSION)
+CONTAINER_ID:=$(ENV)-$(VERSION)
 ARTIFACT:=build/libs/$(ARTIFACT_NAME)
 include make/doc/Makefile
 DOCKER_NET_CONFIG?=$(if $(filter prod,$(ENV)),--net host,-p 8482:8482 -p 4000:4000)
