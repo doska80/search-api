@@ -10,14 +10,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public abstract class AbstractQueryAdapter<Q,F,S> implements QueryAdapter<Q,F,S> {
+public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F, S> {
 
     protected static final ImmutableList<QueryFragment> EMPTY_QUERY_FRAGMENT_LIST = ImmutableList.of();
     protected static final ImmutableList<Sort> EMPTY_SORT_LIST = ImmutableList.of();
-//    protected static final Pattern FIELD_VALUES = Pattern.compile("\\s*(\\w+)\\s*(" + Expression.getPattern() + ")\\s*(?:\")?(.*?(?=\"?\\s+\\w+\\s*(" + Expression.getPattern() + ")|(?:\"?)$))");
+    //    protected static final Pattern FIELD_VALUES = Pattern.compile("\\s*(\\w+)\\s*(" + Expression.getPattern() + ")\\s*(?:\")?(.*?(?=\"?\\s+\\w+\\s*(" + Expression.getPattern() + ")|(?:\"?)$))");
     protected static final Pattern SORT_VALUES = Pattern.compile("\\s*(\\w+)(\\s+(ASC|DESC))?\\s*(,)?");
 
     protected abstract F getFilter(List<String> filter);
+
     protected abstract S getSort(List<String> sort);
 
     public static final List<QueryFragment> parseFilter(final String filter) {

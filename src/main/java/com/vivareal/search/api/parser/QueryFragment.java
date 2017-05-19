@@ -54,7 +54,7 @@ public class QueryFragment {
         } else if (this.logicalOperator != null) {
             query.append(this.logicalOperator.name());
         } else if (this.subQueries != null && this.subQueries.size() > 0) {
-            for (QueryFragment subQuery: this.subQueries) {
+            for (QueryFragment subQuery : this.subQueries) {
                 query.append("(");
                 query.append(subQuery.toString());
                 query.append(")");

@@ -12,7 +12,9 @@ public class LogicalOperatorParser {
         return OPERATOR_PARSER;
     }
 
-    /** A Parser that recognizes a token identified by any of {@code names}. */
+    /**
+     * A Parser that recognizes a token identified by any of {@code names}.
+     */
     static Parser<Token> getToken(String... names) {
         return OPERATORS.token(names);
     }

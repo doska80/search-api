@@ -13,8 +13,6 @@ import org.springframework.context.annotation.Scope;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import javax.annotation.PreDestroy;
-
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Configuration
