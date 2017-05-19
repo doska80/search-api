@@ -28,3 +28,6 @@ out/
 *.orig
 
 logs/
+
+deploy/output
+deploy/variables/user-data.sh
