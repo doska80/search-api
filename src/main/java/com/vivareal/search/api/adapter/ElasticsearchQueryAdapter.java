@@ -6,6 +6,7 @@ import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.parser.Filter;
 import com.vivareal.search.api.parser.QueryFragment;
+import com.vivareal.search.api.parser.RelationalOperator;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -68,16 +69,32 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
                     throw new UnsupportedOperationException("Subqueries aren't supported yet :("); // TODO TUDO!
                 } else if (QueryFragment.Type.FILTER.equals(type)) {
                     Filter filter = filterFragment.get();
+                    RelationalOperator operator = filter.getRelationalOperator();
+                    String fieldName = filter.getField().getName();
                     List<String> values = filter.getValue().getContents();
-                    if (values != null && !values.isEmpty()) {
-                        if (values.size() == 1) {
-                            filterQuery.must().add(QueryBuilders.matchQuery(filter.getField().getName(), values.get(0)));
-                        } else {
-                            filterQuery.must().add(QueryBuilders.termsQuery(filter.getField().getName(), values));
-                        }
+                    if (values == null || values.isEmpty())
+                        return;
+                    if (values.size() == 1) {
+                        String firstValue = values.get(0);
+                        if (RelationalOperator.DIFFERENT.equals(operator))
+                            filterQuery.mustNot().add(QueryBuilders.matchQuery(fieldName, firstValue));
+                        else if (RelationalOperator.EQUAL.equals(operator))
+                            filterQuery.must().add(QueryBuilders.matchQuery(fieldName, firstValue));
+                        else if (RelationalOperator.GREATER.equals(operator))
+                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(false));
+                        else if (RelationalOperator.GREATER_EQUAL.equals(operator))
+                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(true));
+                        else if (RelationalOperator.LESS.equals(operator))
+                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(false));
+                        else if (RelationalOperator.LESS_EQUAL.equals(operator))
+                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(true));
+                        else
+                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
+                    } else {
+                        filterQuery.must().add(QueryBuilders.termsQuery(fieldName, values));
                     }
                 } else {
-                    System.out.println(filterFragment);
+                    // FIXME AND / OR between query fragments. everything is working as AND now... :/
                 }
             });
             query.filter(filterQuery);
