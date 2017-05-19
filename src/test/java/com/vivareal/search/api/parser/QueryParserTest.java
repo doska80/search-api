@@ -21,6 +21,12 @@ public class QueryParserTest {
     }
 
     @Test
+    public void inTest() {
+        List<QueryFragment> query = parser.parse("banos IN [3,4]");
+        assertEquals("banos IN [\"3\", \"4\"]", Joiner.on(' ').join(query));
+    }
+
+    @Test
     @Ignore
     public void oneRecursionAndMultipleConditionsTest() {
         List<QueryFragment> query = recursiveParser.parse("field1 EQ 'value1' AND (field2 NE 'value2' OR field3 GT 123) AND field4 NE 42");

@@ -37,7 +37,15 @@ public final class SearchApiRequest {
         return filter;
     }
 
-    public void setFilter(List<String> filters) {
+    public void setFilter(String filter) {
+        List<QueryFragment> parsed = QUERY_PARSER.parse(filter);
+        if (!parsed.isEmpty()) {
+            this.filter = new ArrayList<>();
+            this.filter.addAll(parsed);
+        }
+    }
+
+    public void XsetFilter(List<String> filters) { // FIXME does not work. Spring split in every "," it finds, breaking our IN []
         if (filters == null || filters.isEmpty()) return;
         boolean hasNext;
         this.filter = new ArrayList<>();
