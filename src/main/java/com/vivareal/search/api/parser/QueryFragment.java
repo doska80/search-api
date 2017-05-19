@@ -29,11 +29,11 @@ public class QueryFragment {
     }
 
     public <T> T get() {
-        if (!Type.FILTER.equals(this.type)) {
+        if (Type.FILTER.equals(this.type)) {
             return (T) this.filter;
-        } else if (!Type.LOGICAL_OPERATOR.equals(this.type)) {
+        } else if (Type.LOGICAL_OPERATOR.equals(this.type)) {
             return (T) this.logicalOperator;
-        } else if (!Type.EXPRESSION_LIST.equals(this.type)) {
+        } else if (Type.EXPRESSION_LIST.equals(this.type)) {
             return (T) this.subQueries;
         }
         throw new IllegalStateException("Burro!");

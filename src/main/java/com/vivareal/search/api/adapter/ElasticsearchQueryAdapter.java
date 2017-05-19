@@ -4,12 +4,14 @@ package com.vivareal.search.api.adapter;
 import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.Sort;
+import com.vivareal.search.api.parser.Filter;
 import com.vivareal.search.api.parser.QueryFragment;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
@@ -56,24 +58,24 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
         searchBuilder.setPreference("_replica_first"); // <3
 
+        BoolQueryBuilder query = new BoolQueryBuilder();
+
         if (request.getFilter().isEmpty()) {
             BoolQueryBuilder filterQuery = new BoolQueryBuilder();
-            request.getFilter().forEach(filter -> {
-                if (QueryFragment.Type.EXPRESSION_LIST.equals(filter.getType())) {
-                    System.out.println(filter);
-//                    QueryFragment orFilter = filter.get(0);
-//                    filterQuery.should().add(QueryBuilders.matchQuery(orFilter.getName(), orFilter.getValue()));
+            request.getFilter().forEach(filterFragment -> {
+                QueryFragment.Type type = filterFragment.getType();
+                if (QueryFragment.Type.EXPRESSION_LIST.equals(type)) { // TODO sub query, still not workiung :(
+                    throw new UnsupportedOperationException("Subqueries aren't supported yet :("); // TODO TUDO!
+                } else if (QueryFragment.Type.FILTER.equals(type)) {
+                    Filter filter = filterFragment.get();
+                    filterQuery.must().add(QueryBuilders.matchQuery(filter.getField().getName(), filter.getValue()));
                 } else {
-                    System.out.println(filter);
-//                    BoolQueryBuilder andFilterQuery = new BoolQueryBuilder();
-//                    filter.forEach(andFilter -> {
-//                        andFilterQuery.must().add(QueryBuilders.matchQuery(andFilter.getName(), andFilter.getValue()));
-//                    });
-//                    filterQuery.should().add(andFilterQuery);
+                    System.out.println(filterFragment);
                 }
             });
-            searchBuilder.setQuery(filterQuery);
+            query.filter(filterQuery);
         }
+        searchBuilder.setQuery(query);
         System.out.println(searchBuilder);
         searchBuilder.execute().actionGet().getHits().forEach(hit -> {  // FIXME should be async if possible
             response.add(hit.getSource()); // FIXME avoid iterating twice!
