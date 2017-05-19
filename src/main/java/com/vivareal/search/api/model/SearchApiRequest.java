@@ -40,7 +40,7 @@ public final class SearchApiRequest {
     public void setFilter(List<String> filters) {
         if (filters == null || filters.isEmpty()) return;
         boolean hasNext;
-        this.filter = new ArrayList();
+        this.filter = new ArrayList<>();
         Iterator<String> iterator = filters.iterator();
         do {
             this.filter.addAll(QUERY_PARSER.parse(iterator.next()));
@@ -63,7 +63,7 @@ public final class SearchApiRequest {
     }
 
     public void setSort(List<String> sorts) {
-        this.sort = new ArrayList();
+        this.sort = new ArrayList<>();
         sorts.forEach(sort -> {
             this.sort.addAll(parseSort(sort));
         });
