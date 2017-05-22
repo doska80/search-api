@@ -22,12 +22,19 @@ include make/log/Makefile
 
 RUN_MEMORY:=$(if $(filter prod,$(ENV)),3500,900)
 PORT:=8482
+ES_PORT?=9300
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 # TODO - Use DefaultAWSCredentialsProviderChain
 RUN_OPTS+=-Daws.access.key=$(AWS_ACCESS_KEY_ID) -Daws.secret.key=$(AWS_SECRET_ACCESS_KEY)
 RUN_OPTS+=-server -XX:+UseConcMarkSweepGC -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=80
 RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 100)m -Xms$(shell expr $(RUN_MEMORY) - 100)m
+
+# Elasticsearch
+RUN_OPTS+=-Des.hostname=$(ENV)-search-es-api-$(ES_CLUSTER_NAME).vivareal.com
+RUN_OPTS+=-Des.port=$(ES_PORT)
+RUN_OPTS+=-Des.cluster.name=$(ES_CLUSTER_NAME)
+
 #ifneq ($(NEWRELIC_AGENT),)
 #  RUN_OPTS+=-javaagent:/opt/apache-tomcat-8.0.35/webapps/ROOT/WEB-INF/lib/newrelic.jar
 #endif
@@ -37,13 +44,13 @@ include make/jmx/Makefile
 RUN_CMD= docker run \
 		$(DOCKER_NET_CONFIG) \
 		-v $(LOG):$(CONTAINER_LOG) \
-		-e CATALINA_OPTS='"$(RUN_OPTS)"' \
+		-e JAVA_OPTS='"$(RUN_OPTS)"' \
 		-e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
 		-e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
 		$(REMOVE_CONTAINER_FLAG) --name $(CONTAINER_NAME) \
 		$(DAEMON_FLAG) -m $(RUN_MEMORY)M -ti $(IMAGE_NAME)
 
-run: log image aws_default_region
+run: log es_cluster_name aws_default_region image
 	$(shell echo $(RUN_CMD))
 
 user-data-setup:
@@ -57,7 +64,7 @@ STACK_NAME?=$(ENV)-search-$(PROJECT_NAME)-$(STACK_ALIAS)
 stack-variables-setup: user-data
 include make/asn/Makefile
 
-deploy: aws_default_region deploy-stack set-cfn-stack-id
+deploy: aws_default_region es_cluster_name deploy-stack set-cfn-stack-id
 SLK_DEPLOY_URL=https://console.aws.amazon.com/cloudformation/home?region=$(AWS_DEFAULT_REGION)\#/stack/detail?stackId=$(CFN_STACK_ID)
 
 teardown: destroy-stack
@@ -74,3 +81,6 @@ deploy-with-notification: deploy notify-success-deploy
 
 aws_default_region:
 	$(if $(value AWS_DEFAULT_REGION),,$(error "AWS_DEFAULT_REGION is required for Makefile"))
+
+es_cluster_name:
+	$(if $(value ES_CLUSTER_NAME),,$(error "ES_CLUSTER_NAME is required for Makefile"))
