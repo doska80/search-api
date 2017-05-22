@@ -16,19 +16,12 @@ elb:
     http:
       balancer_port: 80
       instance_port: 8482
-    https:
-      balancer_port: 443
-      instance_port: 8482
-      ssl_certificate_id: arn:aws:iam::444914307613:server-certificate/2015-2018-wildcard.vivareal.com_withall
-  schema:
-    - internal
-    - internet-facing
+  schema: internal
 dns:
   hosted_zone_id: Z3LLB24QZQ3AW1
   hosted_zone: 'vivareal.com.'
   type: A
-  internal_record_set: search-api.vivareal.com.
-  external_record_set: api.vivareal.com.
+  internal_record_set: search-api-v2.vivareal.com.
 asg:
   normal_min: 2
   normal_max: 10
@@ -101,6 +94,6 @@ public_ip: false
 instance_monitoring: true
 tags:
   Product: search
-  App: searchapi
+  App: searchapi-v2
   Process: api
 user_data: /project/deploy/variables/user-data.sh

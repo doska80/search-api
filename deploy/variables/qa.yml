@@ -8,8 +8,7 @@ dns:
 elb:
   instance_port: 8482
   balancer_port: 80
-  ssl_certificate_id: arn:aws:iam::444914307613:server-certificate/2015-2018-wildcard.vivareal.com_withall
-  schema: internet-facing
+  schema: internal
 health_check:
   healthy_threshold: 4
   grace_period: 300
@@ -43,6 +42,6 @@ termination_policies:
   - OldestInstance
 tags:
   Product: search
-  App: search-api
+  App: searchapi-v2
   Process: api
 user_data: /project/deploy/variables/user-data.sh

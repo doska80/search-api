@@ -51,7 +51,7 @@ include make/usr/Makefile
 
 VARIABLES?=$(ENV)
 REGION_VARIABLES?=$(AWS_DEFAULT_REGION)/$(ENV)
-TEMPLATE?=$(if $(filter prod,$(ENV)),asg-with-double-elb,simple-asg-with-elb)
+TEMPLATE?=simple-asg-with-elb
 STACK_ALIAS?=$(COMMIT_HASH)
 STACK_NAME?=$(ENV)-search-$(PROJECT_NAME)-$(STACK_ALIAS)
 stack-variables-setup: user-data
