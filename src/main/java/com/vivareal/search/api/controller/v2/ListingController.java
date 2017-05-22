@@ -28,7 +28,7 @@ public class ListingController {
 
     @RequestMapping
     public SearchApiResponse getListings(SearchApiRequest request) {
-        return new SearchApiResponse(listingService.getListings(request));
+        return listingService.getListings(request);
     }
 
     @RequestMapping(value = "/stream", method = GET, produces = "application/x-ndjson")

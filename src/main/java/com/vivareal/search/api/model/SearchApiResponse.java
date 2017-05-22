@@ -5,17 +5,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class SearchApiResponse {
+    private final long time;
+    private final long totalCount;
     private final List<Object> listings;
 
-    // qtime
-    // rows
-    //
-
     public SearchApiResponse() {
-        this(new ArrayList<>());
+        this(0l, 0l, new ArrayList<>());
     }
 
-    public SearchApiResponse(List<Object> listings) {
+    public SearchApiResponse(long time, long totalCount, List<Object> listings) {
+        this.time = time;
+        this.totalCount = totalCount;
         this.listings = listings;
     }
 
@@ -29,5 +29,13 @@ public final class SearchApiResponse {
 
     public void addListings(List<Object> listings) {
         this.listings.addAll(listings);
+    }
+
+    public long getTotalCount() {
+        return totalCount;
+    }
+
+    public long getTime() {
+        return time;
     }
 }

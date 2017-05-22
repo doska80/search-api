@@ -1,8 +1,8 @@
 package com.vivareal.search.api.adapter;
 
-
 import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.parser.Filter;
 import com.vivareal.search.api.parser.QueryFragment;
@@ -10,6 +10,7 @@ import com.vivareal.search.api.parser.RelationalOperator;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -20,7 +21,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -54,8 +54,8 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     }
 
     @Override
-    public List<Map<String, Object>> getQueryMarcao(SearchApiRequest request) {
-        List<Map<String, Object>> response = new ArrayList<>();
+    public SearchApiResponse getQueryMarcao(SearchApiRequest request) {
+        List<Object> response = new ArrayList<>();
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
         searchBuilder.setPreference("_replica_first"); // <3
 
@@ -101,10 +101,12 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
         }
         searchBuilder.setQuery(query);
         System.out.println(searchBuilder);
-        searchBuilder.execute().actionGet().getHits().forEach(hit -> {  // FIXME should be async if possible
+        SearchResponse esResponse = searchBuilder.execute().actionGet();
+        esResponse.getHits().forEach(hit -> {  // FIXME should be async if possible
             response.add(hit.getSource()); // FIXME avoid iterating twice!
         });
-        return response;
+
+        return new SearchApiResponse(esResponse.getTookInMillis(), esResponse.getHits().getTotalHits(), response);
     }
 
     @Override

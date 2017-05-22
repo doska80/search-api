@@ -1,10 +1,9 @@
 package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.SearchApiResponse;
 
-import java.io.OutputStream;
 import java.util.List;
-import java.util.Map;
 
 public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
 
@@ -14,7 +13,7 @@ public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
     }
 
     @Override
-    public List<Map<String, Object>> getQueryMarcao(SearchApiRequest request) {
+    public SearchApiResponse getQueryMarcao(SearchApiRequest request) {
         return null;
     }
 
