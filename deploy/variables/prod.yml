@@ -16,7 +16,6 @@ elb:
     http:
       balancer_port: 80
       instance_port: 8482
-  schema: internal
 dns:
   hosted_zone_id: Z3LLB24QZQ3AW1
   hosted_zone: 'vivareal.com.'

@@ -8,7 +8,6 @@ dns:
 elb:
   instance_port: 8482
   balancer_port: 80
-  schema: internal
 health_check:
   healthy_threshold: 4
   grace_period: 300
