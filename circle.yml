@@ -30,7 +30,7 @@ dependencies:
     - ~/.gradle
 test:
   override:
-    - ./gradlew clean test
+    - make GRADLE_EXTRA_ARGS="-PnewRelicKey=$NEW_RELIC_KEY" build
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
@@ -39,4 +39,4 @@ deployment:
   hub:
     branch: master
     commands:
-      - make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test -x integrationTest -PnewRelicKey=$NEW_RELIC_KEY" analise-code push-with-notification
+      - make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test -PnewRelicKey=$NEW_RELIC_KEY" analise-code push-with-notification

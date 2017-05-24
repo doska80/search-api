@@ -44,6 +44,8 @@ jar {
     }
 }
 
+import org.apache.tools.ant.filters.ReplaceTokens
+
 repositories {
     jcenter()
     mavenCentral()
@@ -56,6 +58,7 @@ repositories {
 configurations {
     compile.exclude module: 'spring-boot-starter-tomcat'
     compile.exclude module: 'undertow-websockets-jsr'
+    newRelic
 }
 
 dependencies {
@@ -76,6 +79,8 @@ dependencies {
     compile 'org.apache.logging.log4j:log4j-web:2.6.2'
     compile 'org.slf4j:slf4j-api:1.7.21'
 
+    newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
+
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     // testCompile 'junit:junit:4.12'
     // testCompile 'org.springframework:spring-test:4.3.6.RELEASE'
@@ -89,6 +94,26 @@ task copyJarForDockerCompose(dependsOn: 'bootJar', type: Copy) {
     }
 }
 
+task newrelic(dependsOn: 'bootJar') {
+    doLast {
+        copy {
+            from configurations.newRelic.fileCollection { it.name == 'newrelic-agent' }.singleFile
+            into './build/libs'
+            rename { 'newrelic.jar' }
+        }
+    }
+
+    if (project.hasProperty('newRelicKey')) {
+        doLast {
+            copy {
+                filter(ReplaceTokens, tokens: [newRelicKey: newRelicKey])
+                from 'src/main/resources/newrelic.yml'
+                into './build/resources/main'
+            }
+        }
+    }
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '3.5'
 }
@@ -97,10 +122,7 @@ bootRun {
     systemProperties = System.properties
 }
 
-build.doLast {
-    bootJar.execute()
-    copyJarForDockerCompose.execute()
-}
+build.finalizedBy copyJarForDockerCompose, newrelic
 
 bootJar {
     launchScript {

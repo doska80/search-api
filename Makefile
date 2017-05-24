@@ -35,9 +35,9 @@ RUN_OPTS+=-Des.hostname=$(ENV)-search-es-api-$(ES_CLUSTER_NAME).vivareal.com
 RUN_OPTS+=-Des.port=$(ES_PORT)
 RUN_OPTS+=-Des.cluster.name=$(ES_CLUSTER_NAME)
 
-#ifneq ($(NEWRELIC_AGENT),)
-#  RUN_OPTS+=-javaagent:/opt/apache-tomcat-8.0.35/webapps/ROOT/WEB-INF/lib/newrelic.jar
-#endif
+ifneq ($(NEWRELIC_AGENT),)
+  RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
+endif
 
 include make/jmx/Makefile
 
