@@ -13,6 +13,6 @@ public class SearchApiIndex {
     }
 
     public String getIndex() {
-        return "inmuebles"; // TODO creates a logic to returns the index according to request
+        return "listings"; // TODO creates a logic to returns the index according to request
     }
 }

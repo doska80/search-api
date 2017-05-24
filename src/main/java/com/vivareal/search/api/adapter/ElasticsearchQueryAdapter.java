@@ -30,7 +30,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 @Qualifier("ElasticsearchQuery")
 public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, List<QueryFragment>, List<Sort>> {
 
-    public static final String INDEX = "inmuebles";
+    public static final String INDEX = "listings";
 
     private final TransportClient transportClient;
 
@@ -56,7 +56,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     @Override
     public SearchApiResponse getQueryMarcao(SearchApiRequest request) {
         List<Object> response = new ArrayList<>();
-        SearchRequestBuilder searchBuilder = transportClient.prepareSearch("inmuebles"); // FIXME parameter
+        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(INDEX); // FIXME parameter
         searchBuilder.setPreference("_replica_first"); // <3
 
         BoolQueryBuilder query = new BoolQueryBuilder();
