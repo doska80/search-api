@@ -36,7 +36,7 @@ java -jar build/libs/search-api.jar
 ## Docker
 
 ```sh
-docker run --rm -it -p 8482:8482 vivareal/search-api:<VERSION>
+docker run --rm -it -p 8482:8482 vivareal/search-api-v2:<VERSION>
 ```
 
 # How to Test
@@ -47,4 +47,26 @@ docker run --rm -it -p 8482:8482 vivareal/search-api:<VERSION>
 
 # How to Deploy
 
-TODO
+## Deploying from Jenkins
+ 
+<a href="http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_PROD/build?delay=0sec">
+  <img src="http://ftp-chi.osuosl.org/pub/jenkins/art/jenkins-logo/logo+title.svg" alt="Jenkins" width="150">
+</a> 
+
+## Deploying from your terminal
+
+**Make sure you've pushed the docker image to dockerhub before deploying the environment.**
+
+```
+make ENV=${ENV} IMAGE_NAME=${IMAGE_NAME} STACK_ALIAS=${STACK_ALIAS} AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} ES_CLUSTER_NAME=${ES_CLUSTER_NAME} deploy
+```
+
+Possible values for ENV: `prod` or `qa`.
+
+`IMAGE_NAME` is a string with the image pushed to Dockerhub
+
+`STACK_ALIAS` is a string used to name Cloudformation stack. If not present, the hash of the current commit will be used to identify the stack.
+
+`AWS_DEFAULT_REGION` is a string with the AWS region to deploy. (Eg. `sa-east-1`)
+
+`ES_CLUSTER_NAME` is a string with the current [ElasticSearch](https://github.com/VivaReal/search-es) cluster.

@@ -1,0 +1,6 @@
+[submodule "el-asno-alado"]
+	path = el-asno-alado
+	url = git@github.com:VivaReal/el-asno-alado.git
+[submodule "make"]
+	path = make
+	url = git@github.com:VivaReal/make-snippets.git

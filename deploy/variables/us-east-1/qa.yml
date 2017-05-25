@@ -1,0 +1,20 @@
+availability_zones:
+  - us-east-1a
+  - us-east-1b
+  - us-east-1d
+  - us-east-1e
+elb:
+  subnets:
+    - subnet-ca10ebf6
+    - subnet-bb189df2
+    - subnet-ba5f96e1
+    - subnet-03b3662e
+image_id: ami-5040d846
+security_groups:
+  - sg-3ce7ce43
+  - sg-a0e4cddf
+subnets:
+  - subnet-cb10ebf7
+  - subnet-bc189df5
+  - subnet-bf5f96e4
+  - subnet-1cb36631

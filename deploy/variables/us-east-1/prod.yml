@@ -1,0 +1,24 @@
+availability_zones:
+  - us-east-1a
+  - us-east-1b
+  - us-east-1d
+  - us-east-1e
+security_groups:
+  - sg-55f5dc2a
+  - sg-b8f2dbc7
+elb:
+  access_logging_policy:
+    s3_bucket_name: search-us-east-1
+  subnets:
+    - subnet-550af169
+    - subnet-9023a6d9
+    - subnet-e0569fbb
+    - subnet-04ba6f29
+asg:
+  subnets:
+    - subnet-4e0af172
+    - subnet-9523a6dc
+    - subnet-9b569fc0
+    - subnet-03ba6f2e
+image_id: ami-5040d846
+spot_price: 0.08

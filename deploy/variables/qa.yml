@@ -1,0 +1,46 @@
+asg:
+  min: 1
+  max: 1
+dns:
+  hosted_zone_id: Z3LLB24QZQ3AW1
+  hosted_zone: 'vivareal.com.'
+  type: A
+elb:
+  instance_port: 8482
+  balancer_port: 80
+health_check:
+  healthy_threshold: 4
+  grace_period: 300
+  interval: 15
+  target: 'HTTP:8482/healthcheck/status'
+  timeout: 2
+  unhealthy_threshold: 6
+key_name: api
+instance_type: t2.micro
+public_ip: false
+scaling:
+  up:
+    adjustment: 1
+    comparison: '<'
+    metric: CPUCreditBalance
+    period: 60
+    statistic: 'Average'
+    threshold: 25
+    times: 2
+    wait: 180
+  down:
+    adjustment: -1
+    comparison: '>'
+    metric: CPUCreditBalance
+    period: 60
+    statistic: 'Sum'
+    threshold: 70
+    times: 2
+    wait: 300
+termination_policies:
+  - OldestInstance
+tags:
+  Product: search
+  App: searchapi-v2
+  Process: api
+user_data: /project/deploy/variables/user-data.sh

@@ -1,0 +1,98 @@
+health_check:
+  healthy_threshold: 4
+  grace_period: 180
+  interval: 15
+  target: 'HTTP:8482/healthcheck/status'
+  timeout: 2
+  unhealthy_threshold: 6
+elb:
+  access_logging_policy:
+    emit_interval: 5
+    s3_bucket_prefix: logselb/searchapi-prod
+  cross_zone: true
+  connection_draining_timeout: 20
+  idle_timeout: 60
+  listeners:
+    http:
+      balancer_port: 80
+      instance_port: 8482
+dns:
+  hosted_zone_id: Z3LLB24QZQ3AW1
+  hosted_zone: 'vivareal.com.'
+  type: A
+  internal_record_set: search-api-v2.vivareal.com.
+asg:
+  normal_min: 2
+  normal_max: 10
+  normal_desired_capacity: 2
+  spot_min: 4
+  spot_max: 10
+  spot_desired_capacity: 6
+  cooldown: 180
+  termination_policies:
+    - ClosestToNextInstanceHour
+scaling_normal:
+  up:
+    adjustment: 2
+    comparison: '>'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 75
+    times: 3
+    wait: 180
+  severalUp:
+    adjustment: 4
+    comparison: '>'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 90
+    times: 2
+    wait: 180
+  down:
+    adjustment: -1
+    comparison: '<'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 50
+    times: 3
+    wait: 180
+scaling_spot:
+  up:
+    adjustment: 2
+    comparison: '>'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 65
+    times: 3
+    wait: 300
+  severalUp:
+    adjustment: 4
+    comparison: '>'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 80
+    times: 2
+    wait: 180
+  down:
+    adjustment: -1
+    comparison: '<'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 40
+    times: 3
+    wait: 180
+key_name: api
+instance_type: c4.large
+public_ip: false
+instance_monitoring: true
+tags:
+  Product: search
+  App: searchapi-v2
+  Process: api
+user_data: /project/deploy/variables/user-data.sh
