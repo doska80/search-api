@@ -25,7 +25,10 @@ apply plugin: 'org.sonarqube'
 apply plugin: 'jacoco'
 
 group = 'com.vivareal.search'
-version = '0.0.1'
+
+ext {
+    artifactName = project.hasProperty('artifactName') ? artifactName : 'vivareal-search-api-v2-SNAPSHOT.jar'
+}
 
 eclipse {
     classpath {
@@ -43,7 +46,7 @@ idea {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'VivaReal Search API', 'Implementation-Version': version
+        attributes 'Implementation-Title': 'VivaReal Search API v2', 'Implementation-Version': artifactName
     }
 }
 
@@ -90,11 +93,9 @@ dependencies {
 }
 
 task copyJarForDockerCompose(dependsOn: 'bootJar', type: Copy) {
-    from jar
+    from bootJar
     into './build/libs/'
-    rename { String fileName ->
-        fileName = 'search-api.jar'
-    }
+    rename { 'search-api.jar' }
 }
 
 task newrelic(dependsOn: 'bootJar') {
@@ -128,6 +129,7 @@ bootRun {
 build.finalizedBy copyJarForDockerCompose, newrelic
 
 bootJar {
+    baseName = artifactName - '.jar'
     launchScript {
         included = true
     }
