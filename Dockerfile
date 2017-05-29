@@ -1,4 +1,4 @@
-FROM openjdk:8u121-jdk
+FROM vivareal/base-images:alpine-3.5-java-8-jdk
 
 ARG ARTIFACT
 
