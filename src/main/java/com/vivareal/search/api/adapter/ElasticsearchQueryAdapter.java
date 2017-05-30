@@ -15,6 +15,8 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,7 +32,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 @Qualifier("ElasticsearchQuery")
 public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, List<QueryFragment>, List<Sort>> {
 
-    public static final String INDEX = "listings";
+    private Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
     private final TransportClient transportClient;
 
@@ -42,21 +44,21 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     public Object getById(SearchApiRequest request, String id) {
         SearchApiIndex index = SearchApiIndex.of(request);
 
-        // FIXME we need to receive index and type separately somehow
         GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(index.getIndex()).setType(index.getIndex()).setId(id);
         try {
             GetResponse response = requestBuilder.execute().get(1, TimeUnit.SECONDS);
             return response.getSource();
         } catch (Exception e) {
-            e.printStackTrace(); // FIXME seriously, fix me.
+            LOG.error("Getting id={} error: {}", id, request);
         }
         return null;
     }
 
     @Override
-    public SearchApiResponse getQueryMarcao(SearchApiRequest request) {
+    public SearchApiResponse query(SearchApiRequest request) {
+        SearchApiIndex index = SearchApiIndex.of(request);
         List<Object> response = new ArrayList<>();
-        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(INDEX); // FIXME parameter
+        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(index.getIndex());
         searchBuilder.setPreference("_replica_first"); // <3
 
         BoolQueryBuilder query = new BoolQueryBuilder();
