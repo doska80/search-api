@@ -5,12 +5,16 @@ import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.parser.QueryFragment;
 import com.vivareal.search.api.parser.QueryParser;
 import org.elasticsearch.common.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F, S> {
+
+    private static final Logger LOG = LoggerFactory.getLogger(AbstractQueryAdapter.class);
 
     protected static final ImmutableList<QueryFragment> EMPTY_QUERY_FRAGMENT_LIST = ImmutableList.of();
     protected static final ImmutableList<Sort> EMPTY_SORT_LIST = ImmutableList.of();
@@ -25,7 +29,7 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
         if (Strings.isNullOrEmpty(filter))
             return EMPTY_QUERY_FRAGMENT_LIST;
         List<QueryFragment> fragments = QueryParser.get().parse(filter);
-        // TODO log
+        LOG.debug("Query parse: {}", fragments);
         return fragments;
     }
 

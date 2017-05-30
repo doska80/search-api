@@ -32,7 +32,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 @Qualifier("ElasticsearchQuery")
 public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, List<QueryFragment>, List<Sort>> {
 
-    private Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
+    private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
     private final TransportClient transportClient;
 
@@ -102,7 +102,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
             query.filter(filterQuery);
         }
         searchBuilder.setQuery(query);
-        System.out.println(searchBuilder);
+        LOG.debug("Query: {}", searchBuilder);
         SearchResponse esResponse = searchBuilder.execute().actionGet();
         esResponse.getHits().forEach(hit -> {  // FIXME should be async if possible
             response.add(hit.getSource()); // FIXME avoid iterating twice!
