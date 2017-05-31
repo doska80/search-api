@@ -1,5 +1,7 @@
 package com.vivareal.search.api.controller.v2.error;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorController;
@@ -8,16 +10,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.RequestAttributes;
-import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.handler.DispatcherServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Controller // FIXME: logar melhor isso ae
+@Controller
 public class ExceptionController implements ErrorController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(ExceptionController.class);
+
     private static final String ERROR_PATH = "/error";
 
     @Autowired
@@ -38,10 +41,7 @@ public class ExceptionController implements ErrorController {
 
     private boolean getTraceParameter(HttpServletRequest request) {
         String parameter = request.getParameter("trace");
-        if (parameter == null) {
-            return false;
-        }
-        return !"FALSE".equalsIgnoreCase(parameter);
+        return parameter != null && !"FALSE".equalsIgnoreCase(parameter);
     }
 
     private Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
@@ -55,9 +55,9 @@ public class ExceptionController implements ErrorController {
             try {
                 return HttpStatus.valueOf(statusCode);
             } catch (Exception ex) {
+                LOG.error("Invalid http status code", ex);
             }
         }
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
-
 }

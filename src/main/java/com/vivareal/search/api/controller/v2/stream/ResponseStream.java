@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  */
 public final class ResponseStream {
 
-    private Logger LOG = LoggerFactory.getLogger(ResponseStream.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ResponseStream.class);
 
     private OutputStream stream;
 
