@@ -72,7 +72,10 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.springframework.boot:spring-boot-starter-undertow'
     compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.springframework.boot:spring-boot-starter-log4j2'
+
+    compile 'com.getsentry.raven:raven-logback:8.0.3'
+    compile 'biz.paluch.logging:logstash-gelf:1.11.1'
+    compile 'org.springframework.boot:spring-boot-starter-log4j2' // need this because org.elasticsearch:elasticsearch dependency
 
     compile 'com.google.guava:guava:21.0'
     compile 'org.jparsec:jparsec:3.0'
@@ -85,6 +88,7 @@ dependencies {
     newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'org.springframework.boot:spring-boot-starter-log4j2'
 }
 
 task copyJarForDockerCompose(dependsOn: 'bootJar', type: Copy) {
@@ -144,3 +148,10 @@ sonarqube {
     }
 }
 
+test {
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStackTraces true
+        exceptionFormat 'full'
+    }
+}
