@@ -1,43 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <springProfile name="dev">
-        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
-        <appender name="ROLLING-FILE"
-                  class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <encoder>
-                <pattern>${FILE_LOG_PATTERN}</pattern>
-            </encoder>
-            <file>${LOG_FILE}</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.log</fileNamePattern>
-            </rollingPolicy>
-        </appender>
-        <root level="ERROR">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="ROLLING-FILE"/>
-        </root>
-    </springProfile>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <springProfile name="prod">
-        <appender name="ROLLING-FILE"
-                  class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <encoder>
-                <pattern>${FILE_LOG_PATTERN}</pattern>
-            </encoder>
-            <file>${LOG_FILE}</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
-                <timeBasedFileNamingAndTriggeringPolicy
-                        class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                    <maxFileSize>10MB</maxFileSize>
-                </timeBasedFileNamingAndTriggeringPolicy>
-            </rollingPolicy>
-        </appender>
+    <springProperty scope="context" name="environment" source="spring.profiles.active"/>
 
-        <root level="ERROR">
-            <appender-ref ref="ROLLING-FILE"/>
-        </root>
-    </springProfile>
+    <springProperty scope="context" name="application" source="application.title"/>
+    <springProperty scope="context" name="version" source="application.version"/>
+    <springProperty scope="context" name="codename" source="application.codename"/>
 
+    <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">
+        <dsn>
+            http://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry-logs.vivareal.com/64?options
+        </dsn>
+        <tags>environment:${environment},version:${version},codename:${codename}</tags>
+        <ravenFactory>com.getsentry.raven.DefaultRavenFactory</ravenFactory>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <appender name="GELF" class="biz.paluch.logging.gelf.logback.GelfLogbackAppender">
+        <host>udp:logs.vivareal.com</host>
+        <port>12201</port>
+        <version>1.1</version>
+        <extractStackTrace>true</extractStackTrace>
+        <additionalFields>environment=${environment},application=${application},product=search</additionalFields>
+        <additionalFieldTypes>environment=String,application=String,product=String</additionalFieldTypes>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <appender name="ASYNC_SENTRY" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="SENTRY"/>
+    </appender>
+
+    <appender name="ASYNC_GELF" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="GELF"/>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <springProfile name="qa, prod">
+            <appender-ref ref="ASYNC_GELF"/>
+            <appender-ref ref="ASYNC_SENTRY"/>
+        </springProfile>
+    </root>
 </configuration>
