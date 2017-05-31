@@ -27,7 +27,7 @@ public class ListingService {
     }
 
     public SearchApiResponse getListings(SearchApiRequest request) {
-        return this.queryAdapter.getQueryMarcao(request);
+        return this.queryAdapter.query(request);
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {
