@@ -21,22 +21,26 @@ Search API is a API created with Spring boot framework that does queries to our 
 
 You can run with many ways:
 
+> You must pass the `es.cluster.name` parameter. (Assuming that the cluster name is `tincas`)
+
 ## Gradle
 
 ```sh
-./gradlew bootRun
+./gradlew bootRun -Des.cluster.name=tincas
 ```
 
 ## Java Run
 
 ```sh
-java -jar build/libs/search-api.jar
+java -Des.cluster.name=tincas -jar build/libs/search-api.jar
 ```
 
 ## Docker
 
 ```sh
-docker run --rm -it -p 8482:8482 vivareal/search-api-v2:<VERSION>
+docker run --rm -it -p 8482:8482 \
+   -e JAVA_OPTS='-Des.cluster.name=tincas' \
+   vivareal/search-api-v2:<VERSION>
 ```
 
 # How to Test
