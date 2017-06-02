@@ -1,24 +1,29 @@
 package com.vivareal.search.api.parser;
 
-import org.elasticsearch.common.Strings;
+import static java.util.stream.Collectors.joining;
+
+import java.util.Collection;
 
 public class Field {
 
-    private final String name;
+    private Collection<String> names;
 
-    public Field(final String name) {
-        this.name = name.intern();
+    public Field(final Collection<String> names) {
+        if(names == null || names.isEmpty())
+            throw new IllegalArgumentException("Field list cannot be empty");
+        this.names = names;
     }
 
     public String getName() {
-        return this.name;
+        return this.names.stream().collect(joining("."));
+    }
+
+    public Collection<String> getNames() {
+        return this.names;
     }
 
     @Override
     public String toString() {
-        if (Strings.isNullOrEmpty(this.name))
-            return "NULL";
-        return this.name;
+        return this.names.toString();
     }
-
 }

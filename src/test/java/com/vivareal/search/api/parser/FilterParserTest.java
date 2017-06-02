@@ -16,15 +16,14 @@ public class FilterParserTest {
     @Test
     public void testSingleExpressionWithSpacesAndSingleQuotes() {
         Parser<Filter> parser = FilterParser.get();
-        Filter filter = parser.parse("pedrito = 'gringo mardito'");
-        assertEquals("pedrito EQUAL gringo mardito", filter.toString());
+        Filter filter = parser.parse("pedrito.colombiano = 'gringo mardito'");
+        assertEquals("pedrito.colombiano EQUAL gringo mardito", filter.toString());
     }
 
     @Test
     public void testSingleExpressionWithINAndSpaces() {
         Parser<Filter> parser = FilterParser.get();
-        Filter filter = parser.parse("pedrito IN ['gringo', 'mardito']");
+        Filter filter = parser.parse("pedrito IN [\"gringo\", 'mardito']");
         assertEquals("pedrito IN [\"gringo\", \"mardito\"]", filter.toString());
     }
-
 }
