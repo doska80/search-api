@@ -28,9 +28,9 @@ asg:
   spot_min: 2
   spot_max: 10
   spot_desired_capacity: 3
-  secodary_spot_min: 2
-  secodary_spot_max: 10
-  secodary_spot_desired_capacity: 3
+  secondary_spot_min: 2
+  secondary_spot_max: 10
+  secondary_spot_desired_capacity: 3
   cooldown: 180
   termination_policies:
     - ClosestToNextInstanceHour
