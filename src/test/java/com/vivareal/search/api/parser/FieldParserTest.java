@@ -28,6 +28,37 @@ public class FieldParserTest {
     }
 
     @Test(expected = ParserException.class)
+    public void testBlankFieldNames() {
+        FieldParser.get().parse("");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testDotFieldNames() {
+        FieldParser.get().parse(".");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testRootNestedFieldNames() {
+        FieldParser.get().parse(".bixola.lolo");
+    }
+
+    @Test
+    public void testNestedFieldNames() {
+        Field field = FieldParser.get().parse("marcos.bixola.lolo");
+        assertEquals(field.getName(), "marcos.bixola.lolo");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testDoublePointFieldNames() {
+        FieldParser.get().parse("marcos..bixola");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testDotEndedFieldNames() {
+        FieldParser.get().parse("marcos.");
+    }
+
+    @Test(expected = ParserException.class)
     public void testInvalidFieldNamesWithSpecialChars() {
         FieldParser.get().parse("açentedField");
     }
