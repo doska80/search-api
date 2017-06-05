@@ -23,11 +23,14 @@ dns:
   internal_record_set: search-api-v2.vivareal.com.
 asg:
   normal_min: 2
-  normal_max: 10
+  normal_max: 12
   normal_desired_capacity: 2
-  spot_min: 4
+  spot_min: 2
   spot_max: 10
-  spot_desired_capacity: 6
+  spot_desired_capacity: 3
+  secodary_spot_min: 2
+  secodary_spot_max: 10
+  secodary_spot_desired_capacity: 3
   cooldown: 180
   termination_policies:
     - ClosestToNextInstanceHour
@@ -66,6 +69,34 @@ scaling_spot:
     metric: CPUUtilization
     period: 60
     statistic: 'Average'
+    threshold: 55
+    times: 3
+    wait: 300
+  severalUp:
+    adjustment: 4
+    comparison: '>'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 70
+    times: 2
+    wait: 120
+  down:
+    adjustment: -1
+    comparison: '<'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
+    threshold: 35
+    times: 3
+    wait: 180
+scaling_secondary_spot:
+  up:
+    adjustment: 2
+    comparison: '>'
+    metric: CPUUtilization
+    period: 60
+    statistic: 'Average'
     threshold: 65
     times: 3
     wait: 300
@@ -84,11 +115,12 @@ scaling_spot:
     metric: CPUUtilization
     period: 60
     statistic: 'Average'
-    threshold: 40
+    threshold: 30
     times: 3
     wait: 180
 key_name: api
 instance_type: c4.large
+secondary_instance_type: c3.large
 public_ip: false
 instance_monitoring: true
 tags:

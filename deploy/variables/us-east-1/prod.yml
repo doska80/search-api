@@ -22,3 +22,4 @@ asg:
     - subnet-03ba6f2e
 image_id: ami-5040d846
 spot_price: 0.08
+secondary_spot_price: 0.08
