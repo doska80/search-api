@@ -1,12 +1,12 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.model.SearchApiIndex;
-import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
-import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.parser.Filter;
-import com.vivareal.search.api.parser.QueryFragment;
-import com.vivareal.search.api.parser.RelationalOperator;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -21,11 +21,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
+import com.vivareal.search.api.model.SearchApiIndex;
+import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.SearchApiResponse;
+import com.vivareal.search.api.model.query.Sort;
+import com.vivareal.search.api.parser.Filter;
+import com.vivareal.search.api.parser.QueryFragment;
+import com.vivareal.search.api.parser.RelationalOperator;
 
 @Component
 @Scope(SCOPE_SINGLETON)
@@ -81,7 +83,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
                         if (RelationalOperator.DIFFERENT.equals(operator))
                             filterQuery.mustNot().add(QueryBuilders.matchQuery(fieldName, firstValue));
                         else if (RelationalOperator.EQUAL.equals(operator))
-                            filterQuery.must().add(QueryBuilders.matchQuery(fieldName, firstValue));
+                            filterQuery.must().add(QueryBuilders.matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".keyword"), firstValue));
                         else if (RelationalOperator.GREATER.equals(operator))
                             filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(false));
                         else if (RelationalOperator.GREATER_EQUAL.equals(operator))
