@@ -24,9 +24,8 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
     @Override
     public boolean hasNext() {
         return ofNullable(response.getHits())
-                .flatMap(e -> ofNullable(e.getHits()))
-                .map(e -> e.length)
-                .orElse(0) != 0;
+                .map(e -> e.getHits().length)
+                .orElse(0) > 0;
     }
 
     @Override
