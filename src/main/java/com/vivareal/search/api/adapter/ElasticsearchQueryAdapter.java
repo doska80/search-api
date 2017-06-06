@@ -80,20 +80,22 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
                         return;
                     if (values.size() == 1) {
                         String firstValue = values.get(0);
-                        if (RelationalOperator.DIFFERENT.equals(operator))
-                            filterQuery.mustNot().add(QueryBuilders.matchQuery(fieldName, firstValue));
-                        else if (RelationalOperator.EQUAL.equals(operator))
-                            filterQuery.must().add(QueryBuilders.matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".keyword"), firstValue));
-                        else if (RelationalOperator.GREATER.equals(operator))
-                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(false));
-                        else if (RelationalOperator.GREATER_EQUAL.equals(operator))
-                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(true));
-                        else if (RelationalOperator.LESS.equals(operator))
-                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(false));
-                        else if (RelationalOperator.LESS_EQUAL.equals(operator))
-                            filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(true));
-                        else
-                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
+                        switch (operator) {
+                            case DIFFERENT:
+                                filterQuery.mustNot().add(QueryBuilders.matchQuery(fieldName, firstValue)); break;
+                            case EQUAL:
+                                filterQuery.must().add(QueryBuilders.matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".keyword"), firstValue)); break;
+                            case GREATER:
+                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(false)); break;
+                            case GREATER_EQUAL:
+                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(true)); break;
+                            case LESS:
+                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(false)); break;
+                            case LESS_EQUAL:
+                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(true)); break;
+                            default:
+                                throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
+                        }
                     } else {
                         filterQuery.must().add(QueryBuilders.termsQuery(fieldName, values));
                     }

@@ -16,16 +16,15 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractQueryAdapter.class);
 
-    protected static final ImmutableList<QueryFragment> EMPTY_QUERY_FRAGMENT_LIST = ImmutableList.of();
-    protected static final ImmutableList<Sort> EMPTY_SORT_LIST = ImmutableList.of();
-    //    protected static final Pattern FIELD_VALUES = Pattern.compile("\\s*(\\w+)\\s*(" + Expression.getPattern() + ")\\s*(?:\")?(.*?(?=\"?\\s+\\w+\\s*(" + Expression.getPattern() + ")|(?:\"?)$))");
-    protected static final Pattern SORT_VALUES = Pattern.compile("\\s*(\\w+)(\\s+(ASC|DESC))?\\s*(,)?");
+    private static final ImmutableList<QueryFragment> EMPTY_QUERY_FRAGMENT_LIST = ImmutableList.of();
+    private static final ImmutableList<Sort> EMPTY_SORT_LIST = ImmutableList.of();
+    private static final Pattern SORT_VALUES = Pattern.compile("\\s*(\\w+)(\\s+(ASC|DESC))?\\s*(,)?");
 
     protected abstract F getFilter(List<String> filter);
 
     protected abstract S getSort(List<String> sort);
 
-    public static final List<QueryFragment> parseFilter(final String filter) {
+    public static List<QueryFragment> parseFilter(final String filter) {
         if (Strings.isNullOrEmpty(filter))
             return EMPTY_QUERY_FRAGMENT_LIST;
         List<QueryFragment> fragments = QueryParser.get().parse(filter);
@@ -33,7 +32,7 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
         return fragments;
     }
 
-    public static final List<Sort> parseSort(final String sort) {
+    public static List<Sort> parseSort(final String sort) {
         Matcher sortMatcher = SORT_VALUES.matcher(sort);
 
         boolean found = sortMatcher.find();
@@ -51,5 +50,4 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
 
         return sortListBuilder.build();
     }
-
 }
