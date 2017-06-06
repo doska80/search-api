@@ -18,7 +18,6 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
 
     protected static final ImmutableList<QueryFragment> EMPTY_QUERY_FRAGMENT_LIST = ImmutableList.of();
     protected static final ImmutableList<Sort> EMPTY_SORT_LIST = ImmutableList.of();
-    //    protected static final Pattern FIELD_VALUES = Pattern.compile("\\s*(\\w+)\\s*(" + Expression.getPattern() + ")\\s*(?:\")?(.*?(?=\"?\\s+\\w+\\s*(" + Expression.getPattern() + ")|(?:\"?)$))");
     protected static final Pattern SORT_VALUES = Pattern.compile("\\s*(\\w+)(\\s+(ASC|DESC))?\\s*(,)?");
 
     protected abstract F getFilter(List<String> filter);
