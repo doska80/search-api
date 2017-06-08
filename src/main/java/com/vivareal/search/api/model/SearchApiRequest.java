@@ -22,8 +22,7 @@ public final class SearchApiRequest {
     private List<Sort> sort = Collections.emptyList();
 
     private String q;
-    private String from;
-    private String size;
+    private Integer from, size;
 
     public List<String> getField() {
         return field;
@@ -75,19 +74,24 @@ public final class SearchApiRequest {
         sorts.forEach(sort -> this.sort.addAll(parseSort(sort)));
     }
 
-    public String getFrom() {
+    public Integer getFrom() {
         return from;
     }
 
-    public void setFrom(String from) {
+    public void setFrom(Integer from) {
         this.from = from;
     }
 
-    public String getSize() {
+    public Integer getSize() {
         return size;
     }
 
-    public void setSize(String size) {
+    public void setSize(Integer size) {
         this.size = size;
+    }
+
+    public void setPaginationValues(int defaultSize, int maxSize) {
+        this.from = from != null && from >= 0 ? from : 0;
+        this.size = size != null && size >= 0 && size <= maxSize ? size : defaultSize;
     }
 }

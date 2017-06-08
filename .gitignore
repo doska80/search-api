@@ -31,3 +31,5 @@ logs/
 
 deploy/output
 deploy/variables/user-data.sh
+
+search-api.iml

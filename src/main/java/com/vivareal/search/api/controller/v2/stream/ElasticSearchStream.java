@@ -16,8 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 
-import static java.util.Optional.ofNullable;
-
 @Component
 public class ElasticSearchStream {
 
@@ -26,6 +24,9 @@ public class ElasticSearchStream {
 
     @Value("${es.scroll.timeout}")
     private Integer scrollTimeout;
+
+    @Value("${es.stream.size}")
+    private Integer size;
 
     public void stream(SearchApiRequest request, OutputStream stream) {
         BoolQueryBuilder boolQuery = new BoolQueryBuilder();
@@ -36,8 +37,7 @@ public class ElasticSearchStream {
 
         SearchRequestBuilder core = client.prepareSearch(SearchApiIndex.of(request).getIndex())
                 .setSearchType(SearchType.QUERY_THEN_FETCH)
-                .setSize(ofNullable(request.getSize()).map(Integer::parseInt).orElse(10))
-                .setFrom(ofNullable(request.getFrom()).map(Integer::parseInt).orElse(0))
+                .setSize(size)
                 .setScroll(timeout);
 
         core.setQuery(boolQuery);
