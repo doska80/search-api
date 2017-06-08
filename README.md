@@ -74,3 +74,7 @@ Possible values for ENV: `prod` or `qa`.
 `AWS_DEFAULT_REGION` is a string with the AWS region to deploy. (Eg. `sa-east-1`)
 
 `ES_CLUSTER_NAME` is a string with the current [ElasticSearch](https://github.com/VivaReal/search-es) cluster.
+
+## The Query language sintax
+
+TODO
