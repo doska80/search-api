@@ -22,7 +22,7 @@ public class ListingController {
     @GetMapping("/{id:[a-z0-9\\-]+}")
     public SearchApiResponse getListingById(SearchApiRequest request, @PathVariable String id) { // FIXME accept request for non-filter params
         SearchApiResponse searchApiResponse = new SearchApiResponse();
-        searchApiResponse.addListing(listingService.getListingById(request, id));
+        listingService.getListingById(request, id).ifPresent(searchApiResponse::addListing);
         return searchApiResponse;
     }
 

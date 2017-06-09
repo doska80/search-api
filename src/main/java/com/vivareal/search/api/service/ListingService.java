@@ -10,7 +10,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
+
+import static java.util.Collections.emptyMap;
 
 @Component
 public class ListingService {
@@ -22,8 +26,8 @@ public class ListingService {
     @Autowired
     private ElasticSearchStream elasticSearch;
 
-    public Map<String, Object> getListingById(SearchApiRequest request, String id) {
-        return (Map<String, Object>) this.queryAdapter.getById(request, id);
+    public Optional<Object> getListingById(SearchApiRequest request, String id) {
+        return this.queryAdapter.getById(request, id);
     }
 
     public SearchApiResponse getListings(SearchApiRequest request) {
