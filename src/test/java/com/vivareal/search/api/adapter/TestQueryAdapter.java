@@ -4,12 +4,15 @@ import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 
 import java.util.List;
+import java.util.Optional;
+
+import static java.util.Optional.empty;
 
 public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
 
     @Override
-    public Object getById(SearchApiRequest request, String id) {
-        return null;
+    public Optional<Object> getById(SearchApiRequest request, String id) {
+        return empty();
     }
 
     @Override

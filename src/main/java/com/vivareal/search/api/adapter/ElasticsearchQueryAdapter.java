@@ -1,10 +1,14 @@
 package com.vivareal.search.api.adapter;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -43,17 +47,17 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     }
 
     @Override
-    public Object getById(SearchApiRequest request, String id) {
+    public Optional<Object> getById(SearchApiRequest request, String id) {
         SearchApiIndex index = SearchApiIndex.of(request);
 
         GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(index.getIndex()).setType(index.getIndex()).setId(id);
         try {
             GetResponse response = requestBuilder.execute().get(1, TimeUnit.SECONDS);
-            return response.getSource();
+            return ofNullable(response.getSource());
         } catch (Exception e) {
-            LOG.error("Getting id={} error: {}", id, request);
+            LOG.error("Getting id={}, request: {}, error: {}", id, request, e);
         }
-        return null;
+        return empty();
     }
 
     @Override
