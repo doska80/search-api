@@ -60,7 +60,7 @@ public class FieldParserTest {
 
     @Test(expected = ParserException.class)
     public void testInvalidFieldNamesWithSpecialChars() {
-        FieldParser.get().parse("ãçéntedFïeld");
+        FieldParser.get().parse("ãçéntêdFïeld");
     }
 
 }
