@@ -11,6 +11,8 @@ include make/env/Makefile
 ARTIFACT_NAME:=$(ORG)-$(PROJECT_NAME)-$(VERSION).jar
 include make/gra/Makefile
 
+DOCKER_REGISTRY_DOMAIN=prod-search-docker-registry.vivareal.com
+
 CONTAINER_ID:=$(ENV)-$(VERSION)
 ARTIFACT:=build/libs/$(ARTIFACT_NAME)
 include make/doc/Makefile
