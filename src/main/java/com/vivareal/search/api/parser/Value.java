@@ -23,7 +23,7 @@ public class Value {
     }
 
     public String getFirstContent() {
-        if (this.contents == null || this.contents.size() == 0 || Strings.isNullOrEmpty(this.contents.get(0)))
+        if (this.contents == null || this.contents.isEmpty() || Strings.isNullOrEmpty(this.contents.get(0)))
             return null;
         return this.contents.get(0); // FAIL doing this twice, BAD!
     }

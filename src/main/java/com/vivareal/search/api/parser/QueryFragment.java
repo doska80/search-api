@@ -45,7 +45,7 @@ public class QueryFragment {
 
     @Override
     public String toString() {
-        if (this.logicalOperator == null && this.filter == null && (this.subQueries == null || this.subQueries.size() == 0))
+        if (this.logicalOperator == null && this.filter == null && (this.subQueries == null || this.subQueries.isEmpty()))
             return super.toString();
 
         StringBuilder query = new StringBuilder();
@@ -53,7 +53,7 @@ public class QueryFragment {
             query.append(this.filter.toString());
         } else if (this.logicalOperator != null) {
             query.append(this.logicalOperator.name());
-        } else if (this.subQueries != null && this.subQueries.size() > 0) {
+        } else if (this.subQueries != null) {
             for (QueryFragment subQuery : this.subQueries) {
                 query.append("(");
                 query.append(subQuery.toString());
