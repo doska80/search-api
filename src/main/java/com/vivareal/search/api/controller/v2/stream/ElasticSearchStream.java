@@ -44,6 +44,6 @@ public class ElasticSearchStream {
 
         ResponseStream.create(stream)
                 .withIterator(new SearchApiIterator<>(client, core.get(),
-                        (scroll) -> scroll.setScroll(timeout).execute().actionGet()), SearchHit::source);
+                        scroll -> scroll.setScroll(timeout).execute().actionGet()), SearchHit::source);
     }
 }

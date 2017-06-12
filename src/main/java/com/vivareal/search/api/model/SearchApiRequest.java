@@ -72,9 +72,7 @@ public final class SearchApiRequest {
 
     public void setSort(List<String> sorts) {
         this.sort = new ArrayList<>();
-        sorts.forEach(sort -> {
-            this.sort.addAll(parseSort(sort));
-        });
+        sorts.forEach(sort -> this.sort.addAll(parseSort(sort)));
     }
 
     public String getFrom() {

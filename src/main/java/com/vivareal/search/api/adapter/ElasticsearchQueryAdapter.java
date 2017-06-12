@@ -1,7 +1,6 @@
 package com.vivareal.search.api.adapter;
 
 import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
