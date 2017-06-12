@@ -1,15 +1,12 @@
 package com.vivareal.search.api.adapter;
 
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
+import com.vivareal.search.api.model.SearchApiIndex;
+import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.SearchApiResponse;
+import com.vivareal.search.api.model.query.Sort;
+import com.vivareal.search.api.parser.Filter;
+import com.vivareal.search.api.parser.QueryFragment;
+import com.vivareal.search.api.parser.RelationalOperator;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -24,13 +21,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.vivareal.search.api.model.SearchApiIndex;
-import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
-import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.parser.Filter;
-import com.vivareal.search.api.parser.QueryFragment;
-import com.vivareal.search.api.parser.RelationalOperator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
+import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Component
 @Scope(SCOPE_SINGLETON)
@@ -63,13 +63,14 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     public SearchApiResponse query(SearchApiRequest request) {
         SearchApiIndex index = SearchApiIndex.of(request);
         List<Object> response = new ArrayList<>();
+
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch(index.getIndex());
         searchBuilder.setPreference("_replica_first"); // <3
-
-        BoolQueryBuilder query = new BoolQueryBuilder();
+        searchBuilder.setFrom(request.getFrom());
+        searchBuilder.setSize(request.getSize());
 
         if (!request.getFilter().isEmpty()) {
-            BoolQueryBuilder filterQuery = new BoolQueryBuilder();
+            BoolQueryBuilder queryBuilder = boolQuery();
             request.getFilter().forEach(filterFragment -> {
                 QueryFragment.Type type = filterFragment.getType();
                 if (QueryFragment.Type.EXPRESSION_LIST.equals(type)) { // TODO sub query, still not workiung :(
@@ -85,30 +86,30 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
                         String firstValue = values.get(0);
                         switch (operator) {
                             case DIFFERENT:
-                                filterQuery.mustNot().add(QueryBuilders.matchQuery(fieldName, firstValue)); break;
+                                queryBuilder.mustNot().add(matchQuery(fieldName, firstValue)); break;
                             case EQUAL:
-                                filterQuery.must().add(QueryBuilders.matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".keyword"), firstValue)); break;
+                                queryBuilder.must().add(matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".keyword"), firstValue)); break;
                             case GREATER:
-                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(false)); break;
+                                queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false)); break;
                             case GREATER_EQUAL:
-                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).from(firstValue).includeLower(true)); break;
+                                queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true)); break;
                             case LESS:
-                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(false)); break;
+                                queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false)); break;
                             case LESS_EQUAL:
-                                filterQuery.must().add(QueryBuilders.rangeQuery(fieldName).to(firstValue).includeUpper(true)); break;
+                                queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true)); break;
                             default:
                                 throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
                         }
                     } else {
-                        filterQuery.must().add(QueryBuilders.termsQuery(fieldName, values));
+                        queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
                     }
                 } else {
                     // FIXME AND / OR between query fragments. everything is working as AND now... :/
                 }
             });
-            query.filter(filterQuery);
+            searchBuilder.setQuery(queryBuilder);
         }
-        searchBuilder.setQuery(query);
+
         LOG.debug("Query: {}", searchBuilder);
         SearchResponse esResponse = searchBuilder.execute().actionGet();
         esResponse.getHits().forEach(hit -> {  // FIXME should be async if possible
