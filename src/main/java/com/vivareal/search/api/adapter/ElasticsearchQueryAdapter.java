@@ -31,6 +31,7 @@ import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @Scope(SCOPE_SINGLETON)
@@ -69,6 +70,8 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
         searchBuilder.setFrom(request.getFrom());
         searchBuilder.setSize(request.getSize());
 
+        addFieldList(searchBuilder, request);
+
         if (!request.getFilter().isEmpty()) {
             BoolQueryBuilder queryBuilder = boolQuery();
             request.getFilter().forEach(filterFragment -> {
@@ -88,7 +91,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
                             case DIFFERENT:
                                 queryBuilder.mustNot().add(matchQuery(fieldName, firstValue)); break;
                             case EQUAL:
-                                queryBuilder.must().add(matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".keyword"), firstValue)); break;
+                                queryBuilder.must().add(matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".raw"), firstValue)); break;
                             case GREATER:
                                 queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false)); break;
                             case GREATER_EQUAL:
@@ -117,6 +120,12 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
         });
 
         return new SearchApiResponse(esResponse.getTookInMillis(), esResponse.getHits().getTotalHits(), response);
+    }
+
+    private void addFieldList(SearchRequestBuilder searchRequestBuilder, SearchApiRequest request) {
+        if (!isEmpty(request.getIncludeFields()) || !isEmpty(request.getExcludeFields())) {
+            searchRequestBuilder.setFetchSource(request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]), request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]));
+        }
     }
 
     @Override
