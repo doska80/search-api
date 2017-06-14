@@ -17,20 +17,13 @@ public final class SearchApiRequest {
 
     private static final Parser<List<QueryFragment>> QUERY_PARSER = QueryParser.get();
 
-    private List<String> field = Collections.emptyList();
+    private List<String> includeFields = Collections.emptyList();
+    private List<String> excludeFields = Collections.emptyList();
     private List<QueryFragment> filter = Collections.emptyList();
     private List<Sort> sort = Collections.emptyList();
 
     private String q;
     private Integer from, size;
-
-    public List<String> getField() {
-        return field;
-    }
-
-    public void setField(List<String> fields) {
-        this.field = fields;
-    }
 
     public List<QueryFragment> getFilter() {
         return filter;
@@ -72,6 +65,22 @@ public final class SearchApiRequest {
     public void setSort(List<String> sorts) {
         this.sort = new ArrayList<>();
         sorts.forEach(sort -> this.sort.addAll(parseSort(sort)));
+    }
+
+    public List<String> getIncludeFields() {
+        return includeFields;
+    }
+
+    public void setIncludeFields(List<String> includeFields) {
+        this.includeFields = includeFields;
+    }
+
+    public List<String> getExcludeFields() {
+        return excludeFields;
+    }
+
+    public void setExcludeFields(List<String> excludeFields) {
+        this.excludeFields = excludeFields;
     }
 
     public Integer getFrom() {
