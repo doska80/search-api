@@ -11,7 +11,7 @@ import static java.util.Optional.empty;
 public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
 
     @Override
-    public Optional<Object> getById(SearchApiRequest request, String id) {
+    public Optional<SearchApiResponse> getById(SearchApiRequest request, String id) {
         return empty();
     }
 

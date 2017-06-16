@@ -1,6 +1,6 @@
 package com.vivareal.search.api.controller.v2;
 
-import com.vivareal.search.api.service.ListingService;
+import com.vivareal.search.api.service.SearchService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +15,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("prod")
-@WebMvcTest(ListingController.class)
-public class ListingControllerTest {
+@WebMvcTest(SearchController.class)
+public class SearchControllerTest {
 
     @Autowired
     private MockMvc mvc;
 
     @MockBean
-    private ListingService listingService;
+    private SearchService searchService;
 
     @Test
     public void dummyTest() {
@@ -34,7 +34,7 @@ public class ListingControllerTest {
 //        SearchApiResponse response = this.restTemplate.getForObject("/v2/listings/?q=banos:2", SearchApiResponse.class);
 //
 //        assertNotNull(response);
-//        assertEquals(10, ((List)response.getListings()).size());
+//        assertEquals(10, ((List)response.getResult()).size());
 //    }
 //
 
