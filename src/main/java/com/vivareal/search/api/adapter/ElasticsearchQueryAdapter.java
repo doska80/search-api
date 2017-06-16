@@ -74,39 +74,38 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
 
         if (!request.getFilter().isEmpty()) {
             request.getFilter().forEach(filterFragment -> {
-                QueryFragment.Type type = filterFragment.getType();
-                if (QueryFragment.Type.EXPRESSION_LIST.equals(type)) { // TODO sub query, still not workiung :(
-                    throw new UnsupportedOperationException("Subqueries aren't supported yet :("); // TODO TUDO!
-                } else if (QueryFragment.Type.FILTER.equals(type)) {
-                    Filter filter = filterFragment.get();
-                    RelationalOperator operator = filter.getRelationalOperator();
-                    String fieldName = filter.getField().getName();
-                    List<String> values = filter.getValue().getContents();
-                    if (values == null || values.isEmpty())
-                        return;
-                    if (values.size() == 1) {
-                        String firstValue = values.get(0);
-                        switch (operator) {
-                            case DIFFERENT:
-                                queryBuilder.mustNot().add(matchQuery(fieldName, firstValue)); break;
-                            case EQUAL:
-                                queryBuilder.must().add(matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".raw"), firstValue)); break;
-                            case GREATER:
-                                queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false)); break;
-                            case GREATER_EQUAL:
-                                queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true)); break;
-                            case LESS:
-                                queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false)); break;
-                            case LESS_EQUAL:
-                                queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true)); break;
-                            default:
-                                throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
-                        }
-                    } else {
-                        queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
+                Filter filter = filterFragment.getFilter();
+                RelationalOperator operator = filter.getRelationalOperator();
+                String fieldName = filter.getField().getName();
+                List<String> values = filter.getValue().getContents();
+                if (values == null || values.isEmpty())
+                    return;
+                if (values.size() == 1) {
+                    String firstValue = values.get(0);
+                    switch (operator) {
+                        case DIFFERENT:
+                            queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
+                            break;
+                        case EQUAL:
+                            queryBuilder.must().add(matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".raw"), firstValue));
+                            break;
+                        case GREATER:
+                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false));
+                            break;
+                        case GREATER_EQUAL:
+                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true));
+                            break;
+                        case LESS:
+                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false));
+                            break;
+                        case LESS_EQUAL:
+                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true));
+                            break;
+                        default:
+                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
                     }
                 } else {
-                    // FIXME AND / OR between query fragments. everything is working as AND now... :/
+                    queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
                 }
             });
         }

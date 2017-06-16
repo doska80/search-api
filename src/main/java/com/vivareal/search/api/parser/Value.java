@@ -2,44 +2,35 @@ package com.vivareal.search.api.parser;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
+
 public class Value {
-
-    private static final List<String> EMPTY_CONTENTS = Collections.emptyList();
-
     private List<String> contents = EMPTY_CONTENTS;
 
+    private static final List<String> EMPTY_CONTENTS = emptyList();
+
+    public static final Value NULL_VALUE = new Value((String) null);
+
     public Value(String content) {
-        this(new ArrayList<>(Arrays.asList(content)));
+        this(singletonList(content));
     }
 
     public Value(List<String> contents) {
-        this.setContents(contents);
-    }
-
-    public String getFirstContent() {
-        if (this.contents == null || this.contents.isEmpty() || Strings.isNullOrEmpty(this.contents.get(0)))
-            return null;
-        return this.contents.get(0); // FAIL doing this twice, BAD!
+        this.contents = contents;
     }
 
     public List<String> getContents() {
         return contents;
     }
 
-    public void setContents(List<String> content) {
-        this.contents = content;
-    }
-
-    public void addContent(String value) {
-        if (this.contents == null || EMPTY_CONTENTS.equals(this.contents))
-            this.contents = new ArrayList<>(50);
-        this.contents.add(value);
+    public String getContents(int index) {
+        return ofNullable(contents).map(c -> c.get(index)).orElseThrow(() -> new IndexOutOfBoundsException(String.valueOf(index)));
     }
 
     @Override
@@ -51,7 +42,7 @@ public class Value {
             String simpleValue = contents.get(0);
             if (simpleValue == null) {
                 query.append("NULL");
-            } else if (Strings.isNullOrEmpty(simpleValue)) {
+            } else if (simpleValue.isEmpty()) {
                 query.append("\"\"");
             } else {
                 query.append(simpleValue);
@@ -64,4 +55,18 @@ public class Value {
         return query.toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Value value = (Value) o;
+
+        return contents != null ? contents.equals(value.contents) : value.contents == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return contents != null ? contents.hashCode() : 0;
+    }
 }

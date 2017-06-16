@@ -1,65 +1,106 @@
 package com.vivareal.search.api.parser;
 
 import java.util.List;
+import java.util.Optional;
 
 public class QueryFragment {
 
-    public enum Type {
-        FILTER, LOGICAL_OPERATOR, EXPRESSION_LIST;
-    }
-
+    private boolean not;
     private Filter filter;
     private LogicalOperator logicalOperator;
     private List<QueryFragment> subQueries;
-    private final Type type;
 
-    public QueryFragment(Filter filter) {
+    public QueryFragment(Filter filter, Optional<LogicalOperator> logicalOperator) {
+        this(false, filter, logicalOperator);
+    }
+
+    public QueryFragment(boolean not, Filter filter, Optional<LogicalOperator> logicalOperator) {
+        this.not = not;
         this.filter = filter;
-        this.type = Type.FILTER;
+        this.logicalOperator = logicalOperator.orElse(null);
     }
 
-    public QueryFragment(LogicalOperator listOperator) {
-        this.logicalOperator = listOperator;
-        this.type = Type.LOGICAL_OPERATOR;
-    }
-
-    public QueryFragment(List<QueryFragment> subQueries) {
-        this.subQueries = subQueries;
-        this.type = Type.EXPRESSION_LIST;
-    }
-
-    public <T> T get() {
-        if (Type.FILTER.equals(this.type)) {
-            return (T) this.filter;
-        } else if (Type.LOGICAL_OPERATOR.equals(this.type)) {
-            return (T) this.logicalOperator;
-        } else if (Type.EXPRESSION_LIST.equals(this.type)) {
-            return (T) this.subQueries;
+    public QueryFragment(List<QueryFragment> queryFragments) {
+        if (this.getSubQueries() == null && queryFragments.size() == 1) {
+            QueryFragment fragment = queryFragments.get(0);
+            this.filter = fragment.getFilter();
+            this.logicalOperator = fragment.getLogicalOperator();
+        } else {
+            this.subQueries = queryFragments;
         }
-        throw new IllegalStateException("Burro!");
     }
 
-    public Type getType() {
-        return type;
+    public QueryFragment(Optional<Boolean> not, QueryFragment queryFragment) {
+        this(not.orElse(false), queryFragment.getFilter(), Optional.ofNullable(queryFragment.getLogicalOperator()));
+    }
+
+    public List<QueryFragment> getSubQueries() {
+        return subQueries;
+    }
+
+    public Filter getFilter() {
+        return filter;
+    }
+
+    public LogicalOperator getLogicalOperator() {
+        return logicalOperator;
+    }
+
+    public void setLogicalOperator(LogicalOperator logicalOperator) {
+        this.logicalOperator = logicalOperator;
     }
 
     @Override
     public String toString() {
-        if (this.logicalOperator == null && this.filter == null && (this.subQueries == null || this.subQueries.isEmpty()))
-            return super.toString();
-
         StringBuilder query = new StringBuilder();
-        if (this.filter != null) {
-            query.append(this.filter.toString());
-        } else if (this.logicalOperator != null) {
-            query.append(this.logicalOperator.name());
-        } else if (this.subQueries != null) {
-            for (QueryFragment subQuery : this.subQueries) {
-                query.append("(");
-                query.append(subQuery.toString());
-                query.append(")");
-            }
+        if (not) {
+            query.append("NOT2 ");
         }
-        return query.toString().trim();
+        if (this.getSubQueries() == null) {
+            if (this.filter != null)
+                query.append(this.filter.toString());
+            if (this.logicalOperator != null) {
+                query.append(" ");
+                query.append(this.logicalOperator.name());
+                query.append(" ");
+            }
+        } else {
+            //query.append("(");
+            for (QueryFragment fragment : this.subQueries) {
+                if (fragment.getSubQueries() == null) {
+                    query.append(fragment.toString());
+                } else {
+                    query.append("(");
+                    query.append(fragment.toString());
+                    query.append(")");
+                }
+            }
+           // query.append(")");
+        }
+        return query.toString();
+    }
+
+    public boolean isNot() {
+        return not;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        QueryFragment fragment = (QueryFragment) o;
+
+        if (filter != null ? !filter.equals(fragment.filter) : fragment.filter != null) return false;
+        if (logicalOperator != fragment.logicalOperator) return false;
+        return subQueries != null ? subQueries.equals(fragment.subQueries) : fragment.subQueries == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = filter != null ? filter.hashCode() : 0;
+        result = 31 * result + (logicalOperator != null ? logicalOperator.hashCode() : 0);
+        result = 31 * result + (subQueries != null ? subQueries.hashCode() : 0);
+        return result;
     }
 }

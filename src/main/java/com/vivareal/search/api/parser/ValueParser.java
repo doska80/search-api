@@ -1,42 +1,33 @@
 package com.vivareal.search.api.parser;
 
 
-import org.jparsec.Parser;
-import org.jparsec.Parsers;
-import org.jparsec.Scanners;
-import org.jparsec.Terminals;
-
-import java.util.List;
+import org.jparsec.*;
 
 public class ValueParser {
 
-    private static Terminals OPERATORS = Terminals.operators(","); // only one operator supported (for IN)
+    private static Terminals OPERATORS = Terminals.operators(",");
     private static Parser<?> VALUE_TOKENIZER = Parsers.or(
             Terminals.DecimalLiteral.TOKENIZER,
             Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
             Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER
     );
-    private static Parser<String> VALUE_SYNTATIC_PARSER = Parsers.or(
+
+    private static Parser<?> TOKENIZER = Parsers.or(OPERATORS.tokenizer(), VALUE_TOKENIZER);
+
+    private static Parser<String> VALUE_SYNTACTIC_PARSER = Parsers.or(
             Terminals.DecimalLiteral.PARSER,
             Terminals.StringLiteral.PARSER
     );
-    private static Parser<?> TOKENIZER = Parsers.or(OPERATORS.tokenizer(), VALUE_TOKENIZER); // tokenizes the OPERATORS and values
-    private static Parser<List<String>> LIST_PARSER = Parsers.between(
-            Scanners.isChar('['),
-            VALUE_SYNTATIC_PARSER.sepBy(OPERATORS.token(",")).from(TOKENIZER, Scanners.WHITESPACES.skipMany()),
-            Scanners.isChar(']')
-    );
-//    private static Parser<Void> IN_PARSER = Parsers.sequence(Scanners.WHITESPACES.skipAtLeast(1), Scanners.isChar('I'), Scanners.isChar('N'), Scanners.WHITESPACES.skipAtLeast(1)); // FIXME: "IN"
 
-    private static Parser<Value> SINGLE_VALUE_PARSER = VALUE_SYNTATIC_PARSER.from(VALUE_TOKENIZER, Scanners.WHITESPACES.skipMany()).map(Value::new);
-    private static Parser<Value> MULTI_VALUE_PARSER = LIST_PARSER.map(Value::new);
+    private static Parser<Value> IN_VALUE_PARSER = Parsers
+            .between(Scanners.isChar('['), VALUE_SYNTACTIC_PARSER.sepBy(OPERATORS.token(",")).from(TOKENIZER, Scanners.WHITESPACES.skipMany()), Scanners.isChar(']'))
+            .map(Value::new);
 
-    static Parser<Value> getSingle() {
-        return SINGLE_VALUE_PARSER;
+    private static Parser<Value> NULL_VALUE_PARSER = Scanners.stringCaseInsensitive("NULL").retn(Value.NULL_VALUE);
+    private static Parser<Value> VALUE_PARSER = Parsers.or(VALUE_SYNTACTIC_PARSER.from(VALUE_TOKENIZER, Scanners.WHITESPACES.skipMany()).map(Value::new), NULL_VALUE_PARSER);
+    private static Parser<Value> VALUE_PARSER_WITH_IN = VALUE_PARSER.or(IN_VALUE_PARSER);
+
+    static Parser<Value> get() {
+        return VALUE_PARSER_WITH_IN;
     }
-
-    static Parser<Value> getMulti() {
-        return MULTI_VALUE_PARSER;
-    }
-
 }

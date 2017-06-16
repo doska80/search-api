@@ -27,9 +27,10 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
     public static List<QueryFragment> parseFilter(final String filter) {
         if (isEmpty(filter))
             return EMPTY_QUERY_FRAGMENT_LIST;
-        List<QueryFragment> fragments = QueryParser.get().parse(filter);
+        QueryFragment fragments = QueryParser.get().parse(filter);
         LOG.debug("Query parse: {}", fragments);
-        return fragments;
+        //return fragments;
+        return fragments.getSubQueries();
     }
 
     public static List<Sort> parseSort(final String sort) {

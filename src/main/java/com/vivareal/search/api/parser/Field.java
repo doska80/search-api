@@ -1,17 +1,21 @@
 package com.vivareal.search.api.parser;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 public class Field {
 
-    private Collection<String> names;
+    private boolean not;
+    private final Collection<String> names;
 
-    public Field(final Collection<String> names) {
-        if(names == null || names.isEmpty())
-            throw new IllegalArgumentException("Field list cannot be empty");
-        this.names = names;
+    public Field(boolean not, final Collection<String> names) {
+        this.not = not;
+        this.names = (names == null || names.isEmpty()) ? emptyList() : names;
     }
 
     public String getName() {
@@ -24,6 +28,25 @@ public class Field {
 
     @Override
     public String toString() {
-        return this.names.toString();
+        return String.format("%s%s", isNot() ? "NOT " : "", getName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Field field = (Field) o;
+
+        return names != null ? names.equals(field.names) : field.names == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return names != null ? names.hashCode() : 0;
+    }
+
+    public boolean isNot() {
+        return not;
     }
 }
