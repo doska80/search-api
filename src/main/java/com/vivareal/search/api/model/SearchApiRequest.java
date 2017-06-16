@@ -17,6 +17,7 @@ public final class SearchApiRequest {
 
     private static final Parser<List<QueryFragment>> QUERY_PARSER = QueryParser.get();
 
+    private String index;
     private List<String> includeFields = Collections.emptyList();
     private List<String> excludeFields = Collections.emptyList();
     private List<QueryFragment> filter = Collections.emptyList();
@@ -48,6 +49,14 @@ public final class SearchApiRequest {
             if (hasNext)
                 this.filter.add(new QueryFragment(LogicalOperator.AND));
         } while (hasNext);
+    }
+
+    public String getIndex() {
+        return index;
+    }
+
+    public void setIndex(String index) {
+        this.index = index;
     }
 
     public String getQ() {

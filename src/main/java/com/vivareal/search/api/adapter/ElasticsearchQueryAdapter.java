@@ -47,13 +47,13 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     }
 
     @Override
-    public Optional<Object> getById(SearchApiRequest request, String id) {
+    public Optional<SearchApiResponse> getById(SearchApiRequest request, String id) {
         SearchApiIndex index = SearchApiIndex.of(request);
-
         GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(index.getIndex()).setType(index.getIndex()).setId(id);
+
         try {
             GetResponse response = requestBuilder.execute().get(1, TimeUnit.SECONDS);
-            return ofNullable(response.getSource());
+            return ofNullable(SearchApiResponse.builder().result(index.getIndex(), response.getSource()).totalCount(response.getSource() != null ? 1 : 0));
         } catch (Exception e) {
             LOG.error("Getting id={}, request: {}, error: {}", id, request, e);
         }
@@ -63,7 +63,6 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     @Override
     public SearchApiResponse query(SearchApiRequest request) {
         SearchApiIndex index = SearchApiIndex.of(request);
-        List<Object> response = new ArrayList<>();
 
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch(index.getIndex());
         searchBuilder.setPreference("_replica_first"); // <3
@@ -114,12 +113,15 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
         }
 
         LOG.debug("Query: {}", searchBuilder);
+
         SearchResponse esResponse = searchBuilder.execute().actionGet();
+        List<Object> result = new ArrayList<>();
+
         esResponse.getHits().forEach(hit -> {  // FIXME should be async if possible
-            response.add(hit.getSource()); // FIXME avoid iterating twice!
+            result.add(hit.getSource()); // FIXME avoid iterating twice!
         });
 
-        return new SearchApiResponse(esResponse.getTookInMillis(), esResponse.getHits().getTotalHits(), response);
+        return SearchApiResponse.builder().time(esResponse.getTookInMillis()).totalCount(esResponse.getHits().getTotalHits()).result(index.getIndex(), result);
     }
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, SearchApiRequest request) {

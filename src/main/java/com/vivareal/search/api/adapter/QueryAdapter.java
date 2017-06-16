@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface QueryAdapter<Q, F, S> {
 
-    Optional<Object> getById(SearchApiRequest request, String id);
+    Optional<SearchApiResponse> getById(SearchApiRequest request, String id);
 
     SearchApiResponse query(SearchApiRequest request);
 }

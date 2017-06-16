@@ -13,7 +13,7 @@ import java.io.OutputStream;
 import java.util.Optional;
 
 @Component
-public class ListingService {
+public class SearchService {
 
     @Autowired
     @Qualifier("ElasticsearchQuery")
@@ -28,12 +28,12 @@ public class ListingService {
     @Autowired
     private ElasticSearchStream elasticSearch;
 
-    public Optional getListingById(SearchApiRequest request, String id) {
+    public Optional<SearchApiResponse> getById(SearchApiRequest request, String id) {
         request.setPaginationValues(defaultSize, maxSize);
         return this.queryAdapter.getById(request, id);
     }
 
-    public SearchApiResponse getListings(SearchApiRequest request) {
+    public SearchApiResponse search(SearchApiRequest request) {
         request.setPaginationValues(defaultSize, maxSize);
         return this.queryAdapter.query(request);
     }
