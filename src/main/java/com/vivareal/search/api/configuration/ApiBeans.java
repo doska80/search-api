@@ -28,7 +28,7 @@ public class ApiBeans implements DisposableBean {
             @Value("${es.cluster.name}") final String clusterName) throws UnknownHostException {
         Settings settings = Settings.builder()
                 .put("client.transport.nodes_sampler_interval", "5s")
-                .put("client.transport.sniff", false)
+                .put("client.transport.sniff", true)
                 .put("transport.tcp.compress", true)
                 .put("cluster.name", clusterName)
                 .put("request.headers.X-Found-Cluster", "${cluster.name}")
