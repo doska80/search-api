@@ -14,10 +14,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.synchronizedList;
+import static java.util.stream.Collectors.toCollection;
 
 @Component
 public class SearchService {
@@ -50,7 +52,9 @@ public class SearchService {
             .time(esResponse.getTookInMillis())
             .totalCount(esResponse.getHits().getTotalHits())
             .result(SearchApiIndex.of(request).getIndex(),
-                Arrays.stream(esResponse.getHits().hits()).map(SearchHit::getSource).collect(toList()));
+                Arrays.stream(esResponse.getHits().hits()).map(SearchHit::getSource).collect(
+                    toCollection(() -> synchronizedList(new ArrayList<>(esResponse.getHits().hits().length)))
+                ));
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {
