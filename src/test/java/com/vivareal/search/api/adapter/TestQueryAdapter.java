@@ -16,7 +16,7 @@ public class TestQueryAdapter extends AbstractQueryAdapter<Void, Void, Void> {
     }
 
     @Override
-    public SearchApiResponse query(SearchApiRequest request) {
+    public Void query(SearchApiRequest request) {
         return null;
     }
 

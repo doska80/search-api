@@ -10,18 +10,15 @@ import com.vivareal.search.api.parser.RelationalOperator;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -36,7 +33,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, List<QueryFragment>, List<Sort>> {
+public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchRequestBuilder, List<QueryFragment>, List<Sort>> {
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
@@ -61,7 +58,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     }
 
     @Override
-    public SearchApiResponse query(SearchApiRequest request) {
+    public SearchRequestBuilder query(SearchApiRequest request) {
         SearchApiIndex index = SearchApiIndex.of(request);
 
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch(index.getIndex());
@@ -114,14 +111,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
 
         LOG.debug("Query: {}", searchBuilder);
 
-        SearchResponse esResponse = searchBuilder.execute().actionGet();
-        List<Object> result = new ArrayList<>();
-
-        esResponse.getHits().forEach(hit -> {  // FIXME should be async if possible
-            result.add(hit.getSource()); // FIXME avoid iterating twice!
-        });
-
-        return SearchApiResponse.builder().time(esResponse.getTookInMillis()).totalCount(esResponse.getHits().getTotalHits()).result(index.getIndex(), result);
+        return searchBuilder;
     }
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, SearchApiRequest request) {
