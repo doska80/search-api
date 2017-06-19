@@ -25,15 +25,19 @@ public class ApiBeans implements DisposableBean {
     public TransportClient elasticSearchClientBean(
             @Value("${es.hostname}") final String hostname,
             @Value("${es.port}") final Integer port,
-            @Value("${es.cluster.name}") final String clusterName,
-            @Value("${es.tcp.compress}") final boolean tcpCompress) throws UnknownHostException {
+            @Value("${es.cluster.name}") final String clusterName) throws UnknownHostException {
         Settings settings = Settings.builder()
-                .put("client.transport.sniff", false)
-                .put("transport.tcp.compress", tcpCompress)
+                .put("client.transport.nodes_sampler_interval", "5s")
+                .put("client.transport.sniff", true)
+                .put("transport.tcp.compress", true)
                 .put("cluster.name", clusterName)
+                .put("request.headers.X-Found-Cluster", "${cluster.name}")
                 .build();
-        InetSocketTransportAddress address = new InetSocketTransportAddress(InetAddress.getByName(hostname), port);
-        this.esClient = new PreBuiltTransportClient(settings).addTransportAddress(address);
+        this.esClient = new PreBuiltTransportClient(settings);
+
+        for (InetAddress address : InetAddress.getAllByName(hostname))
+            this.esClient.addTransportAddress(new InetSocketTransportAddress(address, port));
+
         return esClient;
     }
 
