@@ -9,5 +9,5 @@ public interface QueryAdapter<Q, F, S> {
 
     Optional<SearchApiResponse> getById(SearchApiRequest request, String id);
 
-    SearchApiResponse query(SearchApiRequest request);
+    Q query(SearchApiRequest request);
 }

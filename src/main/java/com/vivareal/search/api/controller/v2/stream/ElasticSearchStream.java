@@ -1,16 +1,14 @@
 package com.vivareal.search.api.controller.v2.stream;
 
-import com.vivareal.search.api.model.SearchApiIndex;
+import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +20,10 @@ public class ElasticSearchStream {
     @Autowired
     private TransportClient client;
 
+    @Autowired
+    @Qualifier("ElasticsearchQuery")
+    private QueryAdapter queryAdapter;
+
     @Value("${es.scroll.timeout}")
     private Integer scrollTimeout;
 
@@ -29,21 +31,13 @@ public class ElasticSearchStream {
     private Integer size;
 
     public void stream(SearchApiRequest request, OutputStream stream) {
-        BoolQueryBuilder boolQuery = new BoolQueryBuilder();
-        QueryStringQueryBuilder queryString = new QueryStringQueryBuilder(request.getQ());
-        boolQuery.must().add(queryString);
 
         TimeValue timeout = new TimeValue(scrollTimeout);
-
-        SearchRequestBuilder core = client.prepareSearch(SearchApiIndex.of(request).getIndex())
-                .setSearchType(SearchType.QUERY_THEN_FETCH)
-                .setSize(size)
-                .setScroll(timeout);
-
-        core.setQuery(boolQuery);
+        SearchRequestBuilder requestBuilder = (SearchRequestBuilder) this.queryAdapter.query(request);
+        requestBuilder.setScroll(timeout).setSize(size);
 
         ResponseStream.create(stream)
-                .withIterator(new SearchApiIterator<>(client, core.get(),
+                .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),
                         scroll -> scroll.setScroll(timeout).execute().actionGet()), SearchHit::source);
     }
 }

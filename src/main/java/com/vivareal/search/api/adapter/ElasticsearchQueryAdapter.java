@@ -10,24 +10,22 @@ import com.vivareal.search.api.parser.RelationalOperator;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -36,7 +34,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, List<QueryFragment>, List<Sort>> {
+public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchRequestBuilder, List<QueryFragment>, List<Sort>> {
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
@@ -61,18 +59,20 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
     }
 
     @Override
-    public SearchApiResponse query(SearchApiRequest request) {
+    public SearchRequestBuilder query(SearchApiRequest request) {
         SearchApiIndex index = SearchApiIndex.of(request);
 
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch(index.getIndex());
         searchBuilder.setPreference("_replica_first"); // <3
         searchBuilder.setFrom(request.getFrom());
         searchBuilder.setSize(request.getSize());
-
         addFieldList(searchBuilder, request);
 
+        BoolQueryBuilder queryBuilder = boolQuery();
+        searchBuilder.setQuery(queryBuilder);
+        applyQueryString(queryBuilder, request);
+
         if (!request.getFilter().isEmpty()) {
-            BoolQueryBuilder queryBuilder = boolQuery();
             request.getFilter().forEach(filterFragment -> {
                 QueryFragment.Type type = filterFragment.getType();
                 if (QueryFragment.Type.EXPRESSION_LIST.equals(type)) { // TODO sub query, still not workiung :(
@@ -109,22 +109,20 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchHit, L
                     // FIXME AND / OR between query fragments. everything is working as AND now... :/
                 }
             });
-            searchBuilder.setQuery(queryBuilder);
         }
 
         LOG.debug("Query: {}", searchBuilder);
 
-        SearchResponse esResponse = searchBuilder.execute().actionGet();
-        List<Object> result = new ArrayList<>();
-
-        esResponse.getHits().forEach(hit -> {  // FIXME should be async if possible
-            result.add(hit.getSource()); // FIXME avoid iterating twice!
-        });
-
-        return SearchApiResponse.builder().time(esResponse.getTookInMillis()).totalCount(esResponse.getHits().getTotalHits()).result(index.getIndex(), result);
+        return searchBuilder;
     }
 
-    private void addFieldList(SearchRequestBuilder searchRequestBuilder, SearchApiRequest request) {
+    private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
+        if (!isEmpty(request.getQ())) {
+            queryBuilder.must().add(queryStringQuery(request.getQ()));
+        }
+    }
+
+    private void addFieldList(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getIncludeFields()) || !isEmpty(request.getExcludeFields())) {
             searchRequestBuilder.setFetchSource(request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]), request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]));
         }
