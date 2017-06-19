@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.parser.QueryFragment;
 import com.vivareal.search.api.parser.QueryParser;
-import org.elasticsearch.common.Strings;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +25,7 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
     protected abstract S getSort(List<String> sort);
 
     public static List<QueryFragment> parseFilter(final String filter) {
-        if (Strings.isNullOrEmpty(filter))
+        if (isEmpty(filter))
             return EMPTY_QUERY_FRAGMENT_LIST;
         List<QueryFragment> fragments = QueryParser.get().parse(filter);
         LOG.debug("Query parse: {}", fragments);
@@ -42,7 +42,7 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
         ImmutableList.Builder<Sort> sortListBuilder = ImmutableList.builder();
         do {
             String sortDirection = sortMatcher.group(3);
-            if (Strings.isNullOrEmpty(sortDirection))
+            if (isEmpty(sortDirection))
                 sortListBuilder.add(new Sort(sortMatcher.group(1)));
             else
                 sortListBuilder.add(new Sort(sortMatcher.group(1), sortMatcher.group(3)));
