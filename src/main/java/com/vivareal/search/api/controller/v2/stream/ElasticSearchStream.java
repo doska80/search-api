@@ -33,9 +33,8 @@ public class ElasticSearchStream {
     public void stream(SearchApiRequest request, OutputStream stream) {
 
         TimeValue timeout = new TimeValue(scrollTimeout);
-
         SearchRequestBuilder requestBuilder = (SearchRequestBuilder) this.queryAdapter.query(request);
-        requestBuilder.setScroll(timeout);
+        requestBuilder.setScroll(timeout).setSize(size);
 
         ResponseStream.create(stream)
                 .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),
