@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -65,11 +66,13 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         searchBuilder.setPreference("_replica_first"); // <3
         searchBuilder.setFrom(request.getFrom());
         searchBuilder.setSize(request.getSize());
-
         addFieldList(searchBuilder, request);
 
+        BoolQueryBuilder queryBuilder = boolQuery();
+        searchBuilder.setQuery(queryBuilder);
+        applyQueryString(queryBuilder, request);
+
         if (!request.getFilter().isEmpty()) {
-            BoolQueryBuilder queryBuilder = boolQuery();
             request.getFilter().forEach(filterFragment -> {
                 QueryFragment.Type type = filterFragment.getType();
                 if (QueryFragment.Type.EXPRESSION_LIST.equals(type)) { // TODO sub query, still not workiung :(
@@ -106,7 +109,6 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                     // FIXME AND / OR between query fragments. everything is working as AND now... :/
                 }
             });
-            searchBuilder.setQuery(queryBuilder);
         }
 
         LOG.debug("Query: {}", searchBuilder);
@@ -114,7 +116,13 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         return searchBuilder;
     }
 
-    private void addFieldList(SearchRequestBuilder searchRequestBuilder, SearchApiRequest request) {
+    private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
+        if (!isEmpty(request.getQ())) {
+            queryBuilder.must().add(queryStringQuery(request.getQ()));
+        }
+    }
+
+    private void addFieldList(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getIncludeFields()) || !isEmpty(request.getExcludeFields())) {
             searchRequestBuilder.setFetchSource(request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]), request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]));
         }

@@ -24,7 +24,7 @@ public class SearchService {
 
     @Autowired
     @Qualifier("ElasticsearchQuery")
-    protected QueryAdapter queryAdapter;
+    private QueryAdapter queryAdapter;
 
     @Value("${es.default.size}")
     private Integer defaultSize;

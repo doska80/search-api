@@ -22,7 +22,7 @@ public class ElasticSearchStream {
 
     @Autowired
     @Qualifier("ElasticsearchQuery")
-    protected QueryAdapter queryAdapter;
+    private QueryAdapter queryAdapter;
 
     @Value("${es.scroll.timeout}")
     private Integer scrollTimeout;
