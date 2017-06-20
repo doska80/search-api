@@ -12,14 +12,19 @@ import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +32,7 @@ import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
+import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -39,6 +45,15 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
     private final TransportClient transportClient;
+
+    @Value("${querystring.listings.default.fields}")
+    private String queryListingsDefaultFields;
+
+    @Value("${querystring.listings.default.operator}")
+    private String queryListingsDefaultOperator;
+
+    @Value("${querystring.listings.default.mm}")
+    private String queryListingsDefaultMM;
 
     public ElasticsearchQueryAdapter(TransportClient transportClient) {
         this.transportClient = transportClient;
@@ -117,8 +132,37 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
 
     private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getQ())) {
-            queryBuilder.must().add(queryStringQuery(request.getQ()));
+            QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
+            if (SearchApiIndex.SearchIndex.LISTINGS.index().equals(request.getIndex())) {
+                Map<String, Float> fields = new HashMap<>();
+                if (isEmpty(request.getFields())) {
+                    String[] boostFields = queryListingsDefaultFields.split(",");
+                    for (final String boostField : boostFields) {
+                        addFieldToSearchOnQParameter(queryStringBuilder, boostField);
+                    }
+                } else {
+                    request.getFields().forEach(boostField -> {
+                        addFieldToSearchOnQParameter(queryStringBuilder, boostField);
+                    });
+                }
+
+                String operator = ofNullable(request.getOperator())
+                .filter(op -> op.equalsIgnoreCase(OR.name()))
+                .map(op -> OR.name())
+                .orElse(queryListingsDefaultOperator);
+
+                // if client specify mm on the request, the default operator is OR
+                operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);
+
+                queryStringBuilder.fields(fields).minimumShouldMatch(isEmpty(request.getMm()) ? queryListingsDefaultMM : request.getMm()).tieBreaker(0.2f).phraseSlop(2).defaultOperator(Operator.valueOf(operator));
+            }
+            queryBuilder.must().add(queryStringBuilder);
         }
+    }
+
+    private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String boostField) {
+        String[] boostFieldValues = boostField.split(":");
+        queryStringBuilder.field(boostFieldValues[0], boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
     }
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {

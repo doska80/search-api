@@ -8,7 +8,6 @@ import org.jparsec.Parser;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseSort;
@@ -18,6 +17,9 @@ public final class SearchApiRequest {
     private static final Parser<QueryFragment> QUERY_PARSER = QueryParser.get();
 
     private String index;
+    private String operator;
+    private String mm;
+    private List<String> fields = Collections.emptyList();
     private List<String> includeFields = Collections.emptyList();
     private List<String> excludeFields = Collections.emptyList();
     private List<QueryFragment> filter = Collections.emptyList();
@@ -42,11 +44,11 @@ public final class SearchApiRequest {
         if (filters == null || filters.isEmpty()) return;
         this.filter = new ArrayList<>();
         filters.stream()
-                .map(QUERY_PARSER::parse)
-                .forEach(qf -> {
-                    qf.setLogicalOperator(LogicalOperator.AND);
-                    this.filter.add(qf);
-                });
+        .map(QUERY_PARSER::parse)
+        .forEach(qf -> {
+            qf.setLogicalOperator(LogicalOperator.AND);
+            this.filter.add(qf);
+        });
     }
 
     public String getIndex() {
@@ -55,6 +57,22 @@ public final class SearchApiRequest {
 
     public void setIndex(String index) {
         this.index = index;
+    }
+
+    public String getOperator() {
+        return operator;
+    }
+
+    public void setOperator(String operator) {
+        this.operator = operator;
+    }
+
+    public String getMm() {
+        return mm;
+    }
+
+    public void setMm(String mm) {
+        this.mm = mm;
     }
 
     public String getQ() {
@@ -72,6 +90,14 @@ public final class SearchApiRequest {
     public void setSort(List<String> sorts) {
         this.sort = new ArrayList<>();
         sorts.forEach(sort -> this.sort.addAll(parseSort(sort)));
+    }
+
+    public List<String> getFields() {
+        return fields;
+    }
+
+    public void setFields(List<String> fields) {
+        this.fields = fields;
     }
 
     public List<String> getIncludeFields() {
