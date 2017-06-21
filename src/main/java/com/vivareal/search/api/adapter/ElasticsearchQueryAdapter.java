@@ -102,7 +102,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                             queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
                             break;
                         case EQUAL:
-                            queryBuilder.must().add(matchQuery(fieldName + (isCreatable(firstValue) ? "" : ".raw"), firstValue));
+                            queryBuilder.must().add(matchQuery(fieldName, firstValue));
                             break;
                         case GREATER:
                             queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false));
@@ -147,9 +147,9 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                 }
 
                 String operator = ofNullable(request.getOperator())
-                .filter(op -> op.equalsIgnoreCase(OR.name()))
-                .map(op -> OR.name())
-                .orElse(queryListingsDefaultOperator);
+                    .filter(op -> op.equalsIgnoreCase(OR.name()))
+                    .map(op -> OR.name())
+                    .orElse(queryListingsDefaultOperator);
 
                 // if client specify mm on the request, the default operator is OR
                 operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);
