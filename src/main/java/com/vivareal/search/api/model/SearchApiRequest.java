@@ -1,9 +1,8 @@
 package com.vivareal.search.api.model;
 
 import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.parser.LogicalOperator;
-import com.vivareal.search.api.parser.QueryFragment;
-import com.vivareal.search.api.parser.QueryParser;
+import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.model.parser.QueryParser;
 import org.jparsec.Parser;
 
 import java.util.ArrayList;

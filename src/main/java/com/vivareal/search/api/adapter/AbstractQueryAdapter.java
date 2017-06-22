@@ -2,8 +2,8 @@ package com.vivareal.search.api.adapter;
 
 import com.google.common.collect.ImmutableList;
 import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.parser.QueryFragment;
-import com.vivareal.search.api.parser.QueryParser;
+import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.model.parser.QueryParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

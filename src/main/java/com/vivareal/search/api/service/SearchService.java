@@ -1,7 +1,7 @@
 package com.vivareal.search.api.service;
 
 import com.vivareal.search.api.adapter.QueryAdapter;
-import com.vivareal.search.api.controller.v2.stream.ElasticSearchStream;
+import com.vivareal.search.api.controller.stream.ElasticSearchStream;
 import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
