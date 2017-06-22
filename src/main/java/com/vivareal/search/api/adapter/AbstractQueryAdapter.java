@@ -4,13 +4,14 @@ import com.google.common.collect.ImmutableList;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.parser.QueryFragment;
 import com.vivareal.search.api.parser.QueryParser;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F, S> {
 
@@ -29,8 +30,8 @@ public abstract class AbstractQueryAdapter<Q, F, S> implements QueryAdapter<Q, F
             return EMPTY_QUERY_FRAGMENT_LIST;
         QueryFragment fragments = QueryParser.get().parse(filter);
         LOG.debug("Query parse: {}", fragments);
-        //return fragments;
-        return fragments.getSubQueries();
+//        return fragments.getSubQueries();
+        return null;
     }
 
     public static List<Sort> parseSort(final String sort) {

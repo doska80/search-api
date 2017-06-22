@@ -5,7 +5,7 @@ import java.util.Map;
 
 import static java.util.Optional.ofNullable;
 
-public enum LogicalOperator {
+public enum LogicalOperator implements QueryFragment {
     AND,
     OR;
 

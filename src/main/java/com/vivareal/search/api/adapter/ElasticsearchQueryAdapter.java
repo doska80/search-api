@@ -86,43 +86,43 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         searchBuilder.setQuery(queryBuilder);
         applyQueryString(queryBuilder, request);
 
-        if (!request.getFilter().isEmpty()) {
-            request.getFilter().forEach(filterFragment -> {
-                Filter filter = filterFragment.getFilter();
-                RelationalOperator operator = filter.getRelationalOperator();
-                String fieldName = filter.getField().getName();
-                List<Object> values = filter.getValue().getContents();
-                if (values == null || values.isEmpty())
-                    return;
-                if (values.size() == 1) {
-                    Object firstValue = values.get(0);
-                    switch (operator) {
-                        case DIFFERENT:
-                            queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
-                            break;
-                        case EQUAL:
-                            queryBuilder.must().add(matchQuery(fieldName, firstValue));
-                            break;
-                        case GREATER:
-                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false));
-                            break;
-                        case GREATER_EQUAL:
-                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true));
-                            break;
-                        case LESS:
-                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false));
-                            break;
-                        case LESS_EQUAL:
-                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true));
-                            break;
-                        default:
-                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
-                    }
-                } else {
-                    queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
-                }
-            });
-        }
+//        if (!request.getFilter().isEmpty()) {
+//            request.getFilter().forEach(filterFragment -> {
+//                Filter filter = null;
+//                RelationalOperator operator = filter.getRelationalOperator();
+//                String fieldName = filter.getField().getName();
+//                List<Object> values = filter.getValue().getContents();
+//                if (values == null || values.isEmpty())
+//                    return;
+//                if (values.size() == 1) {
+//                    Object firstValue = values.get(0);
+//                    switch (operator) {
+//                        case DIFFERENT:
+//                            queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
+//                            break;
+//                        case EQUAL:
+//                            queryBuilder.must().add(matchQuery(fieldName, firstValue));
+//                            break;
+//                        case GREATER:
+//                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false));
+//                            break;
+//                        case GREATER_EQUAL:
+//                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true));
+//                            break;
+//                        case LESS:
+//                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false));
+//                            break;
+//                        case LESS_EQUAL:
+//                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true));
+//                            break;
+//                        default:
+//                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
+//                    }
+//                } else {
+//                    queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
+//                }
+//            });
+//        }
 
         LOG.debug("Query: {}", searchBuilder);
 
