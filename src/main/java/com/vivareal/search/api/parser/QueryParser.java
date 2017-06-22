@@ -6,7 +6,7 @@ import org.jparsec.Parsers;
 import static org.jparsec.Scanners.isChar;
 
 public class QueryParser {
-    public static final Parser<QueryFragment> QUERY_PARSER = Parsers.sequence(FilterParser.get(), LogicalOperatorParser.get().asOptional(), QueryFragment::new);
+    public static final Parser<QueryFragment> QUERY_PARSER = Parsers.sequence(FilterParser.get(), OperatorParser.LOGICAL_OPERATOR_PARSER.asOptional(), QueryFragment::new);
 
     public static final Parser<QueryFragment> RECURSIVE_QUERY_PARSER = getRecursive();
 
