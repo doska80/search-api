@@ -2,9 +2,15 @@ package com.vivareal.search.api.parser;
 
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Collections;
+
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class FieldParserTest {
 
@@ -27,9 +33,11 @@ public class FieldParserTest {
         FieldParser.get().parse("field with space");
     }
 
-    @Test(expected = ParserException.class)
+    @Test
     public void testBlankFieldNames() {
-        FieldParser.get().parse("");
+        Field field = FieldParser.get().parse("");
+        assertNotNull(field);
+        assertEquals(field.getNames(), emptyList());
     }
 
     @Test(expected = ParserException.class)
@@ -63,4 +71,16 @@ public class FieldParserTest {
         FieldParser.get().parse("ãçéntêdFïeld");
     }
 
+    @Test
+    public void testStringNames() {
+        Field field = FieldParser.get().parse("javascript.is.not.good");
+        assertEquals("javascript.is.not.good", field.toString());
+    }
+
+    @Test
+    public void testFieldNot() {
+        Field field = FieldParser.get().parse("NOT javascript");
+        assertEquals("NOT javascript", field.toString());
+        assertTrue(field.isNot());
+    }
 }

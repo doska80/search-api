@@ -15,7 +15,7 @@ import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseSort;
 
 public final class SearchApiRequest {
 
-    private static final Parser<List<QueryFragment>> QUERY_PARSER = QueryParser.get();
+    private static final Parser<QueryFragment> QUERY_PARSER = QueryParser.get();
 
     private String index;
     private List<String> includeFields = Collections.emptyList();
@@ -31,24 +31,22 @@ public final class SearchApiRequest {
     }
 
     public void setFilter(String filter) {
-        List<QueryFragment> parsed = QUERY_PARSER.parse(filter);
-        if (!parsed.isEmpty()) {
+        QueryFragment parsed = QUERY_PARSER.parse(filter);
+        if (!parsed.getSubQueries().isEmpty()) {
             this.filter = new ArrayList<>();
-            this.filter.addAll(parsed);
+            this.filter.addAll(parsed.getSubQueries());
         }
     }
 
     public void XsetFilter(List<String> filters) { // FIXME does not work. Spring split in every "," it finds, breaking our IN []
         if (filters == null || filters.isEmpty()) return;
-        boolean hasNext;
         this.filter = new ArrayList<>();
-        Iterator<String> iterator = filters.iterator();
-        do {
-            this.filter.addAll(QUERY_PARSER.parse(iterator.next()));
-            hasNext = iterator.hasNext();
-            if (hasNext)
-                this.filter.add(new QueryFragment(LogicalOperator.AND));
-        } while (hasNext);
+        filters.stream()
+                .map(QUERY_PARSER::parse)
+                .forEach(qf -> {
+                    qf.setLogicalOperator(LogicalOperator.AND);
+                    this.filter.add(qf);
+                });
     }
 
     public String getIndex() {

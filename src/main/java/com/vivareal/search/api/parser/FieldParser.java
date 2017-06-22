@@ -1,12 +1,11 @@
 package com.vivareal.search.api.parser;
 
 import org.jparsec.Parser;
+import org.jparsec.Parsers;
 import org.jparsec.Scanners;
 
 public class FieldParser {
-
-    // TODO check if we need to block fields starting with special chars like "_"
-    private static final Parser<Field> SIMPLE_KEYWORD_PARSER = Scanners.IDENTIFIER.sepBy(Scanners.isChar('.')).map(Field::new).cast();
+    private static final Parser<Field> SIMPLE_KEYWORD_PARSER = Parsers.sequence(NotParser.get(), Scanners.IDENTIFIER.sepBy(Scanners.isChar('.')), Field::new);
 
     static Parser<Field> get() {
         return SIMPLE_KEYWORD_PARSER;
