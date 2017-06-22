@@ -1,5 +1,7 @@
 package com.vivareal.search.api.parser;
 
+import com.google.common.base.Objects;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -73,16 +75,13 @@ public class QueryFragment {
 
         QueryFragment fragment = (QueryFragment) o;
 
-        if (filter != null ? !filter.equals(fragment.filter) : fragment.filter != null) return false;
-        if (logicalOperator != fragment.logicalOperator) return false;
-        return subQueries != null ? subQueries.equals(fragment.subQueries) : fragment.subQueries == null;
+        return Objects.equal(this.filter, fragment.filter)
+                && Objects.equal(this.logicalOperator, fragment.logicalOperator)
+                && Objects.equal(this.subQueries, fragment.subQueries);
     }
 
     @Override
     public int hashCode() {
-        int result = filter != null ? filter.hashCode() : 0;
-        result = 31 * result + (logicalOperator != null ? logicalOperator.hashCode() : 0);
-        result = 31 * result + (subQueries != null ? subQueries.hashCode() : 0);
-        return result;
+       return Objects.hashCode(this.filter, this.logicalOperator, this.subQueries);
     }
 }

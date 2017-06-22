@@ -1,6 +1,7 @@
 package com.vivareal.search.api.parser;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,11 +63,11 @@ public class Value {
 
         Value value = (Value) o;
 
-        return contents != null ? contents.equals(value.contents) : value.contents == null;
+        return Objects.equal(this.contents, value.contents);
     }
 
     @Override
     public int hashCode() {
-        return contents != null ? contents.hashCode() : 0;
+        return Objects.hashCode(this.contents);
     }
 }

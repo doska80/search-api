@@ -1,5 +1,7 @@
 package com.vivareal.search.api.parser;
 
+import com.google.common.base.Objects;
+
 public class Filter {
     private boolean not;
 
@@ -50,17 +52,14 @@ public class Filter {
 
         Filter filter = (Filter) o;
 
-        if (field != null ? !field.equals(filter.field) : filter.field != null) return false;
-        if (relationalOperator != filter.relationalOperator) return false;
-        return value != null ? value.equals(filter.value) : filter.value == null;
+        return Objects.equal(this.field, filter.field)
+                && Objects.equal(this.relationalOperator, filter.relationalOperator)
+                && Objects.equal(this.value, filter.value);
     }
 
     @Override
     public int hashCode() {
-        int result = field != null ? field.hashCode() : 0;
-        result = 31 * result + (relationalOperator != null ? relationalOperator.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        return result;
+        return Objects.hashCode(this.field, this.relationalOperator, this.value);
     }
 
     public boolean isNot() {

@@ -1,5 +1,7 @@
 package com.vivareal.search.api.parser;
 
+import com.google.common.base.Objects;
+
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 
@@ -37,12 +39,13 @@ public class Field {
 
         Field field = (Field) o;
 
-        return names != null ? names.equals(field.names) : field.names == null;
+        return Objects.equal(this.not, field.not)
+                && Objects.equal(this.names, field.names);
     }
 
     @Override
     public int hashCode() {
-        return names != null ? names.hashCode() : 0;
+        return Objects.hashCode(this.not, this.names);
     }
 
     public boolean isNot() {
