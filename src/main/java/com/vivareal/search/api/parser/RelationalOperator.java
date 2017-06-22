@@ -14,7 +14,7 @@ public enum RelationalOperator {
     LESS,
     LESS_EQUAL;
 
-    private static final Map<String, RelationalOperator> OPERATORS = new HashMap<>(13);
+    private static final Map<String, RelationalOperator> OPERATORS = new HashMap<>(14);
 
     static {
         OPERATORS.put("NE", DIFFERENT);

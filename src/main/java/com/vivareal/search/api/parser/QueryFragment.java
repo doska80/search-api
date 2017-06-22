@@ -4,18 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class QueryFragment {
-
-    private boolean not;
     private Filter filter;
     private LogicalOperator logicalOperator;
     private List<QueryFragment> subQueries;
 
     public QueryFragment(Filter filter, Optional<LogicalOperator> logicalOperator) {
-        this(false, filter, logicalOperator);
-    }
-
-    public QueryFragment(boolean not, Filter filter, Optional<LogicalOperator> logicalOperator) {
-        this.not = not;
         this.filter = filter;
         this.logicalOperator = logicalOperator.orElse(null);
     }
@@ -28,10 +21,6 @@ public class QueryFragment {
         } else {
             this.subQueries = queryFragments;
         }
-    }
-
-    public QueryFragment(Optional<Boolean> not, QueryFragment queryFragment) {
-        this(not.orElse(false), queryFragment.getFilter(), Optional.ofNullable(queryFragment.getLogicalOperator()));
     }
 
     public List<QueryFragment> getSubQueries() {
@@ -53,9 +42,6 @@ public class QueryFragment {
     @Override
     public String toString() {
         StringBuilder query = new StringBuilder();
-        if (not) {
-            query.append("NOT2 ");
-        }
         if (this.getSubQueries() == null) {
             if (this.filter != null)
                 query.append(this.filter.toString());
@@ -78,10 +64,6 @@ public class QueryFragment {
            // query.append(")");
         }
         return query.toString();
-    }
-
-    public boolean isNot() {
-        return not;
     }
 
     @Override

@@ -3,21 +3,15 @@ package com.vivareal.search.api.parser;
 
 import org.jparsec.*;
 
-public class ValueParser {
+import static org.jparsec.Terminals.*;
 
-    private static Terminals OPERATORS = Terminals.operators(",");
-    private static Parser<?> VALUE_TOKENIZER = Parsers.or(
-            Terminals.DecimalLiteral.TOKENIZER,
-            Terminals.StringLiteral.SINGLE_QUOTE_TOKENIZER,
-            Terminals.StringLiteral.DOUBLE_QUOTE_TOKENIZER
-    );
+public class ValueParser {
+    private static Terminals OPERATORS = operators(",");
+    private static Parser<?> VALUE_TOKENIZER = Parsers.or(DecimalLiteral.TOKENIZER, StringLiteral.SINGLE_QUOTE_TOKENIZER, StringLiteral.DOUBLE_QUOTE_TOKENIZER);
 
     private static Parser<?> TOKENIZER = Parsers.or(OPERATORS.tokenizer(), VALUE_TOKENIZER);
 
-    private static Parser<String> VALUE_SYNTACTIC_PARSER = Parsers.or(
-            Terminals.DecimalLiteral.PARSER,
-            Terminals.StringLiteral.PARSER
-    );
+    private static Parser<String> VALUE_SYNTACTIC_PARSER = Parsers.or(DecimalLiteral.PARSER, StringLiteral.PARSER);
 
     private static Parser<Value> IN_VALUE_PARSER = Parsers
             .between(Scanners.isChar('['), VALUE_SYNTACTIC_PARSER.sepBy(OPERATORS.token(",")).from(TOKENIZER, Scanners.WHITESPACES.skipMany()), Scanners.isChar(']'))

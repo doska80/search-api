@@ -29,14 +29,3 @@ public enum LogicalOperator {
                 .orElseThrow(() -> new IllegalArgumentException("Logical Operator \"" + logic + "\" is not recognized!"));
     }
 }
-
-// NOT (a = 2 AND b = 3)
-// (a <> 2 OR b <> 3)
-
-// NOT ((filed1 = 2) AND (bla = 3))
-
-// NOT (NOT filed1) AND bla = 3
-
-// NOT negocio:VENTA
-// NOT (negocio:VENTA AND negocio:TINCAS)
-// NOT negocio:VENTA AND NOT negocio:TINCAS

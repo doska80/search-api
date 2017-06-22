@@ -1,7 +1,6 @@
 package com.vivareal.search.api.parser;
 
 public class Filter {
-
     private boolean not;
 
     private Field field;
@@ -68,9 +67,3 @@ public class Filter {
         return not;
     }
 }
-
-// NOT rooms:3 AND suites:2
-
-
-// NOT (rooms:3 AND suites:2)
-// (rooms<>3 OR suites<>2)

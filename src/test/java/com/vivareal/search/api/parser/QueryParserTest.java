@@ -1,25 +1,14 @@
 package com.vivareal.search.api.parser;
 
 import org.jparsec.Parser;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.List;
-
-import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 public class QueryParserTest {
 
     private static Parser<QueryFragment> parser = QueryParser.get();
-
-//    @BeforeClass
-//    public static void setup() {
-//        parser = QueryParser.get();
-//    }
 
     @Test
     public void nonRecursiveMultipleConditionsTest() {
@@ -67,10 +56,9 @@ public class QueryParserTest {
     }
 
     @Test
-    @Ignore
     public void oneRecursionWithManyNotsTestdlkfndfddf() {
-        QueryFragment query = parser.parse("(a = 2 AND b = 3)");
-        assertEquals("(a EQUAL 2 AND b EQUAL 3)", query.toString());
+        QueryFragment query = parser.parse("a = 2 AND b = 3");
+        assertEquals("a EQUAL 2 AND b EQUAL 3", query.toString());
     }
 
     @Test
@@ -78,20 +66,6 @@ public class QueryParserTest {
     public void oneRecursionWithManyNotsTestdlkfndfewd() {
         QueryFragment query = parser.parse("(a = 2 AND (b = 3))");
         assertEquals("(a EQUAL 2 AND b EQUAL 3)", query.toString());
-    }
-
-    @Test
-    @Ignore
-    public void oneRecursionWithManyNotsTestdlkfn() {
-        QueryFragment query = parser.parse("NOT ((a = 2) AND (b = 3))");
-        assertEquals("NOT (a EQUAL 2 AND b EQUAL 3)", query.toString());
-    }
-
-    @Test
-    @Ignore
-    public void oneRecursionWithManyNotsTest() {
-        QueryFragment query = parser.parse("NOT2 (NOT suites=1)");
-        assertEquals("NOT2 NOT suites EQUAL 1", query.toString());
     }
 
     @Test

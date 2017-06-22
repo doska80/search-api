@@ -47,23 +47,23 @@ public class FieldParserTest {
 
     @Test(expected = ParserException.class)
     public void testRootNestedFieldNames() {
-        FieldParser.get().parse(".bixola.lolo");
+        FieldParser.get().parse(".abc.def");
     }
 
     @Test
     public void testNestedFieldNames() {
-        Field field = FieldParser.get().parse("marcos.bixola.lolo");
-        assertEquals(field.getName(), "marcos.bixola.lolo");
+        Field field = FieldParser.get().parse("field.field2.field3");
+        assertEquals(field.getName(), "field.field2.field3");
     }
 
     @Test(expected = ParserException.class)
     public void testDoublePointFieldNames() {
-        FieldParser.get().parse("marcos..bixola");
+        FieldParser.get().parse("field..field2");
     }
 
     @Test(expected = ParserException.class)
     public void testDotEndedFieldNames() {
-        FieldParser.get().parse("marcos.");
+        FieldParser.get().parse("field.");
     }
 
     @Test(expected = ParserException.class)
@@ -73,14 +73,14 @@ public class FieldParserTest {
 
     @Test
     public void testStringNames() {
-        Field field = FieldParser.get().parse("javascript.is.not.good");
-        assertEquals("javascript.is.not.good", field.toString());
+        Field field = FieldParser.get().parse("field.field2.field3.field4");
+        assertEquals("field.field2.field3.field4", field.toString());
     }
 
     @Test
     public void testFieldNot() {
-        Field field = FieldParser.get().parse("NOT javascript");
-        assertEquals("NOT javascript", field.toString());
+        Field field = FieldParser.get().parse("NOT field");
+        assertEquals("NOT field", field.toString());
         assertTrue(field.isNot());
     }
 }

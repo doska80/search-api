@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class Field {
-
     private boolean not;
     private final Collection<String> names;
 
