@@ -12,25 +12,25 @@ import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 
 public class Value {
-    private List<String> contents = EMPTY_CONTENTS;
+    private List<Object> contents = EMPTY_CONTENTS;
 
-    private static final List<String> EMPTY_CONTENTS = emptyList();
+    private static final List<Object> EMPTY_CONTENTS = emptyList();
 
-    public static final Value NULL_VALUE = new Value((String) null);
+    public static final Value NULL_VALUE = new Value(null);
 
-    public Value(String content) {
-        this(singletonList(content));
+    public Value(Object content) {
+        this.contents = content instanceof List ? (List<Object>) content : singletonList(content);
     }
 
-    public Value(List<String> contents) {
+    public Value(List<Object> contents) {
         this.contents = contents;
     }
 
-    public List<String> getContents() {
+    public List<Object> getContents() {
         return contents;
     }
 
-    public String getContents(int index) {
+    public Object getContents(int index) {
         return ofNullable(contents).map(c -> c.get(index)).orElseThrow(() -> new IndexOutOfBoundsException(String.valueOf(index)));
     }
 
@@ -40,10 +40,10 @@ public class Value {
         if (contents == null || EMPTY_CONTENTS.equals(contents) || contents.isEmpty())
             query.append("NULL");
         else if (contents.size() == 1) {
-            String simpleValue = contents.get(0);
+            Object simpleValue = contents.get(0);
             if (simpleValue == null) {
                 query.append("NULL");
-            } else if (simpleValue.isEmpty()) {
+            } else if (simpleValue instanceof String && ((String) simpleValue).isEmpty()) {
                 query.append("\"\"");
             } else {
                 query.append(simpleValue);

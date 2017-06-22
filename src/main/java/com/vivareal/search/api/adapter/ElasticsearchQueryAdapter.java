@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -92,11 +91,11 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                 Filter filter = filterFragment.getFilter();
                 RelationalOperator operator = filter.getRelationalOperator();
                 String fieldName = filter.getField().getName();
-                List<String> values = filter.getValue().getContents();
+                List<Object> values = filter.getValue().getContents();
                 if (values == null || values.isEmpty())
                     return;
                 if (values.size() == 1) {
-                    String firstValue = values.get(0);
+                    Object firstValue = values.get(0);
                     switch (operator) {
                         case DIFFERENT:
                             queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
