@@ -2,7 +2,7 @@ package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.query.Order;
 import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.parser.QueryFragment;
+import com.vivareal.search.api.model.query.QueryFragment;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,9 +1,8 @@
 package com.vivareal.search.api.model;
 
 import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.parser.LogicalOperator;
-import com.vivareal.search.api.parser.QueryFragment;
-import com.vivareal.search.api.parser.QueryParser;
+import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.model.parser.QueryParser;
 import org.jparsec.Parser;
 
 import java.util.ArrayList;
@@ -22,33 +21,29 @@ public final class SearchApiRequest {
     private List<String> fields = Collections.emptyList();
     private List<String> includeFields = Collections.emptyList();
     private List<String> excludeFields = Collections.emptyList();
-    private List<QueryFragment> filter = Collections.emptyList();
+    private QueryFragment filter;
     private List<Sort> sort = Collections.emptyList();
 
     private String q;
     private Integer from, size;
 
-    public List<QueryFragment> getFilter() {
+    public QueryFragment getFilter() {
         return filter;
     }
 
     public void setFilter(String filter) {
-        QueryFragment parsed = QUERY_PARSER.parse(filter);
-        if (!parsed.getSubQueries().isEmpty()) {
-            this.filter = new ArrayList<>();
-            this.filter.addAll(parsed.getSubQueries());
-        }
+        this.filter = QUERY_PARSER.parse(filter);
     }
 
     public void XsetFilter(List<String> filters) { // FIXME does not work. Spring split in every "," it finds, breaking our IN []
-        if (filters == null || filters.isEmpty()) return;
-        this.filter = new ArrayList<>();
-        filters.stream()
-        .map(QUERY_PARSER::parse)
-        .forEach(qf -> {
-            qf.setLogicalOperator(LogicalOperator.AND);
-            this.filter.add(qf);
-        });
+//        if (filters == null || filters.isEmpty()) return;
+//        this.filter = new ArrayList<>();
+//        filters.stream()
+//        .map(QUERY_PARSER::parse)
+//        .forEach(qf -> {
+//            //qf.setLogicalOperator(LogicalOperator.AND);
+//            this.filter.add(qf);
+//        });
     }
 
     public String getIndex() {

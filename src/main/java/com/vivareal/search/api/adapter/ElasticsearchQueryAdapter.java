@@ -4,16 +4,13 @@ import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.parser.Filter;
-import com.vivareal.search.api.parser.QueryFragment;
-import com.vivareal.search.api.parser.RelationalOperator;
+import com.vivareal.search.api.model.query.QueryFragment;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -87,43 +83,43 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         searchBuilder.setQuery(queryBuilder);
         applyQueryString(queryBuilder, request);
 
-        if (!request.getFilter().isEmpty()) {
-            request.getFilter().forEach(filterFragment -> {
-                Filter filter = filterFragment.getFilter();
-                RelationalOperator operator = filter.getRelationalOperator();
-                String fieldName = filter.getField().getName();
-                List<String> values = filter.getValue().getContents();
-                if (values == null || values.isEmpty())
-                    return;
-                if (values.size() == 1) {
-                    String firstValue = values.get(0);
-                    switch (operator) {
-                        case DIFFERENT:
-                            queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
-                            break;
-                        case EQUAL:
-                            queryBuilder.must().add(matchQuery(fieldName, firstValue));
-                            break;
-                        case GREATER:
-                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false));
-                            break;
-                        case GREATER_EQUAL:
-                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true));
-                            break;
-                        case LESS:
-                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false));
-                            break;
-                        case LESS_EQUAL:
-                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true));
-                            break;
-                        default:
-                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
-                    }
-                } else {
-                    queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
-                }
-            });
-        }
+//        if (!request.getFilter().isEmpty()) {
+//            request.getFilter().forEach(filterFragment -> {
+//                Filter filter = null;
+//                RelationalOperator operator = filter.getRelationalOperator();
+//                String fieldName = filter.getField().getName();
+//                List<Object> values = filter.getValue().getContents();
+//                if (values == null || values.isEmpty())
+//                    return;
+//                if (values.size() == 1) {
+//                    Object firstValue = values.get(0);
+//                    switch (operator) {
+//                        case DIFFERENT:
+//                            queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
+//                            break;
+//                        case EQUAL:
+//                            queryBuilder.must().add(matchQuery(fieldName, firstValue));
+//                            break;
+//                        case GREATER:
+//                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false));
+//                            break;
+//                        case GREATER_EQUAL:
+//                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true));
+//                            break;
+//                        case LESS:
+//                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false));
+//                            break;
+//                        case LESS_EQUAL:
+//                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true));
+//                            break;
+//                        default:
+//                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
+//                    }
+//                } else {
+//                    queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
+//                }
+//            });
+//        }
 
         LOG.debug("Query: {}", searchBuilder);
 
