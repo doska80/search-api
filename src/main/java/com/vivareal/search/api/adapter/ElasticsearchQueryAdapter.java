@@ -4,14 +4,14 @@ import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.parser.SortParser;
-import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.model.query.*;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,48 +84,96 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         BoolQueryBuilder queryBuilder = boolQuery();
         searchBuilder.setQuery(queryBuilder);
         applyQueryString(queryBuilder, request);
-
-//        if (!request.getFilter().isEmpty()) {
-//            request.getFilter().forEach(filterFragment -> {
-//                Filter filter = null;
-//                RelationalOperator operator = filter.getRelationalOperator();
-//                String fieldName = filter.getField().getName();
-//                List<Object> values = filter.getValue().getContents();
-//                if (values == null || values.isEmpty())
-//                    return;
-//                if (values.size() == 1) {
-//                    Object firstValue = values.get(0);
-//                    switch (operator) {
-//                        case DIFFERENT:
-//                            queryBuilder.mustNot().add(matchQuery(fieldName, firstValue));
-//                            break;
-//                        case EQUAL:
-//                            queryBuilder.must().add(matchQuery(fieldName, firstValue));
-//                            break;
-//                        case GREATER:
-//                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(false));
-//                            break;
-//                        case GREATER_EQUAL:
-//                            queryBuilder.must().add(rangeQuery(fieldName).from(firstValue).includeLower(true));
-//                            break;
-//                        case LESS:
-//                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(false));
-//                            break;
-//                        case LESS_EQUAL:
-//                            queryBuilder.must().add(rangeQuery(fieldName).to(firstValue).includeUpper(true));
-//                            break;
-//                        default:
-//                            throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
-//                    }
-//                } else {
-//                    queryBuilder.must().add(QueryBuilders.termsQuery(fieldName, values));
-//                }
-//            });
-//        }
+        applyFilterQuery(queryBuilder, request.getFilter());
 
         LOG.debug("Query: {}", searchBuilder);
 
         return searchBuilder;
+    }
+
+    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment) {
+        if (queryFragment != null && queryFragment instanceof QueryFragmentList) {
+            QueryFragmentList queryFragmentList = (QueryFragmentList) queryFragment;
+            LogicalOperator logicalOperator = LogicalOperator.AND;
+
+            for (int index = 0; index < queryFragmentList.size(); index++) {
+                QueryFragment queryFragmentFilter = queryFragmentList.get(index);
+
+                if (queryFragmentFilter instanceof QueryFragmentList) {
+                    BoolQueryBuilder recursiveQueryBuilder = boolQuery();
+                    addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator));
+                    applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter);
+
+                } else if (queryFragmentFilter instanceof QueryFragmentItem) {
+                    QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
+                    logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
+
+                    Filter filter = queryFragmentItem.getFilter();
+                    RelationalOperator operator = filter.getRelationalOperator();
+
+                    String fieldName = filter.getField().getName();
+                    List<Object> values = filter.getValue().getContents();
+
+                    if (values.size() == 1) {
+                        Object firstValue = values.get(0);
+                        switch (operator) {
+                            case DIFFERENT:
+                                if (logicalOperator.equals(LogicalOperator.AND)) {
+                                    queryBuilder.mustNot(matchQuery(fieldName, firstValue));
+                                } else {
+                                    queryBuilder.should().add(boolQuery().mustNot(matchQuery(fieldName, firstValue)));
+                                }
+                                break;
+                            case EQUAL:
+                                addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, firstValue), logicalOperator);
+                                break;
+                            case GREATER:
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(firstValue).includeLower(false), logicalOperator);
+                                break;
+                            case GREATER_EQUAL:
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(firstValue).includeLower(true), logicalOperator);
+                                break;
+                            case LESS:
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(firstValue).includeUpper(false), logicalOperator);
+                                break;
+                            case LESS_EQUAL:
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(firstValue).includeUpper(true), logicalOperator);
+                                break;
+                            default:
+                                throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
+                        }
+                    } else {
+                        addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, values), logicalOperator);
+                    }
+                }
+            }
+        }
+    }
+
+    private LogicalOperator getLogicalOperatorByQueryFragmentList(final QueryFragmentList queryFragmentList, int index, LogicalOperator logicalOperator) {
+        if (index + 1 < queryFragmentList.size()) {
+            QueryFragment next = queryFragmentList.get(index + 1);
+            if (next instanceof QueryFragmentItem) {
+                logicalOperator = ((QueryFragmentItem) next).getLogicalOperator();
+
+            } else if (next instanceof QueryFragmentOperator) {
+                logicalOperator = ((QueryFragmentOperator) next).getOperator();
+            }
+        }
+        return logicalOperator;
+    }
+
+    private void addFilterQueryByLogicalOperator(BoolQueryBuilder queryBuilder, QueryBuilder query, LogicalOperator logicalOperator) {
+
+        switch (logicalOperator) {
+            case AND:
+                queryBuilder.must().add(query);
+                break;
+
+            case OR:
+                queryBuilder.should().add(query);
+                break;
+        }
     }
 
     private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
@@ -145,9 +193,9 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                 }
 
                 String operator = ofNullable(request.getOperator())
-                    .filter(op -> op.equalsIgnoreCase(OR.name()))
-                    .map(op -> OR.name())
-                    .orElse(queryListingsDefaultOperator);
+                .filter(op -> op.equalsIgnoreCase(OR.name()))
+                .map(op -> OR.name())
+                .orElse(queryListingsDefaultOperator);
 
                 // if client specify mm on the request, the default operator is OR
                 operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);

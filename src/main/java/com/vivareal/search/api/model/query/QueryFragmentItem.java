@@ -28,6 +28,14 @@ public class QueryFragmentItem implements QueryFragment {
                 && Objects.equal(this.logicalOperator, item.logicalOperator);
     }
 
+    public Filter getFilter() {
+        return filter;
+    }
+
+    public LogicalOperator getLogicalOperator() {
+        return logicalOperator;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hashCode(this.filter, this.logicalOperator);
