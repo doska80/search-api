@@ -12,6 +12,10 @@ public class QueryFragmentOperator implements QueryFragment {
         return operator.name();
     }
 
+    public LogicalOperator getOperator() {
+        return operator;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,17 +1,14 @@
 package com.vivareal.search.api.model;
 
-import com.vivareal.search.api.model.parser.SortParser;
-import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.parser.QueryParser;
+import com.vivareal.search.api.model.parser.SortParser;
+import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.model.query.Sort;
 import org.jparsec.Parser;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseSort;
 
 public final class SearchApiRequest {
 
@@ -35,17 +32,6 @@ public final class SearchApiRequest {
 
     public void setFilter(String filter) {
         this.filter = QUERY_PARSER.parse(filter);
-    }
-
-    public void XsetFilter(List<String> filters) { // FIXME does not work. Spring split in every "," it finds, breaking our IN []
-//        if (filters == null || filters.isEmpty()) return;
-//        this.filter = new ArrayList<>();
-//        filters.stream()
-//        .map(QUERY_PARSER::parse)
-//        .forEach(qf -> {
-//            //qf.setLogicalOperator(LogicalOperator.AND);
-//            this.filter.add(qf);
-//        });
     }
 
     public String getIndex() {
