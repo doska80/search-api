@@ -1,11 +1,13 @@
 package com.vivareal.search.api.model.parser;
 
 import com.vivareal.search.api.model.query.LogicalOperator;
+import com.vivareal.search.api.model.query.OrderOperator;
 import com.vivareal.search.api.model.query.RelationalOperator;
 import org.jparsec.Parser;
 import org.jparsec.Scanners;
 import org.jparsec.Terminals;
 import org.jparsec.Tokens;
+import org.springframework.core.annotation.Order;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -15,6 +17,8 @@ public class OperatorParser {
     public static final Parser<LogicalOperator> LOGICAL_OPERATOR_PARSER = get(LogicalOperator::getOperators, LogicalOperator::get);
 
     public static final Parser<RelationalOperator> RELATIONAL_OPERATOR_PARSER = get(RelationalOperator::getOperators, RelationalOperator::get);
+
+    public static final Parser<OrderOperator> ORDER_OPERATOR_PARSER = get(OrderOperator::getOperators, OrderOperator::get);
 
     private static <T> Parser<T> get(Supplier<String[]> operators, Function<String, T> getFn) {
         Terminals OPERATORS = Terminals.operators(operators.get());

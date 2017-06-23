@@ -3,6 +3,7 @@ package com.vivareal.search.api.adapter;
 import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
+import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.model.query.QueryFragment;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
@@ -36,7 +38,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchRequestBuilder, List<QueryFragment>, List<Sort>> {
+public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchRequestBuilder, List<QueryFragment>, Sort> {
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
@@ -173,8 +175,8 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     }
 
     @Override
-    protected List<Sort> getSort(List<String> sort) {
-        return null;
+    protected Sort getSort(List<String> sort) {
+        return SortParser.get().parse(sort.stream().collect(Collectors.joining(" ")));
     }
 
 }
