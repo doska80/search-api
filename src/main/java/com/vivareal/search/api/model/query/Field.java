@@ -2,10 +2,11 @@ package com.vivareal.search.api.model.query;
 
 import com.google.common.base.Objects;
 
+import java.util.Collection;
+
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
-
-import java.util.Collection;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Field {
     private boolean not;
@@ -13,7 +14,11 @@ public class Field {
 
     public Field(boolean not, final Collection<String> names) {
         this.not = not;
-        this.names = (names == null || names.isEmpty()) ? emptyList() : names;
+        this.names = isEmpty(names) ? emptyList() : names;
+    }
+
+    public boolean isNot() {
+        return not;
     }
 
     public String getName() {
@@ -37,15 +42,11 @@ public class Field {
         Field field = (Field) o;
 
         return Objects.equal(this.not, field.not)
-                && Objects.equal(this.names, field.names);
+            && Objects.equal(this.names, field.names);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(this.not, this.names);
-    }
-
-    public boolean isNot() {
-        return not;
     }
 }

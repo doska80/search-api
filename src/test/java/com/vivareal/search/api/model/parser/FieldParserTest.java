@@ -5,9 +5,9 @@ import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
-import static java.util.Collections.emptyList;
+import java.util.stream.Stream;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class FieldParserTest {
@@ -20,10 +20,10 @@ public class FieldParserTest {
                 "field1CamelCase2With3Numbers"
         };
         Parser<Field> parser = FieldParser.get();
-        for (String fieldName : fieldNames) {
+        Stream.of(fieldNames).forEach(fieldName -> {
             Field parsedField = parser.parse(fieldName);
             assertEquals(parsedField.getName(), fieldName);
-        }
+        });
     }
 
     @Test(expected = ParserException.class)
@@ -31,11 +31,9 @@ public class FieldParserTest {
         FieldParser.get().parse("field with space");
     }
 
-    @Test
+    @Test(expected = ParserException.class)
     public void testBlankFieldNames() {
-        Field field = FieldParser.get().parse("");
-        assertNotNull(field);
-        assertEquals(field.getNames(), emptyList());
+        FieldParser.get().parse("");
     }
 
     @Test(expected = ParserException.class)
@@ -80,5 +78,27 @@ public class FieldParserTest {
         Field field = FieldParser.get().parse("NOT field");
         assertEquals("NOT field", field.toString());
         assertTrue(field.isNot());
+    }
+
+    @Test
+    public void testFieldNotWithNestedFieldNames() {
+        Field field = FieldParser.get().parse("NOT field.field2.field3");
+        assertEquals("NOT field.field2.field3", field.toString());
+    }
+
+    @Test(expected = ParserException.class)
+    public void testFieldNotWithInvalidPointEnding() {
+        FieldParser.get().parse("NOT field.");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testFieldNotWithInvalidPoint() {
+        FieldParser.get().parse("NOT .");
+    }
+
+
+    @Test(expected = ParserException.class)
+    public void testNotWithBlankFieldName() {
+        FieldParser.get().parse("NOT ");
     }
 }
