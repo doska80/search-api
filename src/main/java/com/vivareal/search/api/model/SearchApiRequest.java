@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model;
 
+import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.Sort;
 import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.parser.QueryParser;
@@ -8,6 +9,7 @@ import org.jparsec.Parser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.vivareal.search.api.adapter.AbstractQueryAdapter.parseSort;
 
@@ -22,7 +24,7 @@ public final class SearchApiRequest {
     private List<String> includeFields = Collections.emptyList();
     private List<String> excludeFields = Collections.emptyList();
     private QueryFragment filter;
-    private List<Sort> sort = Collections.emptyList();
+    private Sort sort;
 
     private String q;
     private Integer from, size;
@@ -78,13 +80,12 @@ public final class SearchApiRequest {
         if (q != null) this.q = q.trim();
     }
 
-    public List<Sort> getSort() {
+    public Sort getSort() {
         return sort;
     }
 
     public void setSort(List<String> sorts) {
-        this.sort = new ArrayList<>();
-        sorts.forEach(sort -> this.sort.addAll(parseSort(sort)));
+        this.sort = SortParser.get().parse(sorts.stream().collect(Collectors.joining(" ")));
     }
 
     public List<String> getFields() {
