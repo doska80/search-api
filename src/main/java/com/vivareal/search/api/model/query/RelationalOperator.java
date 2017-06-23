@@ -6,6 +6,7 @@ import java.util.Map;
 import static java.util.Optional.ofNullable;
 
 public enum RelationalOperator {
+
     DIFFERENT,
     EQUAL,
     GREATER,
@@ -34,13 +35,13 @@ public enum RelationalOperator {
     }
 
     public static String[] getOperators() {
-        return OPERATORS.keySet().toArray(new String[]{});
+        return OPERATORS.keySet().toArray(new String[OPERATORS.size()]);
     }
 
     public static RelationalOperator get(final String relation) {
         return ofNullable(relation)
-                .map(String::toUpperCase)
-                .map(OPERATORS::get)
-                .orElseThrow(() -> new IllegalArgumentException("Relational Operator \"" + relation + "\" is not recognized!"));
+            .map(String::toUpperCase)
+            .map(OPERATORS::get)
+            .orElseThrow(() -> new IllegalArgumentException("Relational Operator \"" + relation + "\" is not recognized!"));
     }
 }
