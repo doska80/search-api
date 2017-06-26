@@ -13,12 +13,14 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -81,6 +83,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         searchBuilder.setFrom(request.getFrom());
         searchBuilder.setSize(request.getSize());
         addFieldList(searchBuilder, request);
+        applySort(searchBuilder, request);
 
         BoolQueryBuilder queryBuilder = boolQuery();
         searchBuilder.setQuery(queryBuilder);
@@ -212,6 +215,13 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
             }
             queryBuilder.must().add(queryStringBuilder);
         }
+    }
+
+    private void applySort(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
+        if (!CollectionUtils.isEmpty(request.getSort()))
+            request.getSort().forEach(s -> {
+                searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name()));
+            });
     }
 
     private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String boostField) {
