@@ -62,17 +62,6 @@ public class FilterParserTest {
     }
 
     @Test
-    public void testFilterNot() {
-        Filter filter = parser.parse("field = \"value\"");
-        assertEquals("field EQUAL value", filter.toString());
-        assertFalse(filter.isNot());
-
-        Filter filterNot = parser.parse("NOT field = \"value\"");
-        assertEquals("NOT field EQUAL value", filterNot.toString());
-        assertTrue(filterNot.isNot());
-    }
-
-    @Test
     public void testFilterBooleanTrue() {
         Filter filterTrue = parser.parse("field = TRUE");
         Filter filterTrueLowerCase = parser.parse("field = true");

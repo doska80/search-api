@@ -1,9 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
-import com.vivareal.search.api.model.query.QueryFragment;
-import com.vivareal.search.api.model.query.QueryFragmentItem;
-import com.vivareal.search.api.model.query.QueryFragmentList;
-import com.vivareal.search.api.model.query.QueryFragmentOperator;
+import com.vivareal.search.api.model.query.*;
 import org.jparsec.Parser;
 import org.jparsec.Parsers;
 
@@ -19,7 +16,7 @@ public class QueryParser {
         Parser.Reference<QueryFragment> ref = Parser.newReference();
         Parser<QueryFragment> lazy = ref.lazy();
         Parser<QueryFragment> parser = lazy.between(isChar('('), isChar(')'))
-                .or(Parsers.or(QUERY_PARSER, OperatorParser.LOGICAL_OPERATOR_PARSER.map(QueryFragmentOperator::new))).many()
+                .or(Parsers.or(QUERY_PARSER, OperatorParser.LOGICAL_OPERATOR_PARSER.map(QueryFragmentOperator::new), NotParser.get().many().map(QueryFragmentNot::new))).many()
                 .map(QueryFragmentList::new);
         ref.set(parser);
         return parser;

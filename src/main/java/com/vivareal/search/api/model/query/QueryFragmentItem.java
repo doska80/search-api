@@ -11,7 +11,6 @@ public class QueryFragmentItem implements QueryFragment {
     private final Filter filter;
     private final LogicalOperator logicalOperator;
 
-
     public QueryFragmentItem(Optional<LogicalOperator> logicalOperator, Filter filter) {
         this.filter = filter;
         this.logicalOperator = logicalOperator.orElse(null);

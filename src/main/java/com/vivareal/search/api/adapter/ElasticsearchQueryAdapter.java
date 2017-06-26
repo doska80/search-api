@@ -115,7 +115,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                     if (!isEmpty(filter.getValue().getContents())) {
                         RelationalOperator operator = filter.getRelationalOperator();
                         String fieldName = filter.getField().getName();
-                        final boolean not = filter.isNot();
+                        final boolean not = false; // FIXME arruma eu ae!
 
                         List<Object> multiValues = filter.getValue().getContents();
                         Object singleValue = filter.getValue().getContents(0);

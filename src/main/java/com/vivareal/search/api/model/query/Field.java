@@ -9,17 +9,12 @@ import static java.util.stream.Collectors.joining;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Field {
-    private boolean not;
     private final Collection<String> names;
 
-    public Field(boolean not, final Collection<String> names) {
-        this.not = not;
+    public Field(final Collection<String> names) {
         this.names = isEmpty(names) ? emptyList() : names;
     }
 
-    public boolean isNot() {
-        return not;
-    }
 
     public String getName() {
         return this.names.stream().collect(joining("."));
@@ -31,7 +26,7 @@ public class Field {
 
     @Override
     public String toString() {
-        return String.format("%s%s", isNot() ? "NOT " : "", getName());
+        return getName();
     }
 
     @Override
@@ -41,12 +36,11 @@ public class Field {
 
         Field field = (Field) o;
 
-        return Objects.equal(this.not, field.not)
-            && Objects.equal(this.names, field.names);
+        return Objects.equal(this.names, field.names);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.not, this.names);
+        return Objects.hashCode(this.names);
     }
 }

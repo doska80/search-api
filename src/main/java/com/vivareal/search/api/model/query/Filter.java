@@ -3,14 +3,11 @@ package com.vivareal.search.api.model.query;
 import com.google.common.base.Objects;
 
 public class Filter {
-    private boolean not;
-
     private Field field;
     private RelationalOperator relationalOperator;
     private Value value;
 
-    public Filter(boolean not, Field field, RelationalOperator relationalOperator, Value value) {
-        this.not = not;
+    public Filter(Field field, RelationalOperator relationalOperator, Value value) {
         this.field = field;
         this.relationalOperator = relationalOperator;
         this.value = value;
@@ -34,9 +31,6 @@ public class Filter {
             return super.toString();
 
         StringBuilder query = new StringBuilder();
-        if (not) {
-            query.append("NOT ");
-        }
         query.append(field.getName());
         query.append(" ");
         query.append(relationalOperator.name());
@@ -60,9 +54,5 @@ public class Filter {
     @Override
     public int hashCode() {
         return Objects.hashCode(this.field, this.relationalOperator, this.value);
-    }
-
-    public boolean isNot() {
-        return not;
     }
 }

@@ -3,6 +3,7 @@ package com.vivareal.search.api.model.parser;
 import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.query.QueryFragmentList;
 import org.jparsec.Parser;
+import org.jparsec.error.ParserException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -87,6 +88,11 @@ public class QueryParserTest {
     public void oneRecursionWithInsideNotTest() {
         QueryFragment query = parser.parse("(NOT suites=1)");
         assertEquals("((NOT suites EQUAL 1))", query.toString());
+    }
+
+    @Test(expected = ParserException.class)
+    public void oneRecursionWithDoubleNotTest() {
+        parser.parse("NOT NOT suites=1");
     }
 
     @Test
