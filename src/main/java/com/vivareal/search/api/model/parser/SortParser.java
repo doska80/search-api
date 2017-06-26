@@ -11,7 +11,7 @@ import java.util.List;
 import static org.jparsec.Scanners.isChar;
 
 public class SortParser {
-    private static final Parser<Sort> SORT_PARSER = Parsers.sequence(FieldParser.get(), OperatorParser.ORDER_OPERATOR_PARSER.optional(OrderOperator.ASC), Sort::new).sepBy(Scanners.isChar(',').next(Scanners.WHITESPACES.skipMany())).map(Sort::new);
+    private static final Parser<Sort> SORT_PARSER = Parsers.sequence(FieldParser.getWithoutNot(), OperatorParser.ORDER_OPERATOR_PARSER.optional(OrderOperator.ASC), Sort::new).sepBy(Scanners.isChar(',').next(Scanners.WHITESPACES.skipMany())).map(Sort::new);
 
     public static Parser<Sort> get() {
         return SORT_PARSER;

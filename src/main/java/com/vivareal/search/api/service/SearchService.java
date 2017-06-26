@@ -52,12 +52,13 @@ public class SearchService {
         SearchResponse esResponse = requestBuilder.execute().actionGet(timeout);
 
         return SearchApiResponse.builder()
-            .time(esResponse.getTookInMillis())
-            .totalCount(esResponse.getHits().getTotalHits())
-            .result(SearchApiIndex.of(request).getIndex(),
-                Arrays.stream(esResponse.getHits().hits()).map(SearchHit::getSource).collect(
-                    toCollection(() -> synchronizedList(new ArrayList<>(esResponse.getHits().hits().length)))
-                ));
+        .time(esResponse.getTookInMillis())
+        .totalCount(esResponse.getHits().getTotalHits())
+        .result(SearchApiIndex.of(request).getIndex(),
+            Arrays.stream(esResponse.getHits().getHits()).map(SearchHit::getSource).collect(
+                toCollection(() -> synchronizedList(new ArrayList<>(esResponse.getHits().getHits().length)))
+            ))
+        .facets(Optional.ofNullable(esResponse.getAggregations()));
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {

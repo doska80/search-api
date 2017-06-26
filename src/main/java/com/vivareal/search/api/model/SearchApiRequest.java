@@ -1,6 +1,8 @@
 package com.vivareal.search.api.model;
 
+import com.vivareal.search.api.model.parser.FacetParser;
 import com.vivareal.search.api.model.parser.QueryParser;
+import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.query.Sort;
 import org.jparsec.Parser;
@@ -24,6 +26,7 @@ public final class SearchApiRequest {
     private List<String> excludeFields = Collections.emptyList();
     private QueryFragment filter;
     private Sort sort;
+    private List<Field> facets = Collections.emptyList();
 
     private String q;
     private Integer from, size;
@@ -114,6 +117,14 @@ public final class SearchApiRequest {
 
     public void setSize(Integer size) {
         this.size = size;
+    }
+
+    public List<Field> getFacets() {
+        return facets;
+    }
+
+    public void setFacets(List<String> facets) {
+        this.facets = FacetParser.get().parse(facets.stream().collect(joining(",")));
     }
 
     public void setPaginationValues(int defaultSize, int maxSize) {

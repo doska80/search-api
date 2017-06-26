@@ -4,18 +4,35 @@ import com.google.common.base.Objects;
 
 import java.util.Collection;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Field {
 
+    private boolean not;
     private final Collection<String> names;
 
     public Field(final Collection<String> names) {
-        if (isEmpty(names))
-            throw new IllegalArgumentException("The field name cannot be empty");
+        this(false, names);
+    }
 
-        this.names = names;
+    private Field(boolean not, final Collection<String> names) {
+
+        if (isEmpty(names)) {
+            throw new IllegalArgumentException("The field name cannot be empty");
+        }
+
+        this.not = not;
+        this.names = isEmpty(names) ? emptyList() : names;
+    }
+
+    public Field(Boolean not, Field field) {
+        this(not, field.getNames());
+    }
+
+    public boolean isNot() {
+        return not;
     }
 
     public String getName() {
