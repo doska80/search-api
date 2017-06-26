@@ -1,14 +1,16 @@
 package com.vivareal.search.api.model;
 
 import com.vivareal.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.query.Sort;
 import org.jparsec.Parser;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static com.vivareal.search.api.model.parser.SortParser.get;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.joining;
 
 public final class SearchApiRequest {
 
@@ -70,8 +72,8 @@ public final class SearchApiRequest {
         return sort;
     }
 
-    public void setSort(List<String> sorts) {
-        this.sort = SortParser.get().parse(sorts.stream().collect(Collectors.joining(" ")));
+    public void setSort(String... sort) {
+        this.sort = get().parse(stream(sort).collect(joining(",")));
     }
 
     public List<String> getFields() {

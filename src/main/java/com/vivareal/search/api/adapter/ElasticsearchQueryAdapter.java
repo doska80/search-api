@@ -13,12 +13,14 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static java.lang.Boolean.FALSE;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -80,6 +83,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         searchBuilder.setFrom(request.getFrom());
         searchBuilder.setSize(request.getSize());
         addFieldList(searchBuilder, request);
+        applySort(searchBuilder, request);
 
         BoolQueryBuilder queryBuilder = boolQuery();
         searchBuilder.setQuery(queryBuilder);
@@ -101,49 +105,48 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
 
                 if (queryFragmentFilter instanceof QueryFragmentList) {
                     BoolQueryBuilder recursiveQueryBuilder = boolQuery();
-                    addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator));
+                    addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator), FALSE);
                     applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter);
 
                 } else if (queryFragmentFilter instanceof QueryFragmentItem) {
                     QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
-                    logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
-
                     Filter filter = queryFragmentItem.getFilter();
-                    RelationalOperator operator = filter.getRelationalOperator();
 
-                    String fieldName = filter.getField().getName();
-                    List<Object> values = filter.getValue().getContents();
+                    if (!isEmpty(filter.getValue().getContents())) {
+                        RelationalOperator operator = filter.getRelationalOperator();
+                        String fieldName = filter.getField().getName();
+                        final boolean not = filter.isNot();
 
-                    if (values.size() == 1) {
-                        Object firstValue = values.get(0);
+                        List<Object> multiValues = filter.getValue().getContents();
+                        Object singleValue = filter.getValue().getContents(0);
+
+                        logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
+
                         switch (operator) {
                             case DIFFERENT:
-                                if (logicalOperator.equals(LogicalOperator.AND)) {
-                                    queryBuilder.mustNot(matchQuery(fieldName, firstValue));
-                                } else {
-                                    queryBuilder.should().add(boolQuery().mustNot(matchQuery(fieldName, firstValue)));
-                                }
+                                addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, singleValue), logicalOperator, not);
                                 break;
                             case EQUAL:
-                                addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, firstValue), logicalOperator);
+                                addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, singleValue), logicalOperator, not);
                                 break;
                             case GREATER:
-                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(firstValue).includeLower(false), logicalOperator);
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(singleValue).includeLower(false), logicalOperator, not);
                                 break;
                             case GREATER_EQUAL:
-                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(firstValue).includeLower(true), logicalOperator);
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(singleValue).includeLower(true), logicalOperator, not);
                                 break;
                             case LESS:
-                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(firstValue).includeUpper(false), logicalOperator);
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(false), logicalOperator, not);
                                 break;
                             case LESS_EQUAL:
-                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(firstValue).includeUpper(true), logicalOperator);
+                                addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(true), logicalOperator, not);
+                                break;
+                            case IN:
+                                addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, multiValues), logicalOperator, not);
                                 break;
                             default:
                                 throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
                         }
-                    } else {
-                        addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, values), logicalOperator);
                     }
                 }
             }
@@ -163,15 +166,23 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         return logicalOperator;
     }
 
-    private void addFilterQueryByLogicalOperator(BoolQueryBuilder queryBuilder, QueryBuilder query, LogicalOperator logicalOperator) {
+    private void addFilterQueryByLogicalOperator(BoolQueryBuilder queryBuilder, final QueryBuilder query, final LogicalOperator logicalOperator, final boolean not) {
 
         switch (logicalOperator) {
             case AND:
-                queryBuilder.must().add(query);
+                if (!not) {
+                    queryBuilder.must(query);
+                } else {
+                    queryBuilder.mustNot(query);
+                }
                 break;
 
             case OR:
-                queryBuilder.should().add(query);
+                if (!not) {
+                    queryBuilder.should(query);
+                } else {
+                    queryBuilder.should().add(boolQuery().mustNot(query));
+                }
                 break;
         }
     }
@@ -204,6 +215,13 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
             }
             queryBuilder.must().add(queryStringBuilder);
         }
+    }
+
+    private void applySort(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
+        if (!CollectionUtils.isEmpty(request.getSort()))
+            request.getSort().forEach(s -> {
+                searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name()));
+            });
     }
 
     private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String boostField) {
