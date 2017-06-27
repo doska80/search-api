@@ -1,18 +1,23 @@
 package com.vivareal.search.api.adapter;
 
+import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.*;
+import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +25,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +34,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.lang.Boolean.FALSE;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -59,8 +63,28 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     @Value("${es.controller.search.timeout}")
     private Integer timeout;
 
+    @Value("${es.facet.size}")
+    private Integer facetSize;
+
+    private Map<String, Map<String, Integer>> indices = new HashMap<>();
+    private static final String SHARDS = "shards";
+    private static final String REPLICAS = "replicas";
+
     public ElasticsearchQueryAdapter(TransportClient transportClient) {
         this.transportClient = transportClient;
+    }
+
+    @PostConstruct
+    public void getSettingsFromIndices() {
+        GetSettingsResponse response = this.transportClient.admin().indices().prepareGetSettings(SearchApiIndex.SearchIndex.getIndexNames()).get();
+        for (ObjectObjectCursor<String, Settings> cursor : response.getIndexToSettings()) {
+            Map<String, Integer> info = new HashMap<>();
+            String index = cursor.key;
+            Settings settings = cursor.value;
+            info.put(SHARDS, settings.getAsInt("index.number_of_shards", null));
+            info.put(REPLICAS, settings.getAsInt("index.number_of_replicas", null));
+            indices.put(index, info);
+        }
     }
 
     @Override
@@ -87,6 +111,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         searchBuilder.setSize(request.getSize());
         addFieldList(searchBuilder, request);
         applySort(searchBuilder, request);
+        applyFacetFields(searchBuilder, request);
 
         BoolQueryBuilder queryBuilder = boolQuery();
         searchBuilder.setQuery(queryBuilder);
@@ -108,7 +133,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
 
                 if (queryFragmentFilter instanceof QueryFragmentList) {
                     BoolQueryBuilder recursiveQueryBuilder = boolQuery();
-                    addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator), FALSE);
+                    addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator), isNotBeforeCurrentQueryFragment(queryFragmentList, index));
                     applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter);
 
                 } else if (queryFragmentFilter instanceof QueryFragmentItem) {
@@ -118,11 +143,11 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                     if (!isEmpty(filter.getValue().getContents())) {
                         RelationalOperator operator = filter.getRelationalOperator();
                         String fieldName = filter.getField().getName();
-                        final boolean not = false; // FIXME arruma eu ae!
 
                         List<Object> multiValues = filter.getValue().getContents();
                         Object singleValue = filter.getValue().getContents(0);
 
+                        final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                         logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
 
                         switch (operator) {
@@ -156,6 +181,17 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         }
     }
 
+    private boolean isNotBeforeCurrentQueryFragment(final QueryFragmentList queryFragmentList, final int index) {
+        if (index - 1 >= 0) {
+            QueryFragment before = queryFragmentList.get(index - 1);
+            if (before instanceof QueryFragmentNot) {
+                QueryFragmentNot before1 = (QueryFragmentNot) before;
+                return before1.isNot();
+            }
+        }
+        return false;
+    }
+
     private LogicalOperator getLogicalOperatorByQueryFragmentList(final QueryFragmentList queryFragmentList, int index, LogicalOperator logicalOperator) {
         if (index + 1 < queryFragmentList.size()) {
             QueryFragment next = queryFragmentList.get(index + 1);
@@ -184,7 +220,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                 if (!not) {
                     queryBuilder.should(query);
                 } else {
-                    queryBuilder.should().add(boolQuery().mustNot(query));
+                    queryBuilder.should(boolQuery().mustNot(query));
                 }
                 break;
         }
@@ -221,9 +257,16 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     }
 
     private void applySort(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
-        if (!CollectionUtils.isEmpty(request.getSort()))
+        if (!isEmpty(request.getSort()))
             request.getSort().forEach(s -> {
                 searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name()));
+            });
+    }
+
+    private void applyFacetFields(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
+        if (!isEmpty(request.getFacets()))
+            request.getFacets().forEach(facetField -> {
+                searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName()).field(facetField.getName()).order(Terms.Order.count(false)).size(request.getFacetSize() != null ? request.getFacetSize() : facetSize).shardSize(indices.get(request.getIndex()).get(SHARDS)));
             });
     }
 

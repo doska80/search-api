@@ -44,6 +44,15 @@ public class SearchApiIndex {
             throw new IndexNotFoundException(indexName);
         }
 
+        public static String[] getIndexNames() {
+            String[] indexNames = new String[SearchIndex.values().length];
+            int i = 0;
+            for (SearchIndex index : SearchIndex.values()) {
+                indexNames[i++] = index.index();
+            }
+            return indexNames;
+        }
+
         private String[] indexNames;
 
         public abstract String index();
