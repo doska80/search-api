@@ -1,14 +1,17 @@
 package com.vivareal.search.api.adapter;
 
+import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.*;
+import org.elasticsearch.action.admin.indices.settings.get.GetSettingsResponse;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -23,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,8 +63,25 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     @Value("${es.controller.search.timeout}")
     private Integer timeout;
 
+    private Map<String, Map<String, Integer>> indices = new HashMap<>();
+    private static final String SHARDS = "shards";
+    private static final String REPLICAS = "replicas";
+
     public ElasticsearchQueryAdapter(TransportClient transportClient) {
         this.transportClient = transportClient;
+    }
+
+    @PostConstruct
+    public void getSettingsFromIndices() {
+        GetSettingsResponse response = this.transportClient.admin().indices().prepareGetSettings(SearchApiIndex.SearchIndex.getIndexNames()).get();
+        for (ObjectObjectCursor<String, Settings> cursor : response.getIndexToSettings()) {
+            Map<String, Integer> info = new HashMap<>();
+            String index = cursor.key;
+            Settings settings = cursor.value;
+            info.put(SHARDS, settings.getAsInt("index.number_of_shards", null));
+            info.put(REPLICAS, settings.getAsInt("index.number_of_replicas", null));
+            indices.put(index, info);
+        }
     }
 
     @Override
@@ -242,7 +263,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     private void applyFacetFields(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getFacets()))
             request.getFacets().forEach(facetField -> {
-                searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName()).field(facetField.getName()).order(Terms.Order.count(false)).size(10).shardSize(3));
+                searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName()).field(facetField.getName()).order(Terms.Order.count(false)).size(10).shardSize(indices.get(request.getIndex()).get(SHARDS)));
             });
     }
 
