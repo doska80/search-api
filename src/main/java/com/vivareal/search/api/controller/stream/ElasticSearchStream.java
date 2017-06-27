@@ -3,6 +3,7 @@ package com.vivareal.search.api.controller.stream;
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
+import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.unit.TimeValue;
@@ -13,6 +14,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 @Component
 public class ElasticSearchStream {
@@ -30,14 +34,17 @@ public class ElasticSearchStream {
     @Value("${es.stream.size}")
     private Integer size;
 
+    @Value("${es.controller.stream.timeout}")
+    private Integer timeout;
+
     public void stream(SearchApiRequest request, OutputStream stream) {
 
-        TimeValue timeout = new TimeValue(scrollTimeout);
+        TimeValue scrollTimeout = new TimeValue(this.scrollTimeout);
         SearchRequestBuilder requestBuilder = (SearchRequestBuilder) this.queryAdapter.query(request);
-        requestBuilder.setScroll(timeout).setSize(size);
+        requestBuilder.setScroll(scrollTimeout).setSize(size);
 
         ResponseStream.create(stream)
                 .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),
-                        scroll -> scroll.setScroll(timeout).execute().actionGet()), SearchHit::source);
+                        scroll -> scroll.setScroll(scrollTimeout).execute().actionGet(timeout)), SearchHit::source);
     }
 }
