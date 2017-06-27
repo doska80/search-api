@@ -1,11 +1,11 @@
 package com.vivareal.search.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+
+import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.terms.DoubleTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.LongTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
 
 import java.util.*;
 
@@ -48,27 +48,13 @@ public final class SearchApiResponse {
         return this;
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    @SuppressWarnings("rawtypes")
     public SearchApiResponse facets(final Optional<Aggregations> aggregationsOptional) {
         aggregationsOptional.ifPresent(aggregations -> {
             if (this.facets == null)
                 this.facets = new LinkedHashMap<>();
 
-            aggregations.asList().forEach(aggregation -> {
-
-                if (aggregation instanceof LongTerms) {
-                    LongTerms longTerms = (LongTerms) aggregation;
-                    this.facets.put(longTerms.getName(), addBuckets(longTerms.getBuckets()));
-
-                } else if (aggregation instanceof DoubleTerms) {
-                    DoubleTerms doubleTerms = (DoubleTerms) aggregation;
-                    this.facets.put(doubleTerms.getName(), addBuckets(doubleTerms.getBuckets()));
-
-                } else if (aggregation instanceof StringTerms) {
-                    StringTerms stringTerms = (StringTerms) aggregation;
-                    this.facets.put(stringTerms.getName(), addBuckets(stringTerms.getBuckets()));
-                }
-            });
+            aggregations.asList().forEach(agg -> this.facets.put(((InternalMappedTerms)agg).getName(), addBuckets(((InternalMappedTerms)agg).getBuckets())));
         });
 
         return this;
