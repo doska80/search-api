@@ -27,6 +27,7 @@ public final class SearchApiRequest {
     private QueryFragment filter;
     private Sort sort;
     private List<Field> facets = Collections.emptyList();
+    private Integer facetSize;
 
     private String q;
     private Integer from, size;
@@ -125,6 +126,14 @@ public final class SearchApiRequest {
 
     public void setFacets(List<String> facets) {
         this.facets = FacetParser.get().parse(facets.stream().collect(joining(",")));
+    }
+
+    public Integer getFacetSize() {
+        return facetSize;
+    }
+
+    public void setFacetSize(Integer facetSize) {
+        this.facetSize = facetSize;
     }
 
     public void setPaginationValues(int defaultSize, int maxSize) {

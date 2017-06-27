@@ -63,6 +63,9 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     @Value("${es.controller.search.timeout}")
     private Integer timeout;
 
+    @Value("${es.facet.size}")
+    private Integer facetSize;
+
     private Map<String, Map<String, Integer>> indices = new HashMap<>();
     private static final String SHARDS = "shards";
     private static final String REPLICAS = "replicas";
@@ -263,7 +266,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     private void applyFacetFields(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getFacets()))
             request.getFacets().forEach(facetField -> {
-                searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName()).field(facetField.getName()).order(Terms.Order.count(false)).size(10).shardSize(indices.get(request.getIndex()).get(SHARDS)));
+                searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName()).field(facetField.getName()).order(Terms.Order.count(false)).size(request.getFacetSize() != null ? request.getFacetSize() : facetSize).shardSize(indices.get(request.getIndex()).get(SHARDS)));
             });
     }
 
