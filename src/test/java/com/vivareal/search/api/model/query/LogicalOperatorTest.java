@@ -25,7 +25,7 @@ public class LogicalOperatorTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetInvalidOperator() {
-        get("Unexistent");
+        get("NonExistent");
     }
 
     @Test(expected = IllegalArgumentException.class)

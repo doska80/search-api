@@ -73,19 +73,6 @@ public class FieldParserTest {
         assertEquals("field.field2.field3.field4", field.toString());
     }
 
-    @Test
-    public void testFieldNot() {
-        Field field = FieldParser.get().parse("NOT field");
-        assertEquals("NOT field", field.toString());
-        assertTrue(field.isNot());
-    }
-
-    @Test
-    public void testFieldNotWithNestedFieldNames() {
-        Field field = FieldParser.get().parse("NOT field.field2.field3");
-        assertEquals("NOT field.field2.field3", field.toString());
-    }
-
     @Test(expected = ParserException.class)
     public void testFieldNotWithInvalidPointEnding() {
         FieldParser.get().parse("NOT field.");

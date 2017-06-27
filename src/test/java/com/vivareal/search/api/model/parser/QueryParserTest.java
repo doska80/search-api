@@ -3,6 +3,7 @@ package com.vivareal.search.api.model.parser;
 import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.query.QueryFragmentList;
 import org.jparsec.Parser;
+import org.jparsec.error.ParserException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -49,7 +50,7 @@ public class QueryParserTest {
     @Test
     public void recursiveWithParenthesesOnTopLevelMultiple() {
         QueryFragment query = parser.parse("((a = 2) AND (b = 3))");
-        assertEquals("(((a EQUAL 2) AND (b EQUAL 3)))", query.toString());
+        assertEquals("((a EQUAL 2) AND (b EQUAL 3))", query.toString());
     }
 
     @Test
@@ -61,7 +62,7 @@ public class QueryParserTest {
     @Test
     public void recursiveWithParenthesesOnTopLevelWithAndRecursive() {
         QueryFragment query = parser.parse("(a = 2 AND (b = 3))");
-        assertEquals("((a EQUAL 2 AND (b EQUAL 3)))", query.toString());
+        assertEquals("(a EQUAL 2 AND (b EQUAL 3))", query.toString());
     }
 
     @Test
@@ -86,7 +87,12 @@ public class QueryParserTest {
     @Test
     public void oneRecursionWithInsideNotTest() {
         QueryFragment query = parser.parse("(NOT suites=1)");
-        assertEquals("((NOT suites EQUAL 1))", query.toString());
+        assertEquals("(NOT suites EQUAL 1)", query.toString());
+    }
+
+    @Test(expected = ParserException.class)
+    public void oneRecursionWithDoubleNotTest() {
+        parser.parse("NOT NOT suites=1");
     }
 
     @Test
@@ -94,7 +100,6 @@ public class QueryParserTest {
         QueryFragment query1 = parser.parse("rooms:3");
         QueryFragment query2 = parser.parse("(rooms:3)");
         assertEquals("(rooms EQUAL 3)", query1.toString());
-        assertEquals("((rooms EQUAL 3))", query2.toString());
-        assertEquals(query1, ((QueryFragmentList) query2).get(0));
+        assertEquals("(rooms EQUAL 3)", query2.toString());
     }
 }

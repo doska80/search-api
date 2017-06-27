@@ -11,9 +11,9 @@ public enum OrderOperator {
         String value = ofNullable(order).map(String::toUpperCase).orElse("");
 
         return Stream.of(OrderOperator.values())
-        .filter(o -> o.name().equals(value))
-        .findAny()
-        .orElseThrow(() -> new IllegalArgumentException("OrderOperator \"" + order + "\" is not recognized!"));
+            .filter(o -> o.name().equals(value))
+            .findAny()
+            .orElseThrow(() -> new IllegalArgumentException("OrderOperator \"" + order + "\" is not recognized!"));
     }
 
     public static String[] getOperators() {

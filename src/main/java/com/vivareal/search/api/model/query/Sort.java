@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 public final class Sort extends AbstractList<Sort.Item> {
     private List<Item> items = new ArrayList<>();
 
@@ -50,7 +52,7 @@ public final class Sort extends AbstractList<Sort.Item> {
 
         @Override
         public String toString() {
-            return String.format("%s %s", field, orderOperator);
+            return format("%s %s", field, orderOperator);
         }
     }
 }

@@ -1,15 +1,11 @@
 package com.vivareal.search.api.model.query;
 
 public class QueryFragmentOperator implements QueryFragment {
+
     private LogicalOperator operator;
 
     public QueryFragmentOperator(LogicalOperator operator) {
         this.operator = operator;
-    }
-
-    @Override
-    public String toString() {
-        return operator.name();
     }
 
     public LogicalOperator getOperator() {
@@ -29,5 +25,10 @@ public class QueryFragmentOperator implements QueryFragment {
     @Override
     public int hashCode() {
         return operator != null ? operator.hashCode() : 0;
+    }
+
+    @Override
+    public String toString() {
+        return operator.name();
     }
 }
