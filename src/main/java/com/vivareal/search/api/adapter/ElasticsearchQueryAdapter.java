@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static java.lang.Boolean.FALSE;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -110,7 +109,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
 
                 if (queryFragmentFilter instanceof QueryFragmentList) {
                     BoolQueryBuilder recursiveQueryBuilder = boolQuery();
-                    addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator), FALSE);
+                    addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator), isNotBeforeCurrentQueryFragment(queryFragmentList, index));
                     applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter);
 
                 } else if (queryFragmentFilter instanceof QueryFragmentItem) {
@@ -120,11 +119,11 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                     if (!isEmpty(filter.getValue().getContents())) {
                         RelationalOperator operator = filter.getRelationalOperator();
                         String fieldName = filter.getField().getName();
-                        final boolean not = false; // FIXME arruma eu ae!
 
                         List<Object> multiValues = filter.getValue().getContents();
                         Object singleValue = filter.getValue().getContents(0);
 
+                        final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                         logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
 
                         switch (operator) {
@@ -156,6 +155,17 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
                 }
             }
         }
+    }
+
+    private boolean isNotBeforeCurrentQueryFragment(final QueryFragmentList queryFragmentList, final int index) {
+        if (index - 1 >= 0) {
+            QueryFragment before = queryFragmentList.get(index - 1);
+            if (before instanceof QueryFragmentNot) {
+                QueryFragmentNot before1 = (QueryFragmentNot) before;
+                return before1.isNot();
+            }
+        }
+        return false;
     }
 
     private LogicalOperator getLogicalOperatorByQueryFragmentList(final QueryFragmentList queryFragmentList, int index, LogicalOperator logicalOperator) {

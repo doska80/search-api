@@ -15,6 +15,10 @@ public class QueryFragmentNot implements QueryFragment {
         this.not = isEmpty(nots) || nots.get(0) == null ? false : nots.get(0);
     }
 
+    public boolean isNot() {
+        return not;
+    }
+
     @Override
     public String toString() {
         return not ? "NOT" : "";
