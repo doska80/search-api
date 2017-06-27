@@ -12,7 +12,7 @@ public class QueryFragmentNot implements QueryFragment {
         if (nots.size() > 1)
             throw new IllegalArgumentException("Cannot have consecutive NOTs");
 
-        this.not = isEmpty(nots) ? false : nots.get(0);
+        this.not = isEmpty(nots) || nots.get(0) == null ? false : nots.get(0);
     }
 
     @Override

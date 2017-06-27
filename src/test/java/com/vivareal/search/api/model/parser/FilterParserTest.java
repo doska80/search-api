@@ -50,8 +50,8 @@ public class FilterParserTest {
 
     @Test
     public void testFilterNull() {
-        Filter filter = parser.parse("sobrinho = NULL");
-        assertEquals("sobrinho EQUAL NULL", filter.toString());
+        Filter filter = parser.parse("field = NULL");
+        assertEquals("field EQUAL NULL", filter.toString());
         assertTrue(filter.getValue().equals(Value.NULL_VALUE));
     }
 
