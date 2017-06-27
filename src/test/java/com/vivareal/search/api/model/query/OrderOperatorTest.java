@@ -4,12 +4,12 @@ import org.junit.Test;
 
 import java.util.stream.Stream;
 
-import static com.vivareal.search.api.model.query.RelationalOperator.get;
-import static com.vivareal.search.api.model.query.RelationalOperator.getOperators;
+import static com.vivareal.search.api.model.query.OrderOperator.get;
+import static com.vivareal.search.api.model.query.OrderOperator.getOperators;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class RelationalOperatorTest {
+public class OrderOperatorTest {
 
     @Test
     public void testGetOperators() {

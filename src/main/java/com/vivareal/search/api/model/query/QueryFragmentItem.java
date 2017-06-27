@@ -3,17 +3,28 @@ package com.vivareal.search.api.model.query;
 import com.google.common.base.Objects;
 
 import java.util.Optional;
+import java.util.StringJoiner;
 
-import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 
 public class QueryFragmentItem implements QueryFragment {
-    private final Filter filter;
-    private final LogicalOperator logicalOperator;
+
+    private LogicalOperator logicalOperator;
+    private Filter filter;
+
+    private QueryFragmentItem() {}
 
     public QueryFragmentItem(Optional<LogicalOperator> logicalOperator, Filter filter) {
-        this.filter = filter;
         this.logicalOperator = logicalOperator.orElse(null);
+        this.filter = filter;
+    }
+
+    public LogicalOperator getLogicalOperator() {
+        return logicalOperator;
+    }
+
+    public Filter getFilter() {
+        return filter;
     }
 
     @Override
@@ -27,14 +38,6 @@ public class QueryFragmentItem implements QueryFragment {
                 && Objects.equal(this.logicalOperator, item.logicalOperator);
     }
 
-    public Filter getFilter() {
-        return filter;
-    }
-
-    public LogicalOperator getLogicalOperator() {
-        return logicalOperator;
-    }
-
     @Override
     public int hashCode() {
         return Objects.hashCode(this.filter, this.logicalOperator);
@@ -42,6 +45,9 @@ public class QueryFragmentItem implements QueryFragment {
 
     @Override
     public String toString() {
-        return format("%s%s", ofNullable(logicalOperator).map(l -> format("%s ", l.toString())).orElse(""), filter.toString());
+        StringJoiner sj = new StringJoiner(" ");
+        ofNullable(logicalOperator).map(LogicalOperator::toString).ifPresent(sj::add);
+        sj.add(filter.toString());
+        return sj.toString();
     }
 }
