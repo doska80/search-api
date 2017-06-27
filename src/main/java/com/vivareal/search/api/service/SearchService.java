@@ -34,6 +34,9 @@ public class SearchService {
     @Value("${es.max.size}")
     private Integer maxSize;
 
+    @Value("${es.controller.search.timeout}")
+    private Integer timeout;
+
     @Autowired
     private ElasticSearchStream elasticSearch;
 
@@ -46,7 +49,7 @@ public class SearchService {
         request.setPaginationValues(defaultSize, maxSize);
 
         SearchRequestBuilder requestBuilder = (SearchRequestBuilder) this.queryAdapter.query(request);
-        SearchResponse esResponse = requestBuilder.execute().actionGet();
+        SearchResponse esResponse = requestBuilder.execute().actionGet(timeout);
 
         return SearchApiResponse.builder()
             .time(esResponse.getTookInMillis())

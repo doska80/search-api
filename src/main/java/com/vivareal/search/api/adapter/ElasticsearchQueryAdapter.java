@@ -56,6 +56,9 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     @Value("${querystring.listings.default.mm}")
     private String queryListingsDefaultMM;
 
+    @Value("${es.controller.search.timeout}")
+    private Integer timeout;
+
     public ElasticsearchQueryAdapter(TransportClient transportClient) {
         this.transportClient = transportClient;
     }
@@ -66,7 +69,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
         GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(index.getIndex()).setType(index.getIndex()).setId(id);
 
         try {
-            GetResponse response = requestBuilder.execute().get(1, TimeUnit.SECONDS);
+            GetResponse response = requestBuilder.execute().get(timeout, TimeUnit.MILLISECONDS);
             return ofNullable(SearchApiResponse.builder().result(index.getIndex(), response.getSource()).totalCount(response.getSource() != null ? 1 : 0));
         } catch (Exception e) {
             LOG.error("Getting id={}, request: {}, error: {}", id, request, e);

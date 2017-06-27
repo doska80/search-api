@@ -4,6 +4,7 @@ import com.vivareal.search.api.model.Healthcheck;
 
 import org.elasticsearch.client.transport.TransportClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,8 +15,11 @@ public class HealthcheckController {
     @Autowired
     private TransportClient client;
 
+    @Value("${es.controller.healthcheck.timeout}")
+    private Integer timeout;
+
     @RequestMapping("/status")
     public Healthcheck status() {
-        return new Healthcheck(client);
+        return new Healthcheck(client, timeout);
     }
 }
