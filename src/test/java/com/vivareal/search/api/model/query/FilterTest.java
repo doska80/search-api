@@ -20,6 +20,6 @@ public class FilterTest {
         Field field = from(Field.class).gimme("field");
         Value value = from(Value.class).gimme("value");
         Filter filter = new Filter(field, EQUAL, value);
-        assertEquals("field EQUAL value", filter.toString());
+        assertEquals("field EQUAL \"value\"", filter.toString());
     }
 }

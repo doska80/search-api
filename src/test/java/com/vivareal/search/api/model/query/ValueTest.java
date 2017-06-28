@@ -25,12 +25,12 @@ public class ValueTest {
         Value value = new Value(valueRaw);
         assertEquals(singletonList(valueRaw), value.getContents());
         assertEquals(valueRaw, value.getContents(0));
-        assertEquals(valueRaw, value.toString());
+        assertEquals(String.format("\"%s\"", valueRaw), value.toString());
     }
 
     @Test
     public void multipleStringValue() {
-        List<String> multiple = asList("value1", "value2", "value3");
+        List<String> multiple = asList("\"value1\"", "\"value2\"", "\"value3\"");
 
         Value value = new Value(multiple);
         assertEquals(multiple, value.getContents());

@@ -14,13 +14,13 @@ public class QueryParserTest {
     @Test
     public void nonRecursiveMultipleConditionsTest() {
         QueryFragment query = parser.parse("field1 EQ 'value1' AND field2 NE 'value2' OR field3 GT 123 AND field4 NE 42");
-        assertEquals("(field1 EQUAL value1 AND field2 DIFFERENT value2 OR field3 GREATER 123 AND field4 DIFFERENT 42)", query.toString());
+        assertEquals("(field1 EQUAL \"value1\" AND field2 DIFFERENT \"value2\" OR field3 GREATER 123 AND field4 DIFFERENT 42)", query.toString());
     }
 
     @Test
     public void inTest() {
         QueryFragment query = parser.parse("banos IN [3,4]");
-        assertEquals("(banos IN [\"3\", \"4\"])", query.toString());
+        assertEquals("(banos IN [3, 4])", query.toString());
     }
 
     @Test
@@ -31,8 +31,8 @@ public class QueryParserTest {
 
     @Test
     public void oneRecursionAndMultipleConditionsTest() {
-        QueryFragment query = parser.parse("rooms:3 AND pimba:2 AND(suites=1 OR (parkingLots IN [1,3] AND xpto <> 3))");
-        assertEquals("(rooms EQUAL 3 AND pimba EQUAL 2 AND (suites EQUAL 1 OR (parkingLots IN [\"1\", \"3\"] AND xpto DIFFERENT 3)))", query.toString());
+        QueryFragment query = parser.parse("rooms:3 AND pimba:2 AND(suites=1 OR (parkingLots IN [1,\"abc\"] AND xpto <> 3))");
+        assertEquals("(rooms EQUAL 3 AND pimba EQUAL 2 AND (suites EQUAL 1 OR (parkingLots IN [1, \"abc\"] AND xpto DIFFERENT 3)))", query.toString());
     }
 
     @Test
@@ -68,20 +68,20 @@ public class QueryParserTest {
     @Test
     public void testFilterAndNot() {
         QueryFragment query = parser.parse("suites=1 AND NOT a:\"a\"");
-        assertEquals("(suites EQUAL 1 AND NOT a EQUAL a)", query.toString());
+        assertEquals("(suites EQUAL 1 AND NOT a EQUAL \"a\")", query.toString());
     }
 
     @Test
     public void testFilterAndNotRecursive() {
         QueryFragment query = parser.parse("suites=1 AND (x=1 OR NOT a:\"a\")");
-        assertEquals("(suites EQUAL 1 AND (x EQUAL 1 OR NOT a EQUAL a))", query.toString());
+        assertEquals("(suites EQUAL 1 AND (x EQUAL 1 OR NOT a EQUAL \"a\"))", query.toString());
     }
 
 
     @Test
     public void testFilterAndNotRecursive2() {
         QueryFragment query = parser.parse("suites=1 AND (NOT a:\"a\")");
-        assertEquals("(suites EQUAL 1 AND (NOT a EQUAL a))", query.toString());
+        assertEquals("(suites EQUAL 1 AND (NOT a EQUAL \"a\"))", query.toString());
     }
 
     @Test

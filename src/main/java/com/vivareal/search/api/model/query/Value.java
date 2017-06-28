@@ -20,7 +20,8 @@ public class Value {
     public static final Value NULL_VALUE = new Value(null);
 
     // Empty contructor on purpose in order to allow Fixtures creation by reflection
-    private Value() {}
+    private Value() {
+    }
 
     public Value(Object content) {
         this.contents = content instanceof List ? (List<Object>) content : singletonList(content);
@@ -58,14 +59,13 @@ public class Value {
         if (isEmpty(contents) || (contents.size() == 1 && contents.get(0) == null))
             return "NULL";
 
-        if(contents.size() > 1)
-            return format("[\"%s\"]", Joiner.on("\", \"").join(contents));
+        if (contents.size() > 1)
+            return format("[%s]", Joiner.on(", ").join(contents));
 
         Object simpleValue = contents.get(0);
-        if (simpleValue instanceof String && ((String) simpleValue).isEmpty()) {
-            return "\"\"";
-        } else {
-            return simpleValue.toString();
+        if (simpleValue instanceof String) {
+            return String.format("\"%s\"", simpleValue);
         }
+        return simpleValue.toString();
     }
 }
