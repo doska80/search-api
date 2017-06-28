@@ -1,6 +1,7 @@
 machine:
   pre:
     - sudo curl -sSL https://s3.amazonaws.com/circle-downloads/install-circleci-docker.sh | bash -s -- 1.10.0
+    - sudo pip install -U pip
     - sudo pip install docker-compose
   environment:
     _JAVA_OPTIONS: "-Xms256m -Xmx256m"
@@ -30,7 +31,7 @@ dependencies:
     - ~/.gradle
 test:
   override:
-    - make GRADLE_EXTRA_ARGS="-PnewRelicKey=$NEW_RELIC_KEY" build
+    - make GRADLE_EXTRA_ARGS="-x integrationTest -PnewRelicKey=$NEW_RELIC_KEY" build
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;

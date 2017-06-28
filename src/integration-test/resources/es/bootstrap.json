@@ -1,0 +1,110 @@
+{
+	"variables": [],
+	"info": {
+		"name": "Elasticsearch Integration Tests Cluster Bootstrap",
+		"_postman_id": "bd007910-4ab2-362a-aab5-93a437a52359",
+		"description": "Configs that should be applied to every new cluster",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Index template - Internal",
+			"request": {
+				"url": "http://${es_host}:${es_port}/_template/internal",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"template\": \".*\",\n\t\"order\" : 0,\n\t\"settings\": {\n\t\t\"codec\": \"best_compression\",\n\t\t\"number_of_shards\": 1,\n\t\t\"number_of_replicas\": 1\n\t}\n}"
+				},
+				"description": "Settings for internal Elasticsearch / Kibana indexes"
+			},
+			"response": []
+		},
+		{
+			"name": "Index template - Test data fields",
+			"request": {
+				"url": "http://${es_host}:${es_port}/_template/testdata",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"template\":\"testdata*\",\"order\":1,\"settings\":{\"number_of_shards\":1,\"number_of_replicas\":1,\"refresh_interval\":\"10s\"},\"mappings\":{\"testdata\":{\"dynamic_templates\":[{\"strings\":{\"match_mapping_type\":\"string\",\"mapping\":{\"type\":\"keyword\",\"fields\":{\"raw\":{\"type\":\"text\"}}}}}],\"properties\":{\"geo\":{\"type\":\"geo_point\"}}}}}"
+				},
+				"description": "Settings for \"Test data\" index"
+			},
+			"response": []
+		},
+		{
+			"name": "Index creation - Test data",
+			"request": {
+				"url": "http://${es_host}:${es_port}/testdata",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"description": "\"Test data\" index"
+			},
+			"response": []
+		},
+		{
+			"name": "Kibana Index Patterns",
+			"request": {
+				"url": "http://${es_host}:${es_port}/_bulk",
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"create\": { \"_index\": \".kibana\", \"_type\": \"index-pattern\", \"_id\": \"testdata*\" } }\n{ \"title\": \"testdata\" }\n"
+				},
+				"description": "Create index patterns to be used with Discover view"
+			},
+			"response": []
+		},
+		{
+			"name": "Kibana Default Index",
+			"request": {
+				"url": "http://${es_host}:5601/api/kibana/settings/defaultIndex",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "kbn-version",
+						"value": "5.4.2",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"value\":\"testdata*\"}"
+				},
+				"description": "Set default index"
+			},
+			"response": []
+		}
+	]
+}

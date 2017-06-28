@@ -11,6 +11,7 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "com.avast.gradle:docker-compose-gradle-plugin:0.4.5"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
     }
@@ -23,6 +24,7 @@ apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'org.sonarqube'
 apply plugin: 'jacoco'
+apply plugin: 'docker-compose'
 
 apply plugin: 'com.github.ben-manes.versions'
 
@@ -96,18 +98,22 @@ dependencies {
     testCompile 'org.elasticsearch.test:framework:' + ELASTICSEARCH_VERSION
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
-    testCompile 'org.springframework.boot:spring-boot-starter-log4j2'
     // Fixtures
     testCompile 'br.com.six2six:fixture-factory:3.1.0'
+    testCompile 'com.jayway.restassured:rest-assured:2.9.0'
+    testCompile 'org.elasticsearch.client:rest:' + ELASTICSEARCH_VERSION
+
 }
 
-task copyJarForDockerCompose(dependsOn: 'bootJar', type: Copy) {
-    from bootJar
-    into './build/libs/'
-    rename { 'search-api.jar' }
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.5'
 }
 
-task newrelic(dependsOn: 'bootJar') {
+bootRun {
+    systemProperties = System.properties
+}
+
+task newrelicDeps(dependsOn: 'bootJar') {
     doLast {
         copy {
             from configurations.newRelic.fileCollection { it.name == 'newrelic-agent' }.singleFile
@@ -127,15 +133,11 @@ task newrelic(dependsOn: 'bootJar') {
     }
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.5'
+task copyJarForDockerCompose(dependsOn: 'newrelicDeps', type: Copy) {
+    from bootJar
+    into './build/libs/'
+    rename { 'search-api.jar' }
 }
-
-bootRun {
-    systemProperties = System.properties
-}
-
-build.finalizedBy copyJarForDockerCompose, newrelic
 
 bootJar {
     baseName = artifactName - '.jar'
@@ -143,6 +145,8 @@ bootJar {
         included = true
     }
 }
+
+bootJar.finalizedBy copyJarForDockerCompose
 
 sonarqube {
     properties {
@@ -160,8 +164,97 @@ sonarqube {
 
 test {
     testLogging {
-        events 'passed', 'skipped', 'failed'
+        events 'skipped', 'failed'
         showStackTraces true
         exceptionFormat 'full'
+    }
+}
+
+/****************************
+ * Healthcheck functions
+ ****************************/
+
+def isSearchApiHealthy = {
+    return isDependencyHealthy('http://localhost:8482/application/health')
+}
+
+def isESHealthy = {
+    return isDependencyHealthy('http://localhost:9200/_cluster/health')
+}
+
+
+def isDependencyHealthy(String url) {
+    try {
+        url.toURL().text
+        return true
+    } catch (e) {
+        return false
+    }
+}
+
+
+def waitForTestDependencyHealthy(name, seconds, healthcheck) {
+    println "Waiting until $name becomes healthy"
+    while(!healthcheck() && seconds >= 0) {
+        sleep(1 * 1000)
+        println "Waiting another " + (seconds--) + " seconds to $name becomes healthy"
+    }
+}
+
+/****************************
+ * Integration tests config
+ ****************************/
+
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/integration-test/java')
+        }
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+configurations{
+    integrationTestCompile.extendsFrom testCompile
+    integrationTestCompile.extendsFrom testRuntime
+}
+
+task integrationTest(type: Test) {
+    doFirst {
+        if(!isSearchApiHealthy() && !isESHealthy()) {
+            throw new RuntimeException("Searchapi compose is not healthy");
+        }
+    }
+
+    testClassesDir = sourceSets.integrationTest.output.classesDir
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+test.finalizedBy(integrationTest)
+
+tasks.withType(Test) {
+    reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+/****************************
+ * Docker compose config
+ ****************************/
+
+if(!project.hasProperty('noDockerCompose')) {
+    dockerCompose {
+        stopContainers = true
+        removeContainers = false
+        removeVolumes = false
+
+        environment.put 'ELASTICSEARCH_VERSION', ELASTICSEARCH_VERSION
+    }
+
+    dockerCompose.isRequiredBy(integrationTest)
+
+    composeUp.doLast {
+        waitForTestDependencyHealthy('searchApi', 60, isSearchApiHealthy)
+        waitForTestDependencyHealthy('es', 180, isESHealthy)
     }
 }
