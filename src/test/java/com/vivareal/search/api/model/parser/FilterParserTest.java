@@ -21,7 +21,7 @@ public class FilterParserTest {
     @Test
     public void testSingleExpressionWithSpacesAndSingleQuotes() {
         Filter filter = parser.parse("field.field2 = 'space value'");
-        assertEquals("field.field2 EQUAL space value", filter.toString());
+        assertEquals("field.field2 EQUAL \"space value\"", filter.toString());
     }
 
     @Test
@@ -75,5 +75,26 @@ public class FilterParserTest {
         Filter filterTrueLowerCase = parser.parse("field = false");
         assertEquals("field EQUAL false", filterFalse.toString());
         assertEquals(filterFalse.toString(), filterTrueLowerCase.toString());
+    }
+
+    @Test
+    public void testMultipleViewports() {
+        String value = "address.geoLocation VIEWPORT [-23.5534103,-46.6597479+-23.5534103,-46.6597479]";
+        Filter viewport = parser.parse(value);
+        assertEquals("address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
+    }
+
+    @Test
+    public void testSingleViewports() {
+        String value = "address.geoLocation VIEWPORT [-23.5534103,-46.6597479]";
+        Filter viewport = parser.parse(value);
+        assertEquals("address.geoLocation VIEWPORT [-23.5534103, -46.6597479]", viewport.toString());
+    }
+
+    @Test
+    public void testMultipleViewportsWithAlias() {
+        String value = "address.geoLocation @ [-23.5534103,-46.6597479+-23.5534103,-46.6597479]";
+        Filter viewport = parser.parse(value);
+        assertEquals("address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }
 }

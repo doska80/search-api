@@ -12,22 +12,21 @@ public class ValueParserTest {
 
     @Test
     public void testInteger() {
-        String unparsed = "123456";
-        Value parsed = parser.parse(unparsed);
-        assertEquals(unparsed, parsed.getContents(0));
+        String value = "123456";
+        Value parsed = parser.parse(value);
+        assertEquals(Integer.valueOf(value), parsed.getContents(0));
     }
 
     @Test
     public void testFloat() {
-        String unparsed = "123.456";
-        Value parsed = parser.parse(unparsed);
-        assertEquals(unparsed, parsed.getContents(0));
+        String value = "123.456";
+        Value parsed = parser.parse(value);
+        assertEquals(Double.valueOf(value), parsed.getContents(0));
     }
 
     @Test(expected = ParserException.class)
     public void testUnquotedString() {
-        String unparsed = "unquoted";
-        parser.parse(unparsed);
+        parser.parse("unquoted");
     }
 
     @Test(expected = ParserException.class)
@@ -37,29 +36,35 @@ public class ValueParserTest {
 
     @Test
     public void testSingleQuotedString() {
-        String unparsed = "'single-quoted and with a lot of spaces'";
-        Value parsed = parser.parse(unparsed);
-        assertEquals(unparsed.substring(1, unparsed.length() - 1), parsed.getContents(0));
+        String value = "'single-quoted and with a lot of spaces'";
+        Value parsed = parser.parse(value);
+        assertEquals(value.substring(1, value.length() - 1), parsed.getContents(0));
     }
 
     @Test
     public void testDoubleQuotedString() {
-        String unparsed = "\"single-quoted and with a lot of spaces and sôme spécial chars\"";
-        Value parsed = parser.parse(unparsed);
-        assertEquals(unparsed.substring(1, unparsed.length() - 1), parsed.getContents(0));
+        String value = "\"single-quoted and with a lot of spaces and sôme spécial chars\"";
+        Value parsed = parser.parse(value);
+        assertEquals(value.substring(1, value.length() - 1), parsed.getContents(0));
     }
 
     @Test
     public void testUsingIN() {
-        String unparsed = "[   1.2 ,'2   ',          3    ,   \"   4   \"     ]";
-        Value parsed = parser.parse(unparsed);
-        assertEquals("[\"1.2\", \"2   \", \"3\", \"   4   \"]", parsed.toString());
+        String value = "[1.2,'2',3,\"4\"]";
+        Value parsed = parser.parse(value);
+        assertEquals("[1.2, \"2\", 3, \"4\"]", parsed.toString());
+    }
+
+    @Test
+    public void testUsingINWithSpaces() {
+        String in = "[   1.2 ,'2   ',          3    ,   \"   4   \"     ]";
+        Value parsed = parser.parse(in);
+        assertEquals("[1.2, \"2\", 3, \"4\"]", parsed.toString());
     }
 
     @Test(expected = ParserException.class)
     public void testUnquotedUsingIN() {
-        String unparsed = "[   1.2 ,'2   ',          3    ,   \"   4   \"  , error   ]";
-        parser.parse(unparsed);
+        parser.parse("[   1.2 ,'2   ',          3    ,   \"   4   \"  , error   ]");
     }
 
     @Test
@@ -95,5 +100,26 @@ public class ValueParserTest {
         Value trueValueLowerCase = parser.parse("true");
         assertEquals(trueValueLowerCase, actual);
         assertEquals(trueValue, trueValueLowerCase);
+    }
+
+    @Test
+    public void testSimpleNegativeDoubleIN() {
+        String value = "[-23.5534103,-46.6597479]";
+        Value viewport = parser.parse(value);
+        assertEquals("[-23.5534103, -46.6597479]", viewport.toString());
+    }
+
+    @Test
+    public void testMultipleNegativeDoubleIN() {
+        String value = "[-23.5534103,-46.6597479+-23.5534103,-46.6597479]";
+        Value viewport = parser.parse(value);
+        assertEquals("[[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
+    }
+
+    @Test
+    public void testNegativeDoubleValuesLikeIN() {
+        String value = "[-23.5534103  ,   -46.6597479, -23.5534103,-46.6597479  ]";
+        Value in = parser.parse(value);
+        assertEquals("[-23.5534103, -46.6597479, -23.5534103, -46.6597479]", in.toString());
     }
 }

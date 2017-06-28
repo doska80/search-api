@@ -13,9 +13,10 @@ public enum RelationalOperator {
     GREATER_EQUAL,
     IN,
     LESS,
-    LESS_EQUAL;
+    LESS_EQUAL,
+    VIEWPORT;
 
-    private static final Map<String, RelationalOperator> OPERATORS = new HashMap<>(14);
+    private static final Map<String, RelationalOperator> OPERATORS = new HashMap<>(16);
 
     static {
         OPERATORS.put("NE", DIFFERENT);
@@ -32,6 +33,8 @@ public enum RelationalOperator {
         OPERATORS.put("<", LESS);
         OPERATORS.put("LTE", LESS_EQUAL);
         OPERATORS.put("<=", LESS_EQUAL);
+        OPERATORS.put("VIEWPORT", VIEWPORT);
+        OPERATORS.put("@", VIEWPORT);
     }
 
     public static String[] getOperators() {

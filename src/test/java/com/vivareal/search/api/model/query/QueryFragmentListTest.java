@@ -27,7 +27,7 @@ public class QueryFragmentListTest {
         QueryFragmentList qfl = new QueryFragmentList(fragmentList);
 
         assertEquals(fragmentList.size(), qfl.size());
-        assertEquals("(AND field EQUAL value)", qfl.toString());
+        assertEquals("(AND field EQUAL \"value\")", qfl.toString());
         for (int i = 0; i < fragmentList.size(); i++)
             assertEquals(fragmentList.get(i), qfl.get(i));
     }
@@ -44,6 +44,6 @@ public class QueryFragmentListTest {
         QueryFragmentList qfl = new QueryFragmentList(queryFragmentList);
 
         assertEquals(1, qfl.size());
-        assertEquals("(AND field EQUAL value)", qfl.toString());
+        assertEquals("(AND field EQUAL \"value\")", qfl.toString());
     }
 }

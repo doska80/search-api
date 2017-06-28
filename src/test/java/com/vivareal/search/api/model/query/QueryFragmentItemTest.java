@@ -22,7 +22,7 @@ public class QueryFragmentItemTest {
         Filter filter = from(Filter.class).gimme("filter");
         QueryFragmentItem queryFragmentItem = new QueryFragmentItem(Optional.of(AND), filter);
 
-        assertEquals("AND field EQUAL value", queryFragmentItem.toString());
+        assertEquals("AND field EQUAL \"value\"", queryFragmentItem.toString());
     }
 
     @Test
@@ -30,6 +30,6 @@ public class QueryFragmentItemTest {
         Filter filter = from(Filter.class).gimme("filter");
         QueryFragmentItem queryFragmentItem = new QueryFragmentItem(Optional.empty(), filter);
 
-        assertEquals("field EQUAL value", queryFragmentItem.toString());
+        assertEquals("field EQUAL \"value\"", queryFragmentItem.toString());
     }
 }
