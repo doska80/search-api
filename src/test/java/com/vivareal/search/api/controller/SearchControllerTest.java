@@ -41,7 +41,6 @@ public class SearchControllerTest {
 //
 
     @Test
-    @Ignore
     public void exampleStreamTest() throws Exception {
         String json = "{\"a\":1,\"b\":2,\"c\":3}";
 
