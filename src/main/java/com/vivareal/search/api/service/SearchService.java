@@ -25,7 +25,7 @@ public class SearchService {
 
     @Autowired
     @Qualifier("ElasticsearchQuery")
-    private QueryAdapter queryAdapter;
+    private QueryAdapter<SearchRequestBuilder> queryAdapter;
 
     @Value("${es.default.size}")
     private Integer defaultSize;
@@ -47,7 +47,7 @@ public class SearchService {
     public SearchApiResponse search(SearchApiRequest request) {
         request.setPaginationValues(defaultSize, maxSize);
 
-        SearchRequestBuilder requestBuilder = (SearchRequestBuilder) this.queryAdapter.query(request);
+        SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
         SearchResponse esResponse = requestBuilder.execute().actionGet(timeout);
 
         return SearchApiResponse.builder()

@@ -7,7 +7,6 @@ import org.jparsec.Parser;
 import org.jparsec.Scanners;
 import org.jparsec.Terminals;
 import org.jparsec.Tokens;
-import org.springframework.core.annotation.Order;
 
 import java.util.function.Function;
 import java.util.function.Supplier;

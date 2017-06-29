@@ -1,9 +1,27 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
-import com.vivareal.search.api.model.parser.SortParser;
-import com.vivareal.search.api.model.query.*;
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.model.SearchApiResponse.builder;
+import static java.lang.Integer.parseInt;
+import static java.lang.String.valueOf;
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.elasticsearch.index.query.Operator.OR;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
+import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
+import static org.springframework.util.CollectionUtils.isEmpty;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -23,29 +41,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.model.SearchApiResponse.builder;
-import static java.lang.Integer.parseInt;
-import static java.lang.String.valueOf;
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.elasticsearch.index.query.Operator.OR;
-import static org.elasticsearch.index.query.QueryBuilders.*;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
-import static org.springframework.util.CollectionUtils.isEmpty;
+import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.SearchApiResponse;
+import com.vivareal.search.api.model.query.Filter;
+import com.vivareal.search.api.model.query.LogicalOperator;
+import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.model.query.QueryFragmentItem;
+import com.vivareal.search.api.model.query.QueryFragmentList;
+import com.vivareal.search.api.model.query.QueryFragmentNot;
+import com.vivareal.search.api.model.query.QueryFragmentOperator;
+import com.vivareal.search.api.model.query.RelationalOperator;
 
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchRequestBuilder, List<QueryFragment>, Sort> {
+public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuilder> {
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
@@ -262,15 +272,4 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
             searchRequestBuilder.setFetchSource(request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]), request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]));
         }
     }
-
-    @Override
-    protected List<QueryFragment> getFilter(List<String> filter) {
-        return null;
-    }
-
-    @Override
-    protected Sort getSort(List<String> sort) {
-        return SortParser.get().parse(sort.stream().collect(Collectors.joining(" ")));
-    }
-
 }
