@@ -12,7 +12,7 @@ health_check:
   healthy_threshold: 4
   grace_period: 300
   interval: 15
-  target: 'HTTP:8482/healthcheck/status'
+  target: 'HTTP:8482/application/health'
   timeout: 2
   unhealthy_threshold: 6
 key_name: api

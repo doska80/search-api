@@ -73,6 +73,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.springframework.boot:spring-boot-starter-undertow'
     compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
     compile 'biz.paluch.logging:logstash-gelf:1.11.1'

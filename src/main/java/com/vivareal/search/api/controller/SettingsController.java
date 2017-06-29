@@ -1,7 +1,6 @@
 package com.vivareal.search.api.controller;
 
 import com.vivareal.search.api.service.SettingsService;
-import org.elasticsearch.common.settings.Settings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -5,7 +5,7 @@ import com.vivareal.search.api.model.SearchApiResponse;
 
 import java.util.Optional;
 
-public interface QueryAdapter<Q, F, S> {
+public interface QueryAdapter<Q> {
 
     Optional<SearchApiResponse> getById(SearchApiRequest request, String id);
 
