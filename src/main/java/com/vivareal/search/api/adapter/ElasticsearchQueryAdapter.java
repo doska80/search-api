@@ -1,6 +1,5 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.parser.SortParser;
@@ -32,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.model.SearchApiIndex.of;
 import static com.vivareal.search.api.model.SearchApiResponse.builder;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
@@ -78,7 +76,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
 
     @Override
     public Optional<SearchApiResponse> getById(SearchApiRequest request, String id) {
-        request.setIndex(of(request).getIndex());
+        settingsAdapter.isValidIndex(request);
         GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(request.getIndex()).setType(request.getIndex()).setId(id);
 
         try {
@@ -92,7 +90,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
 
     @Override
     public SearchRequestBuilder query(SearchApiRequest request) {
-        request.setIndex(of(request).getIndex());
+        settingsAdapter.isValidIndex(request);
 
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());
         searchBuilder.setPreference("_replica_first"); // <3
@@ -218,7 +216,7 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getQ())) {
             QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
-            if (SearchApiIndex.SearchIndex.LISTINGS.index().equals(request.getIndex())) {
+            if ("listings".equals(request.getIndex())) {
                 Map<String, Float> fields = new HashMap<>();
                 if (isEmpty(request.getFields())) {
                     String[] boostFields = queryListingsDefaultFields.split(",");

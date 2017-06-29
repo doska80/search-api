@@ -2,6 +2,7 @@ package com.vivareal.search.api.adapter;
 
 import com.google.common.collect.Lists;
 import com.vivareal.search.api.exception.IndexNotFoundException;
+import com.vivareal.search.api.model.SearchApiRequest;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -56,6 +57,17 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
             throw new IndexNotFoundException(index);
 
         return mapIndices.get(index).get(key);
+    }
+
+    @Override
+    public boolean isValidIndex(final SearchApiRequest request) {
+        if (isEmpty(mapIndices))
+            getSettingsInformationFromCluster();
+
+        if (!mapIndices.containsKey(request.getIndex()))
+            throw new IndexNotFoundException(request.getIndex());
+
+        return true;
     }
 
     @Scheduled(cron = "${es.settings.refresh.cron}")
