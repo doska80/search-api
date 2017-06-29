@@ -2,7 +2,6 @@ package com.vivareal.search.api.service;
 
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.controller.stream.ElasticSearchStream;
-import com.vivareal.search.api.model.SearchApiIndex;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.SearchApiResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -54,7 +53,7 @@ public class SearchService {
         return SearchApiResponse.builder()
         .time(esResponse.getTookInMillis())
         .totalCount(esResponse.getHits().getTotalHits())
-        .result(SearchApiIndex.of(request).getIndex(),
+        .result(request.getIndex(),
             Arrays.stream(esResponse.getHits().getHits()).map(SearchHit::getSource).collect(
                 toCollection(() -> synchronizedList(new ArrayList<>(esResponse.getHits().getHits().length)))
             ))
