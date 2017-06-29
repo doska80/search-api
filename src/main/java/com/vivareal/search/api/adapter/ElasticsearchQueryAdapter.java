@@ -55,14 +55,14 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     @Qualifier("ElasticsearchSettings")
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
-    @Value("${querystring.listings.default.fields}")
-    private String queryListingsDefaultFields;
+    @Value("${querystring.default.fields}")
+    private String queryDefaultFields;
 
-    @Value("${querystring.listings.default.operator}")
-    private String queryListingsDefaultOperator;
+    @Value("${querystring.default.operator}")
+    private String queryDefaultOperator;
 
-    @Value("${querystring.listings.default.mm}")
-    private String queryListingsDefaultMM;
+    @Value("${querystring.default.mm}")
+    private String queryDefaultMM;
 
     @Value("${es.controller.search.timeout}")
     private Integer timeout;
@@ -216,29 +216,24 @@ public class ElasticsearchQueryAdapter extends AbstractQueryAdapter<SearchReques
     private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getQ())) {
             QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
-            if ("listings".equals(request.getIndex())) {
-                Map<String, Float> fields = new HashMap<>();
-                if (isEmpty(request.getFields())) {
-                    String[] boostFields = queryListingsDefaultFields.split(",");
-                    for (final String boostField : boostFields) {
-                        addFieldToSearchOnQParameter(queryStringBuilder, boostField);
-                    }
-                } else {
-                    request.getFields().forEach(boostField -> {
-                        addFieldToSearchOnQParameter(queryStringBuilder, boostField);
-                    });
+            Map<String, Float> fields = new HashMap<>();
+            if (isEmpty(request.getFields())) {
+                for (final String boostField : queryDefaultFields.split(",")) {
+                    addFieldToSearchOnQParameter(queryStringBuilder, boostField);
                 }
-
-                String operator = ofNullable(request.getOperator())
-                .filter(op -> op.equalsIgnoreCase(OR.name()))
-                .map(op -> OR.name())
-                .orElse(queryListingsDefaultOperator);
-
-                // if client specify mm on the request, the default operator is OR
-                operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);
-
-                queryStringBuilder.fields(fields).minimumShouldMatch(isEmpty(request.getMm()) ? queryListingsDefaultMM : request.getMm()).tieBreaker(0.2f).phraseSlop(2).defaultOperator(Operator.valueOf(operator));
+            } else {
+                request.getFields().forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, boostField));
             }
+
+            String operator = ofNullable(request.getOperator())
+                    .filter(op -> op.equalsIgnoreCase(OR.name()))
+                    .map(op -> OR.name())
+                    .orElse(queryDefaultOperator);
+
+            // if client specify mm on the request, the default operator is OR
+            operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);
+
+            queryStringBuilder.fields(fields).minimumShouldMatch(isEmpty(request.getMm()) ? queryDefaultMM : request.getMm()).tieBreaker(0.2f).phraseSlop(2).defaultOperator(Operator.valueOf(operator));
             queryBuilder.must().add(queryStringBuilder);
         }
     }
