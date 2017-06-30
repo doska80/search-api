@@ -192,34 +192,26 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
     private LogicalOperator getLogicalOperatorByQueryFragmentList(final QueryFragmentList queryFragmentList, int index, LogicalOperator logicalOperator) {
         if (index + 1 < queryFragmentList.size()) {
             QueryFragment next = queryFragmentList.get(index + 1);
-            if (next instanceof QueryFragmentItem) {
-                logicalOperator = ((QueryFragmentItem) next).getLogicalOperator();
+            if (next instanceof QueryFragmentItem)
+                return ((QueryFragmentItem) next).getLogicalOperator();
 
-            } else if (next instanceof QueryFragmentOperator) {
-                logicalOperator = ((QueryFragmentOperator) next).getOperator();
-            }
+            if (next instanceof QueryFragmentOperator)
+                return ((QueryFragmentOperator) next).getOperator();
         }
         return logicalOperator;
     }
 
     private void addFilterQueryByLogicalOperator(BoolQueryBuilder queryBuilder, final QueryBuilder query, final LogicalOperator logicalOperator, final boolean not) {
-
-        switch (logicalOperator) {
-            case AND:
-                if (!not) {
-                    queryBuilder.must(query);
-                } else {
-                    queryBuilder.mustNot(query);
-                }
-                break;
-
-            case OR:
-                if (!not) {
-                    queryBuilder.should(query);
-                } else {
-                    queryBuilder.should(boolQuery().mustNot(query));
-                }
-                break;
+        if(logicalOperator.equals(LogicalOperator.AND)) {
+            if (!not)
+                queryBuilder.must(query);
+            else
+                queryBuilder.mustNot(query);
+        } else if(logicalOperator.equals(LogicalOperator.OR)) {
+            if (!not)
+                queryBuilder.should(query);
+            else
+                queryBuilder.should(boolQuery().mustNot(query));
         }
     }
 
@@ -250,16 +242,16 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
 
     private void applySort(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getSort()))
-            request.getSort().forEach(s -> {
-                searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name()));
-            });
+            request.getSort().forEach(s -> searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name())));
     }
 
     private void applyFacetFields(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getFacets()))
-            request.getFacets().forEach(facetField -> {
-                searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName()).field(facetField.getName()).order(Terms.Order.count(false)).size(request.getFacetSize() != null ? request.getFacetSize() : facetSize).shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)))));
-            });
+            request.getFacets().forEach(facetField -> searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName())
+                    .field(facetField.getName())
+                    .order(Terms.Order.count(false))
+                    .size(request.getFacetSize() != null ? request.getFacetSize() : facetSize)
+                    .shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS))))));
     }
 
     private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String boostField) {
