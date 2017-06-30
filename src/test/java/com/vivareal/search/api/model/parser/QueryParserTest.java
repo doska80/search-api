@@ -1,7 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
 import com.vivareal.search.api.model.query.QueryFragment;
-import com.vivareal.search.api.model.query.QueryFragmentList;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
@@ -43,7 +42,7 @@ public class QueryParserTest {
 
     @Test
     public void recursiveWithParenthesesOnTopLevelSingle() {
-        QueryFragment query = parser.parse("(a = 2) AND (b = 1)", Parser.Mode.DEBUG);
+        QueryFragment query = parser.parse("(a = 2) AND (b = 1)");
         assertEquals("((a EQUAL 2) AND (b EQUAL 1))", query.toString());
     }
 
