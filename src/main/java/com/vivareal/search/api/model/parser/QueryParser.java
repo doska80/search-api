@@ -17,6 +17,7 @@ public class QueryParser {
         Parser<QueryFragment> lazy = ref.lazy();
         Parser<QueryFragment> parser = lazy.between(isChar('('), isChar(')'))
                 .or(Parsers.or(QUERY_PARSER, OperatorParser.LOGICAL_OPERATOR_PARSER.map(QueryFragmentOperator::new), NotParser.get().many().map(QueryFragmentNot::new))).many()
+                .label("query")
                 .map(QueryFragmentList::new);
         ref.set(parser);
         return parser;
