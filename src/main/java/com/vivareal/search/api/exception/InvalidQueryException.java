@@ -2,7 +2,7 @@ package com.vivareal.search.api.exception;
 
 import java.util.function.Function;
 
-public class InvalidQueryException extends RuntimeException {
+public class InvalidQueryException extends IllegalArgumentException {
 
     private static final Function<String, String> QUERY_MESSAGE_FN = query -> String.format("Invalid query: %s", query);
 

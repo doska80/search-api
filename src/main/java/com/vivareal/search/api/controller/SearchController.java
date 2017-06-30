@@ -32,7 +32,7 @@ public class SearchController {
     private SearchService searchService;
 
     @RequestMapping(value = {"/{index}/{id:[a-z0-9\\-]+}"}, method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Object> getById(@PathVariable("index") String index, SearchApiRequest request, @PathVariable String id) { // FIXME accept request for non-filter params
+    public ResponseEntity<Object> getById(@PathVariable("index") String index, SearchApiRequest request, @PathVariable String id) {
         request.setIndex(index);
         try {
             Optional<SearchApiResponse> response = searchService.getById(request, id);
@@ -43,7 +43,7 @@ public class SearchController {
 
             return new ResponseEntity<>(NOT_FOUND);
 
-        } catch (Throwable ex) {
+        } catch (IllegalArgumentException ex) {
             String errorMessage = getRootCauseMessage(ex);
             LOG.error(errorMessage);
             return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), BAD_REQUEST);
@@ -55,7 +55,7 @@ public class SearchController {
         request.setIndex(index);
         try {
             return new ResponseEntity<>(searchService.search(request), OK);
-        } catch (Throwable ex) {
+        } catch (IllegalArgumentException ex) {
             String errorMessage = getRootCauseMessage(ex);
             LOG.error(errorMessage);
             return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), BAD_REQUEST);
