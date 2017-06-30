@@ -111,7 +111,7 @@ public class ValueParserTest {
 
     @Test
     public void testMultipleNegativeDoubleIN() {
-        String value = "[-23.5534103,-46.6597479+-23.5534103,-46.6597479]";
+        String value = "[-23.5534103,-46.6597479;-23.5534103,-46.6597479]";
         Value viewport = parser.parse(value);
         assertEquals("[[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }

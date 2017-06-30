@@ -79,7 +79,7 @@ public class FilterParserTest {
 
     @Test
     public void testMultipleViewports() {
-        String value = "address.geoLocation VIEWPORT [-23.5534103,-46.6597479+-23.5534103,-46.6597479]";
+        String value = "address.geoLocation VIEWPORT [-23.5534103,-46.6597479;-23.5534103,-46.6597479]";
         Filter viewport = parser.parse(value);
         assertEquals("address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }
@@ -93,7 +93,7 @@ public class FilterParserTest {
 
     @Test
     public void testMultipleViewportsWithAlias() {
-        String value = "address.geoLocation @ [-23.5534103,-46.6597479+-23.5534103,-46.6597479]";
+        String value = "address.geoLocation @ [-23.5534103,-46.6597479;-23.5534103,-46.6597479]";
         Filter viewport = parser.parse(value);
         assertEquals("address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }

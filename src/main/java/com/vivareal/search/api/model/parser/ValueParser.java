@@ -20,9 +20,9 @@ public class ValueParser {
     private static final Parser<Value> VALUE = Parsers.between(WHITESPACES.skipMany(), Parsers.or(BOOLEAN, NULL, NUMBER, STRING), WHITESPACES.skipMany());
 
     private static final Parser<Value> VALUE_IN = Parsers
-            .between(Scanners.isChar('['), VALUE.sepBy(Scanners.isChar(',')).sepBy(Scanners.isChar('+')), Scanners.isChar(']'))
-            .label("[]")
-            .map(Value::new);
+        .between(Scanners.isChar('['), VALUE.sepBy(Scanners.isChar(',')).sepBy(Scanners.isChar(';')), Scanners.isChar(']'))
+        .label("[]")
+        .map(Value::new);
 
     private static final Parser<Value> VALUE_PARSER = Parsers.or(VALUE_IN, VALUE);
 

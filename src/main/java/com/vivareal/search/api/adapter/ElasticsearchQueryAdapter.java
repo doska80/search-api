@@ -1,31 +1,14 @@
 package com.vivareal.search.api.adapter;
 
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.model.SearchApiResponse.builder;
-import static java.lang.Integer.parseInt;
-import static java.lang.String.valueOf;
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.elasticsearch.index.query.Operator.OR;
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
-import static org.elasticsearch.index.query.QueryBuilders.rangeQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termsQuery;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
-import static org.springframework.util.CollectionUtils.isEmpty;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
+import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.SearchApiResponse;
+import com.vivareal.search.api.model.query.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -41,16 +24,23 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
-import com.vivareal.search.api.model.query.Filter;
-import com.vivareal.search.api.model.query.LogicalOperator;
-import com.vivareal.search.api.model.query.QueryFragment;
-import com.vivareal.search.api.model.query.QueryFragmentItem;
-import com.vivareal.search.api.model.query.QueryFragmentList;
-import com.vivareal.search.api.model.query.QueryFragmentNot;
-import com.vivareal.search.api.model.query.QueryFragmentOperator;
-import com.vivareal.search.api.model.query.RelationalOperator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.model.SearchApiResponse.builder;
+import static java.lang.Integer.parseInt;
+import static java.lang.String.valueOf;
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.elasticsearch.index.query.Operator.OR;
+import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 @Component
 @Scope(SCOPE_SINGLETON)
@@ -91,7 +81,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
 
         try {
             GetResponse response = requestBuilder.execute().get(timeout, TimeUnit.MILLISECONDS);
-            return ofNullable(builder().result(request.getIndex(), response.getSource()).totalCount(response.getSource() != null ? 1 : 0));
+            if (response.isExists())
+                return ofNullable(builder().result(request.getIndex(), response.getSource()).totalCount(1));
         } catch (Exception e) {
             LOG.error("Getting id={}, request: {}, error: {}", id, request, e);
         }
@@ -169,6 +160,11 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
                             case IN:
                                 addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, multiValues), logicalOperator, not);
                                 break;
+                            case VIEWPORT:
+                                GeoPoint topRight = createGeoPointFromRawCoordinates((List) multiValues.get(0));
+                                GeoPoint bottomLeft = createGeoPointFromRawCoordinates((List) multiValues.get(1));
+                                addFilterQueryByLogicalOperator(queryBuilder, geoBoundingBoxQuery(filter.getField().getName()).setCornersOGC(bottomLeft, topRight), logicalOperator, not);
+                                break;
                             default:
                                 throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
                         }
@@ -176,6 +172,12 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
                 }
             }
         }
+    }
+
+    private GeoPoint createGeoPointFromRawCoordinates(List<com.vivareal.search.api.model.query.Value> viewPortLatLon) {
+        double lat = (double) viewPortLatLon.get(0).getContents(0);
+        double lon = (double) viewPortLatLon.get(1).getContents(0);
+        return new GeoPoint(lat, lon);
     }
 
     private boolean isNotBeforeCurrentQueryFragment(final QueryFragmentList queryFragmentList, final int index) {
@@ -228,9 +230,9 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
             }
 
             String operator = ofNullable(request.getOperator())
-                    .filter(op -> op.equalsIgnoreCase(OR.name()))
-                    .map(op -> OR.name())
-                    .orElse(queryDefaultOperator);
+            .filter(op -> op.equalsIgnoreCase(OR.name()))
+            .map(op -> OR.name())
+            .orElse(queryDefaultOperator);
 
             // if client specify mm on the request, the default operator is OR
             operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);
@@ -260,8 +262,20 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
     }
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
-        if (!isEmpty(request.getIncludeFields()) || !isEmpty(request.getExcludeFields())) {
-            searchRequestBuilder.setFetchSource(request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]), request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]));
+
+        String[] includes = null;
+        String[] excludes = null;
+
+        if (!isEmpty(request.getIncludeFields())) {
+            includes = request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]);
+        }
+
+        if (!isEmpty(request.getExcludeFields())) {
+            excludes = request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]);
+        }
+
+        if (!ArrayUtils.isEmpty(includes) || !ArrayUtils.isEmpty(excludes)) {
+            searchRequestBuilder.setFetchSource(includes, excludes);
         }
     }
 }
