@@ -7,7 +7,7 @@ import org.jparsec.Scanners;
 
 public class FieldParser {
 
-    private static final Parser<Field> SIMPLE_KEYWORD_PARSER = Scanners.IDENTIFIER.sepBy1(Scanners.isChar('.')).map(Field::new);
+    private static final Parser<Field> SIMPLE_KEYWORD_PARSER = Scanners.IDENTIFIER.sepBy1(Scanners.isChar('.')).label("field").map(Field::new);
 
     private static final Parser<Field> SIMPLE_KEYWORD_PARSER_WITH_NOT = Parsers.sequence(NotParser.get(), SIMPLE_KEYWORD_PARSER, Field::new);
 

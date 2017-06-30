@@ -6,7 +6,7 @@ import org.jparsec.Parsers;
 
 public class FilterParser {
 
-    private static final Parser<Filter> FILTER_PARSER = Parsers.sequence(FieldParser.get(), OperatorParser.RELATIONAL_OPERATOR_PARSER, ValueParser.get(), Filter::new);
+    private static final Parser<Filter> FILTER_PARSER = Parsers.sequence(FieldParser.get(), OperatorParser.RELATIONAL_OPERATOR_PARSER, ValueParser.get(), Filter::new).label("filter");
 
     static Parser<Filter> get() {
         return FILTER_PARSER;
