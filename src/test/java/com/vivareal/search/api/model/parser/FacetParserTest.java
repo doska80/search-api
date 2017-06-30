@@ -41,8 +41,7 @@ public class FacetParserTest {
         parser.parse("");
     }
 
-    @Ignore
-    @Test(expected = ParserException.class)
+    @Test
     public void testMultipleFacetFieldsWithNot() {
         parser.parse("field1, NOT field2");
     }
