@@ -60,14 +60,12 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
     }
 
     @Override
-    public boolean isValidIndex(final SearchApiRequest request) {
+    public void checkIndex(final SearchApiRequest request) {
         if (isEmpty(mapIndices))
             getSettingsInformationFromCluster();
 
         if (!mapIndices.containsKey(request.getIndex()))
             throw new IndexNotFoundException(request.getIndex());
-
-        return true;
     }
 
     @Scheduled(cron = "${es.settings.refresh.cron}")

@@ -11,5 +11,5 @@ public interface SettingsAdapter<T, U> {
 
     U settingsByKey(String index, String key);
 
-    boolean isValidIndex(SearchApiRequest request);
+    void checkIndex(SearchApiRequest request);
 }

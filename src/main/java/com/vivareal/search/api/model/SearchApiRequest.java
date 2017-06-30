@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model;
 
+import com.google.common.base.MoreObjects;
 import com.vivareal.search.api.model.parser.FacetParser;
 import com.vivareal.search.api.model.parser.QueryParser;
 import com.vivareal.search.api.model.query.Field;
@@ -7,7 +8,6 @@ import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.query.Sort;
 import org.jparsec.Parser;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.vivareal.search.api.model.parser.SortParser.get;
@@ -21,12 +21,12 @@ public final class SearchApiRequest {
     private String index;
     private String operator;
     private String mm;
-    private List<String> fields = Collections.emptyList();
-    private List<String> includeFields = Collections.emptyList();
-    private List<String> excludeFields = Collections.emptyList();
+    private List<String> fields;
+    private List<String> includeFields;
+    private List<String> excludeFields;
     private QueryFragment filter;
     private Sort sort;
-    private List<Field> facets = Collections.emptyList();
+    private List<Field> facets;
     private Integer facetSize;
 
     private String q;
@@ -140,5 +140,25 @@ public final class SearchApiRequest {
     public void setPaginationValues(int defaultSize, int maxSize) {
         this.from = from != null && from >= 0 ? from : 0;
         this.size = size != null && size >= 0 && size <= maxSize ? size : defaultSize;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+        .add("index", index)
+        .add("operator", operator)
+        .add("mm", mm)
+        .add("fields", fields)
+        .add("includeFields", includeFields)
+        .add("excludeFields", excludeFields)
+        .add("filter", filter)
+        .add("sort", sort)
+        .add("facets", facets)
+        .add("facetSize", facetSize)
+        .add("q", q)
+        .add("from", from)
+        .add("size", size)
+        .omitNullValues()
+        .toString();
     }
 }
