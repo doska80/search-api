@@ -51,13 +51,13 @@ public class SearchService {
         SearchResponse esResponse = requestBuilder.execute().actionGet(timeout);
 
         return SearchApiResponse.builder()
-        .time(esResponse.getTookInMillis())
-        .totalCount(esResponse.getHits().getTotalHits())
-        .result(request.getIndex(),
-            Arrays.stream(esResponse.getHits().getHits()).map(SearchHit::getSource).collect(
-                toCollection(() -> synchronizedList(new ArrayList<>(esResponse.getHits().getHits().length)))
-            ))
-        .facets(Optional.ofNullable(esResponse.getAggregations()));
+                .time(esResponse.getTookInMillis())
+                .totalCount(esResponse.getHits().getTotalHits())
+                .result(request.getIndex(),
+                        Arrays.stream(esResponse.getHits().getHits())
+                        .map(SearchHit::getSource)
+                        .collect(toCollection(() -> synchronizedList(new ArrayList<>(esResponse.getHits().getHits().length)))))
+                .facets(Optional.ofNullable(esResponse.getAggregations()));
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {
