@@ -30,7 +30,8 @@ public final class SearchApiRequest {
     private Integer facetSize;
 
     private String q;
-    private Integer from, size;
+    private Integer from;
+    private Integer size;
 
     public QueryFragment getFilter() {
         return filter;
