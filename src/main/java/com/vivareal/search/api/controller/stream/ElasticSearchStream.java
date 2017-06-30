@@ -5,6 +5,7 @@ import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,6 @@ public class ElasticSearchStream {
 
         ResponseStream.create(stream)
                 .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),
-                        scroll -> scroll.setScroll(keepAlive).execute().actionGet(timeout)), SearchHit::source);
+                        scroll -> scroll.setScroll(keepAlive).execute().actionGet(timeout)), (SearchHit sh) -> BytesReference.toBytes(sh.getSourceRef()));
     }
 }
