@@ -8,7 +8,7 @@ health_check:
 elb:
   access_logging_policy:
     emit_interval: 5
-    s3_bucket_prefix: logselb/searchapi-prod
+    s3_bucket_prefix: logselb-searchapi-prod
   cross_zone: true
   connection_draining_timeout: 20
   idle_timeout: 60
