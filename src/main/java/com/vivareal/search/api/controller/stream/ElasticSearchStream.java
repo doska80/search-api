@@ -3,6 +3,7 @@ package com.vivareal.search.api.controller.stream;
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.SearchApiRequest;
+import org.elasticsearch.action.ActionRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -23,7 +24,7 @@ public class ElasticSearchStream {
 
     @Autowired
     @Qualifier("ElasticsearchQuery")
-    private QueryAdapter<SearchRequestBuilder> queryAdapter;
+    private QueryAdapter<?, SearchRequestBuilder> queryAdapter;
 
     @Value("${es.scroll.timeout}")
     private Integer scrollTimeout;

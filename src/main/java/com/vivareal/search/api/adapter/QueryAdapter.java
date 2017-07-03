@@ -1,13 +1,15 @@
 package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
 
-import java.util.Optional;
+/**
+ *
+ * @param <Q1>
+ * @param <Q2>
+ */
+public interface QueryAdapter<Q1, Q2> {
 
-public interface QueryAdapter<Q> {
+    Q1 getById(SearchApiRequest request, String id);
 
-    Optional<SearchApiResponse> getById(SearchApiRequest request, String id);
-
-    Q query(SearchApiRequest request);
+    Q2 query(SearchApiRequest request);
 }
