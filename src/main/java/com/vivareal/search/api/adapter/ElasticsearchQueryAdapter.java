@@ -1,11 +1,9 @@
 package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.query.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.geo.GeoPoint;
@@ -27,14 +25,10 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.model.SearchApiResponse.builder;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
-import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.lucene.geo.GeoUtils.checkLatitude;
@@ -47,7 +41,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
-public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuilder> {
+public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder, SearchRequestBuilder> {
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
@@ -66,9 +60,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
     @Value("${querystring.default.mm}")
     private String queryDefaultMM;
 
-    @Value("${es.controller.search.timeout}")
-    private Integer timeout;
-
     @Value("${es.facet.size}")
     private Integer facetSize;
 
@@ -77,18 +68,13 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<SearchRequestBuil
     }
 
     @Override
-    public Optional<SearchApiResponse> getById(SearchApiRequest request, String id) {
+    public GetRequestBuilder getById(SearchApiRequest request, String id) {
         settingsAdapter.checkIndex(request);
-        GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(request.getIndex()).setType(request.getIndex()).setId(id);
 
-        try {
-            GetResponse response = requestBuilder.execute().get(timeout, TimeUnit.MILLISECONDS);
-            if (response.isExists())
-                return ofNullable(builder().result(request.getIndex(), response.getSource()).totalCount(1));
-        } catch (Exception e) {
-            LOG.error("Getting id={}, request: {}, error: {}", id, request, e);
-        }
-        return empty();
+        GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(request.getIndex()).setType(request.getIndex()).setId(id);
+        LOG.debug("Query getById {}", requestBuilder != null ? requestBuilder.request() : null);
+
+        return requestBuilder;
     }
 
     @Override

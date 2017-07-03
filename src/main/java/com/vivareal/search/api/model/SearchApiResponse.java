@@ -1,22 +1,21 @@
 package com.vivareal.search.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
-import java.util.*;
-
-import static com.google.common.collect.Lists.newArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class SearchApiResponse {
 
     private long time;
     private long totalCount;
-    private Map<String, List<Object>> result;
-    private Map<String, Map<String, Long>> facets;
+    private Map<String, Object> result;
 
     private SearchApiResponse() {
         super();
@@ -36,26 +35,23 @@ public final class SearchApiResponse {
         return this;
     }
 
-    public SearchApiResponse result(final String resultName, Object result) {
-        return result(resultName, result != null ? newArrayList(result) : null);
-    }
-
-    public SearchApiResponse result(final String resultName, List<Object> result) {
+    public SearchApiResponse result(final String elementName, final Object object) {
         if (this.result == null)
             this.result = new LinkedHashMap<>();
-        this.result.put(resultName, result != null ? result : new ArrayList<>());
+
+        this.result.put(elementName, object);
         return this;
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public SearchApiResponse facets(final Optional<Aggregations> aggregationsOptional) {
-        aggregationsOptional.ifPresent(aggregations -> {
-            if (this.facets == null)
-                this.facets = new LinkedHashMap<>();
-
-            aggregations.asList().forEach(agg -> this.facets.put(((InternalMappedTerms)agg).getName(), addBuckets(((InternalMappedTerms)agg).getBuckets())));
-        });
-
+        aggregationsOptional.ifPresent(
+            aggregations -> {
+                Map<String, Object> facets = new LinkedHashMap<>();
+                aggregations.asList().forEach(agg -> facets.put((agg).getName(), addBuckets(((InternalMappedTerms)agg).getBuckets())));
+                result("facets", facets);
+            }
+        );
         return this;
     }
 
@@ -73,10 +69,6 @@ public final class SearchApiResponse {
         return buckets;
     }
 
-    public Map<String, Map<String, Long>> getFacets() {
-        return facets;
-    }
-
     public long getTime() {
         return time;
     }
@@ -85,7 +77,7 @@ public final class SearchApiResponse {
         return totalCount;
     }
 
-    public Map<String, List<Object>> getResult() {
+    public Map<String, Object> getResult() {
         return result;
     }
 }
