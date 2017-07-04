@@ -45,7 +45,8 @@ public final class ResponseStream {
 
         Stream.of(array).map(byteFn.andThen(this::appendNewLine)).forEach(bytes::add);
 
-        int offset = 0, size = bytes.stream().map(t -> t.length).reduce(0, (a, b) -> a + b);
+        int offset = 0;
+        int size = bytes.stream().map(t -> t.length).reduce(0, (a, b) -> a + b);
 
         byte[] flat = new byte[size];
 
@@ -57,7 +58,7 @@ public final class ResponseStream {
         return flat;
     }
 
-    <T> byte[] appendNewLine(byte[] bytes) {
+    byte[] appendNewLine(byte[] bytes) {
         byte[] newLineArray = Arrays.copyOfRange(bytes, 0, bytes.length + 1);
         newLineArray[bytes.length] = '\n';
         return newLineArray;
