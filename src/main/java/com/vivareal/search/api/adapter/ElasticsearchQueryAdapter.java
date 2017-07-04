@@ -43,10 +43,11 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
-    private final TransportClient transportClient;
+    @Autowired
+    private TransportClient transportClient;
 
     @Autowired
-    @Qualifier("ElasticsearchSettings")
+    @Qualifier("elasticsearchSettings")
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
     @Value("${querystring.default.fields}")
@@ -60,10 +61,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     @Value("${es.facet.size}")
     private Integer facetSize;
-
-    public ElasticsearchQueryAdapter(TransportClient transportClient) {
-        this.transportClient = transportClient;
-    }
 
     @Override
     public GetRequestBuilder getById(SearchApiRequest request, String id) {

@@ -27,7 +27,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  * Created by leandropereirapinto on 6/29/17.
  */
 @Scope(SCOPE_SINGLETON)
-@Component("ElasticsearchSettings")
+@Component("elasticsearchSettings")
 public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String, Map<String, Object>>, String> {
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);

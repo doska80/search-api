@@ -23,9 +23,11 @@ public class ResponseStreamTest {
     public void shouldCallWriteAndFlush() throws IOException {
         OutputStream mockStream = mock(OutputStream.class);
 
-        ResponseStream.create(mockStream).write(new byte[0]);
+        byte[] bytes = new byte[0];
 
-        verify(mockStream).write(any(byte[].class));
+        ResponseStream.create(mockStream).write(bytes);
+
+        verify(mockStream).write(bytes);
         verify(mockStream).flush();
     }
 

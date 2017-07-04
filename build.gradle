@@ -77,7 +77,8 @@ dependencies {
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
     compile 'biz.paluch.logging:logstash-gelf:1.11.1'
-    compile 'org.springframework.boot:spring-boot-starter-log4j2' // need this because org.elasticsearch:elasticsearch dependency
+    compile 'org.springframework.boot:spring-boot-starter-log4j2'
+    // need this because org.elasticsearch:elasticsearch dependency
 
     compile 'com.google.guava:guava:22.0'
     compile 'org.jparsec:jparsec:3.0'
@@ -89,6 +90,10 @@ dependencies {
     compile 'org.glowroot:glowroot-agent-api:0.9.19'
     compile 'com.newrelic.agent.java:newrelic-api:' + NEW_RELIC_VERSION
     newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
+
+    // elasticsearch/lucene unit tests
+    testCompile 'org.apache.lucene:lucene-test-framework:' + LUCENE_VERSION
+    testCompile 'org.elasticsearch.test:framework:' + ELASTICSEARCH_VERSION
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     testCompile 'org.springframework.boot:spring-boot-starter-log4j2'
@@ -144,7 +149,7 @@ sonarqube {
         property "sonar.projectKey", "br.com.vivareal:search-api-v2"
         property "sonar.projectName", "search-api-v2"
         property "sonar.scm.provider", "git"
-        property "sonar.host.url" , "http://sonarqube.vivareal.io/"
+        property "sonar.host.url", "http://sonarqube.vivareal.io/"
         property "sonar.sources", "src/main"
         property "sonar.sourceEncoding", "UTF-8"
         property "sonar.tests", "src/test"
