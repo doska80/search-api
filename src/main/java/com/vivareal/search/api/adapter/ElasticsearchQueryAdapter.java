@@ -7,10 +7,7 @@ import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortOrder;
@@ -27,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
@@ -102,7 +100,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment) {
         if (queryFragment != null && queryFragment instanceof QueryFragmentList) {
             QueryFragmentList queryFragmentList = (QueryFragmentList) queryFragment;
-            LogicalOperator logicalOperator = LogicalOperator.AND;
+            LogicalOperator logicalOperator = AND;
 
             for (int index = 0; index < queryFragmentList.size(); index++) {
                 QueryFragment queryFragmentFilter = queryFragmentList.get(index);
@@ -116,15 +114,15 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                     QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
                     Filter filter = queryFragmentItem.getFilter();
 
+                    String fieldName = filter.getField().getName();
+                    final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
+                    logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
+
                     if (!isEmpty(filter.getValue().getContents())) {
                         RelationalOperator operator = filter.getRelationalOperator();
-                        String fieldName = filter.getField().getName();
 
                         List<Object> multiValues = filter.getValue().getContents();
                         Object singleValue = filter.getValue().getContents(0);
-
-                        final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
-                        logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
 
                         switch (operator) {
                             case DIFFERENT:
@@ -156,6 +154,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                             default:
                                 throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
                         }
+                    } else {
+                        RangeQueryBuilder lte = rangeQuery(fieldName).to(0).includeUpper(true);
+                        RangeQueryBuilder gte = rangeQuery(fieldName).from(0).includeLower(true);
+                        addFilterQueryByLogicalOperator(queryBuilder, boolQuery().should(lte).should(gte), logicalOperator, !not);
                     }
                 }
             }
@@ -196,7 +198,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void addFilterQueryByLogicalOperator(BoolQueryBuilder queryBuilder, final QueryBuilder query, final LogicalOperator logicalOperator, final boolean not) {
-        if(logicalOperator.equals(LogicalOperator.AND)) {
+        if(logicalOperator.equals(AND)) {
             if (!not)
                 queryBuilder.must(query);
             else
