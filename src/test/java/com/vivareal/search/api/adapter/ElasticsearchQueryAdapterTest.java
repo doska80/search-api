@@ -3,6 +3,7 @@ package com.vivareal.search.api.adapter;
 import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.RelationalOperator;
+import com.vivareal.search.api.model.query.Value;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -110,7 +111,25 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleFilterEqual() {
+    public void shouldReturnSearchRequestBuilderWithSingleFilter_DIFFERENT() {
+        final String field = "field1";
+        final Object value = "Lorem Ipsum";
+
+        RelationalOperator.getOperators(RelationalOperator.DIFFERENT).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
+
+                assertNotNull(mustNot);
+                assertEquals(field, mustNot.fieldName());
+                assertEquals(value, mustNot.value());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilter_EQUAL() {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
 
@@ -128,19 +147,127 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleFilterDifferent() {
+    public void shouldReturnSearchRequestBuilderWithSingleFilter_GREATER() {
         final String field = "field1";
-        final Object value = "Lorem Ipsum";
+        final Object value = 10;
 
-        RelationalOperator.getOperators(RelationalOperator.DIFFERENT).forEach(
+        RelationalOperator.getOperators(RelationalOperator.GREATER).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-                MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
+                RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
-                assertNotNull(mustNot);
-                assertEquals(field, mustNot.fieldName());
-                assertEquals(value, mustNot.value());
+                assertEquals(field, range.fieldName());
+                assertEquals(value, range.from());
+                assertNull(range.to());
+                assertEquals(false, range.includeLower());
+                assertEquals(true, range.includeUpper());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilter_GREATER_EQUAL() {
+        final String field = "field1";
+        final Object value = 10;
+
+        RelationalOperator.getOperators(RelationalOperator.GREATER_EQUAL).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                assertEquals(field, range.fieldName());
+                assertEquals(value, range.from());
+                assertNull(range.to());
+                assertEquals(true, range.includeLower());
+                assertEquals(true, range.includeUpper());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilter_LESS() {
+        final String field = "field1";
+        final Object value = 10;
+
+        RelationalOperator.getOperators(RelationalOperator.LESS).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                assertEquals(field, range.fieldName());
+                assertEquals(value, range.to());
+                assertNull(range.from());
+                assertEquals(true, range.includeLower());
+                assertEquals(false, range.includeUpper());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilter_LESS_EQUAL() {
+        final String field = "field1";
+        final Object value = 10;
+
+        RelationalOperator.getOperators(RelationalOperator.LESS_EQUAL).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                assertEquals(field, range.fieldName());
+                assertEquals(value, range.to());
+                assertNull(range.from());
+                assertEquals(true, range.includeLower());
+                assertEquals(true, range.includeUpper());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderBy_VIEWPORT() {
+
+        String field = "field.location";
+        double topLeftLat = 42.0;
+        double topLeftLon = -72.0;
+        double bottomRightLat = -40.0;
+        double bottomRightLon = -74.0;
+
+        RelationalOperator.getOperators(RelationalOperator.VIEWPORT).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s [%s,%s;%s,%s]", field, op, topLeftLat, bottomRightLon, bottomRightLat, topLeftLon)).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                GeoBoundingBoxQueryBuilder geoBoundingBoxQueryBuilder = (GeoBoundingBoxQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                assertNotNull(geoBoundingBoxQueryBuilder);
+                assertEquals(field, geoBoundingBoxQueryBuilder.fieldName());
+                assertEquals(topLeftLat, geoBoundingBoxQueryBuilder.topLeft().getLat(), 0);
+                assertEquals(topLeftLon, geoBoundingBoxQueryBuilder.topLeft().getLon(), 0);
+                assertEquals(bottomRightLat, geoBoundingBoxQueryBuilder.bottomRight().getLat(), 0);
+                assertEquals(bottomRightLon, geoBoundingBoxQueryBuilder.bottomRight().getLon(), 0);
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilter_IN() {
+        final String field = "field1";
+        final Object value = new int[]{1, 3};
+
+        RelationalOperator.getOperators(RelationalOperator.IN).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s %s", field, op, Arrays.toString((int[]) value))).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                TermsQueryBuilder terms = (TermsQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                List<Value> valueTerms = (List<Value>) terms.values().get(0);
+
+                assertTrue(valueTerms.size() == ((int[]) value).length);
+                assertEquals(field, terms.fieldName());
+                assertEquals(((int[]) value)[0], (int) (valueTerms.get(0)).getContents(0));
+                assertEquals(((int[]) value)[1], (int) (valueTerms.get(1)).getContents(0));
             }
         );
     }
@@ -332,20 +459,6 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(q, queryStringQueryBuilder.queryString());
         assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
         assertEquals(OR, queryStringQueryBuilder.defaultOperator());
-    }
-
-    @Test
-    public void shouldReturnSearchRequestBuilderByViewPort() {
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("field.location VIEWPORT [42.0,-74.0;-40.0,-72.0]").basicRequest();
-        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-        GeoBoundingBoxQueryBuilder geoBoundingBoxQueryBuilder = (GeoBoundingBoxQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
-
-        assertNotNull(geoBoundingBoxQueryBuilder);
-        assertEquals("field.location", geoBoundingBoxQueryBuilder.fieldName());
-        assertTrue(geoBoundingBoxQueryBuilder.topLeft().getLat() == 42.0);
-        assertTrue(geoBoundingBoxQueryBuilder.topLeft().getLon() == -72.0);
-        assertTrue(geoBoundingBoxQueryBuilder.bottomRight().getLat() == -40.0);
-        assertTrue(geoBoundingBoxQueryBuilder.bottomRight().getLon() == -74.0);
     }
 
     private String format(final String field, final Object value, final String relationalOperator) {
