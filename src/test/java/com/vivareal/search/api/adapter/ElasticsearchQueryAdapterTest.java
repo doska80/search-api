@@ -2,6 +2,7 @@ package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.model.SearchApiRequest;
+import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -11,7 +12,13 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.MockTransportClient;
 import org.junit.After;
 import org.junit.Before;
@@ -19,9 +26,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -104,7 +114,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderWithSingleFilter() throws Exception {
+    public void shouldReturnSearchRequestBuilderWithSingleFilter() throws Exception {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:1234").basicRequest();
         doNothing().when(settingsAdapter).checkIndex(searchApiRequest);
 
@@ -121,7 +131,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderWithSingleANDOperator() throws Exception {
+    public void shouldReturnSearchRequestBuilderWithSingleANDOperator() throws Exception {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:123 AND b:432").basicRequest();
         doNothing().when(settingsAdapter).checkIndex(searchApiRequest);
 
@@ -140,7 +150,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderWithSingleOROperator() throws Exception {
+    public void shouldReturnSearchRequestBuilderWithSingleOROperator() throws Exception {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:123 OR b:432").basicRequest();
         doNothing().when(settingsAdapter).checkIndex(searchApiRequest);
 
@@ -159,7 +169,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderWhenValueIsNull() throws Exception {
+    public void shouldReturnSearchRequestBuilderWhenValueIsNull() throws Exception {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:NULL").basicRequest();
         doNothing().when(settingsAdapter).checkIndex(searchApiRequest);
 
@@ -190,6 +200,83 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(true, shouldClauses.get(1).includeUpper());
     }
 
+    @Test
+    public void shouldReturnSearchRequestBuilderByFacets() throws Exception {
+        ArrayList<String> facets = Lists.newArrayList("field1", "field2", "field3");
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().facets(facets).facetSize(10).basicRequest();
+        doNothing().when(settingsAdapter).checkIndex(searchApiRequest);
+        when(settingsAdapter.settingsByKey(searchApiRequest.getIndex(), SHARDS)).thenReturn("8");
+
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        List<AggregationBuilder> aggregations = searchRequestBuilder.request().source().aggregations().getAggregatorFactories();
+        System.out.println(aggregations);
+
+        assertNotNull(aggregations);
+        assertTrue(aggregations.size() == facets.size());
+
+        assertTrue(searchRequestBuilder.toString().contains("\"size\" : 10"));
+        assertTrue(searchRequestBuilder.toString().contains("\"shard_size\" : 8"));
+
+        int facet1 = 0;
+        assertEquals(facets.get(facet1), ((TermsAggregationBuilder) aggregations.get(facet1)).field());
+        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
+        assertTrue(Terms.Order.count(false) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
+
+        int facet2 = 1;
+        assertEquals(facets.get(facet2), ((TermsAggregationBuilder) aggregations.get(facet2)).field());
+        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
+        assertTrue(Terms.Order.count(false) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
+
+        int facet3 = 2;
+        assertEquals(facets.get(facet3), ((TermsAggregationBuilder) aggregations.get(facet3)).field());
+        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet3)).order()));
+        assertTrue(Terms.Order.count(false) == (((TermsAggregationBuilder) aggregations.get(facet3)).order()));
+
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderSortedBy() throws Exception {
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().sort("field1 ASC, field2 DESC, field3 ASC").basicRequest();
+        doNothing().when(settingsAdapter).checkIndex(searchApiRequest);
+
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        List<FieldSortBuilder> sorts = (List) searchRequestBuilder.request().source().sorts();
+
+        assertNotNull(sorts);
+        assertTrue(sorts.size() == 3);
+
+        int field1 = 0;
+        assertEquals("field1", sorts.get(field1).getFieldName());
+        assertEquals(SortOrder.ASC, sorts.get(field1).order());
+
+        int field2 = 1;
+        assertEquals("field2", sorts.get(field2).getFieldName());
+        assertEquals(SortOrder.DESC, sorts.get(field2).order());
+
+        int field3 = 2;
+        assertEquals("field3", sorts.get(field3).getFieldName());
+        assertEquals(SortOrder.ASC, sorts.get(field3).order());
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() throws Exception {
+        ArrayList<String> includeFields = Lists.newArrayList("field1", "field2", "field3");
+        ArrayList<String> excludeFields = Lists.newArrayList("field3");
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
+        doNothing().when(settingsAdapter).checkIndex(searchApiRequest);
+
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        FetchSourceContext fetchSourceContext = searchRequestBuilder.request().source().fetchSource();
+
+        assertNotNull(fetchSourceContext);
+
+        assertEquals(includeFields.size(), fetchSourceContext.includes().length);
+        assertTrue(includeFields.containsAll(Arrays.asList(fetchSourceContext.includes())));
+
+        assertEquals(excludeFields.size(), fetchSourceContext.excludes().length);
+        assertTrue(excludeFields.containsAll(Arrays.asList(fetchSourceContext.excludes())));
+    }
+
     public static class SearchApiRequestBuilder {
 
         private String index;
@@ -207,10 +294,10 @@ public class ElasticsearchQueryAdapterTest {
         private int size;
 
         public SearchApiRequest basicRequest() {
-            return index("my_index").from(0).size(20).request();
+            return index("my_index").from(0).size(20).builder();
         }
 
-        public SearchApiRequest request() {
+        private SearchApiRequest builder() {
             SearchApiRequest searchApiRequest = new SearchApiRequest();
 
             if (allNotNull(index))
