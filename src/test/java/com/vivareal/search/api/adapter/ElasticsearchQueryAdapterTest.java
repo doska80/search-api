@@ -2,6 +2,7 @@ package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.query.RelationalOperator;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -72,13 +73,14 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test(expected = IndexNotFoundException.class)
-    public void shouldThrowExceptionWhenIndexIsInvalidToGetById() throws Exception {
-        doThrow(new IndexNotFoundException("my_index")).when(settingsAdapter).checkIndex(any());
-        queryAdapter.getById(any(), anyString());
+    public void shouldThrowExceptionWhenIndexIsInvalidToGetById() {
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
+        doThrow(new IndexNotFoundException(searchApiRequest.getIndex())).when(settingsAdapter).checkIndex(searchApiRequest);
+        queryAdapter.getById(searchApiRequest, "12345");
     }
 
     @Test
-    public void shouldReturnGetRequestBuilderByGetId() throws Exception {
+    public void shouldReturnGetRequestBuilderByGetId() {
         String id = "123456";
 
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
@@ -90,14 +92,14 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test(expected = IndexNotFoundException.class)
-    public void shouldThrowExceptionWhenIndexIsInvalidToQuery() throws Exception {
+    public void shouldThrowExceptionWhenIndexIsInvalidToQuery() {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
         doThrow(new IndexNotFoundException(searchApiRequest.getIndex())).when(settingsAdapter).checkIndex(searchApiRequest);
         queryAdapter.query(searchApiRequest);
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderWithBasicRequest() throws Exception {
+    public void shouldReturnSimpleSearchRequestBuilderWithBasicRequest() {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         SearchSourceBuilder source = searchRequestBuilder.request().source();
@@ -108,33 +110,57 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleFilter() throws Exception {
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:1234").basicRequest();
-        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-        List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
+    public void shouldReturnSearchRequestBuilderWithSingleFilterEqual() {
+        final String field = "field1";
+        final Object value = "Lorem Ipsum";
 
-        assertNotNull(must);
-        assertTrue(must.get(0) instanceof MatchQueryBuilder);
-        assertEquals("a", ((MatchQueryBuilder) must.get(0)).fieldName());
-        assertEquals(1234, ((MatchQueryBuilder) must.get(0)).value());
+        RelationalOperator.getOperators(RelationalOperator.EQUAL).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                MatchQueryBuilder must = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                assertNotNull(must);
+                assertEquals(field, must.fieldName());
+                assertEquals(value, must.value());
+            }
+        );
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleANDOperator() throws Exception {
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:123 AND b:432").basicRequest();
+    public void shouldReturnSearchRequestBuilderWithSingleFilterDifferent() {
+        final String field = "field1";
+        final Object value = "Lorem Ipsum";
+
+        RelationalOperator.getOperators(RelationalOperator.DIFFERENT).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
+
+                assertNotNull(mustNot);
+                assertEquals(field, mustNot.fieldName());
+                assertEquals(value, mustNot.value());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleAndOperator() {
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:\"123\" AND b:432").basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
 
         assertNotNull(must);
         assertTrue(must.size() == 2);
         assertEquals("a", ((MatchQueryBuilder) must.get(0)).fieldName());
-        assertEquals(123, ((MatchQueryBuilder) must.get(0)).value());
+        assertEquals("123", ((MatchQueryBuilder) must.get(0)).value());
         assertEquals("b", ((MatchQueryBuilder) must.get(1)).fieldName());
         assertEquals(432, ((MatchQueryBuilder) must.get(1)).value());
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleOROperator() throws Exception {
+    public void shouldReturnSearchRequestBuilderWithSingleOrOperator() {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:123 OR b:432").basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<QueryBuilder> should = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should();
@@ -148,7 +174,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWhenValueIsNull() throws Exception {
+    public void shouldReturnSearchRequestBuilderWhenValueIsNull() {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("a:NULL").basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<QueryBuilder> mustNot = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot();
@@ -173,7 +199,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderByFacets() throws Exception {
+    public void shouldReturnSearchRequestBuilderByFacets() {
         ArrayList<String> facets = Lists.newArrayList("field1", "field2", "field3");
 
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().facets(facets).facetSize(10).basicRequest();
@@ -207,7 +233,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderSortedBy() throws Exception {
+    public void shouldReturnSearchRequestBuilderSortedBy() {
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().sort("field1 ASC, field2 DESC, field3 ASC").basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<FieldSortBuilder> sorts = (List) searchRequestBuilder.request().source().sorts();
@@ -229,7 +255,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() throws Exception {
+    public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() {
         ArrayList<String> includeFields = Lists.newArrayList("field1", "field2", "field3");
         ArrayList<String> excludeFields = Lists.newArrayList("field3");
 
@@ -247,7 +273,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryString() throws Exception {
+    public void shouldReturnSimpleSearchRequestBuilderByQueryString() {
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
 
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).basicRequest();
@@ -260,7 +286,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithOperator() throws Exception {
+    public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithOperator() {
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
         String op = "OR";
 
@@ -274,7 +300,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithSpecifiedFieldToSearch() throws Exception {
+    public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithSpecifiedFieldToSearch() {
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
         ArrayList<String> fields = Lists.newArrayList("field1", "field2.raw:2", "field3:5");
 
@@ -294,7 +320,7 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderByQueryStringWithMinimalShouldMatch() throws Exception {
+    public void shouldReturnSearchRequestBuilderByQueryStringWithMinimalShouldMatch() {
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
         String mm = "50%";
 
@@ -308,7 +334,34 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(OR, queryStringQueryBuilder.defaultOperator());
     }
 
-    public static class SearchApiRequestBuilder {
+    @Test
+    public void shouldReturnSearchRequestBuilderByViewPort() {
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter("field.location VIEWPORT [42.0,-74.0;-40.0,-72.0]").basicRequest();
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        GeoBoundingBoxQueryBuilder geoBoundingBoxQueryBuilder = (GeoBoundingBoxQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+        assertNotNull(geoBoundingBoxQueryBuilder);
+        assertEquals("field.location", geoBoundingBoxQueryBuilder.fieldName());
+        assertTrue(geoBoundingBoxQueryBuilder.topLeft().getLat() == 42.0);
+        assertTrue(geoBoundingBoxQueryBuilder.topLeft().getLon() == -72.0);
+        assertTrue(geoBoundingBoxQueryBuilder.bottomRight().getLat() == -40.0);
+        assertTrue(geoBoundingBoxQueryBuilder.bottomRight().getLon() == -74.0);
+    }
+
+    private String format(final String field, final Object value, final String relationalOperator) {
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(field).append(" ").append(relationalOperator).append(" ");
+
+        if (value instanceof String) {
+            stringBuilder.append("\"").append(value).append("\"");
+        } else {
+            stringBuilder.append(value);
+        }
+
+        return stringBuilder.toString();
+    }
+
+    private static class SearchApiRequestBuilder {
 
         private String index;
         private String op;

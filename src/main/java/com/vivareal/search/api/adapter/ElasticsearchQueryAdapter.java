@@ -89,6 +89,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         applyQueryString(queryBuilder, request);
         applyFilterQuery(queryBuilder, request.getFilter());
 
+        LOG.debug("Request: {}", request);
         LOG.debug("Query: {}", searchBuilder);
 
         return searchBuilder;
@@ -123,6 +124,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                         switch (operator) {
                             case DIFFERENT:
+                                addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, singleValue), logicalOperator, !not);
+                                break;
                             case EQUAL:
                                 addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, singleValue), logicalOperator, not);
                                 break;
