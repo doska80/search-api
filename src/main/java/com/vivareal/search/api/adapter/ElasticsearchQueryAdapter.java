@@ -218,10 +218,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                 request.getFields().forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, boostField));
             }
 
-            String operator = ofNullable(request.getOperator())
-            .filter(op -> op.equalsIgnoreCase(OR.name()))
-            .map(op -> OR.name())
-            .orElse(queryDefaultOperator);
+            String operator = ofNullable(request.getOp())
+                .filter(op -> op.equalsIgnoreCase(OR.name()))
+                .map(op -> OR.name())
+                .orElse(queryDefaultOperator);
 
             // if client specify mm on the request, the default operator is OR
             operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);
