@@ -304,6 +304,20 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
+    public void shouldReturnSearchRequestBuilderWithSingleOperatorNot() {
+        String fieldName1 = "field1";
+        Object fieldValue1 = 1234324;
+
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("NOT %s:%s", fieldName1, fieldValue1)).basicRequest();
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
+
+        assertNotNull(mustNot);
+        assertEquals(fieldName1, mustNot.fieldName());
+        assertEquals(fieldValue1, mustNot.value());
+    }
+
+    @Test
     public void shouldReturnSearchRequestBuilderWithSingleOperatorOr() {
         String fieldName1 = "field1";
         Object fieldValue1 = "string";
