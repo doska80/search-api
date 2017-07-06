@@ -1,6 +1,5 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.RelationalOperator;
@@ -28,7 +27,6 @@ import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static org.elasticsearch.index.query.Operator.AND;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
@@ -63,7 +61,6 @@ public class ElasticsearchQueryAdapterTest {
         setField(this.queryAdapter, "transportClient", transportClient);
         setField(this.queryAdapter, "settingsAdapter", settingsAdapter);
         setField(this.queryAdapter, "queryDefaultFields", "title.raw,description.raw:2,address.street.raw:5");
-        setField(this.queryAdapter, "queryDefaultOperator", "AND");
         setField(this.queryAdapter, "queryDefaultMM", "75%");
         setField(this.queryAdapter, "facetSize", 20);
 
@@ -73,13 +70,6 @@ public class ElasticsearchQueryAdapterTest {
     @After
     public void closeClient() {
         this.transportClient.close();
-    }
-
-    @Test(expected = IndexNotFoundException.class)
-    public void shouldThrowExceptionWhenIndexIsInvalidToGetById() {
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
-        doThrow(new IndexNotFoundException(searchApiRequest.getIndex())).when(settingsAdapter).checkIndex(searchApiRequest);
-        queryAdapter.getById(searchApiRequest, "12345");
     }
 
     @Test
@@ -92,13 +82,6 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(id, requestBuilder.request().id());
         assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
         assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
-    }
-
-    @Test(expected = IndexNotFoundException.class)
-    public void shouldThrowExceptionWhenIndexIsInvalidToQuery() {
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
-        doThrow(new IndexNotFoundException(searchApiRequest.getIndex())).when(settingsAdapter).checkIndex(searchApiRequest);
-        queryAdapter.query(searchApiRequest);
     }
 
     @Test
@@ -456,20 +439,6 @@ public class ElasticsearchQueryAdapterTest {
 
         assertNotNull(queryStringQueryBuilder);
         assertEquals(q, queryStringQueryBuilder.queryString());
-        assertEquals(AND, queryStringQueryBuilder.defaultOperator());
-    }
-
-    @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithOperator() {
-        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-        String op = "OR";
-
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).op(op).basicRequest();
-        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
-
-        assertNotNull(queryStringQueryBuilder);
-        assertEquals(q, queryStringQueryBuilder.queryString());
         assertEquals(OR, queryStringQueryBuilder.defaultOperator());
     }
 
@@ -502,18 +471,41 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderByQueryStringWithMinimalShouldMatch() {
+    public void shouldReturnSearchRequestBuilderByQueryStringWithValidMinimalShouldMatch() {
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-        String mm = "50%";
+        List<String> validMMs = Lists.newArrayList("-100%", "100%", "75%", "-2");
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).mm(mm).basicRequest();
-        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+        validMMs.forEach(
+            mm -> {
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).mm(mm).basicRequest();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
-        assertNotNull(queryStringQueryBuilder);
-        assertEquals(q, queryStringQueryBuilder.queryString());
-        assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
-        assertEquals(OR, queryStringQueryBuilder.defaultOperator());
+                assertNotNull(queryStringQueryBuilder);
+                assertEquals(q, queryStringQueryBuilder.queryString());
+                assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
+                assertEquals(OR, queryStringQueryBuilder.defaultOperator());
+            }
+        );
+    }
+
+    @Test
+    public void shouldThrowExceptionWhenMinimalShouldMatchIsInvalid() {
+        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+        List<String> invalidMMs = Lists.newArrayList("-101%", "101%", "75%.1", "75%,1", "75%123", "75%a");
+
+        invalidMMs.forEach(
+            mm -> {
+                boolean throwsException = false;
+                try {
+                    SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).mm(mm).basicRequest();
+                    queryAdapter.query(searchApiRequest);
+                } catch (IllegalArgumentException e) {
+                    throwsException = true;
+                }
+                assertTrue(throwsException);
+            }
+        );
     }
 
     private String format(final String field, final Object value, final String relationalOperator) {

@@ -12,7 +12,6 @@ import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 public class SearchApiRequestBuilder {
 
     private String index;
-    private String op;
     private String mm;
     private List<String> fields;
     private List<String> includeFields;
@@ -34,9 +33,6 @@ public class SearchApiRequestBuilder {
 
         if (allNotNull(index))
             searchApiRequest.setIndex(index);
-
-        if (allNotNull(op))
-            searchApiRequest.setOp(op);
 
         if (allNotNull(mm))
             searchApiRequest.setMm(mm);
@@ -76,11 +72,6 @@ public class SearchApiRequestBuilder {
 
     public SearchApiRequestBuilder index(final String index) {
         this.index = index;
-        return this;
-    }
-
-    public SearchApiRequestBuilder op(String op) {
-        this.op = op;
         return this;
     }
 

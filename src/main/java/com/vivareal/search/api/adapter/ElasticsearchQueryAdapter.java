@@ -3,11 +3,15 @@ package com.vivareal.search.api.adapter;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.*;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortOrder;
@@ -27,7 +31,6 @@ import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARD
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
-import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.lucene.geo.GeoUtils.checkLatitude;
 import static org.apache.lucene.geo.GeoUtils.checkLongitude;
@@ -52,9 +55,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     @Value("${querystring.default.fields}")
     private String queryDefaultFields;
-
-    @Value("${querystring.default.operator}")
-    private String queryDefaultOperator;
 
     @Value("${querystring.default.mm}")
     private String queryDefaultMM;
@@ -212,8 +212,12 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getQ())) {
+            String mm = isEmpty(request.getMm()) ? queryDefaultMM : request.getMm();
+            checkMM(mm, request);
+
             QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
             Map<String, Float> fields = new HashMap<>();
+
             if (isEmpty(request.getFields())) {
                 for (final String boostField : queryDefaultFields.split(",")) {
                     addFieldToSearchOnQParameter(queryStringBuilder, boostField);
@@ -221,17 +225,31 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             } else {
                 request.getFields().forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, boostField));
             }
-
-            String operator = ofNullable(request.getOp())
-                .filter(op -> op.equalsIgnoreCase(OR.name()))
-                .map(op -> OR.name())
-                .orElse(queryDefaultOperator);
-
-            // if client specify mm on the request, the default operator is OR
-            operator = ofNullable(request.getMm()).map(op -> OR.name()).orElse(operator);
-
-            queryStringBuilder.fields(fields).minimumShouldMatch(isEmpty(request.getMm()) ? queryDefaultMM : request.getMm()).tieBreaker(0.2f).phraseSlop(2).defaultOperator(Operator.valueOf(operator));
+            queryStringBuilder.fields(fields).minimumShouldMatch(mm).tieBreaker(0.2f).phraseSlop(2).defaultOperator(OR);
             queryBuilder.must().add(queryStringBuilder);
+        }
+    }
+
+    private void checkMM(final String mm, final SearchApiRequest request) {
+        String errorMessage = ("Minimum Should Match (mm) should be a valid integer number (-100 <> +100). Request: " + request.toString());
+
+        if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf("%"))) {
+            LOG.error(errorMessage);
+            throw new NumberFormatException(errorMessage);
+        }
+
+        String mmNumber = mm.replace("%", "");
+
+        if (!NumberUtils.isCreatable(mmNumber)) {
+            LOG.error(errorMessage);
+            throw new NumberFormatException(errorMessage);
+        }
+
+        int number = NumberUtils.toInt(mmNumber);
+
+        if (number < -100 || number > 100) {
+            LOG.error(errorMessage);
+            throw new IllegalArgumentException(errorMessage);
         }
     }
 
