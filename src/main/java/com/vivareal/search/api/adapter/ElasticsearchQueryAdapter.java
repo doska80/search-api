@@ -142,7 +142,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(true), logicalOperator, not);
                                 break;
                             case IN:
-                                addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, multiValues), logicalOperator, not);
+                                Object[] values = ((List<com.vivareal.search.api.model.query.Value>) multiValues.get(0)).stream().map(contents -> contents.getContents(0)).toArray();
+                                addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, values), logicalOperator, not);
                                 break;
                             case VIEWPORT:
                                 GeoPoint topRight = createGeoPointFromRawCoordinates((List) multiValues.get(0));

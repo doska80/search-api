@@ -4,7 +4,6 @@ import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.RelationalOperator;
-import com.vivareal.search.api.model.query.Value;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -260,25 +259,24 @@ public class ElasticsearchQueryAdapterTest {
     @Test
     public void shouldReturnSearchRequestBuilderWithSingleFilterIn() {
         final String field = "field1";
-        final Object[] value = new Object[]{1, "\"string\"", 1.2, true};
+        final Object[] values = new Object[]{1, "\"string\"", 1.2, true};
 
         RelationalOperator.getOperators(RelationalOperator.IN).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s %s", field, op, Arrays.toString(value))).basicRequest();
+                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s %s", field, op, Arrays.toString(values))).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 TermsQueryBuilder terms = (TermsQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
                 assertEquals(field, terms.fieldName());
-                assertTrue(
-                    Arrays.equals(((List<Value>) terms.values().get(0)).stream().map(contents -> {
-                        Object obj = contents.getContents(0);
+                assertTrue(Arrays.asList(Arrays.stream(values).map(value -> {
 
-                        if (obj instanceof String)
-                            obj = String.format("\"%s\"", obj);
+                    if (value instanceof String) {
+                        String s = String.valueOf(value);
+                        return s.replaceAll("\"", "");
+                    }
 
-                        return obj;
-                    }).toArray(), value)
-                );
+                    return value;
+                }).toArray()).equals(terms.values()));
             }
         );
     }
