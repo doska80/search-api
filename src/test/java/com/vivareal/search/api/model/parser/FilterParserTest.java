@@ -19,6 +19,12 @@ public class FilterParserTest {
     }
 
     @Test
+    public void testSingleExpressionWithNumberField() {
+        Filter filter = parser.parse("field10=10");
+        assertEquals("field10 EQUAL 10", filter.toString());
+    }
+
+    @Test
     public void testSingleExpressionWithSpacesAndSingleQuotes() {
         Filter filter = parser.parse("field.field2 = 'space value'");
         assertEquals("field.field2 EQUAL \"space value\"", filter.toString());
