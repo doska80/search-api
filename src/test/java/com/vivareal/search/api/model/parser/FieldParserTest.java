@@ -8,7 +8,6 @@ import org.junit.Test;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class FieldParserTest {
 
@@ -16,7 +15,9 @@ public class FieldParserTest {
     public void testValidFieldNames() {
         String[] fieldNames = new String[]{
                 "field",
+                "field10",
                 "fieldCamelCase",
+                "_fieldUnderscoredCamelCase",
                 "field1CamelCase2With3Numbers"
         };
         Parser<Field> parser = FieldParser.get();
