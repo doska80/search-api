@@ -11,7 +11,7 @@ import java.util.Map;
 public class SettingsService {
 
     @Autowired
-    @Qualifier("ElasticsearchSettings")
+    @Qualifier("elasticsearchSettings")
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
     public Map<String, Map<String, Object>> settings() {

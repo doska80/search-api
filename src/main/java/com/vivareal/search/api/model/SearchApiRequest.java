@@ -19,7 +19,6 @@ public final class SearchApiRequest {
     private static final Parser<QueryFragment> QUERY_PARSER = QueryParser.get();
 
     private String index;
-    private String operator;
     private String mm;
     private List<String> fields;
     private List<String> includeFields;
@@ -47,14 +46,6 @@ public final class SearchApiRequest {
 
     public void setIndex(String index) {
         this.index = index;
-    }
-
-    public String getOperator() {
-        return operator;
-    }
-
-    public void setOperator(String operator) {
-        this.operator = operator;
     }
 
     public String getMm() {
@@ -146,7 +137,6 @@ public final class SearchApiRequest {
     public String toString() {
         return MoreObjects.toStringHelper(this)
         .add("index", index)
-        .add("operator", operator)
         .add("mm", mm)
         .add("fields", fields)
         .add("includeFields", includeFields)

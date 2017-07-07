@@ -24,7 +24,7 @@ public class ApiBeans implements DisposableBean {
 
     @Bean
     @Scope(SCOPE_SINGLETON)
-    public TransportClient elasticSearchClientBean(
+    public TransportClient transportClient(
             @Value("${es.hostname}") final String hostname,
             @Value("${es.port}") final Integer port,
             @Value("${es.cluster.name}") final String clusterName) throws UnknownHostException {
