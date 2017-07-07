@@ -2,10 +2,7 @@ package com.vivareal.search.api.model.query;
 
 import com.google.common.collect.Lists;
 
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.Optional.ofNullable;
 
@@ -20,7 +17,7 @@ public enum RelationalOperator {
     LESS_EQUAL,
     VIEWPORT;
 
-    private static final Map<String, RelationalOperator> OPERATORS = new HashMap<>(16);
+    private static final Map<String, RelationalOperator> OPERATORS = new LinkedHashMap<>(16);
     private static final EnumMap<RelationalOperator, List<String>> RELATIONAL_OPERATOR_MAP = new EnumMap<>(RelationalOperator.class);
 
     static {

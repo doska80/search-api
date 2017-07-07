@@ -2,7 +2,6 @@ package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.query.RelationalOperator;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -27,6 +26,9 @@ import java.util.*;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder.INDEX_NAME;
+import static com.vivareal.search.api.model.query.LogicalOperator.AND;
+import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
@@ -65,6 +67,7 @@ public class ElasticsearchQueryAdapterTest {
         setField(this.queryAdapter, "facetSize", 20);
 
         doNothing().when(settingsAdapter).checkIndex(any(SearchApiRequest.class));
+        when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
     }
 
     @After
@@ -100,7 +103,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
 
-        RelationalOperator.getOperators(RelationalOperator.DIFFERENT).forEach(
+        getOperators(DIFFERENT).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -118,7 +121,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
 
-        RelationalOperator.getOperators(RelationalOperator.EQUAL).forEach(
+        getOperators(EQUAL).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -136,7 +139,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = 10;
 
-        RelationalOperator.getOperators(RelationalOperator.GREATER).forEach(
+        getOperators(GREATER).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -156,7 +159,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = 10;
 
-        RelationalOperator.getOperators(RelationalOperator.GREATER_EQUAL).forEach(
+        getOperators(GREATER_EQUAL).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -176,7 +179,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = 10;
 
-        RelationalOperator.getOperators(RelationalOperator.LESS).forEach(
+        getOperators(LESS).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -196,7 +199,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = 10;
 
-        RelationalOperator.getOperators(RelationalOperator.LESS_EQUAL).forEach(
+        getOperators(LESS_EQUAL).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -222,7 +225,7 @@ public class ElasticsearchQueryAdapterTest {
         double southWestLat = -40.0;
         double southWestLon = -72.0;
 
-        RelationalOperator.getOperators(RelationalOperator.VIEWPORT).forEach(
+        getOperators(VIEWPORT).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s [%s,%s;%s,%s]", field, op, northEastLat, northEastLon, southWestLat, southWestLon)).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -244,7 +247,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object[] values = new Object[]{1, "\"string\"", 1.2, true};
 
-        RelationalOperator.getOperators(RelationalOperator.IN).forEach(
+        getOperators(IN).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s %s", field, op, Arrays.toString(values))).basicRequest();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -282,20 +285,6 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(fieldValue1, ((MatchQueryBuilder) must.get(0)).value());
         assertEquals(fieldName2, ((MatchQueryBuilder) must.get(1)).fieldName());
         assertEquals(fieldValue2, ((MatchQueryBuilder) must.get(1)).value());
-    }
-
-    @Test
-    public void shouldReturnSearchRequestBuilderWithSingleOperatorNot() {
-        String fieldName1 = "field1";
-        Object fieldValue1 = 1234324;
-
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("NOT %s:%s", fieldName1, fieldValue1)).basicRequest();
-        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-        MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
-
-        assertNotNull(mustNot);
-        assertEquals(fieldName1, mustNot.fieldName());
-        assertEquals(fieldValue1, mustNot.value());
     }
 
     @Test
@@ -350,15 +339,26 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
+    public void shouldReturnSearchRequestBuilderWithSingleOperatorNot() {
+        String fieldName1 = "field1";
+        Object fieldValue1 = 1234324;
+
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("NOT %s:%s", fieldName1, fieldValue1)).basicRequest();
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
+
+        assertNotNull(mustNot);
+        assertEquals(fieldName1, mustNot.fieldName());
+        assertEquals(fieldValue1, mustNot.value());
+    }
+
+    @Test
     public void shouldReturnSearchRequestBuilderByFacets() {
         ArrayList<String> facets = Lists.newArrayList("field1", "field2", "field3");
 
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().facets(facets).facetSize(10).basicRequest();
-        when(settingsAdapter.settingsByKey(searchApiRequest.getIndex(), SHARDS)).thenReturn("8");
-
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<AggregationBuilder> aggregations = searchRequestBuilder.request().source().aggregations().getAggregatorFactories();
-        System.out.println(aggregations);
 
         assertNotNull(aggregations);
         assertTrue(aggregations.size() == facets.size());
@@ -369,17 +369,14 @@ public class ElasticsearchQueryAdapterTest {
         int facet1 = 0;
         assertEquals(facets.get(facet1), ((TermsAggregationBuilder) aggregations.get(facet1)).field());
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
-        assertTrue(Terms.Order.count(false) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
 
         int facet2 = 1;
         assertEquals(facets.get(facet2), ((TermsAggregationBuilder) aggregations.get(facet2)).field());
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
-        assertTrue(Terms.Order.count(false) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
 
         int facet3 = 2;
         assertEquals(facets.get(facet3), ((TermsAggregationBuilder) aggregations.get(facet3)).field());
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet3)).order()));
-        assertTrue(Terms.Order.count(false) == (((TermsAggregationBuilder) aggregations.get(facet3)).order()));
 
     }
 
@@ -506,6 +503,265 @@ public class ElasticsearchQueryAdapterTest {
                 assertTrue(throwsException);
             }
         );
+    }
+
+    /*
+    * Full Tree Objects Representation (Recursive)
+    *
+    * Request: SearchApiRequest {
+    *   index=my_index,
+    *   mm=50%,
+    *   fields=[field1, field2.raw:2.0, field3:5.0],
+    *   includeFields=[field1, field2],
+    *   excludeFields=[field3, field4],
+    *   sort=field1 ASC field2 DESC field3 ASC,
+    *   facets=[field1, field2],
+    *   facetSize=10,
+    *   q=Lorem Ipsum is simply dummy text of the printing and typesetting,
+    *   from=0,
+    *   size=20,
+    *   filter=
+    *       (field1 EQUAL "string" OR field2 DIFFERENT 5432 AND
+    *           (field3 GREATER 3 AND
+    *               (field4 LESS 8 OR field5 IN [1, "string", 1.2, true] AND
+    *                   (field6.location VIEWPORT [[42.0, -74.0], [-40.0, -72.0]]))))
+    * }
+    *
+    * 1 + BoolQueryBuilder
+    * 	+ must
+    * 		- QueryStringQueryBuilder
+    * 		2 + BoolQueryBuilder
+    * 			+ must
+    * 				- RangeQueryBuilder (field3)
+    * 				3 + BoolQueryBuilder
+    * 					+ must
+    * 						- TermsQueryBuilder (field5)
+    * 						4 + BoolQueryBuilder
+    * 							+ must
+    * 								- GeoBoundingBoxQueryBuilder (field6)
+    * 					+ should
+    * 						3 - RangeQueryBuilder (field4)
+    * 	+ must_not
+    * 		- MatchQueryBuilder (field2)
+    * 	+ should
+    * 		- MatchQueryBuilder (field1)
+    */
+    @Test
+    public void shouldReturnSimpleSearchRequestBuilderWithRecursiveRequest() {
+
+        // Display results
+        List<String> includeFields  = Lists.newArrayList("field1", "field2");
+        List<String> excludeFields = Lists.newArrayList("field3", "field4");
+
+        // Sort
+        String sortFieldName1 = "field1";
+        SortOrder sortFieldValue1 = ASC;
+
+        String sortFieldName2 = "field2";
+        SortOrder sortFieldValue2 = DESC;
+
+        String sortFieldName3 = "field3";
+        SortOrder sortFieldValue3 = ASC;
+
+        String sort = String.format("%s %s, %s %s, %s %s", sortFieldName1, sortFieldValue1.name(), sortFieldName2, sortFieldValue2.name(), sortFieldName3, sortFieldValue3.name());
+
+        // Facets
+        List<String> facets = Lists.newArrayList("field1", "field2");
+        Integer facetSize = 10;
+
+        // QueryString
+        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+        String fieldName1 = "field1";
+        float boostValue1 = 1.0f; // default boost value
+
+        String fieldName2 = "field2.raw";
+        float boostValue2 = 2.0f;
+
+        String fieldName3 = "field3";
+        float boostValue3 = 5.0f;
+        List<String> fields = newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3));
+        String mm = "50%";
+
+        // Pagination
+        Integer from = 40;
+        Integer size = 20;
+
+        // Filters
+        String field1Name = "field1";
+        String field1RelationalOperator = getOperators(EQUAL).get(1);
+        Object field1Value = "\"string\"";
+
+        String field2Name = "field2";
+        String field2RelationalOperator = getOperators(DIFFERENT).get(1);
+        Object field2Value = 5432;
+
+        String field3Name = "field3";
+        String field3RelationalOperator = getOperators(GREATER).get(1);
+        Object field3Value = 3;
+
+        String field4Name = "field4";
+        String field4RelationalOperator = getOperators(LESS).get(1);
+        Object field4Value = 8;
+
+        String field5Name = "field5";
+        String field5RelationalOperator = getOperators(IN).get(0);
+        Object[] field5Value = new Object[]{1, "\"string\"", 1.2, true};
+
+        String field6Name = "field6.location";
+        String field6RelationalOperator = getOperators(VIEWPORT).get(1);
+        double northEastLat = 42.0;
+        double northEastLon = -74.0;
+        double southWestLat = -40.0;
+        double southWestLon = -72.0;
+
+        String filter = String.format("%s %s %s %s %s %s %s %s (%s %s %s %s (%s %s %s %s %s %s %s %s (%s %s [%s,%s;%s,%s])))",
+            field1Name, field1RelationalOperator, field1Value, OR.name(),
+            field2Name, field2RelationalOperator, field2Value, AND.name(),
+            field3Name, field3RelationalOperator, field3Value, AND.name(),
+            field4Name, field4RelationalOperator, field4Value, OR.name(),
+            field5Name, field5RelationalOperator, Arrays.toString(field5Value), AND.name(),
+            field6Name, field6RelationalOperator, northEastLat, northEastLon, southWestLat, southWestLon
+        );
+
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder()
+            .includeFields(includeFields)
+            .excludeFields(excludeFields)
+            .filter(filter)
+            .sort(sort)
+            .facets(facets)
+            .facetSize(facetSize)
+            .q(q)
+            .fields(fields)
+            .mm(mm)
+            .from(from)
+            .size(size)
+            .basicRequest();
+
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        SearchSourceBuilder source = searchRequestBuilder.request().source();
+
+        // index
+        assertEquals(searchApiRequest.getIndex(), searchRequestBuilder.request().indices()[0]);
+
+        // pagination
+        assertEquals(searchApiRequest.getFrom().intValue(), source.from());
+        assertEquals(searchApiRequest.getSize().intValue(), source.size());
+
+        // display
+        FetchSourceContext fetchSourceContext = source.fetchSource();
+        assertNotNull(fetchSourceContext);
+        assertEquals(includeFields.size(), fetchSourceContext.includes().length);
+        assertTrue(includeFields.containsAll(Arrays.asList(fetchSourceContext.includes())));
+        assertEquals(excludeFields.size(), fetchSourceContext.excludes().length);
+        assertTrue(excludeFields.containsAll(Arrays.asList(fetchSourceContext.excludes())));
+
+        // sort
+        List<FieldSortBuilder> sorts = (List) source.sorts();
+        assertNotNull(sorts);
+        assertTrue(sorts.size() == 3);
+        assertEquals(sortFieldName1, sorts.get(0).getFieldName());
+        assertEquals(sortFieldValue1, sorts.get(0).order());
+        assertEquals(sortFieldName2, sorts.get(1).getFieldName());
+        assertEquals(sortFieldValue2, sorts.get(1).order());
+        assertEquals(sortFieldName3, sorts.get(2).getFieldName());
+        assertEquals(sortFieldValue3, sorts.get(2).order());
+
+        //facets
+        List<AggregationBuilder> aggregations = source.aggregations().getAggregatorFactories();
+        assertNotNull(aggregations);
+        assertTrue(aggregations.size() == facets.size());
+        assertTrue(searchRequestBuilder.toString().contains("\"size\" : " + facetSize));
+        assertTrue(searchRequestBuilder.toString().contains("\"shard_size\" : 8"));
+        int facet1 = 0;
+        assertEquals(facets.get(facet1), ((TermsAggregationBuilder) aggregations.get(facet1)).field());
+        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
+        int facet2 = 1;
+        assertEquals(facets.get(facet2), ((TermsAggregationBuilder) aggregations.get(facet2)).field());
+        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
+
+        // filters
+        List<QueryBuilder> mustFirstLevel = ((BoolQueryBuilder) source.query()).must();
+        List<QueryBuilder> mustNotFirstLevel = ((BoolQueryBuilder) source.query()).mustNot();
+        List<QueryBuilder> shouldFirstLevel = ((BoolQueryBuilder) source.query()).should();
+
+        assertNotNull(mustFirstLevel);
+        assertNotNull(mustNotFirstLevel);
+        assertNotNull(shouldFirstLevel);
+        assertTrue(mustFirstLevel.size() == 2);
+        assertTrue(mustNotFirstLevel.size() == 1);
+        assertTrue(shouldFirstLevel.size() == 1);
+
+        // querystring
+        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) mustFirstLevel.get(0);
+        Map<String, Float> fieldsAndWeights = new HashMap<>(3);
+        fieldsAndWeights.put(fieldName1, boostValue1);
+        fieldsAndWeights.put(fieldName2, boostValue2);
+        fieldsAndWeights.put(fieldName3, boostValue3);
+        assertNotNull(queryStringQueryBuilder);
+        assertEquals(q, queryStringQueryBuilder.queryString());
+        assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
+        assertEquals(OR, queryStringQueryBuilder.defaultOperator());
+        assertTrue(fieldsAndWeights.equals(queryStringQueryBuilder.fields()));
+
+        // field 1
+        MatchQueryBuilder shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(0);
+        assertEquals(field1Name, shouldMatchField1.fieldName());
+        assertEquals(String.valueOf(field1Value).replaceAll("\"", ""), shouldMatchField1.value());
+        assertEquals(OR, shouldMatchField1.operator());
+
+        // field 2
+        MatchQueryBuilder mustNotMatchField2 = (MatchQueryBuilder) mustNotFirstLevel.get(0);
+        assertEquals(field2Name, mustNotMatchField2.fieldName());
+        assertEquals(field2Value, mustNotMatchField2.value());
+
+        // Second Level
+        List<QueryBuilder> mustSecondLevel = ((BoolQueryBuilder) mustFirstLevel.get(1)).must();
+        assertTrue(mustSecondLevel.size() == 2);
+
+        // field 3
+        RangeQueryBuilder mustRangeSecondLevelField3 = (RangeQueryBuilder) mustSecondLevel.get(0);
+        assertEquals(field3Name, mustRangeSecondLevelField3.fieldName());
+        assertEquals(field3Value, mustRangeSecondLevelField3.from());
+        assertNull(mustRangeSecondLevelField3.to());
+        assertEquals(false, mustRangeSecondLevelField3.includeLower());
+        assertEquals(true, mustRangeSecondLevelField3.includeUpper());
+
+        BoolQueryBuilder queryBuilderThirdLevel = (BoolQueryBuilder) mustSecondLevel.get(1);
+        List<QueryBuilder> shouldThirdLevel = queryBuilderThirdLevel.should(); //1
+        List<QueryBuilder> mustThirdLevel = queryBuilderThirdLevel.must(); //2
+
+        assertTrue(shouldThirdLevel.size() == 1);
+        assertTrue(mustThirdLevel.size() == 2);
+
+        // field 4
+        RangeQueryBuilder shouldRangeThirdLevelField4 = (RangeQueryBuilder) shouldThirdLevel.get(0);
+        assertEquals(field4Name, shouldRangeThirdLevelField4.fieldName());
+        assertEquals(field4Value, shouldRangeThirdLevelField4.to());
+        assertNull(shouldRangeThirdLevelField4.from());
+        assertEquals(true, shouldRangeThirdLevelField4.includeLower());
+        assertEquals(false, shouldRangeThirdLevelField4.includeUpper());
+
+        // field 5
+        TermsQueryBuilder mustTermsThirdLevelField5 = (TermsQueryBuilder) mustThirdLevel.get(0);
+        assertEquals(field5Name, mustTermsThirdLevelField5.fieldName());
+        assertTrue(Arrays.asList(Arrays.stream(field5Value).map(value -> {
+
+            if (value instanceof String) {
+                String s = String.valueOf(value);
+                return s.replaceAll("\"", "");
+            }
+
+            return value;
+        }).toArray()).equals(mustTermsThirdLevelField5.values()));
+
+        // field 6
+        GeoBoundingBoxQueryBuilder mustViewportFouthLevelField6 = (GeoBoundingBoxQueryBuilder) ((BoolQueryBuilder) mustThirdLevel.get(1)).must().get(0);
+        int delta = 0;
+        assertEquals(field6Name, mustViewportFouthLevelField6.fieldName());
+        assertEquals(northEastLat, mustViewportFouthLevelField6.topLeft().getLat(), delta);
+        assertEquals(southWestLon, mustViewportFouthLevelField6.topLeft().getLon(), delta);
+        assertEquals(southWestLat, mustViewportFouthLevelField6.bottomRight().getLat(), delta);
+        assertEquals(northEastLon, mustViewportFouthLevelField6.bottomRight().getLon(), delta);
     }
 
     private String format(final String field, final Object value, final String relationalOperator) {

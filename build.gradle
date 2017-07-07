@@ -84,8 +84,8 @@ dependencies {
     compile 'org.jparsec:jparsec:3.0'
     compile 'org.apache.commons:commons-lang3:3.6'
 
-    compile 'org.elasticsearch.client:transport:5.4.2'
-    compile 'org.elasticsearch:elasticsearch:5.4.2'
+    compile 'org.elasticsearch.client:transport:' + ELASTICSEARCH_VERSION
+    compile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
 
     compile 'org.glowroot:glowroot-agent-api:0.9.19'
     compile 'com.newrelic.agent.java:newrelic-api:' + NEW_RELIC_VERSION

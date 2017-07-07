@@ -11,6 +11,8 @@ import static org.apache.commons.lang3.ObjectUtils.allNotNull;
  */
 public class SearchApiRequestBuilder {
 
+    public static final String INDEX_NAME = "my_index";
+
     private String index;
     private String mm;
     private List<String> fields;
@@ -25,7 +27,7 @@ public class SearchApiRequestBuilder {
     private int size;
 
     public SearchApiRequest basicRequest() {
-        return index("my_index").from(0).size(20).builder();
+        return index(INDEX_NAME).from(0).size(20).builder();
     }
 
     private SearchApiRequest builder() {
