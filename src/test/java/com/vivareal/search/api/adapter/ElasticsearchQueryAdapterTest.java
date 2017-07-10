@@ -1,5 +1,6 @@
 package com.vivareal.search.api.adapter;
 
+import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.SearchApiRequest;
 import org.assertj.core.util.Lists;
@@ -41,6 +42,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 /**
  * Created by leandropereirapinto on 7/3/17.
  */
+@ThreadLeakScope(ThreadLeakScope.Scope.NONE)
 @RunWith(com.carrotsearch.randomizedtesting.RandomizedRunner.class)
 public class ElasticsearchQueryAdapterTest {
 
