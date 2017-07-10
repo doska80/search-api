@@ -23,14 +23,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.lucene.geo.GeoUtils.checkLatitude;
 import static org.apache.lucene.geo.GeoUtils.checkLongitude;
@@ -61,6 +61,12 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     @Value("${es.facet.size}")
     private Integer facetSize;
+
+    @Value("${source.default.includes}")
+    private String sourceDefaultIncludes;
+
+    @Value("${source.default.excludes}")
+    private String sourceDefaultExcludes;
 
     @Override
     public GetRequestBuilder getById(SearchApiRequest request, String id) {
@@ -279,13 +285,21 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
         if (!isEmpty(request.getIncludeFields())) {
             includes = request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]);
+        } else if (!isEmpty(sourceDefaultIncludes)) {
+            includes = sourceDefaultIncludes.split(",");
         }
 
         if (!isEmpty(request.getExcludeFields())) {
             excludes = request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]);
+        } else if (!isEmpty(sourceDefaultExcludes)) {
+            excludes = sourceDefaultExcludes.split(",");
         }
 
         if (!ArrayUtils.isEmpty(includes) || !ArrayUtils.isEmpty(excludes)) {
+            if (!ArrayUtils.isEmpty(includes) && !ArrayUtils.isEmpty(excludes)) {
+                Set<String> includesList = new HashSet<>(asList(includes));
+                excludes = stream(excludes).filter(ex -> !includesList.contains(ex)).toArray(String[]::new);
+            }
             searchRequestBuilder.setFetchSource(includes, excludes);
         }
     }
