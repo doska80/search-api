@@ -411,7 +411,7 @@ public class ElasticsearchQueryAdapterTest {
     @Test
     public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() {
         ArrayList<String> includeFields = Lists.newArrayList("field1", "field2", "field3");
-        ArrayList<String> excludeFields = Lists.newArrayList("field3");
+        ArrayList<String> excludeFields = Lists.newArrayList("field3", "field4");
 
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -422,8 +422,8 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(includeFields.size(), fetchSourceContext.includes().length);
         assertTrue(includeFields.containsAll(Arrays.asList(fetchSourceContext.includes())));
 
-        assertEquals(excludeFields.size(), fetchSourceContext.excludes().length);
-        assertTrue(excludeFields.containsAll(Arrays.asList(fetchSourceContext.excludes())));
+        assertEquals((excludeFields.size() - 1), fetchSourceContext.excludes().length);
+        assertTrue(Arrays.asList(fetchSourceContext.excludes()).contains(excludeFields.get(1)));
     }
 
     @Test
