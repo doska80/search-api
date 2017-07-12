@@ -1,6 +1,7 @@
 package com.vivareal.search.api.adapter;
 
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
+import com.vivareal.search.api.configuration.SearchApiEnv;
 import com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.SearchApiRequest;
 import org.assertj.core.util.Lists;
@@ -57,16 +58,14 @@ public class ElasticsearchQueryAdapterTest {
     public void setup() {
         initMocks(this);
 
+        this.transportClient = new MockTransportClient(Settings.EMPTY);
         this.queryAdapter = spy(new ElasticsearchQueryAdapter());
 
-        this.transportClient = new MockTransportClient(Settings.EMPTY);
+        SearchApiEnv.RemoteProperties.QS_MM.setValue("75%");
 
-        // initialize variables
+        // initialize variables to ElasticsearchQueryAdapter
         setField(this.queryAdapter, "transportClient", transportClient);
         setField(this.queryAdapter, "settingsAdapter", settingsAdapter);
-        setField(this.queryAdapter, "queryDefaultFields", "title.raw,description.raw:2,address.street.raw:5");
-        setField(this.queryAdapter, "queryDefaultMM", "75%");
-        setField(this.queryAdapter, "facetSize", 20);
 
         doNothing().when(settingsAdapter).checkIndex(any(SearchApiRequest.class));
         when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
