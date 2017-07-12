@@ -2,21 +2,22 @@ package com.vivareal.search.api.model.query;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import static com.vivareal.search.api.model.query.LogicalOperator.LogicalOperatorMap.OPERATORS;
 import static java.util.Optional.ofNullable;
 
 public enum LogicalOperator implements QueryFragment {
 
-    AND,
-    OR;
+    AND("AND", "&&"),
+    OR("OR", "||");
 
-    private static final Map<String, LogicalOperator> OPERATORS = new HashMap<>(4);
+    private String[] alias;
 
-    static {
-        OPERATORS.put("&&", AND);
-        OPERATORS.put("AND", AND);
-        OPERATORS.put("||", OR);
-        OPERATORS.put("OR", OR);
+    LogicalOperator(String... alias) {
+        if (alias.length < 1) throw new IllegalArgumentException("Operator must have at least 1 alias");
+        this.alias = alias;
+        Stream.of(this.alias).forEach(label -> OPERATORS.put(label, this));
     }
 
     public static String[] getOperators() {
@@ -25,8 +26,11 @@ public enum LogicalOperator implements QueryFragment {
 
     public static LogicalOperator get(final String logic) {
         return ofNullable(logic)
-            .map(String::toUpperCase)
             .map(OPERATORS::get)
             .orElseThrow(() -> new IllegalArgumentException("Logical Operator \"" + logic + "\" is not recognized!"));
+    }
+
+    static class LogicalOperatorMap {
+        static Map<String, LogicalOperator> OPERATORS = new HashMap<>();
     }
 }

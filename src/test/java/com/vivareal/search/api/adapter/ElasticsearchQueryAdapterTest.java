@@ -610,7 +610,7 @@ public class ElasticsearchQueryAdapterTest {
         Object[] field5Value = new Object[]{1, "\"string\"", 1.2, true};
 
         String field6Name = "field6.location";
-        String field6RelationalOperator = getOperators(VIEWPORT).get(1);
+        String field6RelationalOperator = getOperators(VIEWPORT).get(0);
         double northEastLat = 42.0;
         double northEastLon = -74.0;
         double southWestLat = -40.0;

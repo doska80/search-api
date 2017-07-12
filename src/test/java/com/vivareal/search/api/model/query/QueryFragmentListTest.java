@@ -3,13 +3,11 @@ package com.vivareal.search.api.model.query;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
 
 import static br.com.six2six.fixturefactory.Fixture.from;
 import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 
@@ -27,7 +25,7 @@ public class QueryFragmentListTest {
         QueryFragmentList qfl = new QueryFragmentList(fragmentList);
 
         assertEquals(fragmentList.size(), qfl.size());
-        assertEquals("(AND field EQUAL \"value\")", qfl.toString());
+        assertEquals("(field EQUAL \"value\")", qfl.toString());
         for (int i = 0; i < fragmentList.size(); i++)
             assertEquals(fragmentList.get(i), qfl.get(i));
     }
@@ -44,6 +42,12 @@ public class QueryFragmentListTest {
         QueryFragmentList qfl = new QueryFragmentList(queryFragmentList);
 
         assertEquals(1, qfl.size());
-        assertEquals("(AND field EQUAL \"value\")", qfl.toString());
+        assertEquals("(field EQUAL \"value\")", qfl.toString());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void exceededQueryFragmentLists() {
+        QueryFragment qfi = from(QueryFragmentItem.class).gimme("qfi");
+        new QueryFragmentList(Collections.nCopies(QueryFragment.MAX_FRAGMENTS + 1, qfi));
     }
 }

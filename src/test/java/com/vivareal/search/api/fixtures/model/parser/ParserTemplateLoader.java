@@ -43,7 +43,6 @@ public class ParserTemplateLoader implements TemplateLoader {
         }});
 
         Fixture.of(QueryFragmentItem.class).addTemplate("qfi", new Rule() {{
-            add("logicalOperator", AND);
             add("filter", one(Filter.class, "filter"));
         }});
     }

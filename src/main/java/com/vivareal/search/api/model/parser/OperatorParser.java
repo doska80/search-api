@@ -3,13 +3,18 @@ package com.vivareal.search.api.model.parser;
 import com.vivareal.search.api.model.query.LogicalOperator;
 import com.vivareal.search.api.model.query.OrderOperator;
 import com.vivareal.search.api.model.query.RelationalOperator;
-import org.jparsec.Parser;
-import org.jparsec.Scanners;
-import org.jparsec.Terminals;
-import org.jparsec.Tokens;
+import org.jparsec.*;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import static org.jparsec.Parsers.between;
+import static org.jparsec.Parsers.or;
+import static org.jparsec.Scanners.WHITESPACES;
+import static org.jparsec.Scanners.string;
+import static org.jparsec.Terminals.fragment;
+import static org.jparsec.Terminals.operators;
 
 public class OperatorParser {
 
@@ -19,9 +24,13 @@ public class OperatorParser {
 
     public static final Parser<OrderOperator> ORDER_OPERATOR_PARSER = get(OrderOperator::getOperators, OrderOperator::get, "order operator");
 
+    public static Parser<String> exact(RelationalOperator operator) {
+        return between(WHITESPACES.skipMany(), or(Stream.of(operator.getAlias()).map(Scanners::string).toArray(Parser[]::new)).or(string(operator.name())), WHITESPACES.skipMany()).retn(operator.name());
+    }
+
     private static <T> Parser<T> get(Supplier<String[]> operators, Function<String, T> getFn, String label) {
-        Terminals OPERATORS = Terminals.operators(operators.get());
-        Parser<T> OPERATOR_MAPPER = Terminals.fragment(Tokens.Tag.RESERVED).label(label).map(getFn);
-        return OPERATOR_MAPPER.from(OPERATORS.tokenizer(), Scanners.WHITESPACES.optional(null)).label(label);
+        Terminals OPERATORS = operators(operators.get());
+        Parser<T> OPERATOR_MAPPER = fragment(Tokens.Tag.RESERVED).label(label).map(getFn);
+        return OPERATOR_MAPPER.from(OPERATORS.tokenizer(), WHITESPACES.optional(null)).label(label);
     }
 }

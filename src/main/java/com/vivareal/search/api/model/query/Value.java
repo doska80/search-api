@@ -13,7 +13,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Value {
 
-    private List<Object> contents = EMPTY_CONTENTS;
+    protected List<Object> contents = EMPTY_CONTENTS;
 
     private static final List<Object> EMPTY_CONTENTS = emptyList();
 
@@ -37,6 +37,14 @@ public class Value {
 
     public Object getContents(int index) {
         return ofNullable(contents).map(c -> c.get(index)).orElseThrow(() -> new IndexOutOfBoundsException(String.valueOf(index)));
+    }
+
+    public <T> T value() {
+        return value(0);
+    }
+
+    public <T> T value(int index) {
+        return (T) getContents(index);
     }
 
     @Override

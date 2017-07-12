@@ -10,6 +10,8 @@ import static org.junit.Assert.assertEquals;
 public class ValueParserTest {
     private static final Parser<Value> parser = ValueParser.get();
 
+    private static final Parser<Value> parserViewport = ValueParser.Viewport.get();
+
     @Test
     public void testInteger() {
         String value = "123456";
@@ -112,7 +114,7 @@ public class ValueParserTest {
     @Test
     public void testMultipleNegativeDoubleIN() {
         String value = "[-23.5534103,-46.6597479;-23.5534103,-46.6597479]";
-        Value viewport = parser.parse(value);
+        Value viewport = parserViewport.parse(value);
         assertEquals("[[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }
 
@@ -121,5 +123,20 @@ public class ValueParserTest {
         String value = "[-23.5534103  ,   -46.6597479, -23.5534103,-46.6597479  ]";
         Value in = parser.parse(value);
         assertEquals("[-23.5534103, -46.6597479, -23.5534103, -46.6597479]", in.toString());
+    }
+
+    @Test(expected = ParserException.class)
+    public void testInvalidFirstMultipleNegativeDoubleIN() {
+        parserViewport.parse("[-23.5534103,-46.6597479;-23.5534103]");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testInvalidSecondMultipleNegativeDoubleIN() {
+        parserViewport.parse("[-46.6597479;-23.5534103,-46.6597479]");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testInvalidMultipleNegativeDoubleIN() {
+        parserViewport.parse("[-23.5534103,-46.6597479;-23.5534103,-46.6597479;-23.5534103,-46.6597479]");
     }
 }

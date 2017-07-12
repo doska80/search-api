@@ -32,8 +32,6 @@ import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.lucene.geo.GeoUtils.checkLatitude;
-import static org.apache.lucene.geo.GeoUtils.checkLongitude;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -148,7 +146,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(true), logicalOperator, not);
                                 break;
                             case IN:
-                                Object[] values = ((List<com.vivareal.search.api.model.query.Value>) multiValues.get(0)).stream().map(contents -> contents.getContents(0)).toArray();
+                                Object[] values = multiValues.stream().map(contents -> ((com.vivareal.search.api.model.query.Value) contents).getContents(0)).toArray();
                                 addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, values), logicalOperator, not);
                                 break;
                             case VIEWPORT:
@@ -170,13 +168,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private GeoPoint createGeoPointFromRawCoordinates(List<com.vivareal.search.api.model.query.Value> viewPortLatLon) {
-        double lat = (double) viewPortLatLon.get(0).getContents(0);
-        double lon = (double) viewPortLatLon.get(1).getContents(0);
-
-        checkLatitude(lat);
-        checkLongitude(lon);
-
-        return new GeoPoint(lat, lon);
+        return new GeoPoint(viewPortLatLon.get(0).value(), viewPortLatLon.get(1).value());
     }
 
     private boolean isNotBeforeCurrentQueryFragment(final QueryFragmentList queryFragmentList, final int index) {

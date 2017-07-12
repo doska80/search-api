@@ -6,6 +6,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.AbstractList;
 import java.util.List;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 
 public class QueryFragmentList extends AbstractList<QueryFragment> implements QueryFragment {
@@ -13,12 +14,17 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
     private final List<QueryFragment> fragments;
 
     public QueryFragmentList(List<QueryFragment> fragments) {
+        if (fragments.size() > MAX_FRAGMENTS) throw new IllegalArgumentException(format("Exceeded the number of fragments: %d (max: %d)", fragments.size(), MAX_FRAGMENTS));
         this.fragments = validateSingleRecursiveQueryFragmentList(fragments);
     }
 
     private List<QueryFragment> validateSingleRecursiveQueryFragmentList(List<QueryFragment> queryFragments) {
+        QueryFragment fragment = queryFragments.get(0);
         if (hasOnlyAnInternalQueryFragmentList(queryFragments)) // e.g. ((((queryFragmentList)))), will be extracted to a single (queryFragmentList)
-            return (List<QueryFragment>) queryFragments.get(0);
+            return (List<QueryFragment>) fragment;
+
+        if (fragment instanceof QueryFragmentItem && ((QueryFragmentItem) fragment).getLogicalOperator() != null)
+            throw new IllegalStateException("The first item cannot have a logical operator prefix");
 
         // If there isn't a single nested QueryFragmentList
         return queryFragments;
@@ -42,7 +48,7 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
 
     @Override
     public String toString() {
-        return String.format("(%s)", fragments.stream().map(QueryFragment::toString).collect(joining(" ")));
+        return format("(%s)", fragments.stream().map(QueryFragment::toString).collect(joining(" ")));
     }
 
     @Override

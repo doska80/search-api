@@ -5,6 +5,10 @@ import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.stream.Collectors;
+
+import static br.com.six2six.fixturefactory.Fixture.from;
 import static org.junit.Assert.assertEquals;
 
 public class QueryParserTest {
@@ -20,6 +24,12 @@ public class QueryParserTest {
     public void inTest() {
         QueryFragment query = parser.parse("banos IN [3,4]");
         assertEquals("(banos IN [3, 4])", query.toString());
+    }
+
+    @Test
+    public void inMultipleTypesTest() {
+        QueryFragment query = parser.parse("address.geoLocation IN [1, \"df\", true, null]");
+        assertEquals("(address.geoLocation IN [1, \"df\", true, NULL])", query.toString());
     }
 
     @Test
@@ -100,5 +110,19 @@ public class QueryParserTest {
         QueryFragment query2 = parser.parse("(rooms:3)");
         assertEquals("(rooms EQUAL 3)", query1.toString());
         assertEquals("(rooms EQUAL 3)", query2.toString());
+    }
+
+    @Test(expected = ParserException.class)
+    public void oneRecursionWithLogicalPrefix() {
+        parser.parse("AND field:1");
+    }
+
+    @Test(expected = ParserException.class)
+    public void exceededQueryFragmentLists() {
+        String query = Collections
+            .nCopies(QueryFragment.MAX_FRAGMENTS + 1, "field:1")
+            .stream()
+            .collect(Collectors.joining(" AND "));
+        parser.parse(query);
     }
 }

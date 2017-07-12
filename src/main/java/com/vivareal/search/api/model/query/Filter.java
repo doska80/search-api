@@ -20,6 +20,10 @@ public class Filter {
         this.value = value;
     }
 
+    public Filter(Field field, String relationalOperator, Value value) {
+        this(field, RelationalOperator.valueOf(relationalOperator), value);
+    }
+
     public Field getField() {
         return field;
     }
