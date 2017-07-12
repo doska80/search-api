@@ -39,7 +39,6 @@ public class ApiBeans implements DisposableBean {
 
         for (InetAddress address : InetAddress.getAllByName(hostname))
             this.esClient.addTransportAddress(new InetSocketTransportAddress(address, port));
-
         return esClient;
     }
 
