@@ -2,7 +2,6 @@ package com.vivareal.search.api.controller;
 
 import com.vivareal.search.api.service.SearchApiEnvService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,9 +13,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @RestController
 @RequestMapping("/v2/search-api/properties")
 public class SearchApiEnvController {
-
-    @Value("${spring.profiles.active}")
-    private String profile;
 
     @Autowired
     private SearchApiEnvService service;

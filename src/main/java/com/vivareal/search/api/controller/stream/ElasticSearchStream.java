@@ -16,6 +16,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 
+import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_CONTROLLER_STREAM_TIMEOUT;
+import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_SCROLL_TIMEOUT;
+import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_STREAM_SIZE;
+import static java.lang.Integer.parseInt;
+
 @Component
 public class ElasticSearchStream {
 
@@ -26,20 +31,13 @@ public class ElasticSearchStream {
     @Qualifier("ElasticsearchQuery")
     private QueryAdapter<?, SearchRequestBuilder> queryAdapter;
 
-    @Value("${es.scroll.timeout}")
-    private Integer scrollTimeout;
-
-    @Value("${es.stream.size}")
-    private Integer size;
-
-    @Value("${es.controller.stream.timeout}")
-    private Integer timeout;
-
     public void stream(SearchApiRequest request, OutputStream stream) {
 
-        TimeValue keepAlive = new TimeValue(this.scrollTimeout);
+        TimeValue keepAlive = new TimeValue(parseInt(ES_SCROLL_TIMEOUT.getValue()));
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
-        requestBuilder.setScroll(keepAlive).setSize(size);
+        requestBuilder.setScroll(keepAlive).setSize(parseInt(ES_STREAM_SIZE.getValue()));
+
+        int timeout = parseInt(ES_CONTROLLER_STREAM_TIMEOUT.getValue());
 
         ResponseStream.create(stream)
                 .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),

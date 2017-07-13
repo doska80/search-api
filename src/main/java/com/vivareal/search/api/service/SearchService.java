@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
@@ -23,7 +22,9 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.*;
 import static com.vivareal.search.api.model.SearchApiResponse.builder;
+import static java.lang.Integer.parseInt;
 import static java.util.Collections.synchronizedList;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
@@ -38,23 +39,14 @@ public class SearchService {
     @Qualifier("ElasticsearchQuery")
     private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
 
-    @Value("${es.default.size}")
-    private Integer defaultSize;
-
-    @Value("${es.max.size}")
-    private Integer maxSize;
-
-    @Value("${es.controller.search.timeout}")
-    private Integer timeout;
-
     @Autowired
     private ElasticSearchStream elasticSearch;
 
     public Optional<SearchApiResponse> getById(SearchApiRequest request, String id) {
-        request.setPaginationValues(defaultSize, maxSize);
+        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue()), parseInt(ES_MAX_SIZE.getValue()));
 
         try {
-            GetResponse response = this.queryAdapter.getById(request, id).execute().get(timeout, TimeUnit.MILLISECONDS);
+            GetResponse response = this.queryAdapter.getById(request, id).execute().get(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue()), TimeUnit.MILLISECONDS);
             if (response.isExists())
                 return ofNullable(builder().result(request.getIndex(), newArrayList(response.getSource())).totalCount(1));
 
@@ -65,10 +57,10 @@ public class SearchService {
     }
 
     public SearchApiResponse search(SearchApiRequest request) {
-        request.setPaginationValues(defaultSize, maxSize);
+        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue()), parseInt(ES_MAX_SIZE.getValue()));
 
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
-        SearchResponse esResponse = requestBuilder.execute().actionGet(timeout);
+        SearchResponse esResponse = requestBuilder.execute().actionGet(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue()));
 
         return builder()
                 .time(esResponse.getTookInMillis())
@@ -81,7 +73,7 @@ public class SearchService {
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {
-        request.setPaginationValues(defaultSize, maxSize);
+        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue()), parseInt(ES_MAX_SIZE.getValue()));
         elasticSearch.stream(request, stream);
     }
 }

@@ -246,7 +246,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             request.getFacets().forEach(facetField -> searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName())
                     .field(facetField.getName())
                     .order(Terms.Order.count(false))
-                    .size(request.getFacetSize() != null ? request.getFacetSize() : Integer.valueOf(ES_FACET_SIZE.getValue()))
+                    .size(request.getFacetSize() != null ? request.getFacetSize() : parseInt(ES_FACET_SIZE.getValue()))
                     .shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS))))));
     }
 
