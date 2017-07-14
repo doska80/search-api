@@ -1,9 +1,10 @@
 package com.vivareal.search.api.model.query;
 
+import static java.util.stream.Collectors.joining;
+
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -30,7 +31,7 @@ public final class Sort extends AbstractList<Sort.Item> {
 
     @Override
     public String toString() {
-        return items.stream().map(Item::toString).collect(Collectors.joining(" "));
+        return items.stream().map(Item::toString).collect(joining(" "));
     }
 
     public static class Item {

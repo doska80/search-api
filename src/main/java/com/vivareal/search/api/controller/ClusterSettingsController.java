@@ -2,7 +2,6 @@ package com.vivareal.search.api.controller;
 
 import com.vivareal.search.api.service.ClusterSettingsService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

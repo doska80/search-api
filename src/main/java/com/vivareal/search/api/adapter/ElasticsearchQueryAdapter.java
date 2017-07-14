@@ -1,6 +1,5 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.configuration.SearchApiEnv;
 import com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.*;

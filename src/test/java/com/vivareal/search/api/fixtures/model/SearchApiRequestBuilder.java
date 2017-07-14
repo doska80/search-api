@@ -1,10 +1,10 @@
 package com.vivareal.search.api.fixtures.model;
 
-import com.vivareal.search.api.model.SearchApiRequest;
+import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 import java.util.List;
 
-import static org.apache.commons.lang3.ObjectUtils.allNotNull;
+import com.vivareal.search.api.model.SearchApiRequest;
 
 /**
  * Created by leandropereirapinto on 7/6/17.
