@@ -61,24 +61,42 @@ public class SearchApiIntegrationTest {
             .when()
                 .get(TEST_DATA_INDEX + "/" + id)
             .then()
-                .body("totalCount", equalTo(1))
-                .body("result", not(hasKey("nonExistingField")))
-                .body("result.testdata", hasSize(1))
-                .body("result.testdata[0].id", equalTo(String.valueOf(id)))
-                .body("result.testdata[0].numeric", equalTo(id))
-                .body("result.testdata[0].array_integer", hasSize(id-1))
-                .body("result.testdata[0].array_integer", equalTo(range(1, id).boxed().collect(toList())))
-                .body("result.testdata[0].field" + id, equalTo("value" + id))
-                .body("result.testdata[0].isEven", equalTo(id%2 == 0))
-                .body("result.testdata[0].nested.boolean", equalTo(id%2 != 0))
-                .body("result.testdata[0].nested.number", equalTo(id * 2))
-                .body("result.testdata[0].nested.float", equalTo(id * 3.5f))
-                .body("result.testdata[0].nested.string", equalTo(format("string_with_char(%s)", (char) (id + 'a'))))
-                .body("result.testdata[0].nested.object.field", equalTo("common"))
-                .body("result.testdata[0].nested.object.array_string", hasSize(id-1))
-                .body("result.testdata[0].nested.object.array_string", equalTo(range(1, id).boxed().map(String::valueOf).collect(toList())));
+                .body("id", equalTo(String.valueOf(id)))
+                .body("$", not(hasKey("nonExistingKey")))
+                .body("numeric", equalTo(id))
+                .body("array_integer", hasSize(id-1))
+                .body("array_integer", equalTo(range(1, id).boxed().collect(toList())))
+                .body("field" + id, equalTo("value" + id))
+                .body("isEven", equalTo(id%2 == 0))
+                .body("nested.boolean", equalTo(id%2 != 0))
+                .body("nested.number", equalTo(id * 2))
+                .body("nested.float", equalTo(id * 3.5f))
+                .body("nested.string", equalTo(format("string_with_char(%s)", (char) (id + 'a'))))
+                .body("nested.object.field", equalTo("common"))
+                .body("nested.object.array_string", hasSize(id-1))
+                .body("nested.object.array_string", equalTo(range(1, id).boxed().map(String::valueOf).collect(toList())));
 
         });
+    }
+
+    @Test
+    public void responseOkWhenSearchAnExistingDocumentByIdWithIncludeAndExcludeFields() throws IOException {
+        int id = STANDARD_DATASET_SIZE / 2;
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s/%s?includeFields=id,numeric&excludeFields=numeric", TEST_DATA_INDEX, id))
+        .then()
+            .body("id", equalTo(String.valueOf(id)))
+            .body("numeric", equalTo(id))
+            .body("$", not(hasKey("array_integer")))
+            .body("$", not(hasKey("field" + id)))
+            .body("$", not(hasKey("isEven")))
+            .body("$", not(hasKey("nested")));
     }
 
     @Test
@@ -125,7 +143,7 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void validateEqualsFilterForStringSingleQuoted() {
+    public void validateEqualsFilterForStringDoubleQuoted() {
         int id = STANDARD_DATASET_SIZE / 2;
 
         given()
@@ -144,7 +162,7 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void validateEqualsFilterForStringDoubleQuoted() {
+    public void validateEqualsFilterForStringSingleQuoted() {
         int id = STANDARD_DATASET_SIZE / 6;
 
         given()

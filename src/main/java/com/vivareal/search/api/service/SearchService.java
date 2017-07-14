@@ -42,13 +42,13 @@ public class SearchService {
     @Autowired
     private ElasticSearchStream elasticSearch;
 
-    public Optional<SearchApiResponse> getById(SearchApiRequest request, String id) {
+    public Optional<Object> getById(SearchApiRequest request, String id) {
         request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue()), parseInt(ES_MAX_SIZE.getValue()));
 
         try {
             GetResponse response = this.queryAdapter.getById(request, id).execute().get(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue()), TimeUnit.MILLISECONDS);
             if (response.isExists())
-                return ofNullable(builder().result(request.getIndex(), newArrayList(response.getSource())).totalCount(1));
+                return ofNullable(response.getSource());
 
         } catch (Exception e) {
             LOG.error("Getting id={}, request: {}, error: {}", id, request, e);
