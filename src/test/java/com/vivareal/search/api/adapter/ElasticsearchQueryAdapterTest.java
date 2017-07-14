@@ -25,12 +25,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder.INDEX_NAME;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
+import static java.util.Arrays.asList;
+import static java.util.Comparator.naturalOrder;
+import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
@@ -86,6 +91,34 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(id, requestBuilder.request().id());
         assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
         assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
+    }
+
+    @Test
+    public void shouldReturnGetRequestBuilderByGetIdWithIncludeAndExcludeFields() {
+        String id = "123456";
+        ArrayList<String> includeFields = Lists.newArrayList("field1", "field2", "field3");
+        ArrayList<String> excludeFields = Lists.newArrayList("field3", "field4");
+
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
+        GetRequestBuilder requestBuilder = queryAdapter.getById(searchApiRequest, id);
+        FetchSourceContext fetchSourceContext = requestBuilder.request().fetchSourceContext();
+
+        assertEquals(id, requestBuilder.request().id());
+        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
+        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
+
+        assertNotNull(fetchSourceContext);
+
+        // Check include fields
+        assertEquals(includeFields.size(), fetchSourceContext.includes().length);
+        assertTrue(includeFields.containsAll(asList(fetchSourceContext.includes())));
+
+        // Check exclude fields
+        List<String> intersection = newArrayList(excludeFields);
+        intersection.retainAll(includeFields);
+        List<String> excludedAfterValidation = excludeFields.stream().filter(field -> !intersection.contains(field)).sorted().collect(toList());
+        assertEquals(excludeFields.size() - intersection.size(), fetchSourceContext.excludes().length);
+        assertEquals(Stream.of(fetchSourceContext.excludes()).sorted().collect(toList()), excludedAfterValidation);
     }
 
     @Test
@@ -255,7 +288,7 @@ public class ElasticsearchQueryAdapterTest {
                 TermsQueryBuilder terms = (TermsQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
                 assertEquals(field, terms.fieldName());
-                assertTrue(Arrays.asList(Arrays.stream(values).map(value -> {
+                assertTrue(asList(Arrays.stream(values).map(value -> {
 
                     if (value instanceof String) {
                         String s = String.valueOf(value);
@@ -421,10 +454,10 @@ public class ElasticsearchQueryAdapterTest {
         assertNotNull(fetchSourceContext);
 
         assertEquals(includeFields.size(), fetchSourceContext.includes().length);
-        assertTrue(includeFields.containsAll(Arrays.asList(fetchSourceContext.includes())));
+        assertTrue(includeFields.containsAll(asList(fetchSourceContext.includes())));
 
         assertEquals((excludeFields.size() - 1), fetchSourceContext.excludes().length);
-        assertTrue(Arrays.asList(fetchSourceContext.excludes()).contains(excludeFields.get(1)));
+        assertTrue(asList(fetchSourceContext.excludes()).contains(excludeFields.get(1)));
     }
 
     @Test
@@ -652,9 +685,9 @@ public class ElasticsearchQueryAdapterTest {
         FetchSourceContext fetchSourceContext = source.fetchSource();
         assertNotNull(fetchSourceContext);
         assertEquals(includeFields.size(), fetchSourceContext.includes().length);
-        assertTrue(includeFields.containsAll(Arrays.asList(fetchSourceContext.includes())));
+        assertTrue(includeFields.containsAll(asList(fetchSourceContext.includes())));
         assertEquals(excludeFields.size(), fetchSourceContext.excludes().length);
-        assertTrue(excludeFields.containsAll(Arrays.asList(fetchSourceContext.excludes())));
+        assertTrue(excludeFields.containsAll(asList(fetchSourceContext.excludes())));
 
         // sort
         List<FieldSortBuilder> sorts = (List) source.sorts();
@@ -745,7 +778,7 @@ public class ElasticsearchQueryAdapterTest {
         // field 5
         TermsQueryBuilder mustTermsThirdLevelField5 = (TermsQueryBuilder) mustThirdLevel.get(0);
         assertEquals(field5Name, mustTermsThirdLevelField5.fieldName());
-        assertTrue(Arrays.asList(Arrays.stream(field5Value).map(value -> {
+        assertTrue(asList(Arrays.stream(field5Value).map(value -> {
 
             if (value instanceof String) {
                 String s = String.valueOf(value);

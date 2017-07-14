@@ -1,8 +1,13 @@
 package com.vivareal.search.api.adapter;
 
+import com.vivareal.search.api.configuration.SearchApiEnv;
+import com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties;
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.*;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
@@ -21,17 +26,22 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
-import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
+import static java.util.Collections.emptyList;
+import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -56,7 +66,12 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     public GetRequestBuilder getById(SearchApiRequest request, String id) {
         settingsAdapter.checkIndex(request);
 
-        GetRequestBuilder requestBuilder = transportClient.prepareGet().setIndex(request.getIndex()).setType(request.getIndex()).setId(id);
+        Pair<String[], String[]> fetchSourceFields = getFetchSourceFields(request);
+        GetRequestBuilder requestBuilder = transportClient.prepareGet()
+            .setIndex(request.getIndex())
+            .setType(request.getIndex())
+            .setId(id)
+            .setFetchSource(fetchSourceFields.getLeft(), fetchSourceFields.getRight());
         LOG.debug("Query getById {}", requestBuilder != null ? requestBuilder.request() : null);
 
         return requestBuilder;
@@ -256,28 +271,39 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
+        Pair<String[], String[]> fetchSource = getFetchSourceFields(request);
+        searchRequestBuilder.setFetchSource(fetchSource.getLeft(), fetchSource.getRight());
+    }
 
-        List<String> includes = newArrayList();
-        List<String>  excludes = newArrayList();
-
+    private Pair<String[], String[]> getFetchSourceFields(SearchApiRequest request) {
+        String[] includes = getDefaultFieldConfig(SOURCE_INCLUDES);
         if (!isEmpty(request.getIncludeFields())) {
-            includes = request.getIncludeFields();
-        } else if (!isEmpty(SOURCE_INCLUDES.getValue())) {
-            includes = asList(SOURCE_INCLUDES.getValue().split(","));
+            includes = list2Array(request.getIncludeFields());
         }
 
+        String[] excludes = getDefaultFieldConfig(SOURCE_EXCLUDES);
         if (!isEmpty(request.getExcludeFields())) {
-            excludes = request.getExcludeFields();
-        } else if (!isEmpty(SOURCE_EXCLUDES.getValue())) {
-            excludes = asList(SOURCE_EXCLUDES.getValue().split(","));
+            excludes = list2Array(request.getExcludeFields());
         }
 
-        if (!includes.isEmpty() || !excludes.isEmpty()) {
-            if (!includes.isEmpty() && !excludes.isEmpty()) {
-                Set<String> includesList = new HashSet<>(includes);
-                excludes = excludes.stream().filter(ex -> !includesList.contains(ex)).collect(toList());
-            }
-            searchRequestBuilder.setFetchSource(includes.isEmpty() ? null : includes.toArray(new String[includes.size()]), excludes.isEmpty() ? null : excludes.toArray(new String[excludes.size()]));
+        if (!ArrayUtils.isEmpty(includes) && !ArrayUtils.isEmpty(excludes)) {
+            Set<String> includesList = Stream.of(includes).collect(Collectors.toSet());
+            excludes = stream(excludes).filter(ex -> !includesList.contains(ex)).toArray(String[]::new);
         }
+
+        return Pair.of(includes, excludes);
+    }
+
+    private String[] getDefaultFieldConfig(RemoteProperties sourceDefaultIncludes) {
+        return ofNullable(sourceDefaultIncludes)
+            .map(RemoteProperties::getValue)
+            .filter(StringUtils::isNotBlank)
+            .map(defaultFields -> defaultFields.split(","))
+            .orElse(new String[]{});
+    }
+
+    private String[] list2Array(List<String> rawList) {
+        List<String> list = firstNonNull(rawList, emptyList());
+        return list.toArray(new String[list.size()]);
     }
 }

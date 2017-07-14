@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.unmodifiableMap;
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
@@ -62,6 +63,7 @@ public class ESIndexHandler {
         }
 
         LOG.info(TEST_DATA_INDEX + " inserted " + entities.size() + " documents");
+        refreshIndex();
     }
 
     private String createStandardEntityForId(int id) {
@@ -110,6 +112,18 @@ public class ESIndexHandler {
             return true;
         } catch (IOException e) {
             LOG.error("Unable to add entity for index: " + TEST_DATA_INDEX, e);
+        }
+        return false;
+    }
+
+    private boolean refreshIndex() {
+        try {
+            Response response = restClient.performRequest("POST", TEST_DATA_INDEX + "/_refresh", emptyMap());
+            MICROSECONDS.sleep(500);
+            LOG.info("Forced commit into index: " + TEST_DATA_INDEX);
+            return true;
+        } catch (IOException | InterruptedException e) {
+            LOG.error("Unable to force commit into index: " + TEST_DATA_INDEX, e);
         }
         return false;
     }

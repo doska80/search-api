@@ -35,14 +35,12 @@ public class SearchController {
     public ResponseEntity<Object> getById(@PathVariable("index") String index, SearchApiRequest request, @PathVariable String id) {
         request.setIndex(index);
         try {
-            Optional<SearchApiResponse> response = searchService.getById(request, id);
+            Optional<Object> response = searchService.getById(request, id);
             if (response.isPresent())
                 return new ResponseEntity<>(response.get(), OK);
 
             LOG.debug("ID {} not found on {} index", id, index);
-
             return new ResponseEntity<>(NOT_FOUND);
-
         } catch (IllegalArgumentException ex) {
             String errorMessage = getRootCauseMessage(ex);
             LOG.error(errorMessage);
