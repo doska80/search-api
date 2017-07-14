@@ -39,7 +39,7 @@ public class SearchController {
             if (response.isPresent())
                 return new ResponseEntity<>(response.get(), OK);
 
-            LOG.debug("ID %s not found on %s index", id, index);
+            LOG.debug("ID {} not found on {} index", id, index);
 
             return new ResponseEntity<>(NOT_FOUND);
 

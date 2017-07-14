@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 @Component
-public class SettingsService {
+public class ClusterSettingsService {
 
     @Autowired
     @Qualifier("elasticsearchSettings")

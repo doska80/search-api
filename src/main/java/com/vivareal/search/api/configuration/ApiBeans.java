@@ -1,5 +1,7 @@
 package com.vivareal.search.api.configuration;
 
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -21,13 +23,23 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 public class ApiBeans implements DisposableBean {
 
     private TransportClient esClient = null;
+    private RestClient restClient = null;
+
+    @Value("${es.hostname}")
+    private String hostname;
+
+    @Value("${es.port}")
+    private Integer port;
+
+    @Value("${es.rest.port}")
+    private Integer restPort;
+
+    @Value("${es.cluster.name}")
+    private String clusterName;
 
     @Bean
     @Scope(SCOPE_SINGLETON)
-    public TransportClient transportClient(
-            @Value("${es.hostname}") final String hostname,
-            @Value("${es.port}") final Integer port,
-            @Value("${es.cluster.name}") final String clusterName) throws UnknownHostException {
+    public TransportClient transportClient() throws UnknownHostException {
         Settings settings = Settings.builder()
                 .put("client.transport.nodes_sampler_interval", "5s")
                 .put("client.transport.sniff", true)
@@ -42,9 +54,19 @@ public class ApiBeans implements DisposableBean {
         return esClient;
     }
 
+    @Bean
+    @Scope(SCOPE_SINGLETON)
+    public RestClient restClient() {
+        restClient = RestClient.builder(new HttpHost(hostname, restPort, "http")).build();
+        return restClient;
+    }
+
     @Override
     public void destroy() throws Exception {
         if (this.esClient != null)
             this.esClient.close();
+
+        if (restClient != null)
+            restClient.close();
     }
 }

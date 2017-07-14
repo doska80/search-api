@@ -2,7 +2,6 @@ package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.SearchApiRequest;
 import com.vivareal.search.api.model.query.*;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -19,18 +18,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -50,21 +51,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     @Autowired
     @Qualifier("elasticsearchSettings")
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
-
-    @Value("${querystring.default.fields}")
-    private String queryDefaultFields;
-
-    @Value("${querystring.default.mm}")
-    private String queryDefaultMM;
-
-    @Value("${es.facet.size}")
-    private Integer facetSize;
-
-    @Value("${source.default.includes}")
-    private String sourceDefaultIncludes;
-
-    @Value("${source.default.excludes}")
-    private String sourceDefaultExcludes;
 
     @Override
     public GetRequestBuilder getById(SearchApiRequest request, String id) {
@@ -210,16 +196,15 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
         if (!isEmpty(request.getQ())) {
-            String mm = isEmpty(request.getMm()) ? queryDefaultMM : request.getMm();
+            QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
+
+            String mm = isEmpty(request.getMm()) ? QS_MM.getValue() : request.getMm();
             checkMM(mm, request);
 
-            QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
             Map<String, Float> fields = new HashMap<>();
 
             if (isEmpty(request.getFields())) {
-                for (final String boostField : queryDefaultFields.split(",")) {
-                    addFieldToSearchOnQParameter(queryStringBuilder, boostField);
-                }
+                stream(QS_DEFAULT_FIELDS.getValue().split(",")).forEach(bf -> addFieldToSearchOnQParameter(queryStringBuilder, bf));
             } else {
                 request.getFields().forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, boostField));
             }
@@ -231,7 +216,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void checkMM(final String mm, final SearchApiRequest request) {
         String errorMessage = ("Minimum Should Match (mm) should be a valid integer number (-100 <> +100). Request: " + request.toString());
 
-        if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf("%"))) {
+        if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf('%'))) {
             LOG.error(errorMessage);
             throw new NumberFormatException(errorMessage);
         }
@@ -261,7 +246,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             request.getFacets().forEach(facetField -> searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName())
                     .field(facetField.getName())
                     .order(Terms.Order.count(false))
-                    .size(request.getFacetSize() != null ? request.getFacetSize() : facetSize)
+                    .size(request.getFacetSize() != null ? request.getFacetSize() : parseInt(ES_FACET_SIZE.getValue()))
                     .shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS))))));
     }
 
@@ -272,27 +257,27 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
 
-        String[] includes = null;
-        String[] excludes = null;
+        List<String> includes = newArrayList();
+        List<String>  excludes = newArrayList();
 
         if (!isEmpty(request.getIncludeFields())) {
-            includes = request.getIncludeFields().toArray(new String[request.getIncludeFields().size()]);
-        } else if (!isEmpty(sourceDefaultIncludes)) {
-            includes = sourceDefaultIncludes.split(",");
+            includes = request.getIncludeFields();
+        } else if (!isEmpty(SOURCE_INCLUDES.getValue())) {
+            includes = asList(SOURCE_INCLUDES.getValue().split(","));
         }
 
         if (!isEmpty(request.getExcludeFields())) {
-            excludes = request.getExcludeFields().toArray(new String[request.getExcludeFields().size()]);
-        } else if (!isEmpty(sourceDefaultExcludes)) {
-            excludes = sourceDefaultExcludes.split(",");
+            excludes = request.getExcludeFields();
+        } else if (!isEmpty(SOURCE_EXCLUDES.getValue())) {
+            excludes = asList(SOURCE_EXCLUDES.getValue().split(","));
         }
 
-        if (!ArrayUtils.isEmpty(includes) || !ArrayUtils.isEmpty(excludes)) {
-            if (!ArrayUtils.isEmpty(includes) && !ArrayUtils.isEmpty(excludes)) {
-                Set<String> includesList = new HashSet<>(asList(includes));
-                excludes = stream(excludes).filter(ex -> !includesList.contains(ex)).toArray(String[]::new);
+        if (!includes.isEmpty() || !excludes.isEmpty()) {
+            if (!includes.isEmpty() && !excludes.isEmpty()) {
+                Set<String> includesList = new HashSet<>(includes);
+                excludes = excludes.stream().filter(ex -> !includesList.contains(ex)).collect(toList());
             }
-            searchRequestBuilder.setFetchSource(includes, excludes);
+            searchRequestBuilder.setFetchSource(includes.isEmpty() ? null : includes.toArray(new String[includes.size()]), excludes.isEmpty() ? null : excludes.toArray(new String[excludes.size()]));
         }
     }
 }
