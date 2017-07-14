@@ -3,7 +3,6 @@ package com.vivareal.search.api.model.parser;
 import com.vivareal.search.api.model.query.Field;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;

@@ -43,7 +43,6 @@ public final class SearchApiResponse {
         return this;
     }
 
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     public SearchApiResponse facets(final Optional<Aggregations> aggregationsOptional) {
         aggregationsOptional.ifPresent(
             aggregations -> {

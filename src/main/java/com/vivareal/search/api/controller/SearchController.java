@@ -1,7 +1,6 @@
 package com.vivareal.search.api.controller;
 
 import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
 import com.vivareal.search.api.model.SearchApiResponseError;
 import com.vivareal.search.api.service.SearchService;
 import org.slf4j.Logger;
@@ -17,7 +16,6 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import javax.servlet.http.HttpServletResponse;
 import java.util.Optional;
 
-import static java.lang.String.format;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;

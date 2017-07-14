@@ -113,6 +113,7 @@ public class SearchApiEnv {
         ES_REST_PORT("es.rest.port"),
         ES_CLUSTER_NAME("es.cluster.name"),
         ES_DEFAULT_SIZE("es.default.size"),
+        ES_DEFAULT_SORT("es.default.sort"),
         ES_MAX_SIZE("es.max.size"),
         ES_FACET_SIZE("es.facet.size"),
         ES_CONTROLLER_SEARCH_TIMEOUT("es.controller.search.timeout"),

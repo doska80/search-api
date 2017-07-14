@@ -10,9 +10,11 @@ import org.jparsec.Parser;
 
 import java.util.List;
 
+import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.parser.SortParser.get;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static org.apache.logging.log4j.util.Strings.isEmpty;
 
 public final class SearchApiRequest {
 
@@ -65,6 +67,8 @@ public final class SearchApiRequest {
     }
 
     public Sort getSort() {
+        if(sort == null && !isEmpty(ES_DEFAULT_SORT.getValue()))
+            setSort(ES_DEFAULT_SORT.getValue());
         return sort;
     }
 
