@@ -10,15 +10,11 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 
-import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_CONTROLLER_STREAM_TIMEOUT;
-import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_SCROLL_TIMEOUT;
-import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_STREAM_SIZE;
-import static java.lang.Integer.parseInt;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 
 @Component
 public class ElasticSearchStream {
@@ -31,15 +27,15 @@ public class ElasticSearchStream {
     private QueryAdapter<?, SearchRequestBuilder> queryAdapter;
 
     public void stream(SearchApiRequest request, OutputStream stream) {
-
-        TimeValue keepAlive = new TimeValue(parseInt(ES_SCROLL_TIMEOUT.getValue(request.getIndex())));
+        String index = request.getIndex();
+        int scrollTimeout = ES_SCROLL_TIMEOUT.getValue(index);
+        TimeValue keepAlive = new TimeValue(scrollTimeout);
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
-        requestBuilder.setScroll(keepAlive).setSize(parseInt(ES_STREAM_SIZE.getValue(request.getIndex())));
+        requestBuilder.setScroll(keepAlive).setSize(ES_STREAM_SIZE.getValue(index));
 
-        int timeout = parseInt(ES_CONTROLLER_STREAM_TIMEOUT.getValue(request.getIndex()));
-
+        int streamTimeout = ES_CONTROLLER_STREAM_TIMEOUT.getValue(index);
         ResponseStream.create(stream)
                 .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),
-                        scroll -> scroll.setScroll(keepAlive).execute().actionGet(timeout)), (SearchHit sh) -> BytesReference.toBytes(sh.getSourceRef()));
+                        scroll -> scroll.setScroll(keepAlive).execute().actionGet(streamTimeout)), (SearchHit sh) -> BytesReference.toBytes(sh.getSourceRef()));
     }
 }

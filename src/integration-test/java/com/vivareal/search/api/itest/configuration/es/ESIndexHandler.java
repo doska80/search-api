@@ -8,6 +8,7 @@ import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -36,10 +37,12 @@ public class ESIndexHandler {
     public static final String TEST_DATA_INDEX = "/testdata";
 
     private final RestClient restClient;
+    private final Long timeout;
 
     @Autowired
-    public ESIndexHandler(RestClient restClient) {
+    public ESIndexHandler(RestClient restClient, @Value("${es.controller.search.timeout}") Long timeout) {
         this.restClient = restClient;
+        this.timeout = timeout;
     }
 
     public void truncateIndexData() throws IOException {
@@ -116,15 +119,13 @@ public class ESIndexHandler {
         return false;
     }
 
-    private boolean refreshIndex() {
+    private void refreshIndex() {
         try {
-            Response response = restClient.performRequest("POST", TEST_DATA_INDEX + "/_refresh", emptyMap());
-            MICROSECONDS.sleep(500);
+            restClient.performRequest("POST", TEST_DATA_INDEX + "/_refresh", emptyMap());
+            MICROSECONDS.sleep(timeout);
             LOG.info("Forced commit into index: " + TEST_DATA_INDEX);
-            return true;
         } catch (IOException | InterruptedException e) {
             LOG.error("Unable to force commit into index: " + TEST_DATA_INDEX, e);
         }
-        return false;
     }
 }

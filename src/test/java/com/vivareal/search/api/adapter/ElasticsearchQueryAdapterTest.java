@@ -1,7 +1,8 @@
 package com.vivareal.search.api.adapter;
 
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
-import com.vivareal.search.api.configuration.SearchApiEnv;
+import com.google.common.collect.Sets;
+import com.vivareal.search.api.configuration.environment.RemoteProperties;
 import com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.SearchApiRequest;
 import org.assertj.core.util.Lists;
@@ -64,8 +65,10 @@ public class ElasticsearchQueryAdapterTest {
         this.transportClient = new MockTransportClient(Settings.EMPTY);
         this.queryAdapter = spy(new ElasticsearchQueryAdapter());
 
-        SearchApiEnv.RemoteProperties.QS_MM.setValue(INDEX_NAME,"75%");
-        SearchApiEnv.RemoteProperties.QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
+        RemoteProperties.QS_MM.setValue(INDEX_NAME,"75%");
+        RemoteProperties.QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
+        RemoteProperties.SOURCE_INCLUDES.setValue(INDEX_NAME, "");
+        RemoteProperties.SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
 
         // initialize variables to ElasticsearchQueryAdapter
         setField(this.queryAdapter, "transportClient", transportClient);
@@ -92,20 +95,7 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
     }
 
-    @Test
-    public void shouldReturnGetRequestBuilderByGetIdWithIncludeAndExcludeFields() {
-        String id = "123456";
-        ArrayList<String> includeFields = Lists.newArrayList("field1", "field2", "field3");
-        ArrayList<String> excludeFields = Lists.newArrayList("field3", "field4");
-
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
-        GetRequestBuilder requestBuilder = queryAdapter.getById(searchApiRequest, id);
-        FetchSourceContext fetchSourceContext = requestBuilder.request().fetchSourceContext();
-
-        assertEquals(id, requestBuilder.request().id());
-        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
-        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
-
+    private void validateFetchSources(Set<String> includeFields, Set<String> excludeFields, FetchSourceContext fetchSourceContext) {
         assertNotNull(fetchSourceContext);
 
         // Check include fields
@@ -118,6 +108,24 @@ public class ElasticsearchQueryAdapterTest {
         List<String> excludedAfterValidation = excludeFields.stream().filter(field -> !intersection.contains(field)).sorted().collect(toList());
         assertEquals(excludeFields.size() - intersection.size(), fetchSourceContext.excludes().length);
         assertEquals(Stream.of(fetchSourceContext.excludes()).sorted().collect(toList()), excludedAfterValidation);
+    }
+
+    @Test
+    public void shouldReturnGetRequestBuilderByGetIdWithIncludeAndExcludeFields() {
+        String id = "123456";
+
+        Set<String> includeFields = Sets.newHashSet("field1", "field2", "field3");
+        Set<String> excludeFields = Sets.newHashSet("field3", "field4");
+
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
+        GetRequestBuilder requestBuilder = queryAdapter.getById(searchApiRequest, id);
+        FetchSourceContext fetchSourceContext = requestBuilder.request().fetchSourceContext();
+
+        assertEquals(id, requestBuilder.request().id());
+        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
+        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
+
+        validateFetchSources(includeFields, excludeFields, fetchSourceContext);
     }
 
     @Test
@@ -536,20 +544,14 @@ public class ElasticsearchQueryAdapterTest {
 
     @Test
     public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() {
-        ArrayList<String> includeFields = Lists.newArrayList("field1", "field2", "field3");
-        ArrayList<String> excludeFields = Lists.newArrayList("field3", "field4");
+        Set<String> includeFields = Sets.newHashSet("field1", "field2", "field3");
+        Set<String> excludeFields = Sets.newHashSet("field3", "field4");
 
         SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         FetchSourceContext fetchSourceContext = searchRequestBuilder.request().source().fetchSource();
 
-        assertNotNull(fetchSourceContext);
-
-        assertEquals(includeFields.size(), fetchSourceContext.includes().length);
-        assertTrue(includeFields.containsAll(asList(fetchSourceContext.includes())));
-
-        assertEquals((excludeFields.size() - 1), fetchSourceContext.excludes().length);
-        assertTrue(asList(fetchSourceContext.excludes()).contains(excludeFields.get(1)));
+        validateFetchSources(includeFields, excludeFields, fetchSourceContext);
     }
 
     @Test
@@ -578,7 +580,8 @@ public class ElasticsearchQueryAdapterTest {
         String fieldName3 = "field3";
         float boostValue3 = 5.0f;
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).fields(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3))).basicRequest();
+        Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
+        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).fields(fields).basicRequest();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -676,8 +679,8 @@ public class ElasticsearchQueryAdapterTest {
     public void shouldReturnSimpleSearchRequestBuilderWithRecursiveRequest() {
 
         // Display results
-        List<String> includeFields  = Lists.newArrayList("field1", "field2");
-        List<String> excludeFields = Lists.newArrayList("field3", "field4");
+        Set<String> includeFields  = Sets.newHashSet("field1", "field2");
+        Set<String> excludeFields = Sets.newHashSet("field3", "field4");
 
         // Sort
         String sortFieldName1 = "field1";
@@ -705,7 +708,7 @@ public class ElasticsearchQueryAdapterTest {
 
         String fieldName3 = "field3";
         float boostValue3 = 5.0f;
-        List<String> fields = newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3));
+        Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
         String mm = "50%";
 
         // Pagination
@@ -775,11 +778,7 @@ public class ElasticsearchQueryAdapterTest {
 
         // display
         FetchSourceContext fetchSourceContext = source.fetchSource();
-        assertNotNull(fetchSourceContext);
-        assertEquals(includeFields.size(), fetchSourceContext.includes().length);
-        assertTrue(includeFields.containsAll(asList(fetchSourceContext.includes())));
-        assertEquals(excludeFields.size(), fetchSourceContext.excludes().length);
-        assertTrue(excludeFields.containsAll(asList(fetchSourceContext.excludes())));
+        validateFetchSources(includeFields, excludeFields, fetchSourceContext);
 
         // sort
         List<FieldSortBuilder> sorts = (List) source.sorts();

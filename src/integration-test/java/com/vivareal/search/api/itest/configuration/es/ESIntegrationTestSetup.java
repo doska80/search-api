@@ -46,11 +46,13 @@ public class ESIntegrationTestSetup {
 
     private StrSubstitutor boostrapVariables;
     private Map<String, Object> boostrapConfiguration;
+    private ESIndexHandler esIndexHandler;
 
     @Autowired
     public ESIntegrationTestSetup(@Value("${es.hostname}") String elasticSearchHost,
                                   @Value("${es.rest.port}") String elasticSearchRestPort,
-                                  @Value("${kibana.port:5601}") String kibanaPort) {
+                                  @Value("${kibana.port:5601}") String kibanaPort,
+                                  ESIndexHandler esIndexHandler) {
         Map<String, String> bootVariables = new HashMap<>();
         bootVariables.put("es_host", elasticSearchHost);
         bootVariables.put("es_port", elasticSearchRestPort);
@@ -58,12 +60,14 @@ public class ESIntegrationTestSetup {
 
         this.boostrapVariables = new StrSubstitutor(bootVariables);
         this.boostrapConfiguration = new LinkedHashMap<>();
+        this.esIndexHandler = esIndexHandler;
     }
 
     @PostConstruct
     public void configESForIntegrationTest() throws InterruptedException {
         readConfigurationFile();
         executeConfigurationCommands();
+        warmUp();
     }
 
     private void readConfigurationFile() {
@@ -113,6 +117,16 @@ public class ESIntegrationTestSetup {
             LOG.info("Response: " + response + " -- " + body);
         } catch (IOException e) {
             LOG.error("Error setting configuration ", e);
+        }
+    }
+
+    private void warmUp() {
+        try {
+            LOG.debug("Starting to add some documents in order to warm up the test data index");
+            esIndexHandler.addStandardTestData();
+            esIndexHandler.truncateIndexData();
+        } catch (IOException e) {
+            LOG.error("Unable to warm up default index data");
         }
     }
 

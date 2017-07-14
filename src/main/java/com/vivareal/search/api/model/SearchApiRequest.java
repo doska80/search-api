@@ -9,8 +9,9 @@ import com.vivareal.search.api.model.query.Sort;
 import org.jparsec.Parser;
 
 import java.util.List;
+import java.util.Set;
 
-import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_DEFAULT_SORT;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.parser.SortParser.get;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
@@ -22,9 +23,9 @@ public final class SearchApiRequest {
 
     private String index;
     private String mm;
-    private List<String> fields;
-    private List<String> includeFields;
-    private List<String> excludeFields;
+    private Set<String> fields;
+    private Set<String> includeFields;
+    private Set<String> excludeFields;
     private QueryFragment filter;
     private Sort sort;
     private List<Field> facets;
@@ -71,7 +72,7 @@ public final class SearchApiRequest {
             return sort;
 
         if (!isEmpty(ES_DEFAULT_SORT.getValue(index)))
-            setSort(ES_DEFAULT_SORT.getValue(index));
+            setSort((String)ES_DEFAULT_SORT.getValue(index));
 
         return sort;
     }
@@ -80,27 +81,27 @@ public final class SearchApiRequest {
         this.sort = get().parse(stream(sort).collect(joining(",")));
     }
 
-    public List<String> getFields() {
+    public Set<String> getFields() {
         return fields;
     }
 
-    public void setFields(List<String> fields) {
+    public void setFields(Set<String> fields) {
         this.fields = fields;
     }
 
-    public List<String> getIncludeFields() {
+    public Set<String> getIncludeFields() {
         return includeFields;
     }
 
-    public void setIncludeFields(List<String> includeFields) {
+    public void setIncludeFields(Set<String> includeFields) {
         this.includeFields = includeFields;
     }
 
-    public List<String> getExcludeFields() {
+    public Set<String> getExcludeFields() {
         return excludeFields;
     }
 
-    public void setExcludeFields(List<String> excludeFields) {
+    public void setExcludeFields(Set<String> excludeFields) {
         this.excludeFields = excludeFields;
     }
 
