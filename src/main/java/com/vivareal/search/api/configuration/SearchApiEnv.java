@@ -10,7 +10,6 @@ import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
@@ -32,7 +31,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
  */
 @Component
 @Scope(SCOPE_SINGLETON)
-@PropertySource("classpath:application.properties")
 public class SearchApiEnv {
 
     private static Logger LOG = LoggerFactory.getLogger(SearchApiEnv.class);
@@ -48,15 +46,12 @@ public class SearchApiEnv {
         this.restClient = restClient;
         ((AbstractEnvironment) env).getPropertySources().iterator().forEachRemaining(propertySource -> {
             if (propertySource instanceof MapPropertySource) {
-                normalizeMap(((MapPropertySource) propertySource).getSource());
+                Map<String, Object> propertySourceMap = ((MapPropertySource) propertySource).getSource();
+                propertySourceMap.forEach((k, v) -> this.localProperties.put(k, String.valueOf((env.getProperty(k)))));
             }
         });
         loadEnvironmentProperties(this.localProperties);
         loadRemoteProperties();
-    }
-
-    private void normalizeMap(final Map<String, Object> localProperties) {
-        localProperties.forEach((k, v) -> this.localProperties.put(k, String.valueOf(v)));
     }
 
     @Scheduled(cron = "${application.properties.refresh.cron}")
