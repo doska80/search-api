@@ -36,6 +36,7 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
+import static com.vivareal.search.api.model.query.RelationalOperator.DIFFERENT;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
@@ -119,9 +120,9 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                     String fieldName = filter.getField().getName();
                     final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                     logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
+                    RelationalOperator operator = filter.getRelationalOperator();
 
                     if (!isEmpty(filter.getValue().getContents())) {
-                        RelationalOperator operator = filter.getRelationalOperator();
 
                         List<Object> multiValues = filter.getValue().getContents();
                         Object singleValue = filter.getValue().getContents(0);
@@ -160,7 +161,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                     } else {
                         RangeQueryBuilder lte = rangeQuery(fieldName).to(0).includeUpper(true);
                         RangeQueryBuilder gte = rangeQuery(fieldName).from(0).includeLower(true);
-                        addFilterQueryByLogicalOperator(queryBuilder, boolQuery().should(lte).should(gte), logicalOperator, !not);
+                        addFilterQueryByLogicalOperator(queryBuilder, boolQuery().should(lte).should(gte), logicalOperator, DIFFERENT.equals(operator) == not);
                     }
                 }
             }
