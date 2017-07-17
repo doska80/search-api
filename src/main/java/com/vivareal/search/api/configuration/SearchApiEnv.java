@@ -19,9 +19,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.*;
 import static java.util.Arrays.stream;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -42,7 +42,9 @@ public class SearchApiEnv {
     private Map<String, Object> localProperties = new HashMap<>();
     private Map<String, Object> remoteProperties = new HashMap<>();
 
-    public SearchApiEnv(Environment env, RestClient restClient) {
+    private static final String DEFAULT_INDEX = "default";
+
+    public SearchApiEnv(final Environment env, final RestClient restClient) {
         this.restClient = restClient;
         ((AbstractEnvironment) env).getPropertySources().iterator().forEachRemaining(propertySource -> {
             if (propertySource instanceof MapPropertySource) {
@@ -50,7 +52,7 @@ public class SearchApiEnv {
                 propertySourceMap.forEach((k, v) -> this.localProperties.put(k, String.valueOf((env.getProperty(k)))));
             }
         });
-        loadEnvironmentProperties(this.localProperties);
+        loadEnvironmentProperties(DEFAULT_INDEX, this.localProperties);
         loadRemoteProperties();
     }
 
@@ -58,26 +60,32 @@ public class SearchApiEnv {
     private void loadRemoteProperties() {
 
         Header headers = new BasicHeader("Content-Type", "application/json; charset=UTF-8");
-        String endpoint = String.format("/%s/%s/%s", APP_PROPERTIES_INDEX.getValue(), APP_PROPERTIES_TYPE.getValue(), PROFILE.getValue());
+        String endpoint = "/search-api-properties/properties/_search";
 
         try {
             HttpEntity entity = restClient.performRequest("GET", endpoint, headers).getEntity();
 
             if (entity != null) {
                 String retSrc = EntityUtils.toString(entity);
-                HashMap<String, Object> response = mapper.readValue(retSrc, new TypeReference<HashMap<String, Object>>() {});
-                if (!isEmpty(response) && response.containsKey("_source")) {
+                HashMap<String, Object> response = mapper.readValue(retSrc, new TypeReference<HashMap<String, Object>>() {
+                });
+                if (!isEmpty(response) && response.containsKey("hits")) {
 
                     @SuppressWarnings("unchecked")
-                    HashMap<String, Object> source = (HashMap<String, Object>) response.get("_source");
+                    Map hitsMap = (HashMap<String, Object>) response.get("hits");
 
-                    this.remoteProperties.clear();
-                    this.remoteProperties.putAll(source);
+                    if (hitsMap.containsKey("hits")) {
+                        ((List) hitsMap.get("hits")).forEach(hit -> {
+                            Map hitMap = (Map) hit;
+                            HashMap<String, Object> source = (HashMap<String, Object>) hitMap.get("_source");
 
-                    LOG.debug("Remote properties loaded with success. Endpoint: {}", endpoint);
-                    loadEnvironmentProperties(source);
-                } else {
-                    LOG.warn("Remote properties cannot loaded because the profile {} not found on ES Index or content is empty.", PROFILE.getValue());
+                            LOG.debug("Remote properties loaded with success. Endpoint: {}", endpoint);
+                            String index = ((Map) hit).get("_id").toString();
+                            loadEnvironmentProperties(index, source);
+                            this.remoteProperties.put(index, source);
+                        });
+                    }
+
                 }
             }
         } catch (ResponseException e) {
@@ -87,10 +95,10 @@ public class SearchApiEnv {
         }
     }
 
-    private void loadEnvironmentProperties(final Map<String, Object> properties) {
+    private void loadEnvironmentProperties(final String index, final Map<String, Object> properties) {
         stream(RemoteProperties.values()).parallel().forEach(env -> {
             if (properties.containsKey(env.getProperty()))
-                env.setValue(String.valueOf(properties.get(env.getProperty())));
+                env.setValue(index, String.valueOf(properties.get(env.getProperty())));
         });
         LOG.debug("Environment Properties loaded with success");
     }
@@ -125,24 +133,27 @@ public class SearchApiEnv {
         APP_PROPERTIES_INDEX("application.properties.index"),
         APP_PROPERTIES_TYPE("application.properties.type");
 
-        RemoteProperties(String property) {
-            this.property = property;
-            this.value = "";
-        }
-
         private String property;
-        private String value;
+        private Map<String, String> indexProperties;
+
+        RemoteProperties(final String property) {
+            this.property = property;
+            this.indexProperties = new HashMap<>();
+        }
 
         public String getProperty() {
             return property;
         }
 
-        public String getValue() {
-            return value;
+        public String getValue(final String index) {
+            if (indexProperties.containsKey(index))
+                return indexProperties.get(index);
+
+            return indexProperties.get(DEFAULT_INDEX);
         }
 
-        public void setValue(String value) {
-            this.value = value;
+        public void setValue(final String index, final String value) {
+            this.indexProperties.put(index, value);
         }
     }
 }

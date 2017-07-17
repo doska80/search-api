@@ -212,15 +212,15 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         if (!isEmpty(request.getQ())) {
             QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
 
-            String mm = isEmpty(request.getMm()) ? QS_MM.getValue() : request.getMm();
+            String mm = isEmpty(request.getMm()) ? QS_MM.getValue(request.getIndex()) : request.getMm();
             checkMM(mm, request);
 
             Map<String, Float> fields = new HashMap<>();
 
-            if (isEmpty(request.getFields())) {
-                stream(QS_DEFAULT_FIELDS.getValue().split(",")).forEach(bf -> addFieldToSearchOnQParameter(queryStringBuilder, bf));
-            } else {
+            if (!isEmpty(request.getFields())) {
                 request.getFields().forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, boostField));
+            } else if (!isEmpty(QS_DEFAULT_FIELDS.getValue(request.getIndex()))) {
+                stream(QS_DEFAULT_FIELDS.getValue(request.getIndex()).split(",")).forEach(bf -> addFieldToSearchOnQParameter(queryStringBuilder, bf));
             }
             queryStringBuilder.fields(fields).minimumShouldMatch(mm).tieBreaker(0.2f).phraseSlop(2).defaultOperator(OR);
             queryBuilder.must().add(queryStringBuilder);
@@ -260,7 +260,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             request.getFacets().forEach(facetField -> searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName())
                     .field(facetField.getName())
                     .order(Terms.Order.count(false))
-                    .size(request.getFacetSize() != null ? request.getFacetSize() : parseInt(ES_FACET_SIZE.getValue()))
+                    .size(request.getFacetSize() != null ? request.getFacetSize() : parseInt(ES_FACET_SIZE.getValue(request.getIndex())))
                     .shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS))))));
     }
 
@@ -275,12 +275,12 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private Pair<String[], String[]> getFetchSourceFields(SearchApiRequest request) {
-        String[] includes = getDefaultFieldConfig(SOURCE_INCLUDES);
+        String[] includes = getDefaultFieldConfig(request, SOURCE_INCLUDES);
         if (!isEmpty(request.getIncludeFields())) {
             includes = list2Array(request.getIncludeFields());
         }
 
-        String[] excludes = getDefaultFieldConfig(SOURCE_EXCLUDES);
+        String[] excludes = getDefaultFieldConfig(request, SOURCE_EXCLUDES);
         if (!isEmpty(request.getExcludeFields())) {
             excludes = list2Array(request.getExcludeFields());
         }
@@ -293,9 +293,9 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         return Pair.of(includes, excludes);
     }
 
-    private String[] getDefaultFieldConfig(RemoteProperties sourceDefaultIncludes) {
-        return ofNullable(sourceDefaultIncludes)
-            .map(RemoteProperties::getValue)
+    private String[] getDefaultFieldConfig(SearchApiRequest request, RemoteProperties sourceFields) {
+        return ofNullable(sourceFields)
+            .map(m -> m.getValue(request.getIndex()))
             .filter(StringUtils::isNotBlank)
             .map(defaultFields -> defaultFields.split(","))
             .orElse(new String[]{});

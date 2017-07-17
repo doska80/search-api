@@ -9,11 +9,9 @@ import com.vivareal.search.api.model.query.Sort;
 import org.jparsec.Parser;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.parser.SortParser.get;
-import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static org.apache.logging.log4j.util.Strings.isEmpty;
@@ -69,13 +67,12 @@ public final class SearchApiRequest {
     }
 
     public Sort getSort() {
-        if(sort == null && !isEmpty(ES_DEFAULT_SORT.getValue()) && ES_DEFAULT_SORT.getValue().contains(format("%s:", index))) {
-            Stream.of(ES_DEFAULT_SORT.getValue().split(";"))
-            .map(d -> d.split(":"))
-            .filter(d-> d[0].equals(index))
-            .findFirst()
-            .ifPresent(x -> setSort(x[1]));
-        }
+        if (sort != null)
+            return sort;
+
+        if (!isEmpty(ES_DEFAULT_SORT.getValue(index)))
+            setSort(ES_DEFAULT_SORT.getValue(index));
+
         return sort;
     }
 
