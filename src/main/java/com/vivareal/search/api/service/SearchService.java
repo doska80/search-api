@@ -42,10 +42,10 @@ public class SearchService {
     private ElasticSearchStream elasticSearch;
 
     public Optional<Object> getById(SearchApiRequest request, String id) {
-        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue()), parseInt(ES_MAX_SIZE.getValue()));
+        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue(request.getIndex())), parseInt(ES_MAX_SIZE.getValue(request.getIndex())));
 
         try {
-            GetResponse response = this.queryAdapter.getById(request, id).execute().get(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue()), TimeUnit.MILLISECONDS);
+            GetResponse response = this.queryAdapter.getById(request, id).execute().get(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex())), TimeUnit.MILLISECONDS);
             if (response.isExists())
                 return ofNullable(response.getSource());
 
@@ -56,10 +56,10 @@ public class SearchService {
     }
 
     public SearchApiResponse search(SearchApiRequest request) {
-        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue()), parseInt(ES_MAX_SIZE.getValue()));
+        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue(request.getIndex())), parseInt(ES_MAX_SIZE.getValue(request.getIndex())));
 
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
-        SearchResponse esResponse = requestBuilder.execute().actionGet(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue()));
+        SearchResponse esResponse = requestBuilder.execute().actionGet(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex())));
 
         return builder()
                 .time(esResponse.getTookInMillis())
@@ -72,7 +72,7 @@ public class SearchService {
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {
-        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue()), parseInt(ES_MAX_SIZE.getValue()));
+        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue(request.getIndex())), parseInt(ES_MAX_SIZE.getValue(request.getIndex())));
         elasticSearch.stream(request, stream);
     }
 }

@@ -32,11 +32,11 @@ public class ElasticSearchStream {
 
     public void stream(SearchApiRequest request, OutputStream stream) {
 
-        TimeValue keepAlive = new TimeValue(parseInt(ES_SCROLL_TIMEOUT.getValue()));
+        TimeValue keepAlive = new TimeValue(parseInt(ES_SCROLL_TIMEOUT.getValue(request.getIndex())));
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
-        requestBuilder.setScroll(keepAlive).setSize(parseInt(ES_STREAM_SIZE.getValue()));
+        requestBuilder.setScroll(keepAlive).setSize(parseInt(ES_STREAM_SIZE.getValue(request.getIndex())));
 
-        int timeout = parseInt(ES_CONTROLLER_STREAM_TIMEOUT.getValue());
+        int timeout = parseInt(ES_CONTROLLER_STREAM_TIMEOUT.getValue(request.getIndex()));
 
         ResponseStream.create(stream)
                 .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),

@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -34,7 +33,6 @@ import static com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder.IND
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
-import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
@@ -66,7 +64,8 @@ public class ElasticsearchQueryAdapterTest {
         this.transportClient = new MockTransportClient(Settings.EMPTY);
         this.queryAdapter = spy(new ElasticsearchQueryAdapter());
 
-        SearchApiEnv.RemoteProperties.QS_MM.setValue("75%");
+        SearchApiEnv.RemoteProperties.QS_MM.setValue(INDEX_NAME,"75%");
+        SearchApiEnv.RemoteProperties.QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
 
         // initialize variables to ElasticsearchQueryAdapter
         setField(this.queryAdapter, "transportClient", transportClient);

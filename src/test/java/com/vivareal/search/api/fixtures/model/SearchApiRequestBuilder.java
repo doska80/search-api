@@ -12,7 +12,6 @@ import com.vivareal.search.api.model.SearchApiRequest;
 public class SearchApiRequestBuilder {
 
     public static final String INDEX_NAME = "my_index";
-    public static final String TYPE_NAME = "my_type";
 
     private String index;
     private String mm;
