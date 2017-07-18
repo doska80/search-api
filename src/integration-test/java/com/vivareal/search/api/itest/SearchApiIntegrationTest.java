@@ -51,7 +51,7 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void responseOkWhenSearchAnExistingDocumentById() throws IOException {
-        range(1, STANDARD_DATASET_SIZE + 1).boxed().forEach(id -> {
+        range(1, STANDARD_DATASET_SIZE + 1).boxed().forEach(id ->
             given()
                 .log().all()
                 .baseUri(baseUrl)
@@ -74,9 +74,8 @@ public class SearchApiIntegrationTest {
                 .body("nested.string", equalTo(format("string_with_char(%s)", (char) (id + 'a'))))
                 .body("nested.object.field", equalTo("common"))
                 .body("nested.object.array_string", hasSize(id-1))
-                .body("nested.object.array_string", equalTo(range(1, id).boxed().map(String::valueOf).collect(toList())));
-
-        });
+                .body("nested.object.array_string", equalTo(range(1, id).boxed().map(String::valueOf).collect(toList())))
+        );
     }
 
     @Test
@@ -381,16 +380,37 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void validateIsNullField() {
-        given()
-            .log().all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
-        .expect()
-            .statusCode(SC_OK)
-        .when()
-            .get(TEST_DATA_INDEX + "?filter=nested.even=null")
-        .then()
-            .body("totalCount", equalTo(STANDARD_DATASET_SIZE / 2))
-            .body("result.testdata.numeric.sort()", equalTo(range(1, STANDARD_DATASET_SIZE).boxed().filter(id -> id % 2 != 0).collect(toList())));
+        Stream.of(TEST_DATA_INDEX + "?filter=nested.even=null", TEST_DATA_INDEX + "?filter=NOT nested.even<>null")
+            .forEach(path ->
+                given()
+                    .log().all()
+                    .baseUri(baseUrl)
+                    .contentType(JSON)
+                .expect()
+                    .statusCode(SC_OK)
+                .when()
+                    .get(path)
+                .then()
+                    .body("totalCount", equalTo(STANDARD_DATASET_SIZE / 2))
+                    .body("result.testdata.numeric.sort()", equalTo(range(1, STANDARD_DATASET_SIZE + 1).boxed().filter(id -> id % 2 != 0).collect(toList())))
+            );
+    }
+
+    @Test
+    public void validateNotNullField() {
+        Stream.of(TEST_DATA_INDEX + "?filter=nested.even<>null", TEST_DATA_INDEX + "?filter=NOT nested.even=null")
+            .forEach(path ->
+                given()
+                    .log().all()
+                    .baseUri(baseUrl)
+                    .contentType(JSON)
+                .expect()
+                    .statusCode(SC_OK)
+                .when()
+                    .get(path)
+                    .then()
+                    .body("totalCount", equalTo(STANDARD_DATASET_SIZE / 2))
+                    .body("result.testdata.numeric.sort()", equalTo(range(1, STANDARD_DATASET_SIZE + 1).boxed().filter(id -> id % 2 == 0).collect(toList())))
+            );
     }
 }

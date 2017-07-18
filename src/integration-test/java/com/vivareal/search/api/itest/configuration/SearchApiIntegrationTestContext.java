@@ -13,9 +13,7 @@ public class SearchApiIntegrationTestContext {
 
     @Bean
     public RestClient elasticSearchClientBean(@Value("${es.hostname}") final String hostname,
-                                                   @Value("${es.rest.port}") final Integer port) {
+                                              @Value("${es.rest.port}") final Integer port) {
         return RestClient.builder(new HttpHost(hostname, port, "http")).build();
     }
-
-
 }

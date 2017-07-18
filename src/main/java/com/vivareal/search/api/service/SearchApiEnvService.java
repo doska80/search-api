@@ -1,6 +1,6 @@
 package com.vivareal.search.api.service;
 
-import com.vivareal.search.api.configuration.SearchApiEnv;
+import com.vivareal.search.api.configuration.environment.SearchApiEnv;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

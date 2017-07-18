@@ -1,10 +1,11 @@
 package com.vivareal.search.api.fixtures.model;
 
-import static org.apache.commons.lang3.ObjectUtils.allNotNull;
+import com.vivareal.search.api.model.SearchApiRequest;
 
 import java.util.List;
+import java.util.Set;
 
-import com.vivareal.search.api.model.SearchApiRequest;
+import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 /**
  * Created by leandropereirapinto on 7/6/17.
@@ -15,9 +16,9 @@ public class SearchApiRequestBuilder {
 
     private String index;
     private String mm;
-    private List<String> fields;
-    private List<String> includeFields;
-    private List<String> excludeFields;
+    private Set<String> fields;
+    private Set<String> includeFields;
+    private Set<String> excludeFields;
     private String filter;
     private String sort;
     private List<String> facets;
@@ -82,17 +83,17 @@ public class SearchApiRequestBuilder {
         return this;
     }
 
-    public SearchApiRequestBuilder fields(List<String> fields) {
+    public SearchApiRequestBuilder fields(Set<String> fields) {
         this.fields = fields;
         return this;
     }
 
-    public SearchApiRequestBuilder includeFields(List<String> includeFields) {
+    public SearchApiRequestBuilder includeFields(Set<String> includeFields) {
         this.includeFields = includeFields;
         return this;
     }
 
-    public SearchApiRequestBuilder excludeFields(List<String> excludeFields) {
+    public SearchApiRequestBuilder excludeFields(Set<String> excludeFields) {
         this.excludeFields = excludeFields;
         return this;
     }

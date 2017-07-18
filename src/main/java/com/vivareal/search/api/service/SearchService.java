@@ -21,9 +21,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.vivareal.search.api.configuration.SearchApiEnv.RemoteProperties.*;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.SearchApiResponse.builder;
-import static java.lang.Integer.parseInt;
 import static java.util.Collections.synchronizedList;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
@@ -42,10 +41,11 @@ public class SearchService {
     private ElasticSearchStream elasticSearch;
 
     public Optional<Object> getById(SearchApiRequest request, String id) {
-        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue(request.getIndex())), parseInt(ES_MAX_SIZE.getValue(request.getIndex())));
+        String index = request.getIndex();
+        request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
 
         try {
-            GetResponse response = this.queryAdapter.getById(request, id).execute().get(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex())), TimeUnit.MILLISECONDS);
+            GetResponse response = this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index), TimeUnit.MILLISECONDS);
             if (response.isExists())
                 return ofNullable(response.getSource());
 
@@ -56,10 +56,11 @@ public class SearchService {
     }
 
     public SearchApiResponse search(SearchApiRequest request) {
-        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue(request.getIndex())), parseInt(ES_MAX_SIZE.getValue(request.getIndex())));
+        String index = request.getIndex();
+        request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
 
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
-        SearchResponse esResponse = requestBuilder.execute().actionGet(parseInt(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex())));
+        SearchResponse esResponse = requestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
 
         return builder()
                 .time(esResponse.getTookInMillis())
@@ -72,7 +73,8 @@ public class SearchService {
     }
 
     public void stream(SearchApiRequest request, OutputStream stream) {
-        request.setPaginationValues(parseInt(ES_DEFAULT_SIZE.getValue(request.getIndex())), parseInt(ES_MAX_SIZE.getValue(request.getIndex())));
+        String index = request.getIndex();
+        request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
         elasticSearch.stream(request, stream);
     }
 }
