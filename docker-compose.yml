@@ -32,7 +32,7 @@ services:
       - es
       - kibana
     environment:
-      - "JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,address=5006,server=y,suspend=n -Dspring.profiles.active=test -Xmx500m -Xms500m"
+      - "JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n -Dspring.profiles.active=test -Xmx500m -Xms500m"
     ports:
-      - "5006:5006"
+      - "5005:5005"
       - "8482:8482"

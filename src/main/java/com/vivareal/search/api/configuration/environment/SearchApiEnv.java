@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.StreamSupport;
 
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
 import static java.util.Arrays.stream;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.http.HttpMethod.GET;
@@ -47,8 +47,6 @@ public class SearchApiEnv {
 
     private Map<String, Object> localProperties = new HashMap<>();
     private Map<String, Object> remoteProperties = new HashMap<>();
-
-    public static final String DEFAULT_INDEX = "default";
 
     public SearchApiEnv(final Environment env, final RestClient restClient) {
         this.restClient = restClient;

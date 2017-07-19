@@ -7,11 +7,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.AS_INTEGER;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.AS_LONG;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.AS_SET;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
-import static com.vivareal.search.api.configuration.environment.SearchApiEnv.DEFAULT_INDEX;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.*;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 import static java.util.Optional.ofNullable;
@@ -21,7 +18,7 @@ public enum RemoteProperties {
 
     PROFILE("spring.profiles.active"),
     QS_MM("querystring.default.mm"),
-    QS_DEFAULT_FIELDS("querystring.default.fields", AS_SET),
+    QS_DEFAULT_FIELDS("querystring.default.fields", AS_SET, NON_EMPTY_COLLECTION),
     ES_HOSTNAME("es.hostname"),
     ES_PORT("es.port"),
     ES_REST_PORT("es.rest.port"),
@@ -29,7 +26,7 @@ public enum RemoteProperties {
     ES_DEFAULT_SIZE("es.default.size", AS_INTEGER),
     ES_DEFAULT_SORT("es.default.sort", AS_SET, NON_EMPTY_COLLECTION),
     ES_MAX_SIZE("es.max.size", AS_INTEGER),
-    ES_FACET_SIZE("es.facet.size"),
+    ES_FACET_SIZE("es.facet.size", AS_INTEGER),
     ES_CONTROLLER_SEARCH_TIMEOUT("es.controller.search.timeout", AS_LONG),
     ES_CONTROLLER_STREAM_TIMEOUT("es.controller.stream.timeout", AS_INTEGER),
     ES_STREAM_SIZE("es.stream.size", AS_INTEGER),
@@ -39,17 +36,20 @@ public enum RemoteProperties {
     APP_PROPERTIES_INDEX("application.properties.index"),
     APP_PROPERTIES_TYPE("application.properties.type");
 
+    public static final String DEFAULT_INDEX = "default";
+
     private String property;
-    private Map<String, Object> indexProperties;
     private Function<String, ?> parser;
     private Function<Object, Boolean> isRequestValueValid;
 
+    private Map<String, Object> indexProperties;
+
     RemoteProperties(String property) {
-        this(property, FieldsParser.AS_STRING);
+        this(property, AS_STRING);
     }
 
     RemoteProperties(String property, Function<String, ?> parser) {
-        this(property, parser, IsRequestValidFunction.NON_NULL_OBJECT);
+        this(property, parser, NON_NULL_OBJECT);
     }
 
     RemoteProperties(String property, Function<String, ?> parser, Function<Object, Boolean> isRequestValueValid) {
@@ -61,8 +61,12 @@ public enum RemoteProperties {
     }
 
 
-    public String getProperty() {
+    String getProperty() {
         return property;
+    }
+
+    Map<String, Object> getIndexProperties() {
+        return indexProperties;
     }
 
     public <T> T getValue(String index) {
@@ -103,6 +107,5 @@ public enum RemoteProperties {
         static Function<Object, Boolean> NON_NULL_OBJECT = Objects::nonNull;
 
         static Function<Object, Boolean> NON_EMPTY_COLLECTION = collection -> !CollectionUtils.isEmpty((Collection<?>) collection);
-
     }
 }
