@@ -1,7 +1,14 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.model.SearchApiRequest;
+
+import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.vivareal.search.api.model.parser.FacetParser;
+import com.vivareal.search.api.model.parser.QueryParser;
+import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.*;
+import com.vivareal.search.api.model.search.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -22,10 +29,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiConsumer;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
@@ -34,6 +39,9 @@ import static com.vivareal.search.api.model.query.RelationalOperator.DIFFERENT;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
+import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -55,7 +63,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
     @Override
-    public GetRequestBuilder getById(SearchApiRequest request, String id) {
+    public GetRequestBuilder getById(BaseApiRequest request, String id) {
         settingsAdapter.checkIndex(request);
 
         Pair<String[], String[]> fetchSourceFields = getFetchSourceFields(request);
@@ -70,26 +78,26 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     @Override
+    public SearchRequestBuilder query(BaseApiRequest request) {
+        return prepareQuery(request, (searchBuilder, boolQueryBuilder) -> addFieldList(searchBuilder, request));
+    }
+
+    @Override
     public SearchRequestBuilder query(SearchApiRequest request) {
-        settingsAdapter.checkIndex(request);
+        return prepareQuery(request, (searchBuilder, queryBuilder) -> {
+            searchBuilder.setFrom(request.getFrom());
+            searchBuilder.setSize(request.getSize());
+            addFieldList(searchBuilder, request);
+            applySort(searchBuilder, request);
+            applyFacetFields(searchBuilder, request);
 
-        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());
-        searchBuilder.setPreference("_replica_first"); // <3
-        searchBuilder.setFrom(request.getFrom());
-        searchBuilder.setSize(request.getSize());
-        addFieldList(searchBuilder, request);
-        applySort(searchBuilder, request);
-        applyFacetFields(searchBuilder, request);
+            applyQueryString(queryBuilder, request);
+            applyFilterQuery(queryBuilder, request);
+        });
+    }
 
-        BoolQueryBuilder queryBuilder = boolQuery();
-        searchBuilder.setQuery(queryBuilder);
-        applyQueryString(queryBuilder, request);
-        applyFilterQuery(queryBuilder, request.getFilter());
-
-        LOG.debug("Request: {}", request);
-        LOG.debug("Query: {}", searchBuilder);
-
-        return searchBuilder;
+    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
+        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f)));
     }
 
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment) {
@@ -201,7 +209,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         }
     }
 
-    private void applyQueryString(BoolQueryBuilder queryBuilder, final SearchApiRequest request) {
+    private void applyQueryString(BoolQueryBuilder queryBuilder, final Queryable request) {
         if (!isEmpty(request.getQ())) {
             QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
             String index = request.getIndex();
@@ -217,7 +225,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         }
     }
 
-    private void checkMM(final String mm, final SearchApiRequest request) {
+    private void checkMM(final String mm, final Queryable request) {
         String errorMessage = ("Minimum Should Match (mm) should be a valid integer number (-100 <> +100). Request: " + request.toString());
 
         if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf('%'))) {
@@ -240,18 +248,24 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         }
     }
 
-    private void applySort(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
-        if (!isEmpty(request.getSort()))
-            request.getSort().forEach(s -> searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name())));
+    private void applySort(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
+        Set<String> value = ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex());
+        if (!isEmpty(value)) {
+            Sort sort = SortParser.get().parse(value.stream().collect(joining(",")));
+            sort.forEach(s -> searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name())));
+        }
     }
 
-    private void applyFacetFields(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
-        if (!isEmpty(request.getFacets()))
-            request.getFacets().forEach(facetField -> searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName())
-                    .field(facetField.getName())
-                    .order(Terms.Order.count(false))
-                    .size(ofNullable(request.getFacetSize()).orElse(ES_FACET_SIZE.getValue(request.getIndex())))
-                    .shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS))))));
+    private void applyFacetFields(SearchRequestBuilder searchRequestBuilder, final Facetable request) {
+        Set<String> value = request.getFacets();
+        if (!isEmpty(value)) {
+            List<Field> facets = FacetParser.get().parse(value.stream().collect(joining(",")));
+            facets.forEach(facetField -> searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName())
+                .field(facetField.getName())
+                .order(Terms.Order.count(false))
+                .size(ES_FACET_SIZE.getValue(request.getFacetSize(), request.getIndex()))
+                .shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS))))));
+        }
     }
 
     private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String boostField) {
@@ -259,18 +273,39 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         queryStringBuilder.field(boostFieldValues[0], boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
     }
 
-    private void addFieldList(SearchRequestBuilder searchRequestBuilder, final SearchApiRequest request) {
+    private void addFieldList(SearchRequestBuilder searchRequestBuilder, final Fetchable request) {
         Pair<String[], String[]> fetchSource = getFetchSourceFields(request);
         searchRequestBuilder.setFetchSource(fetchSource.getLeft(), fetchSource.getRight());
     }
 
-    private Pair<String[], String[]> getFetchSourceFields(SearchApiRequest request) {
-        Set<String> includes = SOURCE_INCLUDES.getValue(request.getIncludeFields(), request.getIndex());
-        String[] excludes = SOURCE_EXCLUDES.getValue(request.getExcludeFields(), request.getIndex())
+    Pair<String[], String[]> getFetchSourceFields(Fetchable request) {
+        String[] includes = SOURCE_INCLUDES.getValue(request.getIncludeFields(), request.getIndex())
             .stream()
-            .filter(exclude -> !includes.contains(exclude))
             .toArray(String[]::new);
 
-        return Pair.of(includes.stream().toArray(String[]::new), excludes);
+        String[] excludes = SOURCE_EXCLUDES.getValue(request.getExcludeFields(), request.getIndex())
+            .stream()
+            .filter(field -> !contains(includes, field))
+            .toArray(String[]::new);
+
+        return Pair.of(includes, excludes);
+    }
+
+    SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
+        settingsAdapter.checkIndex(request);
+
+        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());
+        searchBuilder.setPreference("_replica_first"); // <3
+
+        BoolQueryBuilder queryBuilder = boolQuery();
+
+        builder.accept(searchBuilder, queryBuilder);
+
+        searchBuilder.setQuery(queryBuilder);
+
+        LOG.debug("Request: {}", request);
+        LOG.debug("Query: {}", searchBuilder);
+
+        return searchBuilder;
     }
 }

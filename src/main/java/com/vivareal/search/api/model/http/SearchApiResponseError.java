@@ -1,4 +1,4 @@
-package com.vivareal.search.api.model;
+package com.vivareal.search.api.model.http;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 

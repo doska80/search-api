@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model;
 
+import com.vivareal.search.api.model.http.SearchApiRequest;
 import org.junit.Test;
 
 import static java.lang.Integer.MAX_VALUE;

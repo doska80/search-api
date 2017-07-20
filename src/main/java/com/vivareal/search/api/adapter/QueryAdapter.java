@@ -1,6 +1,7 @@
 package com.vivareal.search.api.adapter;
 
-import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.SearchApiRequest;
 
 /**
  * This interface is responsible to generate a queryBuilder to realize a search operation
@@ -10,7 +11,9 @@ import com.vivareal.search.api.model.SearchApiRequest;
  */
 public interface QueryAdapter<Q1, Q2> {
 
-    Q1 getById(SearchApiRequest request, String id);
+    Q1 getById(BaseApiRequest request, String id);
+
+    Q2 query(BaseApiRequest request);
 
     Q2 query(SearchApiRequest request);
 }

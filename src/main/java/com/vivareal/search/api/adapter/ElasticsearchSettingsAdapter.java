@@ -2,7 +2,7 @@ package com.vivareal.search.api.adapter;
 
 import com.google.common.collect.Lists;
 import com.vivareal.search.api.exception.IndexNotFoundException;
-import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.search.Indexable;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
@@ -23,9 +23,6 @@ import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-/**
- * Created by leandropereirapinto on 6/29/17.
- */
 @Scope(SCOPE_SINGLETON)
 @Component("elasticsearchSettings")
 public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String, Map<String, Object>>, String> {
@@ -60,7 +57,7 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
     }
 
     @Override
-    public void checkIndex(final SearchApiRequest request) {
+    public void checkIndex(final Indexable request) {
         if (isEmpty(mapIndices))
             getSettingsInformationFromCluster();
 

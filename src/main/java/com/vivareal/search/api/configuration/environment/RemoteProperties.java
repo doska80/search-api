@@ -27,7 +27,7 @@ public enum RemoteProperties {
     ES_REST_PORT("es.rest.port"),
     ES_CLUSTER_NAME("es.cluster.name"),
     ES_DEFAULT_SIZE("es.default.size", AS_INTEGER),
-    ES_DEFAULT_SORT("es.default.sort"),
+    ES_DEFAULT_SORT("es.default.sort", AS_SET, NON_EMPTY_COLLECTION),
     ES_MAX_SIZE("es.max.size", AS_INTEGER),
     ES_FACET_SIZE("es.facet.size"),
     ES_CONTROLLER_SEARCH_TIMEOUT("es.controller.search.timeout", AS_LONG),

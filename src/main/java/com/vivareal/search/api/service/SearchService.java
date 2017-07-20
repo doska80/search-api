@@ -2,8 +2,9 @@ package com.vivareal.search.api.service;
 
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.controller.stream.ElasticSearchStream;
-import com.vivareal.search.api.model.SearchApiRequest;
-import com.vivareal.search.api.model.SearchApiResponse;
+import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.vivareal.search.api.model.http.SearchApiResponse;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -22,7 +23,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.model.SearchApiResponse.builder;
 import static java.util.Collections.synchronizedList;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
@@ -40,12 +40,9 @@ public class SearchService {
     @Autowired
     private ElasticSearchStream elasticSearch;
 
-    public Optional<Object> getById(SearchApiRequest request, String id) {
-        String index = request.getIndex();
-        request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
-
+    public Optional<Object> getById(BaseApiRequest request, String id) {
         try {
-            GetResponse response = this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index), TimeUnit.MILLISECONDS);
+            GetResponse response = this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS);
             if (response.isExists())
                 return ofNullable(response.getSource());
 
@@ -62,7 +59,7 @@ public class SearchService {
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
         SearchResponse esResponse = requestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
 
-        return builder()
+        return new SearchApiResponse()
                 .time(esResponse.getTookInMillis())
                 .totalCount(esResponse.getHits().getTotalHits())
                 .result(request.getIndex(),
@@ -72,9 +69,7 @@ public class SearchService {
                 .facets(ofNullable(esResponse.getAggregations()));
     }
 
-    public void stream(SearchApiRequest request, OutputStream stream) {
-        String index = request.getIndex();
-        request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
+    public void stream(BaseApiRequest request, OutputStream stream) {
         elasticSearch.stream(request, stream);
     }
 }

@@ -3,8 +3,12 @@ package com.vivareal.search.api.adapter;
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.google.common.collect.Sets;
 import com.vivareal.search.api.configuration.environment.RemoteProperties;
-import com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder;
-import com.vivareal.search.api.model.SearchApiRequest;
+import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
+import com.vivareal.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
+import com.vivareal.search.api.model.http.SearchApiRequestBuilder.ComplexRequestBuilder;
+import org.apache.commons.lang3.tuple.Pair;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -26,11 +30,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.fixtures.model.SearchApiRequestBuilder.INDEX_NAME;
+import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.basic;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
@@ -38,15 +48,13 @@ import static java.util.stream.Collectors.toList;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-/**
- * Created by leandropereirapinto on 7/3/17.
- */
 @ThreadLeakScope(ThreadLeakScope.Scope.NONE)
 @RunWith(com.carrotsearch.randomizedtesting.RandomizedRunner.class)
 public class ElasticsearchQueryAdapterTest {
@@ -58,23 +66,33 @@ public class ElasticsearchQueryAdapterTest {
     @Mock
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
+    private ComplexRequestBuilder fullRequest = SearchApiRequestBuilder.create().index(INDEX_NAME).from(0).size(20);
+
+    private BasicRequestBuilder basicRequest = fullRequest.basic();
+
+    private ElasticsearchQueryAdapter elasticsearchQueryAdapter = new ElasticsearchQueryAdapter();
+
     @Before
     public void setup() {
         initMocks(this);
 
         this.transportClient = new MockTransportClient(Settings.EMPTY);
-        this.queryAdapter = spy(new ElasticsearchQueryAdapter());
+
+        this.queryAdapter = spy(elasticsearchQueryAdapter);
 
         RemoteProperties.QS_MM.setValue(INDEX_NAME,"75%");
         RemoteProperties.QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
         RemoteProperties.SOURCE_INCLUDES.setValue(INDEX_NAME, "");
         RemoteProperties.SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
+        RemoteProperties.ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
 
         // initialize variables to ElasticsearchQueryAdapter
         setField(this.queryAdapter, "transportClient", transportClient);
         setField(this.queryAdapter, "settingsAdapter", settingsAdapter);
+        setField(elasticsearchQueryAdapter, "transportClient", transportClient);
+        setField(elasticsearchQueryAdapter, "settingsAdapter", settingsAdapter);
 
-        doNothing().when(settingsAdapter).checkIndex(any(SearchApiRequest.class));
+        doNothing().when(settingsAdapter).checkIndex(any());
         when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
     }
 
@@ -87,12 +105,12 @@ public class ElasticsearchQueryAdapterTest {
     public void shouldReturnGetRequestBuilderByGetId() {
         String id = "123456";
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
-        GetRequestBuilder requestBuilder = queryAdapter.getById(searchApiRequest, id);
+        BaseApiRequest request = basicRequest.build();
+        GetRequestBuilder requestBuilder = queryAdapter.getById(request, id);
 
         assertEquals(id, requestBuilder.request().id());
-        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
-        assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
+        assertEquals(request.getIndex(), requestBuilder.request().index());
+        assertEquals(request.getIndex(), requestBuilder.request().type());
     }
 
     private void validateFetchSources(Set<String> includeFields, Set<String> excludeFields, FetchSourceContext fetchSourceContext) {
@@ -114,10 +132,10 @@ public class ElasticsearchQueryAdapterTest {
     public void shouldReturnGetRequestBuilderByGetIdWithIncludeAndExcludeFields() {
         String id = "123456";
 
-        Set<String> includeFields = Sets.newHashSet("field1", "field2", "field3");
-        Set<String> excludeFields = Sets.newHashSet("field3", "field4");
+        Set<String> includeFields = newHashSet("field1", "field2", "field3");
+        Set<String> excludeFields = newHashSet("field3", "field4");
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
+        BaseApiRequest searchApiRequest = basicRequest.includeFields(includeFields).excludeFields(excludeFields).build();
         GetRequestBuilder requestBuilder = queryAdapter.getById(searchApiRequest, id);
         FetchSourceContext fetchSourceContext = requestBuilder.request().fetchSourceContext();
 
@@ -130,13 +148,13 @@ public class ElasticsearchQueryAdapterTest {
 
     @Test
     public void shouldReturnSimpleSearchRequestBuilderWithBasicRequest() {
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().basicRequest();
-        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+        SearchApiRequest request = fullRequest.build();
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request);
         SearchSourceBuilder source = searchRequestBuilder.request().source();
 
-        assertEquals(searchApiRequest.getIndex(), searchRequestBuilder.request().indices()[0]);
-        assertEquals(searchApiRequest.getFrom().intValue(), source.from());
-        assertEquals(searchApiRequest.getSize().intValue(), source.size());
+        assertEquals(request.getIndex(), searchRequestBuilder.request().indices()[0]);
+        assertEquals(request.getFrom().intValue(), source.from());
+        assertEquals(request.getSize().intValue(), source.size());
     }
 
     @Test
@@ -146,7 +164,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(DIFFERENT).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
 
@@ -164,7 +182,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(EQUAL).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 MatchQueryBuilder must = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -182,7 +200,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(GREATER).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -202,7 +220,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(GREATER_EQUAL).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -222,7 +240,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(LESS).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -242,7 +260,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(LESS_EQUAL).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(format(field, value, op)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 RangeQueryBuilder range = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -268,7 +286,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(VIEWPORT).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s [%s,%s;%s,%s]", field, op, northEastLat, northEastLon, southWestLat, southWestLon)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(String.format("%s %s [%s,%s;%s,%s]", field, op, northEastLat, northEastLon, southWestLat, southWestLon)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 GeoBoundingBoxQueryBuilder geoBoundingBoxQueryBuilder = (GeoBoundingBoxQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -290,7 +308,7 @@ public class ElasticsearchQueryAdapterTest {
 
         getOperators(IN).forEach(
             op -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s %s %s", field, op, Arrays.toString(values))).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(String.format("%s %s %s", field, op, Arrays.toString(values))).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 TermsQueryBuilder terms = (TermsQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -316,7 +334,7 @@ public class ElasticsearchQueryAdapterTest {
         String fieldName2 = "field2";
         Object fieldValue2 = 12345;
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s:\"%s\" AND %s:%s", fieldName1, fieldValue1, fieldName2, fieldValue2)).basicRequest();
+        SearchApiRequest searchApiRequest = fullRequest.filter(String.format("%s:\"%s\" AND %s:%s", fieldName1, fieldValue1, fieldName2, fieldValue2)).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
 
@@ -336,7 +354,7 @@ public class ElasticsearchQueryAdapterTest {
         String fieldName2 = "field2";
         Object fieldValue2 = 12345;
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s:\"%s\" OR %s:%s", fieldName1, fieldValue1, fieldName2, fieldValue2)).basicRequest();
+        SearchApiRequest searchApiRequest = fullRequest.filter(String.format("%s:\"%s\" OR %s:%s", fieldName1, fieldValue1, fieldName2, fieldValue2)).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<QueryBuilder> should = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should();
 
@@ -355,7 +373,7 @@ public class ElasticsearchQueryAdapterTest {
 
         nullValues.forEach(
             nullValue -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s:%s", fieldName, nullValue)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(String.format("%s:%s", fieldName, nullValue)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> mustNot = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot();
 
@@ -386,7 +404,7 @@ public class ElasticsearchQueryAdapterTest {
 
         nullValues.forEach(
             nullValue -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("NOT %s:%s", fieldName, nullValue)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(String.format("NOT %s:%s", fieldName, nullValue)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
 
@@ -417,7 +435,7 @@ public class ElasticsearchQueryAdapterTest {
 
         nullValues.forEach(
             nullValue -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("%s<>%s", fieldName, nullValue)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(String.format("%s<>%s", fieldName, nullValue)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
 
@@ -448,7 +466,7 @@ public class ElasticsearchQueryAdapterTest {
 
         nullValues.forEach(
             nullValue -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("NOT %s<>%s", fieldName, nullValue)).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.filter(String.format("NOT %s<>%s", fieldName, nullValue)).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> mustNot = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot();
 
@@ -477,7 +495,7 @@ public class ElasticsearchQueryAdapterTest {
         String fieldName1 = "field1";
         Object fieldValue1 = 1234324;
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().filter(String.format("NOT %s:%s", fieldName1, fieldValue1)).basicRequest();
+        SearchApiRequest searchApiRequest = fullRequest.filter(String.format("NOT %s:%s", fieldName1, fieldValue1)).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
 
@@ -488,9 +506,9 @@ public class ElasticsearchQueryAdapterTest {
 
     @Test
     public void shouldReturnSearchRequestBuilderByFacets() {
-        ArrayList<String> facets = Lists.newArrayList("field1", "field2", "field3");
+        Set<String> facets = newHashSet("field1", "field2", "field3");
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().facets(facets).facetSize(10).basicRequest();
+        SearchApiRequest searchApiRequest = fullRequest.facets(facets).facetSize(10).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<AggregationBuilder> aggregations = searchRequestBuilder.request().source().aggregations().getAggregatorFactories();
 
@@ -501,15 +519,15 @@ public class ElasticsearchQueryAdapterTest {
         assertTrue(searchRequestBuilder.toString().contains("\"shard_size\" : 8"));
 
         int facet1 = 0;
-        assertEquals(facets.get(facet1), ((TermsAggregationBuilder) aggregations.get(facet1)).field());
+        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet1)).field()));
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
 
         int facet2 = 1;
-        assertEquals(facets.get(facet2), ((TermsAggregationBuilder) aggregations.get(facet2)).field());
+        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet2)).field()));
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
 
         int facet3 = 2;
-        assertEquals(facets.get(facet3), ((TermsAggregationBuilder) aggregations.get(facet3)).field());
+        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet3)).field()));
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet3)).order()));
 
     }
@@ -525,7 +543,7 @@ public class ElasticsearchQueryAdapterTest {
         String fieldName3 = "field3";
         SortOrder fieldValue3 = ASC;
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().sort(String.format("%s %s, %s %s, %s %s", fieldName1, fieldValue1.name(), fieldName2, fieldValue2.name(), fieldName3, fieldValue3.name())).basicRequest();
+        SearchApiRequest searchApiRequest = fullRequest.sort(String.format("%s %s, %s %s, %s %s", fieldName1, fieldValue1.name(), fieldName2, fieldValue2.name(), fieldName3, fieldValue3.name())).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<FieldSortBuilder> sorts = (List) searchRequestBuilder.request().source().sorts();
 
@@ -544,10 +562,10 @@ public class ElasticsearchQueryAdapterTest {
 
     @Test
     public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() {
-        Set<String> includeFields = Sets.newHashSet("field1", "field2", "field3");
-        Set<String> excludeFields = Sets.newHashSet("field3", "field4");
+        Set<String> includeFields = newHashSet("field1", "field2", "field3");
+        Set<String> excludeFields = newHashSet("field3", "field4");
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().includeFields(includeFields).excludeFields(excludeFields).basicRequest();
+        BaseApiRequest searchApiRequest = basicRequest.includeFields(includeFields).excludeFields(excludeFields).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         FetchSourceContext fetchSourceContext = searchRequestBuilder.request().source().fetchSource();
 
@@ -558,7 +576,7 @@ public class ElasticsearchQueryAdapterTest {
     public void shouldReturnSimpleSearchRequestBuilderByQueryString() {
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).basicRequest();
+        SearchApiRequest searchApiRequest = fullRequest.q(q).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -581,7 +599,7 @@ public class ElasticsearchQueryAdapterTest {
         float boostValue3 = 5.0f;
 
         Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).fields(fields).basicRequest();
+        SearchApiRequest searchApiRequest = fullRequest.q(q).fields(fields).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -603,7 +621,7 @@ public class ElasticsearchQueryAdapterTest {
 
         validMMs.forEach(
             mm -> {
-                SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).mm(mm).basicRequest();
+                SearchApiRequest searchApiRequest = fullRequest.q(q).mm(mm).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
@@ -624,7 +642,7 @@ public class ElasticsearchQueryAdapterTest {
             mm -> {
                 boolean throwsException = false;
                 try {
-                    SearchApiRequest searchApiRequest = new SearchApiRequestBuilder().q(q).mm(mm).basicRequest();
+                    SearchApiRequest searchApiRequest = fullRequest.q(q).mm(mm).build();
                     queryAdapter.query(searchApiRequest);
                 } catch (IllegalArgumentException e) {
                     throwsException = true;
@@ -634,7 +652,7 @@ public class ElasticsearchQueryAdapterTest {
         );
     }
 
-    /*
+    /**
     * Full Tree Objects Representation (Recursive)
     *
     * Request: SearchApiRequest {
@@ -679,8 +697,8 @@ public class ElasticsearchQueryAdapterTest {
     public void shouldReturnSimpleSearchRequestBuilderWithRecursiveRequest() {
 
         // Display results
-        Set<String> includeFields  = Sets.newHashSet("field1", "field2");
-        Set<String> excludeFields = Sets.newHashSet("field3", "field4");
+        Set<String> includeFields  = newHashSet("field1", "field2");
+        Set<String> excludeFields = newHashSet("field3", "field4");
 
         // Sort
         String sortFieldName1 = "field1";
@@ -695,7 +713,7 @@ public class ElasticsearchQueryAdapterTest {
         String sort = String.format("%s %s, %s %s, %s %s", sortFieldName1, sortFieldValue1.name(), sortFieldName2, sortFieldValue2.name(), sortFieldName3, sortFieldValue3.name());
 
         // Facets
-        List<String> facets = Lists.newArrayList("field1", "field2");
+        Set<String> facets = newHashSet("field1", "field2");
         Integer facetSize = 10;
 
         // QueryString
@@ -752,7 +770,7 @@ public class ElasticsearchQueryAdapterTest {
             field6Name, field6RelationalOperator, northEastLat, northEastLon, southWestLat, southWestLon
         );
 
-        SearchApiRequest searchApiRequest = new SearchApiRequestBuilder()
+        SearchApiRequest searchApiRequest = fullRequest
             .includeFields(includeFields)
             .excludeFields(excludeFields)
             .filter(filter)
@@ -764,7 +782,7 @@ public class ElasticsearchQueryAdapterTest {
             .mm(mm)
             .from(from)
             .size(size)
-            .basicRequest();
+            .build();
 
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         SearchSourceBuilder source = searchRequestBuilder.request().source();
@@ -798,10 +816,10 @@ public class ElasticsearchQueryAdapterTest {
         assertTrue(searchRequestBuilder.toString().contains("\"size\" : " + facetSize));
         assertTrue(searchRequestBuilder.toString().contains("\"shard_size\" : 8"));
         int facet1 = 0;
-        assertEquals(facets.get(facet1), ((TermsAggregationBuilder) aggregations.get(facet1)).field());
+        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet1)).field()));
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
         int facet2 = 1;
-        assertEquals(facets.get(facet2), ((TermsAggregationBuilder) aggregations.get(facet2)).field());
+        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet2)).field()));
         assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
 
         // filters
@@ -889,6 +907,79 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(northEastLon, mustViewportFouthLevelField6.bottomRight().getLon(), delta);
     }
 
+    @Test
+    public void testFetchSourceFields() {
+        String[] includes = {"field1", "field2"}, excludes = {"field3", "field4"};
+
+        BaseApiRequest request = SearchApiRequestBuilder.basic()
+            .index(INDEX_NAME)
+            .includeFields(newHashSet(includes))
+            .excludeFields(newHashSet(excludes))
+            .build();
+
+        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
+
+        assertNotNull(fetchSourceFields);
+        assertThat(fetchSourceFields.getLeft(), arrayWithSize(2));
+        assertThat(fetchSourceFields.getLeft(), arrayContainingInAnyOrder(includes));
+
+        assertThat(fetchSourceFields.getRight(), arrayWithSize(2));
+        assertThat(fetchSourceFields.getRight(), arrayContainingInAnyOrder(excludes));
+    }
+
+    @Test
+    public void testFetchSourceEmptyFields() {
+        BaseApiRequest request = SearchApiRequestBuilder.basic().index(INDEX_NAME).build();
+
+        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
+
+        assertNotNull(fetchSourceFields);
+        assertThat(fetchSourceFields.getLeft(), emptyArray());
+        assertThat(fetchSourceFields.getRight(), emptyArray());
+    }
+
+    @Test
+    public void testFetchSourceIncludesEmptyFields() {
+        String[] excludes = {"field3", "field4"};
+        BaseApiRequest request = SearchApiRequestBuilder.basic().index(INDEX_NAME).excludeFields(newHashSet(excludes)).build();
+
+        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
+
+        assertNotNull(fetchSourceFields);
+        assertThat(fetchSourceFields.getLeft(), emptyArray());
+        assertThat(fetchSourceFields.getRight(), arrayContainingInAnyOrder(excludes));
+    }
+
+    @Test
+    public void testFetchSourceFilterExcludeFields() {
+        String[] includes = {"field1", "field2"}, excludes = {"field1", "field3"};
+
+        BaseApiRequest request = SearchApiRequestBuilder.basic()
+            .index(INDEX_NAME)
+            .includeFields(newHashSet(includes))
+            .excludeFields(newHashSet(excludes))
+            .build();
+
+        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
+
+        assertNotNull(fetchSourceFields);
+        assertThat(fetchSourceFields.getLeft(), arrayWithSize(2));
+        assertThat(fetchSourceFields.getLeft(), arrayContainingInAnyOrder(includes));
+
+        assertThat(fetchSourceFields.getRight(), arrayWithSize(1));
+        assertThat(fetchSourceFields.getRight(), hasItemInArray("field3"));
+    }
+
+    @Test
+    public void testPreparationQuery() {
+        SearchApiRequest request = fullRequest.build();
+        SearchRequestBuilder builder = elasticsearchQueryAdapter.prepareQuery(request, ($1,$2)->{});
+
+        assertEquals(request.getIndex(), builder.request().indices()[0]);
+        assertEquals("_replica_first", builder.request().preference());
+        assertThat(builder.request().source().query(), instanceOf(BoolQueryBuilder.class));
+    }
+
     private String format(final String field, final Object value, final String relationalOperator) {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(field).append(" ").append(relationalOperator).append(" ");
@@ -901,5 +992,4 @@ public class ElasticsearchQueryAdapterTest {
 
         return stringBuilder.toString();
     }
-
 }

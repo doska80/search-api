@@ -1,4 +1,4 @@
-package com.vivareal.search.api.model;
+package com.vivareal.search.api.model.http;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.elasticsearch.search.aggregations.Aggregations;
@@ -16,14 +16,6 @@ public final class SearchApiResponse {
     private long time;
     private long totalCount;
     private Map<String, Object> result;
-
-    private SearchApiResponse() {
-        super();
-    }
-
-    public static SearchApiResponse builder() {
-        return new SearchApiResponse();
-    }
 
     public SearchApiResponse time(final long time) {
         this.time = time;
