@@ -32,7 +32,6 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.joining;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
@@ -94,10 +93,6 @@ public class ESIntegrationTestSetup {
                 .map(req -> (Map<String, Object>) req)
                 .ifPresent(this::executeSingleCommand);
         });
-
-        LOG.info("Waiting until bean with cluster settings will be refreshed");
-        SECONDS.sleep(15);
-        LOG.info("Settings should be updated");
     }
 
     private void executeSingleCommand(Map<String, Object> req) {

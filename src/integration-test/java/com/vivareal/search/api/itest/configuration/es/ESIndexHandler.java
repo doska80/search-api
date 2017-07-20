@@ -26,6 +26,7 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.range;
+import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 @Service
@@ -33,15 +34,18 @@ public class ESIndexHandler {
 
     private static Logger LOG = LoggerFactory.getLogger(ESIndexHandler.class);
 
-    public static final int STANDARD_DATASET_SIZE = 30;
     public static final String TEST_DATA_INDEX = "/testdata";
 
     private final RestClient restClient;
+    private int standardDatasetSize;
     private final Long timeout;
 
     @Autowired
-    public ESIndexHandler(RestClient restClient, @Value("${es.controller.search.timeout}") Long timeout) {
+    public ESIndexHandler(RestClient restClient,
+                          @Value("${itest.standard.dataset.size}") Integer standardDatasetSize,
+                          @Value("${es.controller.search.timeout}") Long timeout) {
         this.restClient = restClient;
+        this.standardDatasetSize = standardDatasetSize;
         this.timeout = timeout;
     }
 
@@ -58,8 +62,8 @@ public class ESIndexHandler {
     }
 
     public void addStandardTestData() throws IOException {
-        List<String> entities = new ArrayList<>(STANDARD_DATASET_SIZE);
-        for(int id=1; id<=STANDARD_DATASET_SIZE; id++) {
+        List<String> entities = new ArrayList<>(standardDatasetSize);
+        for(int id = 1; id<= standardDatasetSize; id++) {
             String entity = createStandardEntityForId(id);
             if(insertEntityToTestDataIndex(id, entity))
                 entities.add(entity);
@@ -74,7 +78,7 @@ public class ESIndexHandler {
 
         Map<String, Object> kv = unmodifiableMap(Stream.of(
             new SimpleEntry<>("field", "common"),
-            new SimpleEntry<>("array_string", range(1, id).boxed().map(String::valueOf).collect(toList()))
+            new SimpleEntry<>("array_string", rangeClosed(1, id).boxed().map(String::valueOf).collect(toList()))
         ).collect(toMap(SimpleEntry::getKey, e -> (Object) e.getValue())));
 
         Map<String, Double> geo = unmodifiableMap(Stream.of(
@@ -86,7 +90,7 @@ public class ESIndexHandler {
             new SimpleEntry<>("object", kv),
             new SimpleEntry<>("number", id * 2),
             new SimpleEntry<>("float", id * 3.5f),
-            new SimpleEntry<>("string", format("string_with_char(%s)", (char) (id + 'a'))),
+            new SimpleEntry<>("string", format("string with char %s", (char) (id + 'a' - 1))),
             new SimpleEntry<>("boolean", !isEven),
             new SimpleEntry<>(isEven ? "even" : "odd", true)
         ).collect(toMap(SimpleEntry::getKey, e -> (Object) e.getValue())));
@@ -96,7 +100,7 @@ public class ESIndexHandler {
         data.put("numeric", id);
         data.put("field" + id, "value" + id);
         data.put("isEven", isEven);
-        data.put("array_integer", range(1, id).boxed().collect(toList()));
+        data.put("array_integer", rangeClosed(1, id).boxed().collect(toList()));
         data.put("nested", nestedObject);
         data.put("geo", geo);
 
