@@ -97,10 +97,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
-        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f)));
+        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f), filter.getIndex()));
     }
 
-    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment) {
+    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment, final String indexName) {
         if (queryFragment != null && queryFragment instanceof QueryFragmentList) {
             QueryFragmentList queryFragmentList = (QueryFragmentList) queryFragment;
             LogicalOperator logicalOperator = AND;
@@ -111,13 +111,15 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                 if (queryFragmentFilter instanceof QueryFragmentList) {
                     BoolQueryBuilder recursiveQueryBuilder = boolQuery();
                     addFilterQueryByLogicalOperator(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator), isNotBeforeCurrentQueryFragment(queryFragmentList, index));
-                    applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter);
+                    applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter, indexName);
 
                 } else if (queryFragmentFilter instanceof QueryFragmentItem) {
                     QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
                     Filter filter = queryFragmentItem.getFilter();
 
                     String fieldName = filter.getField().getName();
+                    String fieldType = settingsAdapter.getFieldType(indexName, fieldName);
+
                     final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                     logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
                     RelationalOperator operator = filter.getRelationalOperator();
