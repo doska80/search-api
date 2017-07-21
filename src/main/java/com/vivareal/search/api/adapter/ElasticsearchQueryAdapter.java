@@ -1,6 +1,5 @@
 package com.vivareal.search.api.adapter;
 
-
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.parser.FacetParser;
@@ -8,7 +7,6 @@ import com.vivareal.search.api.model.parser.QueryParser;
 import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.*;
 import com.vivareal.search.api.model.search.*;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -40,7 +38,6 @@ import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.ArrayUtils.EMPTY_STRING_ARRAY;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.elasticsearch.index.query.Operator.OR;

@@ -83,12 +83,11 @@ public class SearchApiEnv {
                     Map hitsMap = (HashMap<String, Object>) response.get("hits");
 
                     if (hitsMap.containsKey("hits")) {
-                        ((List) hitsMap.get("hits")).forEach(hit -> {
-                            Map hitMap = (Map) hit;
-                            Map<String, Object> source = (Map<String, Object>) hitMap.get("_source");
+                        ((List<Map>) hitsMap.get("hits")).forEach(hit -> {
+                            Map<String, Object> source = (Map<String, Object>) hit.get("_source");
 
                             LOG.debug("Remote properties loaded with success. Endpoint: {}", SEARCH_API_CONFIG_ENDPOINT);
-                            String index = ((Map) hit).get("_id").toString();
+                            String index = hit.get("_id").toString();
                             loadEnvironmentProperties(index, source);
                             this.remoteProperties.put(index, source);
                         });

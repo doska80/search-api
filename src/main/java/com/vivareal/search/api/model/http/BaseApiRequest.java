@@ -1,12 +1,11 @@
 package com.vivareal.search.api.model.http;
 
 import com.vivareal.search.api.model.search.Fetchable;
-import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.Set;
+
 @ApiModel
 public class BaseApiRequest implements Fetchable {
     @ApiModelProperty(value ="Index name", example = "my_index", required = true, reference = "path")

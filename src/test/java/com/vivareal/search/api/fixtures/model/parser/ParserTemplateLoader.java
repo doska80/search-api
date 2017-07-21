@@ -7,7 +7,6 @@ import com.vivareal.search.api.model.query.*;
 
 import java.util.Arrays;
 
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.EQUAL;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
