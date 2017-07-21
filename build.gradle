@@ -83,6 +83,9 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-log4j2'
     // need this because org.elasticsearch:elasticsearch dependency
 
+    compile 'io.springfox:springfox-swagger2:' + SWAGGER
+    compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
+
     compile 'com.google.guava:guava:22.0'
     compile 'org.jparsec:jparsec:3.0'
     compile 'org.apache.commons:commons-lang3:3.6'
