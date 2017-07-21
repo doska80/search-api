@@ -25,7 +25,6 @@ import static java.util.Collections.unmodifiableMap;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
