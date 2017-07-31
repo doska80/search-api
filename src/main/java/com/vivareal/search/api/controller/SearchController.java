@@ -52,7 +52,7 @@ public class SearchController {
 
             LOG.debug("ID {} not found on {} index", id, request.getIndex());
             return new ResponseEntity<>(NOT_FOUND);
-        } catch (IllegalArgumentException ex) {
+        } catch (RuntimeException ex) {
             String errorMessage = getRootCauseMessage(ex);
             LOG.error(errorMessage);
             return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), BAD_REQUEST);
@@ -69,7 +69,7 @@ public class SearchController {
     public ResponseEntity<Object> search(SearchApiRequest request) {
         try {
             return new ResponseEntity<>(searchService.search(request), OK);
-        } catch (IllegalArgumentException ex) {
+        } catch (RuntimeException ex) {
             String errorMessage = getRootCauseMessage(ex);
             LOG.error(errorMessage);
             return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), BAD_REQUEST);

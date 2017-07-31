@@ -1,6 +1,7 @@
 package com.vivareal.search.api.adapter;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
+import com.google.common.collect.Maps;
 import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.exception.PropertyNotFoundException;
@@ -19,8 +20,11 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.immutableEntry;
+import static com.google.common.collect.Maps.newConcurrentMap;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
@@ -97,7 +101,7 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
 
         stream(this.transportClient.admin().indices().prepareGetIndex().get().getIndices()).filter(a -> !startsWith(a, ".")).forEach(
             index -> {
-                Map<String, Object> indexInfo = newHashMap();
+                Map<String, Object> indexInfo = newConcurrentMap();
                 indexInfo.putAll(getIndexResponse.getSettings().get(index).filter(newArrayList(SHARDS, REPLICAS)::contains).getAsMap());
 
                 ImmutableOpenMap<String, MappingMetaData> immutableIndexMapping = getIndexResponse.getMappings().get(index);
@@ -119,6 +123,11 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
         String type = stringObjectCursor.value;
         try {
             indexInfo.putAll(flat(immutableIndexMapping.get(type).getSourceAsMap(), newArrayList("mappings", "properties", "type", "fields", index, type)));
+            indexInfo.entrySet().stream()
+                    .filter(stringObjectEntry -> stringObjectEntry.getKey().contains("."))
+                    .filter(stringObjectEntry -> !indexInfo.containsKey(stringObjectEntry.getKey().split("\\.")[0]))
+                    .map(stringObjectEntry -> immutableEntry(stringObjectEntry.getKey().split("\\.")[0], "_obj"))
+                    .forEach(e -> indexInfo.put(e.getKey(), e.getValue()));
         } catch (IOException e) {
             LOG.error("Error on get mapping from index {} and type {}", index, type, e);
         }
