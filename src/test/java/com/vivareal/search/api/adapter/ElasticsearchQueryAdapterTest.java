@@ -41,6 +41,7 @@ import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
@@ -519,30 +520,22 @@ public class ElasticsearchQueryAdapterTest {
 
     @Test
     public void shouldReturnSearchRequestBuilderByFacets() {
-        Set<String> facets = newHashSet("field1", "field2", "field3");
+        Set<String> facets = newHashSet("field1", "field2", "field3", "nested1.field4", "nested1.field5", "nested2.field6");
+
+        when(settingsAdapter.isNestedType(INDEX_NAME, "nested1.field4")).thenReturn(true);
+        when(settingsAdapter.isNestedType(INDEX_NAME, "nested1.field5")).thenReturn(true);
+        when(settingsAdapter.isNestedType(INDEX_NAME, "nested2.field6")).thenReturn(true);
 
         SearchApiRequest searchApiRequest = fullRequest.facets(facets).facetSize(10).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         List<AggregationBuilder> aggregations = searchRequestBuilder.request().source().aggregations().getAggregatorFactories();
 
         assertNotNull(aggregations);
-        assertTrue(aggregations.size() == facets.size());
+        assertTrue(aggregations.size() == 5);
 
         assertTrue(searchRequestBuilder.toString().contains("\"size\" : 10"));
         assertTrue(searchRequestBuilder.toString().contains("\"shard_size\" : 8"));
-
-        int facet1 = 0;
-        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet1)).field()));
-        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
-
-        int facet2 = 1;
-        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet2)).field()));
-        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
-
-        int facet3 = 2;
-        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet3)).field()));
-        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet3)).order()));
-
+        assertTrue(facets.stream().map(s -> s.split("\\.")[0]).collect(toSet()).containsAll(aggregations.stream().map(AggregationBuilder::getName).collect(toSet())));
     }
 
     @Test
