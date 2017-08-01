@@ -13,4 +13,6 @@ public interface SettingsAdapter<T, U> {
     void checkFieldName(String index, String fieldName);
 
     String getFieldType(String index, String fieldName);
+
+    boolean isNestedType(String index, String fieldName);
 }

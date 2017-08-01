@@ -1,7 +1,6 @@
 package com.vivareal.search.api.adapter;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
-import com.google.common.collect.Maps;
 import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.exception.PropertyNotFoundException;
@@ -20,12 +19,10 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.immutableEntry;
 import static com.google.common.collect.Maps.newConcurrentMap;
-import static com.google.common.collect.Maps.newHashMap;
 import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
@@ -92,6 +89,11 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
             throw new InvalidFieldException(fieldName, index);
 
         return valueOf(structuredIndices.get(index).get(fieldName));
+    }
+
+    @Override
+    public boolean isNestedType(String index, String fieldName) {
+        return "nested".equals(getFieldType(index, fieldName.contains(".") ? fieldName.split("\\.")[0] : fieldName));
     }
 
     @Scheduled(cron = "${es.settings.refresh.cron}")

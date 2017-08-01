@@ -17,7 +17,8 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.index.query.RangeQueryBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
@@ -27,10 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -40,6 +38,7 @@ import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.DIFFERENT;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
+import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.ArrayUtils.contains;
@@ -47,6 +46,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.search.aggregations.AggregationBuilders.nested;
+import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -123,7 +124,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                     String fieldName = filter.getField().getName();
                     settingsAdapter.checkFieldName(indexName, fieldName);
-                    boolean nested = ("nested".equals(settingsAdapter.getFieldType(indexName, fieldName.contains(".") ? fieldName.split("\\.")[0] : fieldName)));
+                    boolean nested = settingsAdapter.isNestedType(indexName, fieldName);
 
                     final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                     logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
@@ -306,11 +307,44 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         Set<String> value = request.getFacets();
         if (!isEmpty(value)) {
             List<Field> facets = FacetParser.get().parse(value.stream().collect(joining(",")));
-            facets.forEach(facetField -> searchRequestBuilder.addAggregation(AggregationBuilders.terms(facetField.getName())
-                .field(facetField.getName())
-                .order(Terms.Order.count(false))
-                .size(ES_FACET_SIZE.getValue(request.getFacetSize(), request.getIndex()))
-                .shardSize(parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS))))));
+            facets.forEach(facet -> {
+
+                final String indexName = request.getIndex();
+                final String fieldName = facet.getName();
+                final int facetSize = ES_FACET_SIZE.getValue(request.getFacetSize(), request.getIndex());
+                final int shardSize = parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)));
+
+                settingsAdapter.checkFieldName(indexName, fieldName);
+
+                AggregationBuilder agg = terms(fieldName)
+                    .field(fieldName)
+                    .size(facetSize)
+                    .shardSize(shardSize)
+                    .order(Terms.Order.count(false));
+
+                if (settingsAdapter.isNestedType(indexName, fieldName)) {
+                    applyFacetsByNestedFields(searchRequestBuilder, fieldName, agg);
+                } else {
+                    searchRequestBuilder.addAggregation(agg);
+                }
+            });
+        }
+    }
+
+    private void applyFacetsByNestedFields(SearchRequestBuilder searchRequestBuilder, final String fieldName, final AggregationBuilder agg) {
+        final String name = fieldName.split("\\.")[0];
+
+        Optional<AggregationBuilder> nestedAgg = ofNullable(searchRequestBuilder.request().source().aggregations())
+            .map(builder -> builder.getAggregatorFactories().stream()
+                .filter(aggregationBuilder -> aggregationBuilder instanceof NestedAggregationBuilder)
+                .filter(aggregationBuilder -> name.equals(aggregationBuilder.getName()))
+                .findFirst()
+            ).orElse(empty());
+
+        if (nestedAgg.isPresent()) {
+            nestedAgg.get().subAggregation(agg);
+        } else {
+            searchRequestBuilder.addAggregation(nested(name, name).subAggregation(agg));
         }
     }
 
@@ -325,15 +359,11 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     Pair<String[], String[]> getFetchSourceFields(Fetchable request) {
-        String[] includes = SOURCE_INCLUDES.getValue(request.getIncludeFields(), request.getIndex())
-            .stream()
-            .toArray(String[]::new);
-
+        String[] includes = SOURCE_INCLUDES.getValue(request.getIncludeFields(), request.getIndex()).toArray(new String[0]);
         String[] excludes = SOURCE_EXCLUDES.getValue(request.getExcludeFields(), request.getIndex())
             .stream()
             .filter(field -> !contains(includes, field))
             .toArray(String[]::new);
-
         return Pair.of(includes, excludes);
     }
 
