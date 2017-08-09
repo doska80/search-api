@@ -3,7 +3,7 @@
 	url = git@github.com:VivaReal/el-asno-alado.git
 [submodule "make"]
 	path = make
-	url = git@github.com:VivaReal/make-snippets.git
+	url = https://github.com/VivaReal/make-snippets
 [submodule "code-style"]
 	path = code-style
 	url = https://github.com/VivaReal/code-style
