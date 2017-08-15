@@ -27,7 +27,10 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
@@ -142,6 +145,9 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 break;
                             case LESS_EQUAL:
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(true), logicalOperator, not);
+                                break;
+                            case STARTS_WITH:
+                                addFilterQueryByLogicalOperator(queryBuilder, matchPhrasePrefixQuery(fieldName, singleValue), logicalOperator, not);
                                 break;
                             case IN:
                                 Object[] values = multiValues.stream().map(contents -> ((com.vivareal.search.api.model.query.Value) contents).getContents(0)).toArray();

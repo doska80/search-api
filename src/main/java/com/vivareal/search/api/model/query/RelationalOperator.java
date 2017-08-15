@@ -18,7 +18,8 @@ public enum RelationalOperator {
     IN("IN"),
     LESS("LT", "<"),
     LESS_EQUAL("LTE", "<="),
-    VIEWPORT("@");
+    VIEWPORT("@"),
+    STARTS_WITH("STARTS WITH", "^");
 
     private String[] alias;
 
