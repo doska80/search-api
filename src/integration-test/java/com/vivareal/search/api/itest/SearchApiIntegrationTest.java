@@ -445,8 +445,8 @@ public class SearchApiIntegrationTest {
         .when()
             .get(format("%s?filter=nested.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
         .then()
-            .body("totalCount", equalTo(30))
-            .body("result.testdata", hasSize(20))
+            .body("totalCount", equalTo(standardDatasetSize))
+            .body("result.testdata", hasSize(defaultPageSize))
             .body("result.testdata.nested.string", everyItem(startsWith("string with char")))
         ;
     }
