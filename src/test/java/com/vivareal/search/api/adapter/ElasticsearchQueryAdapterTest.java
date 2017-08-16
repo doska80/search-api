@@ -308,7 +308,7 @@ public class ElasticsearchQueryAdapterTest {
             MatchPhrasePrefixQueryBuilder must = (MatchPhrasePrefixQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
             assertNotNull(must);
-            assertEquals(field, must.fieldName());
+            assertEquals(field.concat(".raw"), must.fieldName());
             assertEquals(FuzzyQuery.defaultMaxExpansions, must.maxExpansions());
             assertEquals(value, must.value());
         });

@@ -147,7 +147,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(true), logicalOperator, not);
                                 break;
                             case STARTS_WITH:
-                                addFilterQueryByLogicalOperator(queryBuilder, matchPhrasePrefixQuery(fieldName, singleValue), logicalOperator, not);
+                                addFilterQueryByLogicalOperator(queryBuilder, matchPhrasePrefixQuery(fieldName.concat(".raw"), singleValue), logicalOperator, not);
                                 break;
                             case IN:
                                 Object[] values = multiValues.stream().map(contents -> ((com.vivareal.search.api.model.query.Value) contents).getContents(0)).toArray();

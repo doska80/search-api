@@ -443,7 +443,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=nested.string.raw STARTS WITH 'string with char'", TEST_DATA_INDEX))
+            .get(format("%s?filter=nested.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(30))
             .body("result.testdata", hasSize(20))
