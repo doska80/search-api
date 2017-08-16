@@ -435,6 +435,23 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
+    public void validateSearchByMatchPhasePrefix() {
+        given()
+        .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=nested.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(standardDatasetSize))
+            .body("result.testdata", hasSize(defaultPageSize))
+            .body("result.testdata.nested.string", everyItem(startsWith("string with char")))
+        ;
+    }
+
+    @Test
     public void validateIncludeFieldsWhenSearch() {
         given()
             .log().all()

@@ -9,6 +9,7 @@ import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.ComplexRequestBuilder;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.lucene.search.FuzzyQuery;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -294,6 +295,23 @@ public class ElasticsearchQueryAdapterTest {
                 assertEquals(northEastLon, geoBoundingBoxQueryBuilder.bottomRight().getLon(), delta);
             }
         );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilterStartsWith() {
+        final String field = "field1";
+        final Object value = "Lorem Ipsum";
+
+        getOperators(STARTS_WITH).forEach(op -> {
+            SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
+            SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+            MatchPhrasePrefixQueryBuilder must = (MatchPhrasePrefixQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+            assertNotNull(must);
+            assertEquals(field.concat(".raw"), must.fieldName());
+            assertEquals(FuzzyQuery.defaultMaxExpansions, must.maxExpansions());
+            assertEquals(value, must.value());
+        });
     }
 
     @Test

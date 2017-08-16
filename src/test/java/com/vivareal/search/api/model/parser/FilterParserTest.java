@@ -133,4 +133,18 @@ public class FilterParserTest {
         Filter viewport = parser.parse(value);
         assertEquals("address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }
+
+    @Test
+    public void testStartsWith() {
+        String value = "field STARTS WITH 'value'";
+        Filter viewport = parser.parse(value);
+        assertEquals("field STARTS_WITH \"value\"", viewport.toString());
+    }
+
+    @Test
+    public void testStartsWithAlias() {
+        String value = "field ^ 'value'";
+        Filter viewport = parser.parse(value);
+        assertEquals("field STARTS_WITH \"value\"", viewport.toString());
+    }
 }
