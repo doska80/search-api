@@ -75,6 +75,19 @@ Possible values for ENV: `prod` or `qa`.
 
 `ES_CLUSTER_NAME` is a string with the current [ElasticSearch](https://github.com/VivaReal/search-es) cluster.
 
-## The Query language sintax
+## The Query language syntax
 
-TODO
+SearchAPI provides a Query DSL creating flexible queries to our search engine. The idea is to abstract any kind of complexity to making queries and search optimizations. 
+
+Basically, you need just use `filter` query parameter for that, for example: 
+
+```sh
+curl -X GET http://api/v2/listings?filter=field1 EQ 'value1' AND (field2 EQ 'value2'OR field3 EQ 'value3')
+```
+
+SearchAPI parses this query using different kind of parsers and generates an Abstract Syntax Tree with the query fragments. To explanation the query fragments, please see the image below:
+
+
+![QueryDSL](https://github.com/VivaReal/search-api/raw/master/src/main/resources/static/query-dsl.png "Query DSL")
+
+You can see more details in [wiki](https://github.com/VivaReal/search-api/wiki).
