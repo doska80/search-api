@@ -391,22 +391,9 @@ public class ElasticsearchQueryAdapterTest {
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> mustNot = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot();
 
-                List<RangeQueryBuilder> shouldClauses = (List) ((BoolQueryBuilder) mustNot.get(0)).should();
-
-                assertNotNull(shouldClauses);
-                assertTrue(shouldClauses.size() == 2);
-
-                assertEquals(fieldName, shouldClauses.get(0).fieldName());
-                assertEquals(0, shouldClauses.get(0).to());
-                assertNull(shouldClauses.get(0).from());
-                assertEquals(true, shouldClauses.get(0).includeLower());
-                assertEquals(true, shouldClauses.get(0).includeUpper());
-
-                assertEquals(fieldName, shouldClauses.get(1).fieldName());
-                assertEquals(0, shouldClauses.get(1).from());
-                assertNull(shouldClauses.get(1).to());
-                assertEquals(true, shouldClauses.get(1).includeLower());
-                assertEquals(true, shouldClauses.get(1).includeUpper());
+                ExistsQueryBuilder existsQueryBuilder = (ExistsQueryBuilder) mustNot.get(0);
+                assertNotNull(existsQueryBuilder);
+                assertEquals(fieldName, existsQueryBuilder.fieldName());
             }
         );
     }
@@ -422,22 +409,9 @@ public class ElasticsearchQueryAdapterTest {
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
 
-                List<RangeQueryBuilder> shouldClauses = (List) ((BoolQueryBuilder) must.get(0)).should();
-
-                assertNotNull(shouldClauses);
-                assertTrue(shouldClauses.size() == 2);
-
-                assertEquals(fieldName, shouldClauses.get(0).fieldName());
-                assertEquals(0, shouldClauses.get(0).to());
-                assertNull(shouldClauses.get(0).from());
-                assertEquals(true, shouldClauses.get(0).includeLower());
-                assertEquals(true, shouldClauses.get(0).includeUpper());
-
-                assertEquals(fieldName, shouldClauses.get(1).fieldName());
-                assertEquals(0, shouldClauses.get(1).from());
-                assertNull(shouldClauses.get(1).to());
-                assertEquals(true, shouldClauses.get(1).includeLower());
-                assertEquals(true, shouldClauses.get(1).includeUpper());
+                ExistsQueryBuilder existsQueryBuilder = (ExistsQueryBuilder) must.get(0);
+                assertNotNull(existsQueryBuilder);
+                assertEquals(fieldName, existsQueryBuilder.fieldName());
             }
         );
     }
@@ -453,22 +427,9 @@ public class ElasticsearchQueryAdapterTest {
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
 
-                List<RangeQueryBuilder> shouldClauses = (List) ((BoolQueryBuilder) must.get(0)).should();
-
-                assertNotNull(shouldClauses);
-                assertTrue(shouldClauses.size() == 2);
-
-                assertEquals(fieldName, shouldClauses.get(0).fieldName());
-                assertEquals(0, shouldClauses.get(0).to());
-                assertNull(shouldClauses.get(0).from());
-                assertEquals(true, shouldClauses.get(0).includeLower());
-                assertEquals(true, shouldClauses.get(0).includeUpper());
-
-                assertEquals(fieldName, shouldClauses.get(1).fieldName());
-                assertEquals(0, shouldClauses.get(1).from());
-                assertNull(shouldClauses.get(1).to());
-                assertEquals(true, shouldClauses.get(1).includeLower());
-                assertEquals(true, shouldClauses.get(1).includeUpper());
+                ExistsQueryBuilder existsQueryBuilder = (ExistsQueryBuilder) must.get(0);
+                assertNotNull(existsQueryBuilder);
+                assertEquals(fieldName, existsQueryBuilder.fieldName());
             }
         );
     }
@@ -484,22 +445,9 @@ public class ElasticsearchQueryAdapterTest {
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
                 List<QueryBuilder> mustNot = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot();
 
-                List<RangeQueryBuilder> shouldClauses = (List) ((BoolQueryBuilder) mustNot.get(0)).should();
-
-                assertNotNull(shouldClauses);
-                assertTrue(shouldClauses.size() == 2);
-
-                assertEquals(fieldName, shouldClauses.get(0).fieldName());
-                assertEquals(0, shouldClauses.get(0).to());
-                assertNull(shouldClauses.get(0).from());
-                assertEquals(true, shouldClauses.get(0).includeLower());
-                assertEquals(true, shouldClauses.get(0).includeUpper());
-
-                assertEquals(fieldName, shouldClauses.get(1).fieldName());
-                assertEquals(0, shouldClauses.get(1).from());
-                assertNull(shouldClauses.get(1).to());
-                assertEquals(true, shouldClauses.get(1).includeLower());
-                assertEquals(true, shouldClauses.get(1).includeUpper());
+                ExistsQueryBuilder existsQueryBuilder = (ExistsQueryBuilder) mustNot.get(0);
+                assertNotNull(existsQueryBuilder);
+                assertEquals(fieldName, existsQueryBuilder.fieldName());
             }
         );
     }

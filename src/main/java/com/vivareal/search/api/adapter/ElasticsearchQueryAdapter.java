@@ -16,7 +16,6 @@ import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -170,9 +169,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
                         }
                     } else {
-                        RangeQueryBuilder lte = rangeQuery(fieldName).to(0).includeUpper(true);
-                        RangeQueryBuilder gte = rangeQuery(fieldName).from(0).includeLower(true);
-                        addFilterQueryByLogicalOperator(queryBuilder, boolQuery().should(lte).should(gte), logicalOperator, DIFFERENT.equals(operator) == not, nested, fieldName, nestedQueries);
+                        addFilterQueryByLogicalOperator(queryBuilder, existsQuery(fieldName), logicalOperator, DIFFERENT.equals(operator) == not, nested, fieldName, nestedQueries);
                     }
                 }
             }
