@@ -184,12 +184,12 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             return;
 
         if(logicalOperator.equals(AND)) {
-            if (!not)
+            if (!not || nested)
                 boolQueryBuilder.must(query);
             else
                 boolQueryBuilder.mustNot(query);
         } else if(logicalOperator.equals(LogicalOperator.OR)) {
-            if (!not)
+            if (!not || nested)
                 boolQueryBuilder.should(query);
             else
                 boolQueryBuilder.should(boolQuery().mustNot(query));
