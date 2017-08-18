@@ -1,5 +1,6 @@
 package com.vivareal.search.api.adapter;
 
+import com.vivareal.search.api.exception.UnsupportableFieldException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.parser.FacetParser;
@@ -27,14 +28,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.FIELD_TYPE_TEXT;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static com.vivareal.search.api.model.query.RelationalOperator.DIFFERENT;
+import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static java.util.Optional.empty;
@@ -123,7 +129,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                     String fieldName = filter.getField().getName();
                     settingsAdapter.checkFieldName(indexName, fieldName);
-                    boolean nested = settingsAdapter.isNestedType(indexName, fieldName);
+                    boolean nested = settingsAdapter.isTypeOfNested(indexName, fieldName);
 
                     final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                     logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
@@ -138,33 +144,48 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                             case DIFFERENT:
                                 addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, singleValue), logicalOperator, !not, nested, fieldName, nestedQueries);
                                 break;
+
                             case EQUAL:
                                 addFilterQueryByLogicalOperator(queryBuilder, matchQuery(fieldName, singleValue), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             case GREATER:
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(singleValue).includeLower(false), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             case GREATER_EQUAL:
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).from(singleValue).includeLower(true), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             case LESS:
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(false), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             case LESS_EQUAL:
                                 addFilterQueryByLogicalOperator(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(true), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             case STARTS_WITH:
+                                if(!settingsAdapter.isTypeOfString(indexName, fieldName))
+                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_TEXT, STARTS_WITH);
+
                                 addFilterQueryByLogicalOperator(queryBuilder, matchPhrasePrefixQuery(fieldName.concat(".raw"), singleValue), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             case IN:
                                 Object[] values = multiValues.stream().map(contents -> ((com.vivareal.search.api.model.query.Value) contents).getContents(0)).toArray();
                                 addFilterQueryByLogicalOperator(queryBuilder, termsQuery(fieldName, values), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             case VIEWPORT:
+                                if(!settingsAdapter.isTypeOfGeoPoint(indexName, fieldName))
+                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_TEXT, VIEWPORT);
+
                                 GeoPoint topRight = createGeoPointFromRawCoordinates((List) multiValues.get(0));
                                 GeoPoint bottomLeft = createGeoPointFromRawCoordinates((List) multiValues.get(1));
                                 addFilterQueryByLogicalOperator(queryBuilder, geoBoundingBoxQuery(filter.getField().getName()).setCornersOGC(bottomLeft, topRight), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
+
                             default:
                                 throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
                         }
@@ -261,10 +282,9 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             String mm = isEmpty(request.getMm()) ? QS_MM.getValue(index) : request.getMm();
             checkMM(mm, request);
 
-            QS_DEFAULT_FIELDS.getValue(request.getFields(), index).forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, boostField));
+            QS_DEFAULT_FIELDS.getValue(request.getFields(), index).forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, index, boostField));
 
-            Map<String, Float> fields = new HashMap<>();
-            queryStringBuilder.fields(fields).minimumShouldMatch(mm).tieBreaker(0.2f).phraseSlop(2).defaultOperator(OR);
+            queryStringBuilder.minimumShouldMatch(mm).tieBreaker(0.2f).phraseSlop(2).defaultOperator(OR);
             queryBuilder.must().add(queryStringBuilder);
         }
     }
@@ -296,7 +316,11 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         Set<String> value = ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex());
         if (!isEmpty(value)) {
             Sort sort = SortParser.get().parse(value.stream().collect(joining(",")));
-            sort.forEach(s -> searchRequestBuilder.addSort(s.getField().getName(), SortOrder.valueOf(s.getOrderOperator().name())));
+            sort.forEach(item -> {
+                String fieldName = item.getField().getName();
+                settingsAdapter.checkFieldName(request.getIndex(), fieldName);
+                searchRequestBuilder.addSort(fieldName, SortOrder.valueOf(item.getOrderOperator().name()));
+            });
         }
     }
 
@@ -319,7 +343,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                     .shardSize(shardSize)
                     .order(Terms.Order.count(false));
 
-                if (settingsAdapter.isNestedType(indexName, fieldName)) {
+                if (settingsAdapter.isTypeOfNested(indexName, fieldName)) {
                     applyFacetsByNestedFields(searchRequestBuilder, fieldName, agg);
                 } else {
                     searchRequestBuilder.addAggregation(agg);
@@ -345,9 +369,11 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         }
     }
 
-    private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String boostField) {
+    private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String indexName, final String boostField) {
         String[] boostFieldValues = boostField.split(":");
-        queryStringBuilder.field(boostFieldValues[0], boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
+        String fieldName = boostFieldValues[0];
+        settingsAdapter.checkFieldName(indexName, fieldName);
+        queryStringBuilder.field(fieldName, boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
     }
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, final Fetchable request) {
@@ -355,16 +381,20 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         searchRequestBuilder.setFetchSource(fetchSource.getLeft(), fetchSource.getRight());
     }
 
-    Pair<String[], String[]> getFetchSourceFields(Fetchable request) {
+    private Pair<String[], String[]> getFetchSourceFields(Fetchable request) {
         String[] includes = SOURCE_INCLUDES.getValue(request.getIncludeFields(), request.getIndex()).toArray(new String[0]);
         String[] excludes = SOURCE_EXCLUDES.getValue(request.getExcludeFields(), request.getIndex())
             .stream()
             .filter(field -> !contains(includes, field))
             .toArray(String[]::new);
+
+        Stream.of(includes).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
+        Stream.of(excludes).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
+
         return Pair.of(includes, excludes);
     }
 
-    SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
+    private SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
         settingsAdapter.checkIndex(request);
 
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());

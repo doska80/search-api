@@ -18,7 +18,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.immutableEntry;
@@ -43,6 +47,15 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
 
     public static final String SHARDS = "index.number_of_shards";
     public static final String REPLICAS = "index.number_of_replicas";
+
+    public static final String FIELD_TYPE_NESTED = "nested";
+    public static final String FIELD_TYPE_TEXT = "text";
+    public static final String FIELD_TYPE_BOOLEAN = "boolean";
+    public static final String FIELD_TYPE_GEOPOINT = "geo_point";
+    public static final String FIELD_TYPE_KEYWORD = "keyword";
+    public static final String FIELD_TYPE_DATE = "date";
+    public static final String FIELD_TYPE_LONG = "long";
+    public static final String FIELD_TYPE_FLOAT = "float";
 
     @Override
     public Map<String, Map<String, Object>> settings() {
@@ -92,8 +105,47 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
     }
 
     @Override
-    public boolean isNestedType(String index, String fieldName) {
-        return "nested".equals(getFieldType(index, fieldName.contains(".") ? fieldName.split("\\.")[0] : fieldName));
+    public boolean isTypeOfNested(String index, String fieldName) {
+        return isTypeOf(index, fieldName.split("\\.")[0], FIELD_TYPE_NESTED);
+    }
+
+    @Override
+    public boolean isTypeOfText(String index, String fieldName) {
+        return isTypeOf(index, fieldName, FIELD_TYPE_TEXT);
+    }
+
+    @Override
+    public boolean isTypeOfBoolean(String index, String fieldName) {
+        return isTypeOf(index, fieldName, FIELD_TYPE_BOOLEAN);
+    }
+
+    @Override
+    public boolean isTypeOfGeoPoint(String index, String fieldName) {
+        return isTypeOf(index, fieldName, FIELD_TYPE_GEOPOINT);
+    }
+
+    @Override
+    public boolean isTypeOfKeyword(String index, String fieldName) {
+        return isTypeOf(index, fieldName, FIELD_TYPE_KEYWORD);
+    }
+
+    @Override
+    public boolean isTypeOfDate(String index, String fieldName) {
+        return isTypeOf(index, fieldName, FIELD_TYPE_DATE);
+    }
+
+    @Override
+    public boolean isTypeOfLong(String index, String fieldName) {
+        return isTypeOf(index, fieldName, FIELD_TYPE_LONG);
+    }
+
+    @Override
+    public boolean isTypeOfFloat(String index, String fieldName) {
+        return isTypeOf(index, fieldName, FIELD_TYPE_FLOAT);
+    }
+
+    private boolean isTypeOf(final String index, final String fieldName, final String type) {
+        return getFieldType(index, fieldName).equals(type);
     }
 
     @Scheduled(cron = "${es.settings.refresh.cron}")
@@ -126,10 +178,23 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
         try {
             indexInfo.putAll(flat(immutableIndexMapping.get(type).getSourceAsMap(), newArrayList("mappings", "properties", "type", "fields", index, type)));
             indexInfo.entrySet().stream()
-                    .filter(stringObjectEntry -> stringObjectEntry.getKey().contains("."))
-                    .filter(stringObjectEntry -> !indexInfo.containsKey(stringObjectEntry.getKey().split("\\.")[0]))
-                    .map(stringObjectEntry -> immutableEntry(stringObjectEntry.getKey().split("\\.")[0], "_obj"))
-                    .forEach(e -> indexInfo.put(e.getKey(), e.getValue()));
+                .filter(stringObjectEntry -> stringObjectEntry.getKey().contains("."))
+                .map(stringObjectEntry -> {
+                    Set<String> missingParams = new HashSet<>();
+                    StringBuilder composeMissingParams = new StringBuilder();
+                    Stream.of(stringObjectEntry.getKey().split("\\."))
+                        .forEach(
+                            param -> {
+                                composeMissingParams.append(param);
+                                missingParams.add(composeMissingParams.toString());
+                                composeMissingParams.append(".");
+                            }
+                        );
+                    return missingParams;
+                })
+                .forEach(params -> params
+                    .forEach(param -> indexInfo.putIfAbsent(param, "_obj"))
+                );
         } catch (IOException e) {
             LOG.error("Error on get mapping from index {} and type {}", index, type, e);
         }

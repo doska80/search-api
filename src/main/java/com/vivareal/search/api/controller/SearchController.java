@@ -54,7 +54,7 @@ public class SearchController {
             return new ResponseEntity<>(NOT_FOUND);
         } catch (RuntimeException ex) {
             String errorMessage = getRootCauseMessage(ex);
-            LOG.error(errorMessage);
+            LOG.error(errorMessage, ex);
             return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), BAD_REQUEST);
         }
     }
@@ -71,7 +71,7 @@ public class SearchController {
             return new ResponseEntity<>(searchService.search(request), OK);
         } catch (RuntimeException ex) {
             String errorMessage = getRootCauseMessage(ex);
-            LOG.error(errorMessage);
+            LOG.error(errorMessage, ex);
             return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), BAD_REQUEST);
         }
     }

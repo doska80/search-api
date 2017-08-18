@@ -470,9 +470,9 @@ public class ElasticsearchQueryAdapterTest {
     public void shouldReturnSearchRequestBuilderByFacets() {
         Set<String> facets = newHashSet("field1", "field2", "field3", "nested1.field4", "nested1.field5", "nested2.field6");
 
-        when(settingsAdapter.isNestedType(INDEX_NAME, "nested1.field4")).thenReturn(true);
-        when(settingsAdapter.isNestedType(INDEX_NAME, "nested1.field5")).thenReturn(true);
-        when(settingsAdapter.isNestedType(INDEX_NAME, "nested2.field6")).thenReturn(true);
+        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested1.field4")).thenReturn(true);
+        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested1.field5")).thenReturn(true);
+        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested2.field6")).thenReturn(true);
 
         SearchApiRequest searchApiRequest = fullRequest.facets(facets).facetSize(10).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
