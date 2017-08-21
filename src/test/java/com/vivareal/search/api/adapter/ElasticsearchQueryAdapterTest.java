@@ -161,20 +161,19 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "nested.field";
         final Object value = "Lorem Ipsum";
 
-        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested.field")).thenReturn(true);
+        when(settingsAdapter.isTypeOfNested(INDEX_NAME, field)).thenReturn(true);
 
         SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, getOperators(EQUAL).get(0))).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
 
         NestedQueryBuilder nestedQueryBuilder = (NestedQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
         assertNotNull(nestedQueryBuilder);
-        assertTrue(nestedQueryBuilder.toString().contains("\"path\" : \"nested\""));
+        assertTrue(nestedQueryBuilder.toString().contains("\"path\" : \"" + field.split("\\.")[0] + "\""));
 
-        MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) nestedQueryBuilder.query()).must().get(0);
-        assertNotNull(mustNot);
-        assertEquals(field, mustNot.fieldName());
-        assertEquals(value, mustNot.value());
-
+        MatchQueryBuilder must = (MatchQueryBuilder) ((BoolQueryBuilder) nestedQueryBuilder.query()).must().get(0);
+        assertNotNull(must);
+        assertEquals(field, must.fieldName());
+        assertEquals(value, must.value());
     }
 
     @Test
