@@ -8,15 +8,28 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
 
 # Table of contents
 
+- [Application Checklist](#application-checklist)
 - [Setup](#setup)
     - [Build requirements](#build-requirements)
-    - [Building](#building)
-    - [Running](#running)
-    - [Testing](#testing)
+    - [How to Build](#how-to-build)
+    - [How to Run](#how-to-run)
+    - [How to Test](#how-to-test)
 - [API Reference](#api-reference)
     - [Query DSL](#query-language-syntax)
 - [Deploy](#deploy)
     - [Deploying from Jenkins](#deploying-from-jenkins)
+
+## Application Checklist
+
+- [X] [API Docs](http://search-api-v2.vivareal.com/swagger-ui.html)
+- [X] [CD](http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_PROD/build?delay=0sec)
+- [x] [CircleCI](https://circleci.com/gh/VivaReal/search-api)
+- [X] [Code Quality](https://sonarqube.vivareal.io/dashboard/index/14469)
+- [X] [DockerHub](https://hub.docker.com/r/vivareal/search-api-v2/)
+- [X] Logs
+    - [X] [Graylog](http://logs-dash.vivareal.com/search?rangetype=relative&fields=message,source&width=1920&highlightMessage=&relative=7200&q=application:search-api-v2)
+    - [X] [Sentry](https://sentry-logs.vivareal.com/vivareal/searchapi-v2)
+- [X] [New Relic](https://rpm.newrelic.com/accounts/645240/applications/47165905)
 
 ## Setup
 
@@ -27,7 +40,7 @@ In order to build SearchAPI application you need to have:
 - JDK 1.8
 - Setup `JAVA_HOME` environment variables with path to JDK 1.8
 
-### Building
+### How to Build
 
 To build this project, first time you try to build you need to run this:
 
@@ -44,7 +57,7 @@ You can import the project in your favorite IDE:
 - Intellij IDEA
     - Import project as Gradle project using `build.gradle`
 
-### Running
+### How to Run
 
 You must pass the `-Des.cluster.name` Java parameter.
 
@@ -55,7 +68,7 @@ Tool      | Command
 <img src="src/main/resources/static/java.png" alt="Java" width="75" />       | ```java -Des.cluster.name=<YOUR_CLUSTER_NAME> -jar build/libs/search-api.jar```
 <img src="src/main/resources/static/docker.png" alt="Docker" width="75"/>    | ```docker run --rm -it -p 8482:8482 -e JAVA_OPTS='-Des.cluster.name=<YOUR_CLUSTER_NAME>' vivareal/search-api-v2:<VERSION>```
 
-### Testing
+### How to Test
 
 There are two test types:
 
@@ -122,7 +135,7 @@ SearchAPI parses this query using different kind of parsers and generates an Abs
 
 You can see more details in [wiki](https://github.com/VivaReal/search-api/wiki).
 
-## Deploy
+## How to Deploy
 
 We are deploying SearchAPI with Amazon AWS using [El Asno Alado](https://github.com/VivaReal/el-asno-alado) project and the mainly file to configure deploy is a [Makefile](https://github.com/VivaReal/search-api/blob/master/Makefile) located in the project's root directory.
     
