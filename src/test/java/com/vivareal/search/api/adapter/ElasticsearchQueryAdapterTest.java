@@ -157,6 +157,27 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
+    public void shouldReturnSearchRequestBuilderWithSimpleNestedObject() {
+        final String field = "nested.field";
+        final Object value = "Lorem Ipsum";
+
+        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested.field")).thenReturn(true);
+
+        SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, getOperators(EQUAL).get(0))).build();
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+
+        NestedQueryBuilder nestedQueryBuilder = (NestedQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+        assertNotNull(nestedQueryBuilder);
+        assertTrue(nestedQueryBuilder.toString().contains("\"path\" : \"nested\""));
+
+        MatchQueryBuilder mustNot = (MatchQueryBuilder) ((BoolQueryBuilder) nestedQueryBuilder.query()).must().get(0);
+        assertNotNull(mustNot);
+        assertEquals(field, mustNot.fieldName());
+        assertEquals(value, mustNot.value());
+
+    }
+
+    @Test
     public void shouldReturnSearchRequestBuilderWithSingleFilterDifferent() {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
