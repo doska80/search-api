@@ -92,10 +92,10 @@ public enum RemoteProperties {
         static Function<String, String> AS_STRING = Function.identity();
 
         static Function<String, Set<String>> AS_SET = property -> ofNullable(property)
-        .filter(StringUtils::isNotBlank)
-        .map(value -> value.split(","))
-        .map(stringArray -> Stream.of(stringArray).collect(toSet()))
-        .orElse(new HashSet<>());
+            .filter(StringUtils::isNotBlank)
+            .map(value -> value.split(","))
+            .map(stringArray -> Stream.of(stringArray).collect(toSet()))
+            .orElse(new HashSet<>());
 
         static Function<String, Integer> AS_INTEGER = property -> parseInt(property);
 
