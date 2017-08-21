@@ -36,6 +36,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.newHashMap;
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.FIELD_TYPE_GEOPOINT;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.FIELD_TYPE_TEXT;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
@@ -179,7 +180,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                             case VIEWPORT:
                                 if(!settingsAdapter.isTypeOfGeoPoint(indexName, fieldName))
-                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_TEXT, VIEWPORT);
+                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT, VIEWPORT);
 
                                 GeoPoint topRight = createGeoPointFromRawCoordinates((List) multiValues.get(0));
                                 GeoPoint bottomLeft = createGeoPointFromRawCoordinates((List) multiValues.get(1));
@@ -388,7 +389,9 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             .filter(field -> !contains(includes, field))
             .toArray(String[]::new);
 
-        Stream.of(includes).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
+        if (includes.length > 0 && (!"*".equals(includes[0]) || includes.length > 1))
+            Stream.of(includes).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
+
         Stream.of(excludes).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
 
         return Pair.of(includes, excludes);

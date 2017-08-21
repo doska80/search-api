@@ -8,7 +8,6 @@ import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.ComplexRequestBuilder;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.lucene.search.FuzzyQuery;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -90,7 +89,10 @@ public class ElasticsearchQueryAdapterTest {
         setField(elasticsearchQueryAdapter, "settingsAdapter", settingsAdapter);
 
         doNothing().when(settingsAdapter).checkIndex(any());
+
         when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
+        when(settingsAdapter.isTypeOfGeoPoint(anyString(), anyString())).thenReturn(true);
+        when(settingsAdapter.isTypeOfString(anyString(), anyString())).thenReturn(true);
     }
 
     @After
@@ -871,25 +873,26 @@ public class ElasticsearchQueryAdapterTest {
             .excludeFields(newHashSet(excludes))
             .build();
 
-        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
+        SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request);
 
-        assertNotNull(fetchSourceFields);
-        assertThat(fetchSourceFields.getLeft(), arrayWithSize(2));
-        assertThat(fetchSourceFields.getLeft(), arrayContainingInAnyOrder(includes));
+        FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
+        assertNotNull(fetchSourceContext);
+        assertThat(fetchSourceContext.includes(), arrayWithSize(2));
+        assertThat(fetchSourceContext.includes(), arrayContainingInAnyOrder(includes));
 
-        assertThat(fetchSourceFields.getRight(), arrayWithSize(2));
-        assertThat(fetchSourceFields.getRight(), arrayContainingInAnyOrder(excludes));
+        assertThat(fetchSourceContext.excludes(), arrayWithSize(2));
+        assertThat(fetchSourceContext.excludes(), arrayContainingInAnyOrder(excludes));
     }
 
     @Test
     public void testFetchSourceEmptyFields() {
         BaseApiRequest request = SearchApiRequestBuilder.basic().index(INDEX_NAME).build();
+        SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request);
 
-        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
-
-        assertNotNull(fetchSourceFields);
-        assertThat(fetchSourceFields.getLeft(), emptyArray());
-        assertThat(fetchSourceFields.getRight(), emptyArray());
+        FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
+        assertNotNull(fetchSourceContext);
+        assertThat(fetchSourceContext.includes(), emptyArray());
+        assertThat(fetchSourceContext.excludes(), emptyArray());
     }
 
     @Test
@@ -897,11 +900,12 @@ public class ElasticsearchQueryAdapterTest {
         String[] excludes = {"field3", "field4"};
         BaseApiRequest request = SearchApiRequestBuilder.basic().index(INDEX_NAME).excludeFields(newHashSet(excludes)).build();
 
-        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
+        SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request);
 
-        assertNotNull(fetchSourceFields);
-        assertThat(fetchSourceFields.getLeft(), emptyArray());
-        assertThat(fetchSourceFields.getRight(), arrayContainingInAnyOrder(excludes));
+        FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
+        assertNotNull(fetchSourceContext);
+        assertThat(fetchSourceContext.includes(), emptyArray());
+        assertThat(fetchSourceContext.excludes(), arrayContainingInAnyOrder(excludes));
     }
 
     @Test
@@ -914,20 +918,21 @@ public class ElasticsearchQueryAdapterTest {
             .excludeFields(newHashSet(excludes))
             .build();
 
-        Pair<String[], String[]> fetchSourceFields = elasticsearchQueryAdapter.getFetchSourceFields(request);
+        SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request);
 
-        assertNotNull(fetchSourceFields);
-        assertThat(fetchSourceFields.getLeft(), arrayWithSize(2));
-        assertThat(fetchSourceFields.getLeft(), arrayContainingInAnyOrder(includes));
+        FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
+        assertNotNull(fetchSourceContext);
+        assertThat(fetchSourceContext.includes(), arrayWithSize(2));
+        assertThat(fetchSourceContext.includes(), arrayContainingInAnyOrder(includes));
 
-        assertThat(fetchSourceFields.getRight(), arrayWithSize(1));
-        assertThat(fetchSourceFields.getRight(), hasItemInArray("field3"));
+        assertThat(fetchSourceContext.excludes(), arrayWithSize(1));
+        assertThat(fetchSourceContext.excludes(), hasItemInArray("field3"));
     }
 
     @Test
     public void testPreparationQuery() {
         SearchApiRequest request = fullRequest.build();
-        SearchRequestBuilder builder = elasticsearchQueryAdapter.prepareQuery(request, ($1,$2)->{});
+        SearchRequestBuilder builder = elasticsearchQueryAdapter.query(request);
 
         assertEquals(request.getIndex(), builder.request().indices()[0]);
         assertEquals("_replica_first", builder.request().preference());
