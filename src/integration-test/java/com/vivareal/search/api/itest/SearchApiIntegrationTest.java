@@ -739,12 +739,9 @@ public class SearchApiIntegrationTest {
             .baseUri(baseUrl)
             .contentType(JSON)
         .expect()
-            .statusCode(SC_OK)
+            .statusCode(SC_BAD_REQUEST)
         .when()
             .get(format("%s?q=string with char&fields=nested.numeric.raw", TEST_DATA_INDEX))
-        .then()
-            .body("totalCount", equalTo(0))
-            .body("result.testdata", hasSize(0))
         ;
     }
 
