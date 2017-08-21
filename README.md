@@ -51,11 +51,9 @@ You must pass the `-Des.cluster.name` Java parameter.
 
 Tool      | Command
 --------- | -------
-<img src="src/main/resources/static/gradle.png" alt="Gradle" width="75" />   | ```./gradlew bootRun -Des.cluster.name=tincas```
-<img src="src/main/resources/static/java.png" alt="Java" width="75" />       | ```java -Des.cluster.name=tincas -jar build/libs/search-api.jar```
-<img src="src/main/resources/static/docker.png" alt="Docker" width="75"/>    | ```docker run --rm -it -p 8482:8482 -e JAVA_OPTS='-Des.cluster.name=tincas' vivareal/search-api-v2:<VERSION>```
-
-> The examples above assumes that the cluster name is `tincas`.
+<img src="src/main/resources/static/gradle.png" alt="Gradle" width="75" />   | ```./gradlew bootRun -Des.cluster.name=<YOUR_CLUSTER_NAME>```
+<img src="src/main/resources/static/java.png" alt="Java" width="75" />       | ```java -Des.cluster.name=<YOUR_CLUSTER_NAME> -jar build/libs/search-api.jar```
+<img src="src/main/resources/static/docker.png" alt="Docker" width="75"/>    | ```docker run --rm -it -p 8482:8482 -e JAVA_OPTS='-Des.cluster.name=<YOUR_CLUSTER_NAME>' vivareal/search-api-v2:<VERSION>```
 
 ### Testing
 
@@ -74,7 +72,7 @@ When you run just `test` the integration tests **always** run together.
 ./gradlew integrationTest
 ```
 
-The `integration tests` are responsible to guarantees a SearchAPI fine integration to ElasticSearch. We are using [Docker Compose](https://github.com/VivaReal/search-api/blob/documentation/docker-compose.yml) to up Elasticsearch and SearchAPI Docker containers and run [SearchApiIntegrationTest](https://github.com/VivaReal/search-api/blob/master/src/integration-test/java/com/vivareal/search/api/itest/SearchApiIntegrationTest.java) class.
+The `integration tests` are responsible to guarantees a SearchAPI fine integration to ElasticSearch. We are using [Docker Compose](https://github.com/VivaReal/search-api/blob/master/docker-compose.yml) to up Elasticsearch and SearchAPI Docker containers and run [SearchApiIntegrationTest](https://github.com/VivaReal/search-api/blob/master/src/integration-test/java/com/vivareal/search/api/itest/SearchApiIntegrationTest.java) class.
 
 To skipping:
  - Integration tests just use `-x integrationTest` in your Gradle execution.
