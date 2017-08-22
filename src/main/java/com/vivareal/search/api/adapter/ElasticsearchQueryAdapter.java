@@ -14,9 +14,7 @@ import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
+import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -28,17 +26,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.FIELD_TYPE_GEOPOINT;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.FIELD_TYPE_TEXT;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.*;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
@@ -277,17 +270,51 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private void applyQueryString(BoolQueryBuilder queryBuilder, final Queryable request) {
         if (!isEmpty(request.getQ())) {
-            QueryStringQueryBuilder queryStringBuilder = queryStringQuery(request.getQ());
-            String index = request.getIndex();
+            String indexName = request.getIndex();
 
-            String mm = isEmpty(request.getMm()) ? QS_MM.getValue(index) : request.getMm();
+            String mm = isEmpty(request.getMm()) ? QS_MM.getValue(indexName) : request.getMm();
             checkMM(mm, request);
 
-            QS_DEFAULT_FIELDS.getValue(request.getFields(), index).forEach(boostField -> addFieldToSearchOnQParameter(queryStringBuilder, index, boostField));
+            Map<String, AbstractQueryBuilder> queryStringQueries = new HashMap<>();
 
-            queryStringBuilder.minimumShouldMatch(mm).tieBreaker(0.2f).phraseSlop(2).defaultOperator(OR);
-            queryBuilder.must().add(queryStringBuilder);
+            QS_DEFAULT_FIELDS.getValue(request.getFields(), indexName).forEach(field -> {
+                String[] boostFieldValues = field.split(":");
+                String fieldName = boostFieldValues[0];
+
+                if (settingsAdapter.isTypeOfNested(indexName, fieldName)) {
+                    String nestedField = fieldName.split("\\.")[0];
+
+                    if (queryStringQueries.containsKey(nestedField)) {
+                        buildQueryStringQuery((QueryStringQueryBuilder) ((NestedQueryBuilder) queryStringQueries.get(nestedField)).query(), indexName, request.getQ(), boostFieldValues, mm);
+                    } else {
+                        queryStringQueries.put(nestedField, nestedQuery(nestedField, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm), None));
+                    }
+                } else {
+                    String key = "not_nested";
+                    if (queryStringQueries.containsKey(key)) {
+                        buildQueryStringQuery((QueryStringQueryBuilder) queryStringQueries.get(key), indexName, request.getQ(), boostFieldValues, mm);
+                    } else {
+                        queryStringQueries.put(key, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm));
+                    }
+                }
+            });
+            queryStringQueries.forEach((nestedPath, nestedQuery) -> queryBuilder.should().add(nestedQuery));
         }
+    }
+
+    private QueryStringQueryBuilder buildQueryStringQuery(QueryStringQueryBuilder queryStringQueryBuilder, final String indexName, final String q, final String[] boostFieldValues, final String mm) {
+        if (queryStringQueryBuilder == null)
+            queryStringQueryBuilder = queryStringQuery(q);
+
+        String fieldName = boostFieldValues[0];
+
+        if (settingsAdapter.isTypeOfString(indexName, fieldName) && !fieldName.contains(".raw")) {
+            fieldName = fieldName.concat(".raw");
+        }
+
+        float boost = (boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
+        queryStringQueryBuilder.field(fieldName, boost).minimumShouldMatch(mm).tieBreaker(0.2f).phraseSlop(2);
+        return queryStringQueryBuilder;
     }
 
     private void checkMM(final String mm, final Queryable request) {
@@ -368,13 +395,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         } else {
             searchRequestBuilder.addAggregation(nested(name, name).subAggregation(agg));
         }
-    }
-
-    private void addFieldToSearchOnQParameter(QueryStringQueryBuilder queryStringBuilder, final String indexName, final String boostField) {
-        String[] boostFieldValues = boostField.split(":");
-        String fieldName = boostFieldValues[0];
-        settingsAdapter.checkFieldName(indexName, fieldName);
-        queryStringBuilder.field(fieldName, boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
     }
 
     private void addFieldList(SearchRequestBuilder searchRequestBuilder, final Fetchable request) {

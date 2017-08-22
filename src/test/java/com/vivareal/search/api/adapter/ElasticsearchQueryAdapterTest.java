@@ -92,7 +92,7 @@ public class ElasticsearchQueryAdapterTest {
 
         when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
         when(settingsAdapter.isTypeOfGeoPoint(anyString(), anyString())).thenReturn(true);
-        when(settingsAdapter.isTypeOfString(anyString(), anyString())).thenReturn(true);
+        when(settingsAdapter.isTypeOfString(anyString(), anyString())).thenReturn(false);
     }
 
     @After
@@ -325,6 +325,8 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
 
+        when(settingsAdapter.isTypeOfString(INDEX_NAME, field)).thenReturn(true);
+
         getOperators(STARTS_WITH).forEach(op -> {
             SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
             SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -554,7 +556,7 @@ public class ElasticsearchQueryAdapterTest {
 
         SearchApiRequest searchApiRequest = fullRequest.q(q).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
 
         assertNotNull(queryStringQueryBuilder);
         assertEquals(q, queryStringQueryBuilder.queryString());
@@ -568,22 +570,26 @@ public class ElasticsearchQueryAdapterTest {
         String fieldName1 = "field1";
         float boostValue1 = 1.0f; // default boost value
 
-        String fieldName2 = "field2.raw";
+        String fieldName2 = "field2";
         float boostValue2 = 2.0f;
 
         String fieldName3 = "field3";
         float boostValue3 = 5.0f;
 
+        when(settingsAdapter.isTypeOfString(INDEX_NAME, fieldName1)).thenReturn(true);
+        when(settingsAdapter.isTypeOfString(INDEX_NAME, fieldName2)).thenReturn(false);
+        when(settingsAdapter.isTypeOfString(INDEX_NAME, fieldName3)).thenReturn(false);
+
         Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
         SearchApiRequest searchApiRequest = fullRequest.q(q).fields(fields).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
 
         assertNotNull(queryStringQueryBuilder);
         assertEquals(q, queryStringQueryBuilder.queryString());
 
         Map<String, Float> fieldsAndWeights = new HashMap<>(3);
-        fieldsAndWeights.put(fieldName1, boostValue1);
+        fieldsAndWeights.put(fieldName1 + ".raw", boostValue1);
         fieldsAndWeights.put(fieldName2, boostValue2);
         fieldsAndWeights.put(fieldName3, boostValue3);
 
@@ -599,7 +605,7 @@ public class ElasticsearchQueryAdapterTest {
             mm -> {
                 SearchApiRequest searchApiRequest = fullRequest.q(q).mm(mm).build();
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
 
                 assertNotNull(queryStringQueryBuilder);
                 assertEquals(q, queryStringQueryBuilder.queryString());
@@ -806,12 +812,12 @@ public class ElasticsearchQueryAdapterTest {
         assertNotNull(mustFirstLevel);
         assertNotNull(mustNotFirstLevel);
         assertNotNull(shouldFirstLevel);
-        assertTrue(mustFirstLevel.size() == 2);
+        assertTrue(mustFirstLevel.size() == 1);
         assertTrue(mustNotFirstLevel.size() == 1);
-        assertTrue(shouldFirstLevel.size() == 1);
+        assertTrue(shouldFirstLevel.size() == 2);
 
         // querystring
-        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) mustFirstLevel.get(0);
+        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) shouldFirstLevel.get(0);
         Map<String, Float> fieldsAndWeights = new HashMap<>(3);
         fieldsAndWeights.put(fieldName1, boostValue1);
         fieldsAndWeights.put(fieldName2, boostValue2);
@@ -823,7 +829,7 @@ public class ElasticsearchQueryAdapterTest {
         assertTrue(fieldsAndWeights.equals(queryStringQueryBuilder.fields()));
 
         // field 1
-        MatchQueryBuilder shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(0);
+        MatchQueryBuilder shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(1);
         assertEquals(field1Name, shouldMatchField1.fieldName());
         assertEquals(String.valueOf(field1Value).replaceAll("\"", ""), shouldMatchField1.value());
         assertEquals(OR, shouldMatchField1.operator());
@@ -834,7 +840,7 @@ public class ElasticsearchQueryAdapterTest {
         assertEquals(field2Value, mustNotMatchField2.value());
 
         // Second Level
-        List<QueryBuilder> mustSecondLevel = ((BoolQueryBuilder) mustFirstLevel.get(1)).must();
+        List<QueryBuilder> mustSecondLevel = ((BoolQueryBuilder) mustFirstLevel.get(0)).must();
         assertTrue(mustSecondLevel.size() == 2);
 
         // field 3

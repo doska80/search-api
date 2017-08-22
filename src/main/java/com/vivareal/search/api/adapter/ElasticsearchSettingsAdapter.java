@@ -95,12 +95,7 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
 
     @Override
     public String getFieldType(final String index, final String fieldName) {
-        if (isEmpty(structuredIndices))
-            getSettingsInformationFromCluster();
-
-        if (!structuredIndices.get(index).containsKey(fieldName))
-            throw new InvalidFieldException(fieldName, index);
-
+        checkFieldName(index, fieldName);
         return valueOf(structuredIndices.get(index).get(fieldName));
     }
 
