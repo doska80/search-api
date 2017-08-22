@@ -43,7 +43,6 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.lucene.search.join.ScoreMode.None;
-import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.nested;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
@@ -63,6 +62,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     @Autowired
     @Qualifier("elasticsearchSettings")
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+
+    private static final String NOT_NESTED = "not_nested";
 
     @Override
     public GetRequestBuilder getById(BaseApiRequest request, String id) {
@@ -290,11 +291,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                         queryStringQueries.put(nestedField, nestedQuery(nestedField, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm), None));
                     }
                 } else {
-                    String key = "not_nested";
-                    if (queryStringQueries.containsKey(key)) {
-                        buildQueryStringQuery((QueryStringQueryBuilder) queryStringQueries.get(key), indexName, request.getQ(), boostFieldValues, mm);
+                    if (queryStringQueries.containsKey(NOT_NESTED)) {
+                        buildQueryStringQuery((QueryStringQueryBuilder) queryStringQueries.get(NOT_NESTED), indexName, request.getQ(), boostFieldValues, mm);
                     } else {
-                        queryStringQueries.put(key, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm));
+                        queryStringQueries.put(NOT_NESTED, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm));
                     }
                 }
             });
@@ -409,10 +409,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             .filter(field -> !contains(includes, field))
             .toArray(String[]::new);
 
-        if (includes.length > 0 && (!"*".equals(includes[0]) || includes.length > 1))
-            Stream.of(includes).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
-
-        Stream.of(excludes).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
+        Stream.of(includes).filter(value -> !"*".equals(value)).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
+        Stream.of(excludes).filter(value -> !"*".equals(value)).forEach(field -> settingsAdapter.checkFieldName(request.getIndex(), field));
 
         return Pair.of(includes, excludes);
     }
