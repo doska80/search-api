@@ -136,15 +136,15 @@ public class FilterParserTest {
 
     @Test
     public void testStartsWith() {
-        String value = "field STARTS WITH 'value'";
+        String value = "field LIKE 'value'";
         Filter viewport = parser.parse(value);
-        assertEquals("field STARTS_WITH \"value\"", viewport.toString());
+        assertEquals("field LIKE \"value\"", viewport.toString());
     }
 
     @Test
     public void testStartsWithAlias() {
         String value = "field ^ 'value'";
         Filter viewport = parser.parse(value);
-        assertEquals("field STARTS_WITH \"value\"", viewport.toString());
+        assertEquals("field LIKE \"value\"", viewport.toString());
     }
 }

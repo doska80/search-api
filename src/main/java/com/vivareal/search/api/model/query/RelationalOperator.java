@@ -19,7 +19,7 @@ public enum RelationalOperator {
     LESS("LT", "<"),
     LESS_EQUAL("LTE", "<="),
     VIEWPORT("@"),
-    STARTS_WITH("STARTS WITH", "^");
+    LIKE("LIKE", "^");
 
     private String[] alias;
 

@@ -501,7 +501,7 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void validateSearchByMatchPhasePrefix() {
+    public void validateSearchByWildcardQuery() {
         given()
         .log().all()
         .baseUri(baseUrl)
@@ -509,7 +509,7 @@ public class SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(format("%s?filter=object.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
+        .get(format("%s?filter=object.string LIKE 'string with char *'", TEST_DATA_INDEX))
         .then()
         .body("totalCount", equalTo(standardDatasetSize))
         .body("result.testdata", hasSize(defaultPageSize))
@@ -518,7 +518,7 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void validateSearchByMatchPhasePrefixWhenNested() {
+    public void validateSearchByWildcardQueryWhenNested() {
         given()
         .log().all()
             .baseUri(baseUrl)
@@ -526,7 +526,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=nested.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
+            .get(format("%s?filter=nested.string LIKE 'string with char *'", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(standardDatasetSize))
             .body("result.testdata", hasSize(defaultPageSize))
