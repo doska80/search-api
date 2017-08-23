@@ -101,6 +101,7 @@ public class ESIndexHandler {
         data.put("isEven", isEven);
         data.put("array_integer", rangeClosed(1, id).boxed().collect(toList()));
         data.put("nested", nestedObject);
+        data.put("object", nestedObject);
         data.put("geo", geo);
 
         try {

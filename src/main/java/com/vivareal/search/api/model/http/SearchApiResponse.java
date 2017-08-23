@@ -2,7 +2,9 @@ package com.vivareal.search.api.model.http;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
 import java.util.LinkedHashMap;
@@ -39,7 +41,14 @@ public final class SearchApiResponse {
         aggregationsOptional.ifPresent(
             aggregations -> {
                 Map<String, Object> facets = new LinkedHashMap<>();
-                aggregations.asList().forEach(agg -> facets.put((agg).getName(), addBuckets(((InternalMappedTerms)agg).getBuckets())));
+
+                aggregations.asList().forEach(agg -> {
+                    if (agg instanceof InternalMappedTerms) {
+                        facets.put((agg).getName(), addBuckets(((InternalMappedTerms) agg).getBuckets()));
+                    } else if (agg instanceof InternalNested) {
+                        ((InternalNested) agg).getAggregations().asList().forEach(aggregation -> facets.put((aggregation).getName(), addBuckets(((InternalMappedTerms) aggregation).getBuckets())));
+                    }
+                });
                 result("facets", facets);
             }
         );

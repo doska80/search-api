@@ -19,6 +19,10 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
     }
 
     private List<QueryFragment> validateSingleRecursiveQueryFragmentList(List<QueryFragment> queryFragments) {
+
+        if (CollectionUtils.isEmpty(queryFragments))
+            throw new IllegalStateException("Generic error occurred when validate QueryFragment recursively. QueryFragment cannot null or empty");
+
         QueryFragment fragment = queryFragments.get(0);
         if (hasOnlyAnInternalQueryFragmentList(queryFragments)) // e.g. ((((queryFragmentList)))), will be extracted to a single (queryFragmentList)
             return (List<QueryFragment>) fragment;

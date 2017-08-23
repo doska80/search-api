@@ -8,9 +8,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.*;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
+import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
@@ -77,7 +79,7 @@ public enum RemoteProperties {
     }
 
     public <T> T getValue(T requestValue, String index) {
-        if(isRequestValueValid.apply(requestValue))
+        if (isRequestValueValid.apply(requestValue))
             return requestValue;
 
         return getValue(index);
@@ -92,10 +94,10 @@ public enum RemoteProperties {
         static Function<String, String> AS_STRING = Function.identity();
 
         static Function<String, Set<String>> AS_SET = property -> ofNullable(property)
-                .filter(StringUtils::isNotBlank)
-                .map(value -> value.split(","))
-                .map(stringArray -> Stream.of(stringArray).collect(toSet()))
-                .orElse(new HashSet<>());
+            .filter(StringUtils::isNotBlank)
+            .map(value -> value.split(","))
+            .map(stringArray -> Stream.of(stringArray).collect(toSet()))
+            .orElse(emptySet());
 
         static Function<String, Integer> AS_INTEGER = property -> parseInt(property);
 

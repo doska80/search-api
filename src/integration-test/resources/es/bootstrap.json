@@ -41,7 +41,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\"template\":\"testdata*\",\"order\":1,\"settings\":{\"number_of_shards\":1,\"number_of_replicas\":1,\"refresh_interval\":\"10s\"},\"mappings\":{\"testdata\":{\"dynamic_templates\":[{\"strings\":{\"match_mapping_type\":\"string\",\"mapping\":{\"type\":\"keyword\",\"fields\":{\"raw\":{\"type\":\"text\"}}}}}],\"properties\":{\"geo\":{\"type\":\"geo_point\"}}}}}"
+					"raw": "{\"template\":\"testdata*\",\"order\":1,\"settings\":{\"number_of_shards\":1,\"number_of_replicas\":1,\"refresh_interval\":\"10s\"},\"mappings\":{\"testdata\":{\"dynamic_templates\":[{\"strings\":{\"match_mapping_type\":\"string\",\"mapping\":{\"type\":\"keyword\",\"fields\":{\"raw\":{\"type\":\"text\"}}}}}],\"properties\":{\"geo\":{\"type\":\"geo_point\"},\"nested\":{\"type\":\"nested\"}}}}}"
 				},
 				"description": "Settings for \"Test data\" index"
 			},

@@ -83,6 +83,15 @@ public class SearchApiIntegrationTest {
                 .body("isEven", equalTo(id%2 == 0))
                 .body("geo.lat", equalTo(-1f * id))
                 .body("geo.lon", equalTo(id * 1f))
+
+                .body("object.boolean", equalTo(id%2 != 0))
+                .body("object.number", equalTo(id * 2))
+                .body("object.float", equalTo(id * 3.5f))
+                .body("object.string", equalTo(format("string with char %s", (char) (id + 'a' - 1))))
+                .body("object.object.field", equalTo("common"))
+                .body("object.object.array_string", hasSize(id))
+                .body("object.object.array_string", equalTo(rangeClosed(1, id).boxed().map(String::valueOf).collect(toList())))
+
                 .body("nested.boolean", equalTo(id%2 != 0))
                 .body("nested.number", equalTo(id * 2))
                 .body("nested.float", equalTo(id * 3.5f))
@@ -110,6 +119,7 @@ public class SearchApiIntegrationTest {
             .body("$", not(hasKey("array_integer")))
             .body("$", not(hasKey("field" + id)))
             .body("$", not(hasKey("isEven")))
+            .body("$", not(hasKey("object")))
             .body("$", not(hasKey("nested")))
             .body("$", not(hasKey("geo")));
     }
@@ -310,6 +320,24 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
+            .get(TEST_DATA_INDEX + "?filter=object.object.array_string IN [" + range.stream().map(i -> format("\"%d\"", i)).collect(joining(",")) + "]")
+            .then()
+            .body("totalCount", equalTo(range.size()))
+            .body("result.testdata", hasSize(range.size()))
+            .body("result.testdata.numeric.sort()", equalTo(range));
+    }
+
+    @Test
+    public void validateInFilterOnArrayFieldWhenNested() {
+        List<Integer> range = rangeClosed(standardDatasetSize - 3, standardDatasetSize).boxed().collect(toList());
+
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
             .get(TEST_DATA_INDEX + "?filter=nested.object.array_string IN [" + range.stream().map(i -> format("\"%d\"", i)).collect(joining(",")) + "]")
         .then()
             .body("totalCount", equalTo(range.size()))
@@ -398,6 +426,25 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void validateIsNullFieldWhenFilter() {
+        Stream.of(TEST_DATA_INDEX + "?filter=object.even=null", TEST_DATA_INDEX + "?filter=NOT object.even<>null")
+            .forEach(path ->
+                given()
+                    .log().all()
+                    .baseUri(baseUrl)
+                    .contentType(JSON)
+                .expect()
+                    .statusCode(SC_OK)
+                .when()
+                    .get(path)
+                    .then()
+                    .body("totalCount", equalTo(standardDatasetSize / 2))
+                    .body("result.testdata", hasSize(standardDatasetSize / 2))
+                    .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, standardDatasetSize).boxed().filter(id -> id % 2 != 0).collect(toList())))
+            );
+    }
+
+    @Test
+    public void validateIsNullFieldWhenFilterWhenNested() {
         Stream.of(TEST_DATA_INDEX + "?filter=nested.even=null", TEST_DATA_INDEX + "?filter=NOT nested.even<>null")
             .forEach(path ->
                 given()
@@ -417,6 +464,25 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void validateNotNullFieldWhenFilter() {
+        Stream.of(TEST_DATA_INDEX + "?filter=object.even<>null", TEST_DATA_INDEX + "?filter=NOT object.even=null")
+            .forEach(path ->
+                given()
+                    .log().all()
+                    .baseUri(baseUrl)
+                    .contentType(JSON)
+                .expect()
+                    .statusCode(SC_OK)
+                .when()
+                .get(path)
+                .then()
+                .body("totalCount", equalTo(standardDatasetSize / 2))
+                .body("result.testdata", hasSize(standardDatasetSize / 2))
+                .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, standardDatasetSize).boxed().filter(id -> id % 2 == 0).collect(toList())))
+            );
+    }
+
+    @Test
+    public void validateNotNullFieldWhenFilterWhenNested() {
         Stream.of(TEST_DATA_INDEX + "?filter=nested.even<>null", TEST_DATA_INDEX + "?filter=NOT nested.even=null")
             .forEach(path ->
                 given()
@@ -436,6 +502,23 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void validateSearchByMatchPhasePrefix() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?filter=object.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body("result.testdata.object.string", everyItem(startsWith("string with char")))
+        ;
+    }
+
+    @Test
+    public void validateSearchByMatchPhasePrefixWhenNested() {
         given()
         .log().all()
             .baseUri(baseUrl)
@@ -469,6 +552,7 @@ public class SearchApiIntegrationTest {
             .body("result.testdata.array_integer", everyItem(nullValue()))
             .body("result.testdata.findAll { it.properties.findAll { it.key.startsWith('field') } }", empty())
             .body("result.testdata.isEven", everyItem(nullValue()))
+            .body("result.testdata.object", everyItem(nullValue()))
             .body("result.testdata.nested", everyItem(nullValue()))
             .body("result.testdata.geo", everyItem(notNullValue()))
             .body("result.testdata.geo.lat", everyItem(notNullValue()))
@@ -494,8 +578,17 @@ public class SearchApiIntegrationTest {
             .body("result.testdata.array_integer", everyItem(notNullValue()))
             .body("result.testdata.findAll { it.properties.findAll { it.key.startsWith('field') } }", everyItem(notNullValue()))
             .body("result.testdata.isEven", everyItem(notNullValue()))
-            .body("result.testdata.nested", everyItem(notNullValue()))
             .body("result.testdata.geo", everyItem(nullValue()))
+
+            .body("result.testdata.object", everyItem(notNullValue()))
+            .body("result.testdata.object.boolean", everyItem(notNullValue()))
+            .body("result.testdata.object.number", everyItem(notNullValue()))
+            .body("result.testdata.object.float", everyItem(notNullValue()))
+            .body("result.testdata.object.string", everyItem(notNullValue()))
+            .body("result.testdata.object.object.field", everyItem(notNullValue()))
+            .body("result.testdata.object.object.array_string", everyItem(notNullValue()))
+
+            .body("result.testdata.nested", everyItem(notNullValue()))
             .body("result.testdata.nested.boolean", everyItem(notNullValue()))
             .body("result.testdata.nested.number", everyItem(notNullValue()))
             .body("result.testdata.nested.float", everyItem(notNullValue()))
@@ -701,6 +794,28 @@ public class SearchApiIntegrationTest {
         int expected = standardDatasetSize / 6;
 
         given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?filter=geo VIEWPORT [%.2f,%.2f;%.2f,%.2f] AND (numeric <= %d AND (isEven=true OR object.odd <> null))", TEST_DATA_INDEX, from * -1f, (float) to, to * -1f, (float) from, half))
+        .then()
+        .body("totalCount", equalTo(expected))
+        .body("result.testdata", hasSize(expected))
+        .body("result.testdata.numeric.sort()", equalTo(rangeClosed(from + 1, standardDatasetSize / 2).boxed().collect(toList())));
+        ;
+    }
+
+    @Test
+    public void validateRecursiveFilterWhenNested() {
+        int from = standardDatasetSize / 3;
+        int half = standardDatasetSize / 2;
+        int to = 2 * standardDatasetSize / 3;
+        int expected = standardDatasetSize / 6;
+
+        given()
             .log().all()
             .baseUri(baseUrl)
             .contentType(JSON)
@@ -735,21 +850,48 @@ public class SearchApiIntegrationTest {
     @Test
     public void validateSearchByQInInvalidField() {
         given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?q=string with char&fields=object.numeric.raw", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchByQInInvalidFieldWhenNested() {
+        given()
             .log().all()
             .baseUri(baseUrl)
             .contentType(JSON)
         .expect()
-            .statusCode(SC_OK)
+            .statusCode(SC_BAD_REQUEST)
         .when()
             .get(format("%s?q=string with char&fields=nested.numeric.raw", TEST_DATA_INDEX))
-        .then()
-            .body("totalCount", equalTo(0))
-            .body("result.testdata", hasSize(0))
         ;
     }
 
     @Test
     public void validateSearchByQWithMM100Percent() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?q=string with char a&fields=object.string.raw&mm=100%%", TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(1))
+        .body("result.testdata", hasSize(1))
+        .body("result.testdata[0].id", equalTo("1"))
+        ;
+    }
+
+    @Test
+    public void validateSearchByQWithMM100PercentWhenNested() {
         given()
             .log().all()
             .baseUri(baseUrl)

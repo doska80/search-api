@@ -29,9 +29,6 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-/**
- * Created by leandropereirapinto on 6/29/17.
- */
 @Component
 @Scope(SCOPE_SINGLETON)
 public class SearchApiEnv {
@@ -75,8 +72,7 @@ public class SearchApiEnv {
 
             if (entity != null) {
                 String retSrc = EntityUtils.toString(entity);
-                HashMap<String, Object> response = mapper.readValue(retSrc, new TypeReference<HashMap<String, Object>>() {
-                });
+                HashMap<String, Object> response = mapper.readValue(retSrc, new TypeReference<HashMap<String, Object>>() {});
                 if (!isEmpty(response) && response.containsKey("hits")) {
 
                     @SuppressWarnings("unchecked")
