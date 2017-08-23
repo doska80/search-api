@@ -1,6 +1,7 @@
 package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.search.Indexable;
+import com.vivareal.search.api.model.mapping.MappingType;
 
 public interface SettingsAdapter<T, U> {
 
@@ -14,23 +15,5 @@ public interface SettingsAdapter<T, U> {
 
     String getFieldType(String index, String fieldName);
 
-    boolean isTypeOfNested(String index, String fieldName);
-
-    boolean isTypeOfText(String index, String fieldName);
-
-    boolean isTypeOfBoolean(String index, String fieldName);
-
-    boolean isTypeOfGeoPoint(String index, String fieldName);
-
-    boolean isTypeOfKeyword(String index, String fieldName);
-
-    boolean isTypeOfDate(String index, String fieldName);
-
-    boolean isTypeOfLong(String index, String fieldName);
-
-    boolean isTypeOfFloat(String index, String fieldName);
-
-    default boolean isTypeOfString(String index, String fieldName) {
-        return isTypeOfText(index, fieldName) || isTypeOfKeyword(index, fieldName);
-    }
+    boolean isTypeOf(final String index, final String fieldName, final MappingType type);
 }

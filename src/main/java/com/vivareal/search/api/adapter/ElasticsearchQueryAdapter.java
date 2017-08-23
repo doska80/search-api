@@ -31,14 +31,14 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.*;
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
+import static com.vivareal.search.api.model.mapping.MappingType.*;
 import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
-import static java.util.Optional.empty;
-import static java.util.Optional.ofNullable;
+import static java.util.Optional.*;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -124,7 +124,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                     String fieldName = filter.getField().getName();
                     settingsAdapter.checkFieldName(indexName, fieldName);
-                    boolean nested = settingsAdapter.isTypeOfNested(indexName, fieldName);
+                    boolean nested = settingsAdapter.isTypeOf(indexName, fieldName.split("\\.")[0], FIELD_TYPE_NESTED);
 
                     final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                     logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
@@ -161,8 +161,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 break;
 
                             case STARTS_WITH:
-                                if(!settingsAdapter.isTypeOfString(indexName, fieldName))
-                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_TEXT, STARTS_WITH);
+                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_STRING))
+                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_STRING.toString(), STARTS_WITH);
 
                                 addFilterQueryByLogicalOperator(queryBuilder, matchPhrasePrefixQuery(fieldName.concat(".raw"), singleValue), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
@@ -173,8 +173,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 break;
 
                             case VIEWPORT:
-                                if(!settingsAdapter.isTypeOfGeoPoint(indexName, fieldName))
-                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT, VIEWPORT);
+                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
+                                    throw new UnsupportableFieldException(settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT.toString(), VIEWPORT);
 
                                 GeoPoint topRight = createGeoPointFromRawCoordinates((List) multiValues.get(0));
                                 GeoPoint bottomLeft = createGeoPointFromRawCoordinates((List) multiValues.get(1));
@@ -193,38 +193,35 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void addFilterQueryByLogicalOperator(BoolQueryBuilder boolQueryBuilder, final QueryBuilder queryBuilder, final LogicalOperator logicalOperator, final boolean not, final boolean nested, final String fieldName, Map<String, BoolQueryBuilder> nestedQueries) {
-
-        QueryBuilder query = (nested ? buildNestedQuery(fieldName, queryBuilder, logicalOperator, not, nestedQueries) : queryBuilder);
-
-        if (query == null)
-            return;
-
-        if(logicalOperator.equals(AND)) {
-            if (!not || nested)
-                boolQueryBuilder.must(query);
-            else
-                boolQueryBuilder.mustNot(query);
-        } else if(logicalOperator.equals(LogicalOperator.OR)) {
-            if (!not || nested)
-                boolQueryBuilder.should(query);
-            else
-                boolQueryBuilder.should(boolQuery().mustNot(query));
-        }
+        Optional<QueryBuilder> query = (nested ? buildNestedQuery(fieldName, queryBuilder, logicalOperator, not, nestedQueries) : ofNullable(queryBuilder));
+        query.ifPresent(q -> {
+            if(logicalOperator.equals(AND)) {
+                if (!not || nested)
+                    boolQueryBuilder.must(q);
+                else
+                    boolQueryBuilder.mustNot(q);
+            } else if(logicalOperator.equals(LogicalOperator.OR)) {
+                if (!not || nested)
+                    boolQueryBuilder.should(q);
+                else
+                    boolQueryBuilder.should(boolQuery().mustNot(q));
+            }
+        });
     }
 
-    private QueryBuilder buildNestedQuery(final String fieldName, final QueryBuilder query, final LogicalOperator logicalOperator, final boolean not, Map<String, BoolQueryBuilder> nestedQueries) {
+    private Optional<QueryBuilder> buildNestedQuery(final String fieldName, final QueryBuilder query, final LogicalOperator logicalOperator, final boolean not, Map<String, BoolQueryBuilder> nestedQueries) {
 
         String parentFieldName = fieldName.split("\\.")[0];
 
         BoolQueryBuilder boolQueryBuilder;
-        boolean found = false;
+        Optional<QueryBuilder> nestedQuery = empty();
 
         if (nestedQueries.containsKey(parentFieldName)) {
             boolQueryBuilder = nestedQueries.get(parentFieldName);
-            found = true;
         } else {
             boolQueryBuilder = boolQuery();
             nestedQueries.put(parentFieldName, boolQueryBuilder);
+            nestedQuery = of(nestedQuery(parentFieldName, boolQueryBuilder, None));
         }
 
         if(logicalOperator.equals(AND)) {
@@ -239,7 +236,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                 boolQueryBuilder.should(boolQuery().mustNot(query));
         }
 
-        return found ? null : nestedQuery(parentFieldName, boolQueryBuilder, None);
+        return nestedQuery;
     }
 
     private GeoPoint createGeoPointFromRawCoordinates(List<com.vivareal.search.api.model.query.Value> viewPortLatLon) {
@@ -282,7 +279,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                 String[] boostFieldValues = field.split(":");
                 String fieldName = boostFieldValues[0];
 
-                if (settingsAdapter.isTypeOfNested(indexName, fieldName)) {
+                if (settingsAdapter.isTypeOf(indexName, fieldName.split("\\.")[0], FIELD_TYPE_NESTED)) {
                     String nestedField = fieldName.split("\\.")[0];
 
                     if (queryStringQueries.containsKey(nestedField)) {
@@ -308,7 +305,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
         String fieldName = boostFieldValues[0];
 
-        if (settingsAdapter.isTypeOfString(indexName, fieldName) && !fieldName.contains(".raw")) {
+        if (settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_STRING) && !fieldName.contains(".raw")) {
             fieldName = fieldName.concat(".raw");
         }
 
@@ -371,7 +368,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                     .shardSize(shardSize)
                     .order(Terms.Order.count(false));
 
-                if (settingsAdapter.isTypeOfNested(indexName, fieldName)) {
+                if (settingsAdapter.isTypeOf(indexName, fieldName.split("\\.")[0], FIELD_TYPE_NESTED)) {
                     applyFacetsByNestedFields(searchRequestBuilder, fieldName, agg);
                 } else {
                     searchRequestBuilder.addAggregation(agg);

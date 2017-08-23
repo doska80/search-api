@@ -8,6 +8,7 @@ import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.ComplexRequestBuilder;
+import com.vivareal.search.api.model.mapping.MappingType;
 import org.apache.lucene.search.FuzzyQuery;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -38,6 +39,8 @@ import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARD
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
+import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_STRING;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -91,8 +94,7 @@ public class ElasticsearchQueryAdapterTest {
         doNothing().when(settingsAdapter).checkIndex(any());
 
         when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
-        when(settingsAdapter.isTypeOfGeoPoint(anyString(), anyString())).thenReturn(true);
-        when(settingsAdapter.isTypeOfString(anyString(), anyString())).thenReturn(false);
+        when(settingsAdapter.isTypeOf(anyString(), anyString(), any(MappingType.class))).thenReturn(false);
     }
 
     @After
@@ -161,7 +163,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "nested.field";
         final Object value = "Lorem Ipsum";
 
-        when(settingsAdapter.isTypeOfNested(INDEX_NAME, field)).thenReturn(true);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, field.split("\\.")[0], MappingType.FIELD_TYPE_NESTED)).thenReturn(true);
 
         SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, getOperators(EQUAL).get(0))).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -303,6 +305,8 @@ public class ElasticsearchQueryAdapterTest {
         double southWestLat = -40.0;
         double southWestLon = -72.0;
 
+        when(settingsAdapter.isTypeOf(INDEX_NAME, field, MappingType.FIELD_TYPE_GEOPOINT)).thenReturn(true);
+
         getOperators(VIEWPORT).forEach(
             op -> {
                 SearchApiRequest searchApiRequest = fullRequest.filter(String.format("%s %s [%s,%s;%s,%s]", field, op, northEastLat, northEastLon, southWestLat, southWestLon)).build();
@@ -325,7 +329,7 @@ public class ElasticsearchQueryAdapterTest {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
 
-        when(settingsAdapter.isTypeOfString(INDEX_NAME, field)).thenReturn(true);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, field, FIELD_TYPE_STRING)).thenReturn(true);
 
         getOperators(STARTS_WITH).forEach(op -> {
             SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
@@ -494,9 +498,8 @@ public class ElasticsearchQueryAdapterTest {
     public void shouldReturnSearchRequestBuilderByFacets() {
         Set<String> facets = newHashSet("field1", "field2", "field3", "nested1.field4", "nested1.field5", "nested2.field6");
 
-        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested1.field4")).thenReturn(true);
-        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested1.field5")).thenReturn(true);
-        when(settingsAdapter.isTypeOfNested(INDEX_NAME, "nested2.field6")).thenReturn(true);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, "nested1", FIELD_TYPE_NESTED)).thenReturn(true);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, "nested2", FIELD_TYPE_NESTED)).thenReturn(true);
 
         SearchApiRequest searchApiRequest = fullRequest.facets(facets).facetSize(10).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -576,9 +579,9 @@ public class ElasticsearchQueryAdapterTest {
         String fieldName3 = "field3";
         float boostValue3 = 5.0f;
 
-        when(settingsAdapter.isTypeOfString(INDEX_NAME, fieldName1)).thenReturn(true);
-        when(settingsAdapter.isTypeOfString(INDEX_NAME, fieldName2)).thenReturn(false);
-        when(settingsAdapter.isTypeOfString(INDEX_NAME, fieldName3)).thenReturn(false);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName1, FIELD_TYPE_STRING)).thenReturn(true);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName2, FIELD_TYPE_STRING)).thenReturn(false);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName3, FIELD_TYPE_STRING)).thenReturn(false);
 
         Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
         SearchApiRequest searchApiRequest = fullRequest.q(q).fields(fields).build();
@@ -736,12 +739,15 @@ public class ElasticsearchQueryAdapterTest {
         String field5RelationalOperator = getOperators(IN).get(0);
         Object[] field5Value = new Object[]{1, "\"string\"", 1.2, true};
 
+
         String field6Name = "field6.location";
         String field6RelationalOperator = getOperators(VIEWPORT).get(0);
         double northEastLat = 42.0;
         double northEastLon = -74.0;
         double southWestLat = -40.0;
         double southWestLon = -72.0;
+
+        when(settingsAdapter.isTypeOf(INDEX_NAME, field6Name, MappingType.FIELD_TYPE_GEOPOINT)).thenReturn(true);
 
         String filter = String.format("%s %s %s %s %s %s %s %s (%s %s %s %s (%s %s %s %s %s %s %s %s (%s %s [%s,%s;%s,%s])))",
             field1Name, field1RelationalOperator, field1Value, OR.name(),

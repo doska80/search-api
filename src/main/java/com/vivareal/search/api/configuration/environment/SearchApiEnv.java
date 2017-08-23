@@ -29,9 +29,6 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-/**
- * Created by leandropereirapinto on 6/29/17.
- */
 @Component
 @Scope(SCOPE_SINGLETON)
 public class SearchApiEnv {
