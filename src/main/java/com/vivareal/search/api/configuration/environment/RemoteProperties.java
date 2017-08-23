@@ -8,9 +8,11 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.*;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
+import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
 
@@ -95,7 +97,7 @@ public enum RemoteProperties {
             .filter(StringUtils::isNotBlank)
             .map(value -> value.split(","))
             .map(stringArray -> Stream.of(stringArray).collect(toSet()))
-            .orElse(new HashSet<>());
+            .orElse(emptySet());
 
         static Function<String, Integer> AS_INTEGER = property -> parseInt(property);
 

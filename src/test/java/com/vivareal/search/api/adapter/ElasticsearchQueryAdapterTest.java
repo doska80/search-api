@@ -37,13 +37,15 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_STRING;
+import static com.vivareal.search.api.model.query.LogicalOperator.AND;
+import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.concat;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
@@ -135,6 +137,10 @@ public class ElasticsearchQueryAdapterTest {
 
         Set<String> includeFields = newHashSet("field1", "field2", "field3");
         Set<String> excludeFields = newHashSet("field3", "field4");
+
+        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> {
+            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
+        });
 
         BaseApiRequest searchApiRequest = basicRequest.includeFields(includeFields).excludeFields(excludeFields).build();
         GetRequestBuilder requestBuilder = queryAdapter.getById(searchApiRequest, id);
@@ -355,7 +361,7 @@ public class ElasticsearchQueryAdapterTest {
                 TermsQueryBuilder terms = (TermsQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
                 assertEquals(field, terms.fieldName());
-                assertTrue(asList(Arrays.stream(values).map(value -> {
+                assertTrue(asList(stream(values).map(value -> {
 
                     if (value instanceof String) {
                         String s = String.valueOf(value);
@@ -546,6 +552,10 @@ public class ElasticsearchQueryAdapterTest {
         Set<String> includeFields = newHashSet("field1", "field2", "field3");
         Set<String> excludeFields = newHashSet("field3", "field4");
 
+        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> {
+            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
+        });
+
         BaseApiRequest searchApiRequest = basicRequest.includeFields(includeFields).excludeFields(excludeFields).build();
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
         FetchSourceContext fetchSourceContext = searchRequestBuilder.request().source().fetchSource();
@@ -684,6 +694,10 @@ public class ElasticsearchQueryAdapterTest {
         // Display results
         Set<String> includeFields  = newHashSet("field1", "field2");
         Set<String> excludeFields = newHashSet("field3", "field4");
+
+        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> {
+            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
+        });
 
         // Sort
         String sortFieldName1 = "field1";
@@ -875,7 +889,7 @@ public class ElasticsearchQueryAdapterTest {
         // field 5
         TermsQueryBuilder mustTermsThirdLevelField5 = (TermsQueryBuilder) mustThirdLevel.get(0);
         assertEquals(field5Name, mustTermsThirdLevelField5.fieldName());
-        assertTrue(asList(Arrays.stream(field5Value).map(value -> {
+        assertTrue(asList(stream(field5Value).map(value -> {
 
             if (value instanceof String) {
                 String s = String.valueOf(value);
@@ -898,6 +912,10 @@ public class ElasticsearchQueryAdapterTest {
     @Test
     public void testFetchSourceFields() {
         String[] includes = {"field1", "field2"}, excludes = {"field3", "field4"};
+
+        concat(stream(includes), stream(excludes)).forEach(field -> {
+            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
+        });
 
         BaseApiRequest request = SearchApiRequestBuilder.basic()
             .index(INDEX_NAME)
@@ -930,6 +948,11 @@ public class ElasticsearchQueryAdapterTest {
     @Test
     public void testFetchSourceIncludesEmptyFields() {
         String[] excludes = {"field3", "field4"};
+
+        stream(excludes).forEach(field -> {
+            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
+        });
+
         BaseApiRequest request = SearchApiRequestBuilder.basic().index(INDEX_NAME).excludeFields(newHashSet(excludes)).build();
 
         SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request);
@@ -943,6 +966,10 @@ public class ElasticsearchQueryAdapterTest {
     @Test
     public void testFetchSourceFilterExcludeFields() {
         String[] includes = {"field1", "field2"}, excludes = {"field1", "field3"};
+
+        concat(stream(includes), stream(excludes)).forEach(field -> {
+            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
+        });
 
         BaseApiRequest request = SearchApiRequestBuilder.basic()
             .index(INDEX_NAME)

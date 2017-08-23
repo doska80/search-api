@@ -4,8 +4,8 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.exception.PropertyNotFoundException;
-import com.vivareal.search.api.model.search.Indexable;
 import com.vivareal.search.api.model.mapping.MappingType;
+import com.vivareal.search.api.model.search.Indexable;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -75,17 +75,23 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
     }
 
     @Override
-    public void checkFieldName(final String index, final String fieldName) {
+    public boolean checkFieldName(final String index, final String fieldName, final boolean acceptAsterisk) {
+
+        if (acceptAsterisk && "*".equals(fieldName))
+            return true;
+
         if (isEmpty(structuredIndices))
             getSettingsInformationFromCluster();
 
         if (!structuredIndices.get(index).containsKey(fieldName))
             throw new InvalidFieldException(fieldName, index);
+
+        return true;
     }
 
     @Override
     public String getFieldType(final String index, final String fieldName) {
-        checkFieldName(index, fieldName);
+        checkFieldName(index, fieldName, false);
         return valueOf(structuredIndices.get(index).get(fieldName));
     }
 

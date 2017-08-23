@@ -1,38 +1,36 @@
 package com.vivareal.search.api.model.mapping;
 
-import com.google.common.base.MoreObjects;
+import java.util.Set;
 
-import static java.util.Arrays.asList;
+import static com.google.common.collect.Sets.newHashSet;
 
 public enum MappingType {
 
-    FIELD_TYPE_DATE("date"),
-    FIELD_TYPE_NESTED("nested"),
-    FIELD_TYPE_BOOLEAN("boolean"),
-    FIELD_TYPE_GEOPOINT("geo_point"),
+    FIELD_TYPE_DATE(newHashSet("date")),
+    FIELD_TYPE_NESTED(newHashSet("nested")),
+    FIELD_TYPE_BOOLEAN(newHashSet("boolean")),
+    FIELD_TYPE_GEOPOINT(newHashSet("geo_point")),
 
-    FIELD_TYPE_TEXT("text"),
-    FIELD_TYPE_KEYWORD("keyword"),
-    FIELD_TYPE_STRING("text", "keyword"),
+    FIELD_TYPE_TEXT(newHashSet("text")),
+    FIELD_TYPE_KEYWORD(newHashSet("keyword")),
+    FIELD_TYPE_STRING(newHashSet("text", "keyword")),
 
-    FIELD_TYPE_LONG("long"),
-    FIELD_TYPE_FLOAT("float"),
-    FIELD_TYPE_NUMBER("long", "float");
+    FIELD_TYPE_LONG(newHashSet("long")),
+    FIELD_TYPE_FLOAT(newHashSet("float")),
+    FIELD_TYPE_NUMBER(newHashSet("long", "float"));
 
-    MappingType(String... types) {
+    MappingType(Set<String> types) {
         this.types = types;
     }
 
-    private String[] types;
+    private Set<String> types;
 
     public boolean typeOf(final String foundType) {
-        return asList(types).contains(foundType);
+        return types.contains(foundType);
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(this)
-        .add("types", types)
-        .toString();
+        return types.toString();
     }
 }
