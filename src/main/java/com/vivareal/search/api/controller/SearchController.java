@@ -30,7 +30,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 @RequestMapping("/v2")
-@Api(value = "v2", description = "Search API")
+@Api("v2")
 public class SearchController {
 
     private static Logger LOG = LoggerFactory.getLogger(SearchController.class);

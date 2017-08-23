@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
-import org.elasticsearch.search.aggregations.bucket.terms.StringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
 import java.util.LinkedHashMap;

@@ -60,7 +60,7 @@ public class ESIndexHandler {
         LOG.info(TEST_DATA_INDEX + " index cleared, deleted " + response + " documents");
     }
 
-    public void addStandardTestData() throws IOException {
+    public void addStandardTestData() {
         List<String> entities = new ArrayList<>(standardDatasetSize);
         for(int id = 1; id<= standardDatasetSize; id++) {
             String entity = createStandardEntityForId(id);

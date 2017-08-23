@@ -146,6 +146,7 @@ public class SearchApiRequestBuilder {
             return this;
         }
 
+        @Override
         public SearchApiRequest build() {
             SearchApiRequest request = new SearchApiRequest();
 

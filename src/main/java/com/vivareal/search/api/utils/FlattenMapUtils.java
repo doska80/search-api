@@ -27,7 +27,7 @@ public class FlattenMapUtils {
         return Stream.of(new AbstractMap.SimpleEntry<>(keyValue.apply(entry, key), entry.getValue()));
     }
 
-    private final static BiFunction<Entry<String, Object>, String, String> keyValue = (entry, key) -> Optional.ofNullable(key)
+    private static final BiFunction<Entry<String, Object>, String, String> keyValue = (entry, key) -> Optional.ofNullable(key)
         .filter(s -> !invalidFields.contains(s))
         .map(k -> {
             if (invalidFields.contains(entry.getKey()))
