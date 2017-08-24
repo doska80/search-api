@@ -85,7 +85,7 @@ public class ESIntegrationTestSetup {
         }
     }
 
-    private void executeConfigurationCommands() throws InterruptedException {
+    private void executeConfigurationCommands() {
         List<Object> items = (List<Object>) firstNonNull(boostrapConfiguration.get("item"), emptyList());
         items.stream().map(item -> (Map<String, Object>) item).forEach(item -> {
             LOG.info("Loading command: " + item.get("name"));

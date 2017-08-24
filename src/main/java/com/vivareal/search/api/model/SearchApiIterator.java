@@ -5,6 +5,7 @@ import org.elasticsearch.action.search.SearchScrollRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.function.Function;
 
 import static java.util.Optional.ofNullable;
@@ -38,7 +39,7 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
     public T[] next() {
         T[] result = (T[]) ofNullable(response.getHits())
                 .flatMap(e -> ofNullable(e.getHits()))
-                .orElse(null);
+                .orElseThrow(NoSuchElementException::new);
 
         response = loop.apply(client.prepareSearchScroll(response.getScrollId()));
 

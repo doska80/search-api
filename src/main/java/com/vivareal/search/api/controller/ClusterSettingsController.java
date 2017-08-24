@@ -18,7 +18,7 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 @RequestMapping("/v2")
-@Api(value = "v2", description = "API Settings")
+@Api("v2")
 public class ClusterSettingsController {
 
     @Autowired

@@ -99,9 +99,9 @@ public enum RemoteProperties {
             .map(stringArray -> Stream.of(stringArray).collect(toSet()))
             .orElse(emptySet());
 
-        static Function<String, Integer> AS_INTEGER = property -> parseInt(property);
+        static Function<String, Integer> AS_INTEGER = Integer::parseInt;
 
-        static Function<String, Long> AS_LONG = property -> parseLong(property);
+        static Function<String, Long> AS_LONG = Long::parseLong;
     }
 
     static class IsRequestValidFunction {
