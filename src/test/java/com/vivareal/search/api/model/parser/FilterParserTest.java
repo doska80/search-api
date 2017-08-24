@@ -135,15 +135,8 @@ public class FilterParserTest {
     }
 
     @Test
-    public void testStartsWith() {
+    public void testSingleLike() {
         String value = "field LIKE 'value'";
-        Filter viewport = parser.parse(value);
-        assertEquals("field LIKE \"value\"", viewport.toString());
-    }
-
-    @Test
-    public void testStartsWithAlias() {
-        String value = "field ^ 'value'";
         Filter viewport = parser.parse(value);
         assertEquals("field LIKE \"value\"", viewport.toString());
     }

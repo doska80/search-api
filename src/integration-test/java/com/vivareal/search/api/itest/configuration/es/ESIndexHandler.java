@@ -90,6 +90,7 @@ public class ESIndexHandler {
             new SimpleEntry<>("number", id * 2),
             new SimpleEntry<>("float", id * 3.5f),
             new SimpleEntry<>("string", format("string with char %s", (char) (id + 'a' - 1))),
+            new SimpleEntry<>("special_string", format("string with special chars * and + %n and ? of %s to search by like", (char) (id + 'a' - 1))),
             new SimpleEntry<>("boolean", !isEven),
             new SimpleEntry<>(isEven ? "even" : "odd", true)
         ).collect(toMap(SimpleEntry::getKey, e -> (Object) e.getValue())));
