@@ -163,7 +163,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_KEYWORD))
                                     throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_KEYWORD.toString(), LIKE);
 
-                                addFilterQuery(queryBuilder, wildcardQuery(fieldName, valueOf(singleValue)), logicalOperator, not, nested, fieldName, nestedQueries);
+                                String query = valueOf(singleValue).replaceAll("_", "?").replaceAll("%", "*");
+                                addFilterQuery(queryBuilder, wildcardQuery(fieldName, query), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
 
                             case IN:

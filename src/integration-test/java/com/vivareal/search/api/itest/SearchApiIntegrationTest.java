@@ -510,7 +510,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=object.special_string LIKE '* with special chars \\* and + %n and \\? of ? to search *'", TEST_DATA_INDEX))
+            .get(format("%s?filter=object.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of _ to search %%'", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(standardDatasetSize))
             .body("result.testdata", hasSize(defaultPageSize))
@@ -527,7 +527,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=nested.special_string LIKE '* with special chars \\* and + %n and \\? of ? to search *'", TEST_DATA_INDEX))
+            .get(format("%s?filter=nested.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of _ to search %%'", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(standardDatasetSize))
             .body("result.testdata", hasSize(defaultPageSize))
@@ -544,16 +544,16 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=NOT object.special_string LIKE '* with special chars \\* and + %n and \\? of a to search *'", TEST_DATA_INDEX))
+            .get(format("%s?filter=NOT object.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of a to search %%'", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(standardDatasetSize - 1))
             .body("result.testdata", hasSize(defaultPageSize))
-            .body("result.testdata.object.special_string", everyItem(not(containsString("of a to search"))))
+            .body("result.testdata.object.special_string", everyItem(not(containsString("and _ and with_underscore of a to search"))))
         ;
     }
 
     @Test
-    public void validateSearchByWildcardQueryWithNotWithNested() {
+    public void validateSearchByWildcardQueryWithNotWhenNested() {
         given()
             .log().all()
             .baseUri(baseUrl)
@@ -561,11 +561,11 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=NOT nested.special_string LIKE '* with special chars \\* and + %n and \\? of a to search *'", TEST_DATA_INDEX))
+            .get(format("%s?filter=NOT nested.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of a to search %%'", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(standardDatasetSize - 1))
             .body("result.testdata", hasSize(defaultPageSize))
-            .body("result.testdata.nested.special_string", everyItem(not(containsString("of a to search"))))
+            .body("result.testdata.nested.special_string", everyItem(not(containsString("and _ and with_underscore of a to search"))))
         ;
     }
 
