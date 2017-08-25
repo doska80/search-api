@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -59,14 +60,14 @@ public class SearchService {
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
         SearchResponse esResponse = requestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
 
+        List<Object> data = new ArrayList<>(esResponse.getHits().getHits().length);
+        esResponse.getHits().forEach(hit -> data.add(hit.getSource()));
+
         return new SearchApiResponse()
                 .time(esResponse.getTookInMillis())
                 .totalCount(esResponse.getHits().getTotalHits())
-                .result(request.getIndex(),
-                        Arrays.stream(esResponse.getHits().getHits())
-                        .map(SearchHit::getSource)
-                        .collect(toCollection(() -> synchronizedList(new ArrayList<>(esResponse.getHits().getHits().length)))))
-                .facets(ofNullable(esResponse.getAggregations()));
+                .result(request.getIndex(), data)
+                .facets(esResponse.getAggregations());
     }
 
     public void stream(BaseApiRequest request, OutputStream stream) {
