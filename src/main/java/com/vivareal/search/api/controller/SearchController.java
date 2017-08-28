@@ -77,7 +77,7 @@ public class SearchController {
     private ResponseEntity<Object> hasError(final BaseApiRequest request, final Throwable t) {
         HttpStatus httpStatus = ((t instanceof IllegalArgumentException || getRootCause(t) instanceof IllegalArgumentException) ? BAD_REQUEST : INTERNAL_SERVER_ERROR);
         String errorMessage = getRootCauseMessage(t);
-        LOG.error(errorMessage);
+        LOG.warn(errorMessage);
         return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), httpStatus);
     }
 
