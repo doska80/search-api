@@ -333,7 +333,8 @@ public class ElasticsearchQueryAdapterTest {
     @Test
     public void shouldReturnSearchRequestBuilderWithSingleFilterWithLike() {
         final String field = "field1";
-        final Object value = "Lorem Ipsum *";
+        String value = "Break line\\nNew line with special chars: % \\% _ \\_ * ? \\a!";
+        String expected = "Break line\nNew line with special chars: * % ? _ \\* \\? \\a!";
 
         when(settingsAdapter.isTypeOf(INDEX_NAME, field, FIELD_TYPE_KEYWORD)).thenReturn(true);
 
@@ -344,7 +345,7 @@ public class ElasticsearchQueryAdapterTest {
 
             assertNotNull(wildcardQueryBuilder);
             assertEquals(field, wildcardQueryBuilder.fieldName());
-            assertEquals(value, wildcardQueryBuilder.value());
+            assertEquals(expected, wildcardQueryBuilder.value());
         });
     }
 

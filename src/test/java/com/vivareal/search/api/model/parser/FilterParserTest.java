@@ -136,8 +136,8 @@ public class FilterParserTest {
 
     @Test
     public void testSingleLike() {
-        String value = "field LIKE 'value'";
-        Filter viewport = parser.parse(value);
-        assertEquals("field LIKE \"value\"", viewport.toString());
+        String value = "field LIKE '% \\% _ \\_ * \\n ? \\x'";
+        Filter like = parser.parse(value);
+        assertEquals("field LIKE \"* % ? _ \\* \n \\? \\x\"", like.toString());
     }
 }

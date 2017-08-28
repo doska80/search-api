@@ -1,10 +1,12 @@
 package com.vivareal.search.api.model.parser;
 
 
+import com.vivareal.search.api.model.query.LikeValue;
 import com.vivareal.search.api.model.query.Value;
 import com.vivareal.search.api.model.query.ViewportValue;
 import org.jparsec.Parser;
 
+import static java.lang.String.valueOf;
 import static org.jparsec.Parsers.*;
 import static org.jparsec.Scanners.*;
 
@@ -13,7 +15,7 @@ public class ValueParser {
 
     private static final Parser<Value> NULL = stringCaseInsensitive("NULL").retn(Value.NULL_VALUE).label("null");
 
-    private static final Parser<Value> STRING = or(SINGLE_QUOTE_STRING, DOUBLE_QUOTE_STRING).map(s -> new Value(String.valueOf(s.replaceAll("\'", "").replaceAll("\"", "").trim()))).label("string");
+    private static final Parser<Value> STRING = or(SINGLE_QUOTE_STRING, DOUBLE_QUOTE_STRING).map(s -> new Value(valueOf(s.replaceAll("\'", "").replaceAll("\"", "").trim()))).label("string");
 
     private static final Parser<Value> NUMBER = or(longer(INTEGER.map(Integer::valueOf), DECIMAL.map(Double::valueOf)), string("-").next(DECIMAL.map(n -> -Double.valueOf(n)))).label("number").map(Value::new);
 
@@ -38,6 +40,14 @@ public class ValueParser {
 
         static Parser<Value> get() {
             return VALUE_VIEWPORT;
+        }
+    }
+
+    public static class Like {
+        private static final Parser<Value> VALUE_LIKE = STRING.label("like").map(LikeValue::new);
+
+        static Parser<Value> get() {
+            return VALUE_LIKE;
         }
     }
 }
