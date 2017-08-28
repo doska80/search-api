@@ -130,7 +130,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                     RelationalOperator operator = filter.getRelationalOperator();
 
                     if (!isEmpty(filter.getValue().getContents())) {
-
                         List<Object> multiValues = filter.getValue().getContents();
                         Object singleValue = filter.getValue().getContents(0);
 
@@ -159,11 +158,11 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 addFilterQuery(queryBuilder, rangeQuery(fieldName).to(singleValue).includeUpper(true), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
 
-                            case STARTS_WITH:
-                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_STRING))
-                                    throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_STRING.toString(), STARTS_WITH);
+                            case LIKE:
+                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_KEYWORD))
+                                    throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_KEYWORD.toString(), LIKE);
 
-                                addFilterQuery(queryBuilder, matchPhrasePrefixQuery(fieldName.concat(".raw"), singleValue), logicalOperator, not, nested, fieldName, nestedQueries);
+                                addFilterQuery(queryBuilder, wildcardQuery(fieldName, filter.getValue().value()), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
 
                             case IN:

@@ -9,7 +9,6 @@ import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder.ComplexRequestBuilder;
 import com.vivareal.search.api.model.mapping.MappingType;
-import org.apache.lucene.search.FuzzyQuery;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -39,6 +38,7 @@ import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARD
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_STRING;
+import static com.vivareal.search.api.model.mapping.MappingType.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
@@ -331,21 +331,21 @@ public class ElasticsearchQueryAdapterTest {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleFilterStartsWith() {
+    public void shouldReturnSearchRequestBuilderWithSingleFilterWithLike() {
         final String field = "field1";
-        final Object value = "Lorem Ipsum";
+        String value = "Break line\\nNew line with special chars: % \\% _ \\_ * ? \\a!";
+        String expected = "Break line\nNew line with special chars: * % ? _ \\* \\? \\a!";
 
-        when(settingsAdapter.isTypeOf(INDEX_NAME, field, FIELD_TYPE_STRING)).thenReturn(true);
+        when(settingsAdapter.isTypeOf(INDEX_NAME, field, FIELD_TYPE_KEYWORD)).thenReturn(true);
 
-        getOperators(STARTS_WITH).forEach(op -> {
+        getOperators(LIKE).forEach(op -> {
             SearchApiRequest searchApiRequest = fullRequest.filter(format(field, value, op)).build();
             SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-            MatchPhrasePrefixQueryBuilder must = (MatchPhrasePrefixQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+            WildcardQueryBuilder wildcardQueryBuilder = (WildcardQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
-            assertNotNull(must);
-            assertEquals(field.concat(".raw"), must.fieldName());
-            assertEquals(FuzzyQuery.defaultMaxExpansions, must.maxExpansions());
-            assertEquals(value, must.value());
+            assertNotNull(wildcardQueryBuilder);
+            assertEquals(field, wildcardQueryBuilder.fieldName());
+            assertEquals(expected, wildcardQueryBuilder.value());
         });
     }
 

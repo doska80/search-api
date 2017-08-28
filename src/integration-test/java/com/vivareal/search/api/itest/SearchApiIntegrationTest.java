@@ -2,6 +2,7 @@ package com.vivareal.search.api.itest;
 
 import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -501,36 +502,70 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void validateSearchByMatchPhasePrefix() {
+    public void validateSearchByWildcardQuery() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_OK)
-        .when()
-        .get(format("%s?filter=object.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
-        .then()
-        .body("totalCount", equalTo(standardDatasetSize))
-        .body("result.testdata", hasSize(defaultPageSize))
-        .body("result.testdata.object.string", everyItem(startsWith("string with char")))
-        ;
-    }
-
-    @Test
-    public void validateSearchByMatchPhasePrefixWhenNested() {
-        given()
-        .log().all()
+            .log().all()
             .baseUri(baseUrl)
             .contentType(JSON)
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=nested.string STARTS WITH 'string with char'", TEST_DATA_INDEX))
+            .get(format("%s?filter=object.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of _ to search %%'", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(standardDatasetSize))
             .body("result.testdata", hasSize(defaultPageSize))
-            .body("result.testdata.nested.string", everyItem(startsWith("string with char")))
+            .body("result.testdata.object.special_string", everyItem(containsString("with special chars")))
+        ;
+    }
+
+    @Test
+    public void validateSearchByWildcardQueryWhenNested() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=nested.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of _ to search %%'", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(standardDatasetSize))
+            .body("result.testdata", hasSize(defaultPageSize))
+            .body("result.testdata.nested.special_string", everyItem(containsString("with special chars")))
+        ;
+    }
+
+    @Test
+    public void validateSearchByWildcardQueryWithNot() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=NOT object.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of a to search %%'", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(standardDatasetSize - 1))
+            .body("result.testdata", hasSize(defaultPageSize))
+            .body("result.testdata.object.special_string", everyItem(not(containsString("and _ and with_underscore of a to search"))))
+        ;
+    }
+
+    @Test
+    public void validateSearchByWildcardQueryWithNotWhenNested() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=NOT nested.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of a to search %%'", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(standardDatasetSize - 1))
+            .body("result.testdata", hasSize(defaultPageSize))
+            .body("result.testdata.nested.special_string", everyItem(not(containsString("and _ and with_underscore of a to search"))))
         ;
     }
 
