@@ -10,11 +10,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.handler.DispatcherServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 
 @Controller
 public class ExceptionController implements ErrorController {
@@ -29,9 +33,12 @@ public class ExceptionController implements ErrorController {
     @ResponseBody
     @RequestMapping(value = ERROR_PATH)
     public ResponseEntity<Map<String, Object>> error(HttpServletRequest request) {
-        Map<String, Object> body = getErrorAttributes(request, getTraceParameter(request));
-        HttpStatus status = getStatus(request);
-        return new ResponseEntity<>(body, status);
+        Map<String, Object> errorBody = errorAttributes.getErrorAttributes(new DispatcherServletWebRequest(request), getTraceParameter(request));
+        HttpStatus status = getStatus(request, errorBody);
+
+        errorBody.put("request", request.getParameterMap());
+
+        return new ResponseEntity<>(errorBody, status);
     }
 
     @Override
@@ -44,12 +51,15 @@ public class ExceptionController implements ErrorController {
         return parameter != null && !"FALSE".equalsIgnoreCase(parameter);
     }
 
-    private Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
-        WebRequest requestAttributes = new DispatcherServletWebRequest(request);
-        return this.errorAttributes.getErrorAttributes(requestAttributes, includeStackTrace);
-    }
+    private HttpStatus getStatus(HttpServletRequest request, Map<String, Object> errorBody) {
+        Throwable e = errorAttributes.getError(new DispatcherServletWebRequest(request));
+        if(e != null && (e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException)) {
+            errorBody.put("message", getRootCauseMessage(e));
+            errorBody.put("status", BAD_REQUEST.value());
+            errorBody.put("error", BAD_REQUEST.getReasonPhrase());
+            return BAD_REQUEST;
+        }
 
-    private HttpStatus getStatus(HttpServletRequest request) {
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
         if (statusCode != null) {
             try {
@@ -58,6 +68,6 @@ public class ExceptionController implements ErrorController {
                 LOG.error("Invalid http status code", ex);
             }
         }
-        return HttpStatus.INTERNAL_SERVER_ERROR;
+        return INTERNAL_SERVER_ERROR;
     }
 }

@@ -6,10 +6,8 @@ import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.http.SearchApiResponse;
 import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,16 +16,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static java.util.Collections.synchronizedList;
-import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toCollection;
 
 @Component
 public class SearchService {
@@ -41,16 +37,8 @@ public class SearchService {
     @Autowired
     private ElasticSearchStream elasticSearch;
 
-    public Optional<Object> getById(BaseApiRequest request, String id) {
-        try {
-            GetResponse response = this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS);
-            if (response.isExists())
-                return ofNullable(response.getSource());
-
-        } catch (Exception e) {
-            LOG.error("Getting id={}, request: {}, error: {}", id, request, e);
-        }
-        return empty();
+    public Optional<Object> getById(BaseApiRequest request, String id) throws InterruptedException, ExecutionException, TimeoutException {
+        return ofNullable(this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS).getSource());
     }
 
     public SearchApiResponse search(SearchApiRequest request) {
