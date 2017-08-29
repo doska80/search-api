@@ -2,6 +2,9 @@ package com.vivareal.search.api;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
+import org.springframework.cloud.netflix.turbine.EnableTurbine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -28,9 +31,14 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @ComponentScan(basePackages = {"com.vivareal.search.api.adapter",
         "com.vivareal.search.api.configuration",
         "com.vivareal.search.api.controller",
-        "com.vivareal.search.api.service"})
+        "com.vivareal.search.api.service"}
+//        , lazyInit = true
+)
 @EnableAutoConfiguration
 @EnableSwagger2
+@EnableCircuitBreaker
+@EnableHystrixDashboard
+@EnableTurbine
 public class SearchAPI implements WebMvcConfigurer {
 
     @Bean

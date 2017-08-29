@@ -15,13 +15,13 @@ public class ViewportValue extends Value {
             throw new IllegalArgumentException("The viewport cannot be empty");
 
         if (content.size() != 2)
-            throw new IllegalStateException("The viewport does have lat/long pair");
+            throw new IllegalArgumentException("The viewport does have lat/long pair");
 
         if (content.get(0) == null || content.get(1) == null)
-            throw new IllegalStateException("The viewport cannot be null");
+            throw new IllegalArgumentException("The viewport cannot be null");
 
         if (content.get(0).size() != 2 || content.get(1).size() != 2)
-            throw new IllegalStateException("The viewport pair must have a lat/long");
+            throw new IllegalArgumentException("The viewport pair must have a lat/long");
 
         content.forEach(point -> {
             checkLatitude(point.get(0).value());

@@ -24,6 +24,7 @@ import java.util.concurrent.TimeoutException;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 
 @Component
 public class SearchService {
@@ -38,15 +39,27 @@ public class SearchService {
     private ElasticSearchStream elasticSearch;
 
     public Optional<Object> getById(BaseApiRequest request, String id) throws InterruptedException, ExecutionException, TimeoutException {
-        return ofNullable(this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS).getSource());
+        try {
+            return ofNullable(this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS).getSource());
+        } catch (Exception e) {
+            if(getRootCause(e) instanceof IllegalArgumentException)
+                throw new IllegalArgumentException(e);
+            throw e;
+        }
     }
 
     public SearchApiResponse search(SearchApiRequest request) {
         String index = request.getIndex();
         request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
 
-        SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
-        SearchResponse esResponse = requestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
+        SearchResponse esResponse = null;
+        try {
+            esResponse = this.queryAdapter.query(request).execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
+        } catch (Exception e) {
+            if(getRootCause(e) instanceof IllegalArgumentException)
+                throw new IllegalArgumentException(e);
+            throw e;
+        }
 
         List<Object> data = new ArrayList<>(esResponse.getHits().getHits().length);
         esResponse.getHits().forEach(hit -> data.add(hit.getSource()));
