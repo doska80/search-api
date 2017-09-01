@@ -1,19 +1,13 @@
 package com.vivareal.search.api.adapter;
 
-import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 import com.google.common.collect.Sets;
-import com.vivareal.search.api.configuration.environment.RemoteProperties;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
-import com.vivareal.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
-import com.vivareal.search.api.model.http.SearchApiRequestBuilder.ComplexRequestBuilder;
 import com.vivareal.search.api.model.mapping.MappingType;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -22,11 +16,9 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.elasticsearch.transport.MockTransportClient;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.*;
@@ -35,9 +27,8 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_STRING;
 import static com.vivareal.search.api.model.mapping.MappingType.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
@@ -56,20 +47,12 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-@ThreadLeakScope(ThreadLeakScope.Scope.NONE)
-@RunWith(com.carrotsearch.randomizedtesting.RandomizedRunner.class)
-public class ElasticsearchQueryAdapterTest {
+public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
 
-    private TransportClient transportClient;
-
     @Mock
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
-
-    private ComplexRequestBuilder fullRequest = SearchApiRequestBuilder.create().index(INDEX_NAME).from(0).size(20);
-
-    private BasicRequestBuilder basicRequest = fullRequest.basic();
 
     private ElasticsearchQueryAdapter elasticsearchQueryAdapter = new ElasticsearchQueryAdapter();
 
@@ -77,15 +60,13 @@ public class ElasticsearchQueryAdapterTest {
     public void setup() {
         initMocks(this);
 
-        this.transportClient = new MockTransportClient(Settings.EMPTY);
-
         this.queryAdapter = spy(elasticsearchQueryAdapter);
 
-        RemoteProperties.QS_MM.setValue(INDEX_NAME,"75%");
-        RemoteProperties.QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
-        RemoteProperties.SOURCE_INCLUDES.setValue(INDEX_NAME, "");
-        RemoteProperties.SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
-        RemoteProperties.ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
+        QS_MM.setValue(INDEX_NAME,"75%");
+        QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
+        SOURCE_INCLUDES.setValue(INDEX_NAME, "");
+        SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
+        ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
 
         // initialize variables to ElasticsearchQueryAdapter
         setField(this.queryAdapter, "transportClient", transportClient);
