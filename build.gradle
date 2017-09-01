@@ -8,14 +8,18 @@ buildscript {
         mavenCentral()
         maven { url "http://repo.spring.io/release" }
         maven { url "http://repo.spring.io/milestone" }
+	maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "com.avast.gradle:docker-compose-gradle-plugin:0.4.5"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
+	classpath 'com.gradle:build-scan-plugin:1.9'
     }
 }
+
+apply plugin: 'com.gradle.build-scan'
 
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot'
@@ -27,6 +31,13 @@ apply plugin: 'jacoco'
 apply plugin: 'docker-compose'
 
 apply plugin: 'com.github.ben-manes.versions'
+
+buildScan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
+
+    publishAlways()
+}
 
 group = 'com.vivareal.search'
 
