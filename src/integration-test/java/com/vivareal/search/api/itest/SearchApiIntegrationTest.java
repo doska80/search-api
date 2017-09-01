@@ -885,13 +885,13 @@ public class SearchApiIntegrationTest {
     @Test
     public void validateSearchByQInInvalidField() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?q=string with char&fields=object.numeric.raw", TEST_DATA_INDEX))
+            .get(format("%s?q=string with char&fields=object.numeric.raw", TEST_DATA_INDEX))
         ;
     }
 
@@ -939,6 +939,30 @@ public class SearchApiIntegrationTest {
             .body("totalCount", equalTo(1))
             .body("result.testdata", hasSize(1))
             .body("result.testdata[0].id", equalTo("1"))
+        ;
+    }
+
+    @Test
+    public void validateClusterSettings() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get("/cluster/settings")
+        .then()
+            .body("testdata['index.number_of_shards']", equalTo("1"))
+            .body("testdata['index.number_of_replicas']", equalTo("1"))
+            .body("testdata['geo']", equalTo("geo_point"))
+            .body("testdata['isEven']", equalTo("boolean"))
+            .body("testdata['object']", equalTo("_obj"))
+            .body("testdata['nested']", equalTo("nested"))
+            .body("testdata['numeric']", equalTo("long"))
+            .body("testdata['nested.number']", equalTo("long"))
+            .body("testdata['nested.object.field.raw']", equalTo("text"))
+            .body("testdata['object.object.array_string']", equalTo("keyword"))
         ;
     }
 }
