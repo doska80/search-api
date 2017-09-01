@@ -12,7 +12,7 @@ buildscript {
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-        classpath "com.avast.gradle:docker-compose-gradle-plugin:0.4.5"
+        classpath "com.avast.gradle:docker-compose-gradle-plugin:0.5.0"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
 	classpath 'com.gradle:build-scan-plugin:1.9'
@@ -97,14 +97,14 @@ dependencies {
     compile 'io.springfox:springfox-swagger2:' + SWAGGER
     compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
 
-    compile 'com.google.guava:guava:22.0'
+    compile 'com.google.guava:guava:23.0'
     compile 'org.jparsec:jparsec:3.0'
     compile 'org.apache.commons:commons-lang3:3.6'
 
     compile 'org.elasticsearch.client:transport:' + ELASTICSEARCH_VERSION
     compile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
 
-    compile 'org.glowroot:glowroot-agent-api:0.9.22'
+    compile 'org.glowroot:glowroot-agent-api:0.9.24'
     compile 'com.newrelic.agent.java:newrelic-api:' + NEW_RELIC_VERSION
     newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
 
@@ -206,7 +206,6 @@ def isDependencyHealthy(String url) {
         return false
     }
 }
-
 
 def waitForTestDependencyHealthy(name, seconds, healthcheck) {
     println "Waiting until $name becomes healthy"

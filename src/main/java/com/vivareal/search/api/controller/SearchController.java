@@ -2,16 +2,12 @@ package com.vivareal.search.api.controller;
 
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.http.SearchApiResponseError;
 import com.vivareal.search.api.service.SearchService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,19 +17,17 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
-import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
-import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
 @RequestMapping("/v2")
 @Api("v2")
 public class SearchController {
-
-    private static Logger LOG = LoggerFactory.getLogger(SearchController.class);
 
     @Autowired
     private SearchService searchService;
@@ -46,17 +40,10 @@ public class SearchController {
         @ApiResponse(code = 404, message = "Id not found on cluster"),
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
-    public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) {
-        try {
-            Optional<Object> response = searchService.getById(request, id);
-            if (response.isPresent())
-                return new ResponseEntity<>(response.get(), OK);
-
-            LOG.debug("ID {} not found on {} index", id, request.getIndex());
-            return new ResponseEntity<>(NOT_FOUND);
-        } catch (Exception ex) {
-            return hasError(request, ex);
-        }
+    public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) throws InterruptedException, ExecutionException, TimeoutException {
+        return searchService.getById(request, id)
+            .map(ResponseEntity::ok)
+            .orElse(notFound().build());
     }
 
     @RequestMapping(value = "/{index}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -67,18 +54,7 @@ public class SearchController {
         @ApiResponse(code = 500, message = "Internal Server Error")
     })
     public ResponseEntity<Object> search(SearchApiRequest request) {
-        try {
-            return new ResponseEntity<>(searchService.search(request), OK);
-        } catch (Exception ex) {
-            return hasError(request, ex);
-        }
-    }
-
-    private ResponseEntity<Object> hasError(final BaseApiRequest request, final Throwable t) {
-        HttpStatus httpStatus = ((t instanceof IllegalArgumentException || getRootCause(t) instanceof IllegalArgumentException) ? BAD_REQUEST : INTERNAL_SERVER_ERROR);
-        String errorMessage = getRootCauseMessage(t);
-        LOG.warn(errorMessage);
-        return new ResponseEntity<>(new SearchApiResponseError(errorMessage, request.toString()), httpStatus);
+        return new ResponseEntity<>(searchService.search(request), OK);
     }
 
     @RequestMapping(value = "/{index}/stream", method = GET)
