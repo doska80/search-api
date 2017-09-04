@@ -909,6 +909,97 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
+    public void validateSearchByFilterWithNonExistingField() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?filter=non_existing_field:1", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchWithNonExistingSort() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?sort=non_existing_field", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchWithNonExistingFacet() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?facets=non_existing_field", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchWithNonExistingIncludeField() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?includeFields=non_existing_field", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchByQInNonExistingField() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?q=string with char&fields=non_existing_field", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchWithInvalidInjectedField() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?size=a", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchByFilterWithInvalidField() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?filter=numeric:\"a\"", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
     public void validateSearchByQWithMM100Percent() {
         given()
         .log().all()
@@ -963,6 +1054,19 @@ public class SearchApiIntegrationTest {
             .body("testdata['nested.number']", equalTo("long"))
             .body("testdata['nested.object.field.raw']", equalTo("text"))
             .body("testdata['object.object.array_string']", equalTo("keyword"))
+        ;
+    }
+
+    @Test
+    public void validateSearchNotFound() {
+        given()
+        .log().all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_NOT_FOUND)
+        .when()
+        .get(format("%s/123456789", TEST_DATA_INDEX))
         ;
     }
 }
