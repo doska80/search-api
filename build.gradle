@@ -8,19 +8,19 @@ buildscript {
         mavenCentral()
         maven { url "http://repo.spring.io/release" }
         maven { url "http://repo.spring.io/milestone" }
-	maven { url 'https://plugins.gradle.org/m2/' }
+        maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
         classpath "com.avast.gradle:docker-compose-gradle-plugin:0.5.0"
         classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
-	classpath 'com.gradle:build-scan-plugin:1.9'
+        classpath 'com.gradle:build-scan-plugin:1.9'
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
     }
 }
 
 apply plugin: 'com.gradle.build-scan'
-
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'java'
@@ -29,8 +29,8 @@ apply plugin: 'idea'
 apply plugin: 'org.sonarqube'
 apply plugin: 'jacoco'
 apply plugin: 'docker-compose'
-
 apply plugin: 'com.github.ben-manes.versions'
+apply plugin: 'io.spring.dependency-management'
 
 buildScan {
     licenseAgreementUrl = 'https://gradle.com/terms-of-service'
@@ -83,7 +83,23 @@ configurations {
     newRelic
 }
 
+dependencyManagement {
+    dependencies {
+        dependencySet(group:'org.springframework.cloud', version: '2.0.0.M2') {
+            entry 'spring-cloud-starter-hystrix'
+            entry 'spring-cloud-starter-hystrix-dashboard'
+            entry 'spring-cloud-netflix-turbine'
+        }
+    }
+}
+
 dependencies {
+    compile 'com.netflix.servo:servo-core:0.12.17'
+
+    compile 'org.springframework.cloud:spring-cloud-starter-hystrix'
+    compile 'org.springframework.cloud:spring-cloud-starter-hystrix-dashboard'
+    compile 'org.springframework.cloud:spring-cloud-netflix-turbine'
+
     compile 'org.springframework.boot:spring-boot-devtools'
     compile 'org.springframework.boot:spring-boot-starter-undertow'
     compile 'org.springframework.boot:spring-boot-starter-web'

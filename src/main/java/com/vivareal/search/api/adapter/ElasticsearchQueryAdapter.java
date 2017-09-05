@@ -304,24 +304,18 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void checkMM(final String mm, final Queryable request) {
         String errorMessage = ("Minimum Should Match (mm) should be a valid integer number (-100 <> +100). Request: " + request.toString());
 
-        if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf('%'))) {
-            LOG.error(errorMessage);
+        if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf('%')))
             throw new NumberFormatException(errorMessage);
-        }
 
         String mmNumber = mm.replace("%", "");
 
-        if (!NumberUtils.isCreatable(mmNumber)) {
-            LOG.error(errorMessage);
+        if (!NumberUtils.isCreatable(mmNumber))
             throw new NumberFormatException(errorMessage);
-        }
 
         int number = NumberUtils.toInt(mmNumber);
 
-        if (number < -100 || number > 100) {
-            LOG.error(errorMessage);
+        if (number < -100 || number > 100)
             throw new IllegalArgumentException(errorMessage);
-        }
     }
 
     private void applySort(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
