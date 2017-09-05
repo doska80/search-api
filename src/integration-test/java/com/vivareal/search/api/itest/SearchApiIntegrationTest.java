@@ -13,6 +13,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -32,6 +34,8 @@ import static java.util.stream.IntStream.rangeClosed;
 import static java.util.stream.Stream.concat;
 import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource({ "classpath:application.properties", "classpath:application-test.properties", "classpath:configuration/application-itest.properties"})
@@ -479,11 +483,11 @@ public class SearchApiIntegrationTest {
                 .expect()
                     .statusCode(SC_OK)
                 .when()
-                .get(path)
+                    .get(path)
                 .then()
-                .body("totalCount", equalTo(standardDatasetSize / 2))
-                .body("result.testdata", hasSize(standardDatasetSize / 2))
-                .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, standardDatasetSize).boxed().filter(id -> id % 2 == 0).collect(toList())))
+                    .body("totalCount", equalTo(standardDatasetSize / 2))
+                    .body("result.testdata", hasSize(standardDatasetSize / 2))
+                    .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, standardDatasetSize).boxed().filter(id -> id % 2 == 0).collect(toList())))
             );
     }
 
@@ -499,7 +503,7 @@ public class SearchApiIntegrationTest {
                     .statusCode(SC_OK)
                 .when()
                     .get(path)
-                    .then()
+                .then()
                     .body("totalCount", equalTo(standardDatasetSize / 2))
                     .body("result.testdata", hasSize(standardDatasetSize / 2))
                     .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, standardDatasetSize).boxed().filter(id -> id % 2 == 0).collect(toList())))
@@ -916,91 +920,104 @@ public class SearchApiIntegrationTest {
     @Test
     public void validateSearchByFilterWithNonExistingField() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?filter=non_existing_field:1", TEST_DATA_INDEX))
+            .get(format("%s?filter=non_existing_field:1", TEST_DATA_INDEX))
         ;
     }
 
     @Test
     public void validateSearchWithNonExistingSort() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?sort=non_existing_field", TEST_DATA_INDEX))
+            .get(format("%s?sort=non_existing_field", TEST_DATA_INDEX))
         ;
     }
 
     @Test
     public void validateSearchWithNonExistingFacet() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?facets=non_existing_field", TEST_DATA_INDEX))
+            .get(format("%s?facets=non_existing_field", TEST_DATA_INDEX))
         ;
     }
 
     @Test
     public void validateSearchWithNonExistingIncludeField() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?includeFields=non_existing_field", TEST_DATA_INDEX))
+            .get(format("%s?includeFields=non_existing_field", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchWithNonExistingExcludeField() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_BAD_REQUEST)
+        .when()
+            .get(format("%s?excludeFields=non_existing_field", TEST_DATA_INDEX))
         ;
     }
 
     @Test
     public void validateSearchByQInNonExistingField() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?q=string with char&fields=non_existing_field", TEST_DATA_INDEX))
+            .get(format("%s?q=string with char&fields=non_existing_field", TEST_DATA_INDEX))
         ;
     }
 
     @Test
     public void validateSearchWithInvalidInjectedField() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?size=a", TEST_DATA_INDEX))
+            .get(format("%s?size=a", TEST_DATA_INDEX))
         ;
     }
 
     @Test
     public void validateSearchByFilterWithInvalidField() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_BAD_REQUEST)
+            .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(format("%s?filter=numeric:\"a\"", TEST_DATA_INDEX))
+            .get(format("%s?filter=numeric:\"a\"", TEST_DATA_INDEX))
         ;
     }
 
@@ -1071,7 +1088,8 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_NOT_FOUND)
         .when()
-            .get(format("%s/123456789", TEST_DATA_INDEX));
+            .get(format("%s/123456789", TEST_DATA_INDEX))
+        ;
     }
 
     @Test
@@ -1108,5 +1126,84 @@ public class SearchApiIntegrationTest {
         .then()
             .body("result.testdata", hasSize(size))
         ;
+    }
+
+    @Test
+    public void openCircuit() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get("/forceOpen/true")
+        ;
+
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_INTERNAL_SERVER_ERROR)
+        .when()
+            .get(format("%s", TEST_DATA_INDEX))
+        .then()
+            .body("message", equalTo("Circuit breaker is opened"))
+        ;
+
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get("/forceOpen/false")
+        ;
+
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void hystrixStreamWorks() throws Exception {
+        URL stream = new URL(baseUrl.replace("/v2", "") + "/application/hystrix.stream");
+        InputStream in = stream.openStream();
+        byte[] buffer = new byte[1024];
+        in.read(buffer);
+        String contents = new String(buffer);
+        assertTrue("Wrong content: \n" + contents, contents.contains("data") || contents.contains("ping"));
+        in.close();
+    }
+
+
+    @Test
+    public void turbineStreamWorks() throws Exception {
+        URL stream = new URL(baseUrl.replace("/v2", "") + "/turbine.stream");
+        InputStream in = stream.openStream();
+        byte[] buffer = new byte[1024];
+        in.read(buffer);
+        String contents = new String(buffer);
+        assertTrue("Wrong content: \n" + contents, contents.contains("data") || contents.contains("ping"));
+        in.close();
+    }
+
+    @Test
+    public void searchStreamWorks() throws Exception {
+        URL stream = new URL(format("%s%s/stream", baseUrl, TEST_DATA_INDEX));
+        InputStream in = stream.openStream();
+        byte[] buffer = new byte[1024];
+        in.read(buffer);
+        String contents = new String(buffer);
+        assertTrue("Wrong content: \n" + contents, contents.contains("id"));
+        in.close();
     }
 }
