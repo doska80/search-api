@@ -2,7 +2,6 @@ package com.vivareal.search.api.itest;
 
 import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
-import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,9 +20,11 @@ import java.util.stream.Stream;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
+import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.Math.ceil;
 import static java.lang.String.format;
+import static java.lang.Thread.sleep;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
@@ -59,8 +60,12 @@ public class SearchApiIntegrationTest {
 
     @Before
     public void clearTestData() throws IOException {
-        esIndexHandler.truncateIndexData();
+        esIndexHandler.truncateIndexData(TEST_DATA_INDEX);
         esIndexHandler.addStandardTestData();
+
+        esIndexHandler.truncateIndexData(SEARCH_API_PROPERTIES_INDEX);
+        esIndexHandler.setDefaultProperties();
+        esIndexHandler.addStandardProperties();
     }
 
     @Test
@@ -134,7 +139,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_BAD_REQUEST)
         .when()
-        .get("/non-existing-index");
+            .get("/non-existing-index");
     }
 
     @Test
@@ -751,9 +756,9 @@ public class SearchApiIntegrationTest {
         .when()
             .get(TEST_DATA_INDEX + "?sort=isEven DESC,numeric ASC")
         .then()
-        .body("totalCount", equalTo(standardDatasetSize))
-        .body("result.testdata", hasSize(defaultPageSize))
-        .body("result.testdata.id", equalTo(expected))
+            .body("totalCount", equalTo(standardDatasetSize))
+            .body("result.testdata", hasSize(defaultPageSize))
+            .body("result.testdata.id", equalTo(expected))
         ;
     }
 
@@ -829,17 +834,17 @@ public class SearchApiIntegrationTest {
         int expected = standardDatasetSize / 6;
 
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_OK)
+            .statusCode(SC_OK)
         .when()
-        .get(format("%s?filter=geo VIEWPORT [%.2f,%.2f;%.2f,%.2f] AND (numeric <= %d AND (isEven=true OR object.odd <> null))", TEST_DATA_INDEX, from * -1f, (float) to, to * -1f, (float) from, half))
+            .get(format("%s?filter=geo VIEWPORT [%.2f,%.2f;%.2f,%.2f] AND (numeric <= %d AND (isEven=true OR object.odd <> null))", TEST_DATA_INDEX, from * -1f, (float) to, to * -1f, (float) from, half))
         .then()
-        .body("totalCount", equalTo(expected))
-        .body("result.testdata", hasSize(expected))
-        .body("result.testdata.numeric.sort()", equalTo(rangeClosed(from + 1, standardDatasetSize / 2).boxed().collect(toList())));
+            .body("totalCount", equalTo(expected))
+            .body("result.testdata", hasSize(expected))
+            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(from + 1, standardDatasetSize / 2).boxed().collect(toList())))
         ;
     }
 
@@ -861,7 +866,7 @@ public class SearchApiIntegrationTest {
         .then()
             .body("totalCount", equalTo(expected))
             .body("result.testdata", hasSize(expected))
-            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(from + 1, standardDatasetSize / 2).boxed().collect(toList())));
+            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(from + 1, standardDatasetSize / 2).boxed().collect(toList())))
         ;
     }
 
@@ -1002,17 +1007,17 @@ public class SearchApiIntegrationTest {
     @Test
     public void validateSearchByQWithMM100Percent() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_OK)
+            .statusCode(SC_OK)
         .when()
-        .get(format("%s?q=string with char a&fields=object.string.raw&mm=100%%", TEST_DATA_INDEX))
+            .get(format("%s?q=string with char a&fields=object.string.raw&mm=100%%", TEST_DATA_INDEX))
         .then()
-        .body("totalCount", equalTo(1))
-        .body("result.testdata", hasSize(1))
-        .body("result.testdata[0].id", equalTo("1"))
+            .body("totalCount", equalTo(1))
+            .body("result.testdata", hasSize(1))
+            .body("result.testdata[0].id", equalTo("1"))
         ;
     }
 
@@ -1060,13 +1065,48 @@ public class SearchApiIntegrationTest {
     @Test
     public void validateSearchNotFound() {
         given()
-        .log().all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
         .expect()
-        .statusCode(SC_NOT_FOUND)
+            .statusCode(SC_NOT_FOUND)
         .when()
-        .get(format("%s/123456789", TEST_DATA_INDEX))
+            .get(format("%s/123456789", TEST_DATA_INDEX));
+    }
+
+    @Test
+    public void validateDefaultClusterProperties() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get("/properties/remote")
+        .then()
+            .body("testdata['es.default.size']", equalTo(20))
+        ;
+    }
+
+    @Test
+    public void validateUpdateClusterProperty() throws InterruptedException {
+        int size = 10;
+        esIndexHandler.putStandardProperty("es.default.size", size);
+        esIndexHandler.addStandardProperties();
+
+        sleep(1500);
+
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(TEST_DATA_INDEX)
+        .then()
+            .body("result.testdata", hasSize(size))
         ;
     }
 }
