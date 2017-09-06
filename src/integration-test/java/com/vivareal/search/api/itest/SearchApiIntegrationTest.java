@@ -1206,4 +1206,52 @@ public class SearchApiIntegrationTest {
         assertTrue("Wrong content: \n" + contents, contents.contains("id"));
         in.close();
     }
+
+    @Test
+    public void validateRecursionWithTwoFragmentLevelsUsingOR() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=(field10:\"value10\" AND isEven:true) OR (field9:\"value9\" AND isEven:false)", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(2))
+            .body("result.testdata[0].id", equalTo("10"))
+            .body("result.testdata[1].id", equalTo("9"))
+        ;
+    }
+
+    @Test
+    public void validateRecursionWithTwoFragmentLevelsUsingAND() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=(field10:\"value10\" AND isEven:true) AND (numeric:10 AND nested.boolean:false)", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(1))
+            .body("result.testdata[0].id", equalTo("10"))
+        ;
+    }
+
+    @Test
+    public void validateRecursionWithTwoFragmentLevelsUsingNOT() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=NOT((field10:\"value10\" AND isEven:true) OR (field9:\"value9\" AND isEven:false))", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(standardDatasetSize - 2))
+        ;
+    }
 }

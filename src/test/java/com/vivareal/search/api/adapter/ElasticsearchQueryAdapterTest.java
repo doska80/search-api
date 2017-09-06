@@ -202,6 +202,58 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     }
 
     @Test
+    public void shouldReturnSearchRequestBuilderByTwoFragmentLevelsUsingOR() {
+        getOperators(EQUAL).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = fullRequest.filter("(x1:1 AND y1:1) OR (x1:2 AND y2:2)").build();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                List<QueryBuilder> should = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should();
+
+                assertNotNull(should);
+                assertEquals(2, should.size());
+                assertEquals(2, ((BoolQueryBuilder) should.get(0)).must().size());
+                assertEquals(2, ((BoolQueryBuilder) should.get(1)).must().size());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderByTwoFragmentLevelsUsingAND() {
+        getOperators(EQUAL).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = fullRequest.filter("(x1:1 OR y1:1) AND (x1:2 OR y2:2)").build();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                List<QueryBuilder> must = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must();
+
+                assertNotNull(must);
+                assertEquals(2, must.size());
+                assertEquals(2, ((BoolQueryBuilder) must.get(0)).should().size());
+                assertEquals(2, ((BoolQueryBuilder) must.get(1)).should().size());
+            }
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderByTwoFragmentLevelsUsingNOT() {
+        getOperators(EQUAL).forEach(
+            op -> {
+                SearchApiRequest searchApiRequest = fullRequest.filter("NOT((x1:1 AND y1:1) OR (x1:2 AND y2:2))").build();
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
+                List<QueryBuilder> mustNot = ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot();
+
+                assertNotNull(mustNot);
+                assertEquals(1, mustNot.size());
+
+                List<QueryBuilder> should = ((BoolQueryBuilder) mustNot.get(0)).should();
+                assertNotNull(should);
+                assertEquals(2, should.size());
+                assertEquals(2, ((BoolQueryBuilder) should.get(0)).must().size());
+                assertEquals(2, ((BoolQueryBuilder) should.get(1)).must().size());
+            }
+        );
+    }
+
+    @Test
     public void shouldReturnSearchRequestBuilderWithSingleFilterGreater() {
         final String field = "field1";
         final Object value = 10;
