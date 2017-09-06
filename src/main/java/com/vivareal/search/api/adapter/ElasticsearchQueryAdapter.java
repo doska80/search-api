@@ -114,7 +114,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                 if (queryFragmentFilter instanceof QueryFragmentList) {
                     BoolQueryBuilder recursiveQueryBuilder = boolQuery();
-                    addFilterQuery(queryBuilder, recursiveQueryBuilder, getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator), isNotBeforeCurrentQueryFragment(queryFragmentList, index), false, null, nestedQueries);
+                    logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
+                    addFilterQuery(queryBuilder, recursiveQueryBuilder, logicalOperator, isNotBeforeCurrentQueryFragment(queryFragmentList, index), false, null, nestedQueries);
                     applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter, indexName, newHashMap());
 
                 } else if (queryFragmentFilter instanceof QueryFragmentItem) {
