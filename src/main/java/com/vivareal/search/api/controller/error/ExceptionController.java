@@ -1,5 +1,6 @@
 package com.vivareal.search.api.controller.error;
 
+import com.vivareal.search.api.exception.QueryPhaseExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ import org.springframework.web.servlet.handler.DispatcherServletWebRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
+import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -61,6 +65,15 @@ public class ExceptionController implements ErrorController {
                 errorBody.put("error", BAD_REQUEST.getReasonPhrase());
                 return BAD_REQUEST;
             }
+
+            if (e instanceof QueryPhaseExecutionException) {
+                LOG.error("Path: [{}] - Request Parameters: [{}] - RootCauseMessage: [{}] - Additional Message: [{}]",
+                    errorBody.getOrDefault("path", "None"),
+                    getParametersFromRequest(request),
+                    getRootCauseMessage(e),
+                    "Query: " + ((QueryPhaseExecutionException) e).getQuery()
+                );
+            }
         }
 
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
@@ -72,5 +85,9 @@ public class ExceptionController implements ErrorController {
             }
         }
         return INTERNAL_SERVER_ERROR;
+    }
+
+    private String getParametersFromRequest(final HttpServletRequest request) {
+        return request.getParameterMap().entrySet().stream().map(e -> format("%s=%s", e.getKey(), join(e.getValue()))).collect(joining("&"));
     }
 }

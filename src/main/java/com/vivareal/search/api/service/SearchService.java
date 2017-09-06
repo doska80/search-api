@@ -2,14 +2,14 @@ package com.vivareal.search.api.service;
 
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.controller.stream.ElasticSearchStream;
+import com.vivareal.search.api.exception.QueryPhaseExecutionException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.http.SearchApiResponse;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -29,8 +29,6 @@ import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 @Component
 public class SearchService {
 
-    private static Logger LOG = LoggerFactory.getLogger(SearchService.class);
-
     @Autowired
     @Qualifier("ElasticsearchQuery")
     private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
@@ -42,8 +40,10 @@ public class SearchService {
         try {
             return ofNullable(this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS).getSource());
         } catch (Exception e) {
-            if(getRootCause(e) instanceof IllegalArgumentException)
+            if (getRootCause(e) instanceof IllegalArgumentException)
                 throw new IllegalArgumentException(e);
+            if (e instanceof ElasticsearchException)
+                throw new QueryPhaseExecutionException(e);
             throw e;
         }
     }
@@ -52,12 +52,16 @@ public class SearchService {
         String index = request.getIndex();
         request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
 
-        SearchResponse esResponse = null;
+        SearchRequestBuilder searchRequestBuilder = null;
+        SearchResponse esResponse;
         try {
-            esResponse = this.queryAdapter.query(request).execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
+            searchRequestBuilder = this.queryAdapter.query(request);
+            esResponse = searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
         } catch (Exception e) {
-            if(getRootCause(e) instanceof IllegalArgumentException)
+            if (getRootCause(e) instanceof IllegalArgumentException)
                 throw new IllegalArgumentException(e);
+            if (e instanceof ElasticsearchException)
+                throw new QueryPhaseExecutionException(ofNullable(searchRequestBuilder).map(SearchRequestBuilder::toString).orElse("{}"), e);
             throw e;
         }
 
