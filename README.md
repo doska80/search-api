@@ -18,6 +18,7 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
     - [Query DSL](#query-language-syntax)
 - [Deploy](#deploy)
     - [Deploying from Jenkins](#deploying-from-jenkins)
+- [Load Tests](#load-tests)
 
 ## Application Checklist
 
@@ -177,9 +178,12 @@ make ENV=${ENV} \
   <img src="http://ftp-chi.osuosl.org/pub/jenkins/art/jenkins-logo/logo+title.svg" alt="Jenkins" width="150">
 </a> 
 
+## Load Tests
+
+There is a `load-test` sub-project that responsible to execute load tests for **SearchAPI**.
+
+See [Load Test](load-test/)
+
 ----
 
 Made with <a href="https://www.myinstants.com/media/sounds/i-will-always-love-you-low.mp3">&#9829;</a> from the VivaReal's Search team.
-
-
-

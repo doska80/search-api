@@ -63,6 +63,7 @@ REGION_VARIABLES?=$(AWS_DEFAULT_REGION)/$(ENV)
 TEMPLATE?=$(if $(filter prod,$(ENV)),asg-with-double-elb,simple-asg-with-elb)
 STACK_ALIAS?=$(COMMIT_HASH)
 STACK_NAME?=$(ENV)-search-$(PROJECT_NAME)-$(STACK_ALIAS)
+DEPLOY_NAME?=$(STACK_NAME)
 stack-variables-setup: user-data
 include make/asn/Makefile
 
