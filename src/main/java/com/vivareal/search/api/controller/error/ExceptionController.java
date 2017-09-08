@@ -53,11 +53,14 @@ public class ExceptionController implements ErrorController {
 
     private HttpStatus getStatus(HttpServletRequest request, Map<String, Object> errorBody) {
         Throwable e = errorAttributes.getError(new DispatcherServletWebRequest(request));
-        if(e != null && (e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException)) {
+        if(e != null) {
             errorBody.put("message", getRootCauseMessage(e));
-            errorBody.put("status", BAD_REQUEST.value());
-            errorBody.put("error", BAD_REQUEST.getReasonPhrase());
-            return BAD_REQUEST;
+
+            if(e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException) {
+                errorBody.put("status", BAD_REQUEST.value());
+                errorBody.put("error", BAD_REQUEST.getReasonPhrase());
+                return BAD_REQUEST;
+            }
         }
 
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
