@@ -1,36 +1,15 @@
-buildscript {
-    ext {
-        springBootVersion = '2.0.0.M3'
-    }
-
-    repositories {
-        jcenter()
-        mavenCentral()
-        maven { url "http://repo.spring.io/release" }
-        maven { url "http://repo.spring.io/milestone" }
-        maven { url 'https://plugins.gradle.org/m2/' }
-    }
-    dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-        classpath "com.avast.gradle:docker-compose-gradle-plugin:0.5.0"
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
-        classpath 'com.gradle:build-scan-plugin:1.9'
-        classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
-    }
+plugins {
+    id 'io.spring.dependency-management' version '1.0.3.RELEASE'
+    id 'com.gradle.build-scan' version '1.9'
+    id 'com.avast.gradle.docker-compose' version '0.5.0'
+    id 'com.github.ben-manes.versions' version '0.15.0'
+    id 'org.springframework.boot' version '2.0.0.M3'
+    id 'org.sonarqube' version '2.5'
+    id 'eclipse'
+    id 'java'
+    id 'idea'
+    id 'jacoco'
 }
-
-apply plugin: 'com.gradle.build-scan'
-apply plugin: 'io.spring.dependency-management'
-apply plugin: 'org.springframework.boot'
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'org.sonarqube'
-apply plugin: 'jacoco'
-apply plugin: 'docker-compose'
-apply plugin: 'com.github.ben-manes.versions'
-apply plugin: 'io.spring.dependency-management'
 
 buildScan {
     licenseAgreementUrl = 'https://gradle.com/terms-of-service'
@@ -59,12 +38,6 @@ idea {
     }
 }
 
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'VivaReal Search API v2', 'Implementation-Version': artifactName
-    }
-}
-
 import org.apache.tools.ant.filters.ReplaceTokens
 
 repositories {
@@ -80,6 +53,7 @@ configurations {
     compile.exclude module: 'spring-boot-starter-logging'
     compile.exclude module: 'undertow-websockets-jsr'
     compile.exclude module: 'hibernate-validator'
+    compile.exclude module: 'log4j-slf4j-impl'
     newRelic
 }
 
@@ -104,11 +78,11 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-undertow'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
+    // need this because org.elasticsearch:elasticsearch dependency
+    compile 'org.springframework.boot:spring-boot-starter-log4j2'
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
     compile 'biz.paluch.logging:logstash-gelf:1.11.1'
-    compile 'org.springframework.boot:spring-boot-starter-log4j2'
-    // need this because org.elasticsearch:elasticsearch dependency
 
     compile 'io.springfox:springfox-swagger2:' + SWAGGER
     compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
