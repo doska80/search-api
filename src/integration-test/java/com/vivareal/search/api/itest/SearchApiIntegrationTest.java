@@ -1149,7 +1149,7 @@ public class SearchApiIntegrationTest {
         .when()
             .get(format("%s", TEST_DATA_INDEX))
         .then()
-            .body("message", equalTo("Circuit breaker is opened"))
+            .body("message", containsString("Hystrix circuit short-circuited and is OPEN"))
         ;
 
         given()
