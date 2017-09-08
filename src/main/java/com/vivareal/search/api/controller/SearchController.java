@@ -23,8 +23,6 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -45,14 +43,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
     }
 )
 public class SearchController {
-
-    private static final Map<String, Object> fallbackResponseBody = new HashMap<>();
-    static {
-        fallbackResponseBody.put("status", INTERNAL_SERVER_ERROR.value());
-        fallbackResponseBody.put("error", INTERNAL_SERVER_ERROR.getReasonPhrase());
-        fallbackResponseBody.put("message", "Circuit breaker is opened");
-    }
-    private static final ResponseEntity<Object> fallbackResponse = new ResponseEntity<>(fallbackResponseBody, INTERNAL_SERVER_ERROR);
 
     @Autowired
     private SearchService searchService;
@@ -99,8 +89,8 @@ public class SearchController {
         return new ResponseEntity<>(searchService.search(request), OK);
     }
 
-    public ResponseEntity<Object> fallback() {
-        return fallbackResponse;
+    public ResponseEntity<Object> fallback(Throwable e) throws Throwable {
+        throw e;
     }
 
     @RequestMapping(value = {"/forceOpen/{force}"}, method = GET)
