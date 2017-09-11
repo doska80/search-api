@@ -9,6 +9,13 @@
     <springProperty scope="context" name="version" source="application.version"/>
     <springProperty scope="context" name="codename" source="application.codename"/>
 
+    <springProfile name="prod">
+        <springProperty scope="context" name="gelf-host" source="gelf.hostname" defaultValue="udp:logs.vivareal.com"/>
+    </springProfile>
+    <springProfile name="!prod">
+        <springProperty scope="context" name="gelf-host" source="gelf.hostname" defaultValue="udp:qa-logs.vivareal.com"/>
+    </springProfile>
+
     <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">
         <dsn>
             http://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry-logs.vivareal.com/64?options
@@ -21,7 +28,7 @@
     </appender>
 
     <appender name="GELF" class="biz.paluch.logging.gelf.logback.GelfLogbackAppender">
-        <host>udp:logs.vivareal.com</host>
+        <host>${gelf-host}</host>
         <port>12201</port>
         <version>1.1</version>
         <extractStackTrace>true</extractStackTrace>
@@ -41,7 +48,9 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
+        <springProfile name="dev">
+            <appender-ref ref="CONSOLE"/>
+        </springProfile>
         <springProfile name="qa, prod">
             <appender-ref ref="ASYNC_GELF"/>
             <appender-ref ref="ASYNC_SENTRY"/>
