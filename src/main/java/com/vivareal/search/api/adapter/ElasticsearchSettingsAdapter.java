@@ -121,8 +121,7 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
             structuredIndices.clear();
             structuredIndices.putAll(structuredIndicesAux);
         }
-
-        LOG.debug("Refresh Elasticsearch settings executed with success");
+        LOG.debug("Refresh getting information from cluster settings executed with success");
     }
 
     private void getMappingFromType(ObjectCursor<String> stringObjectCursor, Map<String, Object> indexInfo, ImmutableOpenMap<String, MappingMetaData> immutableIndexMapping, String index) {
