@@ -42,6 +42,7 @@ public class ESIndexHandler {
 
     private final RestClient restClient;
     private int standardDatasetSize;
+    private int standardDatasetFacetDecrease;
     private final Long timeout;
 
     private Map<String, Object> properties;
@@ -49,9 +50,11 @@ public class ESIndexHandler {
     @Autowired
     public ESIndexHandler(RestClient restClient,
                           @Value("${itest.standard.dataset.size}") Integer standardDatasetSize,
+                          @Value("${itest.standard.dataset.facet.decrease}") Integer standardDatasetFacetDecrease,
                           @Value("${es.controller.search.timeout}") Long timeout) {
         this.restClient = restClient;
         this.standardDatasetSize = standardDatasetSize;
+        this.standardDatasetFacetDecrease = standardDatasetFacetDecrease;
         this.timeout = timeout;
         this.properties = new LinkedHashMap<>();
         this.setDefaultProperties();
@@ -126,6 +129,9 @@ public class ESIndexHandler {
         data.put("nested", nestedObject);
         data.put("object", nestedObject);
         data.put("geo", geo);
+        data.put("facetString", (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? "A" : "B"));
+        data.put("facetInteger", (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? 1 : 2));
+        data.put("facetBoolean", (id <= (standardDatasetSize - standardDatasetFacetDecrease)));
 
         return writeValueAsStringFromMap(id, data);
     }

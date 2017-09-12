@@ -3,7 +3,6 @@ package com.vivareal.search.api.model.http;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -11,8 +10,6 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toMap;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class SearchApiResponse {
@@ -39,13 +36,13 @@ public final class SearchApiResponse {
         return this;
     }
 
-    private void putIntoFacetMap(Aggregation agg, Map<String, Object> facets) {
+    private void putIntoFacetMap(Aggregation agg, Map<String, Map<String, Long>> facets) {
         facets.put(agg.getName(), addBuckets(((InternalMappedTerms) agg).getBuckets()));
     }
 
     public SearchApiResponse facets(final Aggregations aggregations) {
         if (aggregations != null) {
-            Map<String, Object> facets = new LinkedHashMap<>();
+            Map<String, Map<String, Long>> facets = new LinkedHashMap<>();
             aggregations.forEach(agg -> {
                 if (agg instanceof InternalMappedTerms) {
                     putIntoFacetMap(agg, facets);
@@ -58,8 +55,10 @@ public final class SearchApiResponse {
         return this;
     }
 
-    private static Map<String, Long> addBuckets(List<Terms.Bucket> objBuckets) {
-        return objBuckets.stream().collect(toMap(MultiBucketsAggregation.Bucket::getKeyAsString, MultiBucketsAggregation.Bucket::getDocCount));
+    private static Map<String, Long> addBuckets(List<Terms.Bucket> buckets) {
+        Map<String, Long> result = new LinkedHashMap<>();
+        buckets.forEach(bucket -> result.put(bucket.getKeyAsString(), bucket.getDocCount()));
+        return result;
     }
 
     public long getTime() {
