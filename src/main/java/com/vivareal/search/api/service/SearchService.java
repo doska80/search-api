@@ -4,6 +4,7 @@ import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.controller.stream.ElasticSearchStream;
 import com.vivareal.search.api.exception.QueryPhaseExecutionException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.http.SearchApiResponse;
 import org.elasticsearch.ElasticsearchException;
@@ -75,7 +76,7 @@ public class SearchService {
                 .facets(esResponse.getAggregations());
     }
 
-    public void stream(BaseApiRequest request, OutputStream stream) {
+    public void stream(FilterableApiRequest request, OutputStream stream) {
         elasticSearch.stream(request, stream);
     }
 }

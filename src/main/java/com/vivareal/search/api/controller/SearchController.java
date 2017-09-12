@@ -5,6 +5,7 @@ import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.service.SearchService;
 import io.swagger.annotations.Api;
@@ -105,7 +106,7 @@ public class SearchController {
 
     @RequestMapping(value = "/{index}/stream", method = GET)
     @ApiIgnore
-    public StreamingResponseBody stream(BaseApiRequest request, HttpServletResponse httpServletResponse) {
+    public StreamingResponseBody stream(FilterableApiRequest request, HttpServletResponse httpServletResponse) {
         httpServletResponse.setContentType("application/x-ndjson;charset=UTF-8");
         return out -> searchService.stream(request, out);
     }
