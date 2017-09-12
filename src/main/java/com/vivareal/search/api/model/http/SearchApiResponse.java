@@ -3,7 +3,6 @@ package com.vivareal.search.api.model.http;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -11,8 +10,6 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import static java.util.stream.Collectors.toMap;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class SearchApiResponse {
@@ -58,9 +55,9 @@ public final class SearchApiResponse {
         return this;
     }
 
-    private static Map<String, Long> addBuckets(List<Terms.Bucket> objBuckets) {
+    private static Map<String, Long> addBuckets(List<Terms.Bucket> buckets) {
         Map<String, Long> result = new LinkedHashMap<>();
-        objBuckets.forEach(bucket -> result.put(bucket.getKeyAsString(), bucket.getDocCount()));
+        buckets.forEach(bucket -> result.put(bucket.getKeyAsString(), bucket.getDocCount()));
         return result;
     }
 
