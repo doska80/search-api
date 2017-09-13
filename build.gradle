@@ -106,7 +106,6 @@ dependencies {
     // Fixtures
     testCompile 'br.com.six2six:fixture-factory:3.1.0'
     testCompile 'com.jayway.restassured:rest-assured:2.9.0'
-    testCompile 'org.elasticsearch.client:rest:' + ELASTICSEARCH_VERSION
 
 }
 
