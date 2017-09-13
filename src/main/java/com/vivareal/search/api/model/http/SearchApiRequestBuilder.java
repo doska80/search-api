@@ -6,12 +6,17 @@ import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 public class SearchApiRequestBuilder {
+
     public static final String INDEX_NAME = "my_index";
 
     private SearchApiRequestBuilder() {}
 
     public static BasicRequestBuilder basic() {
         return BasicRequestBuilder.create();
+    }
+
+    public static FilterableRequestBuilder filterable() {
+        return FilterableRequestBuilder.create();
     }
 
     public static ComplexRequestBuilder create() {
@@ -60,17 +65,106 @@ public class SearchApiRequestBuilder {
         }
     }
 
-    public static class ComplexRequestBuilder extends BasicRequestBuilder {
-        private String mm;
-        private Set<String> fields;
+    public static class FilterableRequestBuilder extends BasicRequestBuilder {
+        protected String mm;
+        protected Set<String> fields;
 
-        private String filter;
-        private Set<String> sort;
-        private Set<String> facets;
-        private int facetSize;
-        private String q;
+        protected String filter;
+        protected Set<String> sort;
+        protected String q;
+
+        private FilterableRequestBuilder() {}
+
+        public static FilterableRequestBuilder create() {
+            return new FilterableRequestBuilder();
+        }
+
+        @Override
+        public FilterableRequestBuilder index(final String index) {
+            this.index = index;
+            return this;
+        }
+
+        @Override
+        public FilterableRequestBuilder includeFields(Set<String> includeFields) {
+            this.includeFields = includeFields;
+            return this;
+        }
+
+        @Override
+        public FilterableRequestBuilder excludeFields(Set<String> excludeFields) {
+            this.excludeFields = excludeFields;
+            return this;
+        }
+
+        public FilterableRequestBuilder q(String q) {
+            this.q = q;
+            return this;
+        }
+
+        public FilterableRequestBuilder mm(String mm) {
+            this.mm = mm;
+            return this;
+        }
+
+        public FilterableRequestBuilder fields(Set<String> fields) {
+            this.fields = fields;
+            return this;
+        }
+
+        public FilterableRequestBuilder filter(String filter) {
+            this.filter = filter;
+            return this;
+        }
+
+        public FilterableRequestBuilder sort(String sort) {
+            return sort(newHashSet(sort));
+
+        }
+
+        public FilterableRequestBuilder sort(Set<String> sort) {
+            this.sort = sort;
+            return this;
+        }
+
+        @Override
+        public FilterableApiRequest build() {
+            FilterableApiRequest request = new FilterableApiRequest();
+
+            if (allNotNull(index))
+                request.setIndex(index);
+
+            if (allNotNull(includeFields))
+                request.setIncludeFields(includeFields);
+
+            if (allNotNull(excludeFields))
+                request.setExcludeFields(excludeFields);
+
+            if (allNotNull(q))
+                request.setQ(q);
+
+            if (allNotNull(mm))
+                request.setMm(mm);
+
+            if (allNotNull(fields))
+                request.setFields(fields);
+
+            if (allNotNull(filter))
+                request.setFilter(filter);
+
+            if (allNotNull(sort))
+                request.setSort(sort);
+
+            return request;
+        }
+    }
+
+    public static class ComplexRequestBuilder extends FilterableRequestBuilder {
+
         private int from;
         private int size;
+        private int facetSize;
+        private Set<String> facets;
 
         private ComplexRequestBuilder() {}
 
@@ -96,26 +190,37 @@ public class SearchApiRequestBuilder {
             return this;
         }
 
+        @Override
+        public ComplexRequestBuilder q(String q) {
+            this.q = q;
+            return this;
+        }
+
+        @Override
         public ComplexRequestBuilder mm(String mm) {
             this.mm = mm;
             return this;
         }
 
+        @Override
         public ComplexRequestBuilder fields(Set<String> fields) {
             this.fields = fields;
             return this;
         }
 
+        @Override
         public ComplexRequestBuilder filter(String filter) {
             this.filter = filter;
             return this;
         }
 
+        @Override
         public ComplexRequestBuilder sort(String sort) {
             return sort(newHashSet(sort));
 
         }
 
+        @Override
         public ComplexRequestBuilder sort(Set<String> sort) {
             this.sort = sort;
             return this;
@@ -128,11 +233,6 @@ public class SearchApiRequestBuilder {
 
         public ComplexRequestBuilder facetSize(int facetSize) {
             this.facetSize = facetSize;
-            return this;
-        }
-
-        public ComplexRequestBuilder q(String q) {
-            this.q = q;
             return this;
         }
 
@@ -159,6 +259,9 @@ public class SearchApiRequestBuilder {
             if (allNotNull(excludeFields))
                 request.setExcludeFields(excludeFields);
 
+            if (allNotNull(q))
+                request.setQ(q);
+
             if (allNotNull(mm))
                 request.setMm(mm);
 
@@ -177,9 +280,6 @@ public class SearchApiRequestBuilder {
             if (allNotNull(facetSize))
                 request.setFacetSize(facetSize);
 
-            if (allNotNull(q))
-                request.setQ(q);
-
             if (allNotNull(from))
                 request.setFrom(from);
 
@@ -187,10 +287,6 @@ public class SearchApiRequestBuilder {
                 request.setSize(size);
 
             return request;
-        }
-
-        public BasicRequestBuilder basic() {
-            return this;
         }
     }
 }

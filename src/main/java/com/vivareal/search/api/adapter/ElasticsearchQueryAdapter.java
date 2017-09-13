@@ -81,11 +81,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     @Override
-    public SearchRequestBuilder query(BaseApiRequest request) {
-        return prepareQuery(request, (searchBuilder, boolQueryBuilder) -> buildQueryByBaseApiRequest(request, searchBuilder));
-    }
-
-    @Override
     public SearchRequestBuilder query(FilterableApiRequest request) {
         return prepareQuery(request, (searchBuilder, queryBuilder) -> buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder));
     }
@@ -108,21 +103,14 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         return searchBuilder;
     }
 
-    private void buildQueryByBaseApiRequest(BaseApiRequest request, SearchRequestBuilder searchBuilder) {
-        addFieldList(searchBuilder, request);
-    }
-
     private void buildQueryByFilterableApiRequest(FilterableApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
-        this.buildQueryByBaseApiRequest(request, searchBuilder);
-
+        addFieldList(searchBuilder, request);
         applySort(searchBuilder, request);
         applyQueryString(queryBuilder, request);
-        Map<String, BoolQueryBuilder> nestedQueries = newHashMap();
-        applyFilterQuery(queryBuilder, request, nestedQueries);
+        applyFilterQuery(queryBuilder, request);
     }
 
     private void buildQueryBySearchApiRequest(SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
-        this.buildQueryByBaseApiRequest(request, searchBuilder);
         this.buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
 
         applyFacets(searchBuilder, request);
@@ -130,8 +118,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         searchBuilder.setSize(request.getSize());
     }
 
-    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter, Map<String, BoolQueryBuilder> nestedQueries) {
-        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f), filter.getIndex(), nestedQueries));
+    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
+        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f), filter.getIndex(), newHashMap()));
     }
 
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment, final String indexName, Map<String, BoolQueryBuilder> nestedQueries) {
