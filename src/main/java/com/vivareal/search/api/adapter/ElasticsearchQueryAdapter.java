@@ -2,6 +2,7 @@ package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.exception.UnsupportedFieldException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.parser.FacetParser;
 import com.vivareal.search.api.model.parser.QueryParser;
@@ -80,28 +81,45 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     @Override
-    public SearchRequestBuilder query(BaseApiRequest request) {
-        return prepareQuery(request, (searchBuilder, boolQueryBuilder) -> addFieldList(searchBuilder, request));
+    public SearchRequestBuilder query(FilterableApiRequest request) {
+        return prepareQuery(request, (searchBuilder, queryBuilder) -> buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder));
     }
 
     @Override
     public SearchRequestBuilder query(SearchApiRequest request) {
-        return prepareQuery(request, (searchBuilder, queryBuilder) -> {
-            searchBuilder.setFrom(request.getFrom());
-            searchBuilder.setSize(request.getSize());
-            addFieldList(searchBuilder, request);
-            applySort(searchBuilder, request);
-            applyFacetFields(searchBuilder, request);
-
-            applyQueryString(queryBuilder, request);
-
-            Map<String, BoolQueryBuilder> nestedQueries = newHashMap();
-            applyFilterQuery(queryBuilder, request, nestedQueries);
-        });
+        return prepareQuery(request, (searchBuilder, queryBuilder) -> buildQueryBySearchApiRequest(request, searchBuilder, queryBuilder));
     }
 
-    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter, Map<String, BoolQueryBuilder> nestedQueries) {
-        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f), filter.getIndex(), nestedQueries));
+    private SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
+        settingsAdapter.checkIndex(request);
+        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());
+        searchBuilder.setPreference("_replica_first"); // <3
+
+        BoolQueryBuilder queryBuilder = boolQuery();
+        builder.accept(searchBuilder, queryBuilder);
+        searchBuilder.setQuery(queryBuilder);
+
+        LOG.debug("Request: {} - Query: {}", request, searchBuilder);
+        return searchBuilder;
+    }
+
+    private void buildQueryByFilterableApiRequest(FilterableApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
+        addFieldList(searchBuilder, request);
+        applySort(searchBuilder, request);
+        applyQueryString(queryBuilder, request);
+        applyFilterQuery(queryBuilder, request);
+    }
+
+    private void buildQueryBySearchApiRequest(SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
+        this.buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
+
+        applyFacets(searchBuilder, request);
+        searchBuilder.setFrom(request.getFrom());
+        searchBuilder.setSize(request.getSize());
+    }
+
+    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
+        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f), filter.getIndex(), newHashMap()));
     }
 
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment, final String indexName, Map<String, BoolQueryBuilder> nestedQueries) {
@@ -331,7 +349,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         }
     }
 
-    private void applyFacetFields(SearchRequestBuilder searchRequestBuilder, final Facetable request) {
+    private void applyFacets(SearchRequestBuilder searchRequestBuilder, final Facetable request) {
         Set<String> value = request.getFacets();
         if (!isEmpty(value)) {
             List<Field> facets = FacetParser.get().parse(value.stream().collect(joining(",")));
@@ -396,23 +414,5 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             .toArray(String[]::new);
 
         return Pair.of(includes, excludes);
-    }
-
-    private SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
-        settingsAdapter.checkIndex(request);
-
-        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());
-        searchBuilder.setPreference("_replica_first"); // <3
-
-        BoolQueryBuilder queryBuilder = boolQuery();
-
-        builder.accept(searchBuilder, queryBuilder);
-
-        searchBuilder.setQuery(queryBuilder);
-
-        LOG.debug("Request: {}", request);
-        LOG.debug("Query: {}", searchBuilder);
-
-        return searchBuilder;
     }
 }

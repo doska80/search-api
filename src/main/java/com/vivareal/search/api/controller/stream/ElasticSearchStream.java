@@ -3,6 +3,8 @@ package com.vivareal.search.api.controller.stream;
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.model.SearchApiIterator;
 import com.vivareal.search.api.model.http.BaseApiRequest;
+import com.vivareal.search.api.model.http.FilterableApiRequest;
+import com.vivareal.search.api.model.http.SearchApiRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -26,7 +28,7 @@ public class ElasticSearchStream {
     @Qualifier("ElasticsearchQuery")
     private QueryAdapter<?, SearchRequestBuilder> queryAdapter;
 
-    public void stream(BaseApiRequest request, OutputStream stream) {
+    public void stream(FilterableApiRequest request, OutputStream stream) {
         String index = request.getIndex();
         int scrollTimeout = ES_SCROLL_TIMEOUT.getValue(index);
         TimeValue keepAlive = new TimeValue(scrollTimeout);
