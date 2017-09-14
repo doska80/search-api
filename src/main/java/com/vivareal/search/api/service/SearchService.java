@@ -6,7 +6,6 @@ import com.vivareal.search.api.exception.QueryPhaseExecutionException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.http.SearchApiResponse;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -16,8 +15,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -49,15 +46,15 @@ public class SearchService {
         }
     }
 
-    public SearchApiResponse search(SearchApiRequest request) {
+    public SearchResponse search(SearchApiRequest request) {
         String index = request.getIndex();
         request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
 
         SearchRequestBuilder searchRequestBuilder = null;
-        SearchResponse esResponse;
+
         try {
             searchRequestBuilder = this.queryAdapter.query(request);
-            esResponse = searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
+            return searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
         } catch (Exception e) {
             if (getRootCause(e) instanceof IllegalArgumentException)
                 throw new IllegalArgumentException(e);
@@ -65,15 +62,6 @@ public class SearchService {
                 throw new QueryPhaseExecutionException(ofNullable(searchRequestBuilder).map(SearchRequestBuilder::toString).orElse("{}"), e);
             throw e;
         }
-
-        List<Object> data = new ArrayList<>(esResponse.getHits().getHits().length);
-        esResponse.getHits().forEach(hit -> data.add(hit.getSource()));
-
-        return new SearchApiResponse()
-                .time(esResponse.getTookInMillis())
-                .totalCount(esResponse.getHits().getTotalHits())
-                .result(request.getIndex(), data)
-                .facets(esResponse.getAggregations());
     }
 
     public void stream(FilterableApiRequest request, OutputStream stream) {
