@@ -17,7 +17,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -146,7 +145,7 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
                 .forEach(params -> params
                     .forEach(param -> indexInfo.putIfAbsent(param, "_obj"))
                 );
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error("Error on get mapping from index {} and type {}", index, type, e);
         }
     }
