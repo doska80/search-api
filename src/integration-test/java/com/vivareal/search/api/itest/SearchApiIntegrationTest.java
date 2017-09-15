@@ -65,7 +65,7 @@ public class SearchApiIntegrationTest {
     @Autowired
     private ESIndexHandler esIndexHandler;
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Before
     public void clearTestData() throws IOException {
@@ -1261,28 +1261,47 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
+    public void validateResponseWithSizeZero() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?size=0", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(standardDatasetSize))
+            .body("result.testdata", hasSize(0))
+        ;
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void validateFacetSortPosition() throws IOException {
         String response = given()
-            .log()
-            .all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
-            .get(format("%s?size=0&facets=facetString,facetInteger,facetBoolean,array_integer&facetSize=%s", TEST_DATA_INDEX, standardDatasetSize)).body().asString();
+                .log()
+                .all()
+                .baseUri(baseUrl)
+                .contentType(JSON)
+            .expect()
+                .statusCode(SC_OK)
+            .when()
+                .get(format("%s?size=0&facets=facetString,facetInteger,facetBoolean,array_integer&facetSize=%s", TEST_DATA_INDEX, standardDatasetSize)).body().asString();
 
-        JsonNode facets = MAPPER.readTree(response).get("result").get("facets");
+        JsonNode facets = mapper.readTree(response).get("result").get("facets");
         assertNotNull(facets);
 
-        List<Integer> facetString = new ArrayList(MAPPER.convertValue(facets.get("facetString"), Map.class).values());
+        List<Integer> facetString = new ArrayList(mapper.convertValue(facets.get("facetString"), Map.class).values());
         assertTrue(facetString.get(0) >= facetString.get(1));
 
-        List<Integer> facetInteger = new ArrayList(MAPPER.convertValue(facets.get("facetInteger"), Map.class).values());
+        List<Integer> facetInteger = new ArrayList(mapper.convertValue(facets.get("facetInteger"), Map.class).values());
         assertTrue(facetInteger.get(0) >= facetInteger.get(1));
 
-        List<Integer> facetBoolean = new ArrayList(MAPPER.convertValue(facets.get("facetBoolean"), Map.class).values());
+        List<Integer> facetBoolean = new ArrayList(mapper.convertValue(facets.get("facetBoolean"), Map.class).values());
         assertTrue(facetBoolean.get(0) >= facetBoolean.get(1));
 
-        List<Integer> facetArray = new ArrayList(MAPPER.convertValue(facets.get("array_integer"), Map.class).values());
+        List<Integer> facetArray = new ArrayList(mapper.convertValue(facets.get("array_integer"), Map.class).values());
         assertTrue(facetArray.size() == standardDatasetSize);
         int index = 0;
         while ((index + 1) < standardDatasetSize) {
