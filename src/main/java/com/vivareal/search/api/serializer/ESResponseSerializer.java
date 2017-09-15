@@ -7,6 +7,7 @@ import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
 import org.apache.commons.lang3.ArrayUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
@@ -16,6 +17,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+
+import static java.util.Optional.ofNullable;
 
 public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<SearchResponse>> {
 
@@ -35,45 +38,49 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
 
         jgen.writeStartObject();
         jgen.writeNumberField("time", searchResponse.getTookInMillis());
-        jgen.writeNumberField("totalCount", searchResponse.getHits() != null ? searchResponse.getHits().getTotalHits() : 0);
+        jgen.writeNumberField("totalCount", ofNullable(searchResponse.getHits()).map(SearchHits::getTotalHits).orElse(0L));
 
         jgen.writeObjectFieldStart("result");
-        writeResultSet(searchResponse, jgen, value.getIndexName());
-        writeFacets(searchResponse, jgen);
-        jgen.writeEndObject();
 
+        jgen.writeArrayFieldStart(value.getIndexName());
+        writeResultSet(searchResponse, jgen);
+        jgen.writeEndArray();
+
+        writeFacets(searchResponse, jgen);
+
+        jgen.writeEndObject();
         jgen.writeEndObject();
     }
 
-    private void writeResultSet(SearchResponse value, JsonGenerator jgen, String indexName) {
-        try {
-            jgen.writeArrayFieldStart(indexName);
-            if (value.getHits() != null && !ArrayUtils.isEmpty(value.getHits().getHits())) {
-                SearchHit[] hits = value.getHits().getHits();
-                int size = hits.length;
-                for (int i = 0; i < size; i++) {
-                    jgen.writeRaw(hits[i].getSourceAsString());
-                    if ((i+1) < size)
-                        jgen.writeRaw(",");
+    private void writeResultSet(SearchResponse searchResponse, JsonGenerator jgen) {
+        ofNullable(searchResponse.getHits()).filter(searchHits -> !ArrayUtils.isEmpty(searchHits.getHits())).ifPresent(searchHits -> {
+            SearchHit[] hits = searchHits.getHits();
+            int len = hits.length - 1;
+            try {
+                for (int i = 0; i < len; i++) {
+                    jgen.writeRaw(hits[i].getSourceRef().utf8ToString());
+                    jgen.writeRaw(",");
                 }
+                jgen.writeRaw(hits[len].getSourceRef().utf8ToString());
+            } catch (IOException e) {
+                LOG.error("Error to write results on response", e);
             }
-            jgen.writeEndArray();
-        } catch (IOException e) {
-            LOG.error("Error to write results on response", e);
-        }
+        });
     }
 
     private void writeFacets(SearchResponse value, JsonGenerator jgen) {
         if (value.getAggregations() != null) {
             try {
                 jgen.writeObjectFieldStart("facets");
-                value.getAggregations().forEach(agg -> {
+                for (Aggregation agg : value.getAggregations()) {
                     if (agg instanceof InternalMappedTerms) {
                         writeFacet(agg, jgen);
                     } else if (agg instanceof InternalNested) {
-                        ((InternalNested) agg).getAggregations().forEach(aggregation -> writeFacet(aggregation, jgen));
+                        for (Aggregation aggregation : ((InternalNested) agg).getAggregations()) {
+                            writeFacet(aggregation, jgen);
+                        }
                     }
-                });
+                }
                 jgen.writeEndObject();
             } catch (IOException e) {
                 LOG.error("Error to write facets on response", e);
@@ -82,23 +89,15 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
     }
 
     @SuppressWarnings("unchecked")
-    private void writeFacet(Aggregation agg, JsonGenerator jgen) {
-        try {
-            jgen.writeObjectFieldStart(agg.getName());
-            writeFacetBuckets(((InternalMappedTerms) agg).getBuckets(), jgen);
-            jgen.writeEndObject();
-        } catch (IOException e) {
-            LOG.error("Error to write facet on response", e);
-        }
+    private void writeFacet(Aggregation agg, JsonGenerator jgen) throws IOException {
+        jgen.writeObjectFieldStart(agg.getName());
+        writeFacetBuckets(((InternalMappedTerms) agg).getBuckets(), jgen);
+        jgen.writeEndObject();
     }
 
-    private void writeFacetBuckets(List<Terms.Bucket> buckets, JsonGenerator jgen) {
-        buckets.forEach(bucket -> {
-            try {
-                jgen.writeNumberField(bucket.getKeyAsString(), bucket.getDocCount());
-            } catch (IOException e) {
-                LOG.error("Error to write bucket facet on response", e);
-            }
-        });
+    private void writeFacetBuckets(List<Terms.Bucket> buckets, JsonGenerator jgen) throws IOException {
+        for (Terms.Bucket bucket : buckets) {
+            jgen.writeNumberField(bucket.getKeyAsString(), bucket.getDocCount());
+        }
     }
 }
