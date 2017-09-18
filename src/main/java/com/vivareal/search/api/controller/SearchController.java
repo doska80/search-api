@@ -7,6 +7,7 @@ import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
 import com.vivareal.search.api.service.SearchService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,7 +28,8 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
@@ -87,7 +89,7 @@ public class SearchController {
         }
     )
     public ResponseEntity<Object> search(SearchApiRequest request) {
-        return new ResponseEntity<>(searchService.search(request), OK);
+        return new ResponseEntity<>(new SearchResponseEnvelope<>(request.getIndex(), searchService.search(request)), OK);
     }
 
     public ResponseEntity<Object> fallback(Throwable e) throws Throwable {

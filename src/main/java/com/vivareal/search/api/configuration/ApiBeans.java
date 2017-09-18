@@ -1,5 +1,7 @@
 package com.vivareal.search.api.configuration;
 
+import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
+import com.vivareal.search.api.serializer.ESResponseSerializer;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.transport.TransportClient;
@@ -8,6 +10,7 @@ import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
@@ -59,6 +62,12 @@ public class ApiBeans implements DisposableBean {
     public RestClient restClient() {
         restClient = RestClient.builder(new HttpHost(hostname, restPort, "http")).build();
         return restClient;
+    }
+
+    @Bean
+    @Scope(SCOPE_SINGLETON)
+    public Jackson2ObjectMapperBuilderCustomizer addCustomSearchResponseDeserialization() {
+        return jacksonObjectMapperBuilder -> jacksonObjectMapperBuilder.serializerByType(SearchResponseEnvelope.class, new ESResponseSerializer());
     }
 
     @Override
