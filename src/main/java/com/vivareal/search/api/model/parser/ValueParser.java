@@ -1,6 +1,7 @@
 package com.vivareal.search.api.model.parser;
 
 
+import com.vivareal.search.api.model.query.BetweenValue;
 import com.vivareal.search.api.model.query.LikeValue;
 import com.vivareal.search.api.model.query.Value;
 import com.vivareal.search.api.model.query.ViewportValue;
@@ -48,6 +49,14 @@ public class ValueParser {
 
         static Parser<Value> get() {
             return VALUE_LIKE;
+        }
+    }
+
+    public static class Between {
+        private static final Parser<Value> VALUE_BETWEEN = VALUE_IN.label("between").map(BetweenValue::new);
+
+        static Parser<Value> get() {
+            return VALUE_BETWEEN;
         }
     }
 }
