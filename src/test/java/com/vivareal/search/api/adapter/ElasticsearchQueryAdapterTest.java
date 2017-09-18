@@ -148,8 +148,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         SearchSourceBuilder source = searchRequestBuilder.request().source();
 
         assertEquals(request.getIndex(), searchRequestBuilder.request().indices()[0]);
-        assertEquals(request.getFrom().intValue(), source.from());
-        assertEquals(request.getSize().intValue(), source.size());
+        assertEquals(request.getFrom(), source.from());
+        assertEquals(request.getSize(), source.size());
     }
 
     @Test
@@ -881,8 +881,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertEquals(searchApiRequest.getIndex(), searchRequestBuilder.request().indices()[0]);
 
         // pagination
-        assertEquals(searchApiRequest.getFrom().intValue(), source.from());
-        assertEquals(searchApiRequest.getSize().intValue(), source.size());
+        assertEquals(searchApiRequest.getFrom(), source.from());
+        assertEquals(searchApiRequest.getSize(), source.size());
 
         // display
         FetchSourceContext fetchSourceContext = source.fetchSource();

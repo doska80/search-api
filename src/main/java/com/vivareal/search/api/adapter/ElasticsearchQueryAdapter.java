@@ -357,7 +357,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                 final String indexName = request.getIndex();
                 final String fieldName = facet.getName();
-                final int facetSize = ES_FACET_SIZE.getValue(request.getFacetSize(), request.getIndex());
+                final int facetSize = request.getFacetSize();
                 final int shardSize = parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)));
 
                 settingsAdapter.checkFieldName(indexName, fieldName, false);

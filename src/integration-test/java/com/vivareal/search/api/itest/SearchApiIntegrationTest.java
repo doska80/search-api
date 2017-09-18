@@ -795,6 +795,19 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
+    public void validateNegativePaginationFromParameter() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_BAD_REQUEST)
+        .when()
+            .get(TEST_DATA_INDEX + "?from=-1")
+        ;
+    }
+
+    @Test
     public void validatePaginationSizeParameter() {
         given()
             .log().all()
@@ -808,6 +821,32 @@ public class SearchApiIntegrationTest {
             .body("totalCount", equalTo(standardDatasetSize))
             .body("result.testdata", hasSize(standardDatasetSize))
             .body("result.testdata.id", everyItem(notNullValue()))
+        ;
+    }
+
+    @Test
+    public void validateNegativePaginationSizeParameter() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_BAD_REQUEST)
+        .when()
+            .get(TEST_DATA_INDEX + "?size=-1")
+        ;
+    }
+
+    @Test
+    public void validateHighPaginationSizeParameter() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_BAD_REQUEST)
+        .when()
+            .get(TEST_DATA_INDEX + "?size=999999")
         ;
     }
 

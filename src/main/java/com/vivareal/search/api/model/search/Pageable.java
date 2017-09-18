@@ -1,14 +1,26 @@
 package com.vivareal.search.api.model.search;
 
+import static java.lang.String.format;
+
 public interface Pageable extends Indexable {
-    Integer getFrom();
-    void setFrom(Integer from);
+    int getFrom();
+    void setFrom(int from);
 
-    Integer getSize();
-    void setSize(Integer size);
+    int getSize();
+    void setSize(int size);
 
-    default void setPaginationValues(int defaultSize, int maxSize) {
-        setFrom(getFrom() != null && getFrom() >= 0 ? getFrom() : 0);
-        setSize(getSize() != null && getSize() >= 0 && getSize() <= maxSize ? getSize() : defaultSize);
+    default void setPaginationValues(final int defaultSize, final int maxSize) {
+        if (getFrom() < 0)
+            throw new IllegalArgumentException("Parameter [from] must be a positive integer");
+
+        setFrom(getFrom());
+
+        if(getSize() != Integer.MAX_VALUE) {
+            if (getSize() < 0 || getSize() > maxSize)
+                throw new IllegalArgumentException(format("Parameter [size] must be a positive integer less than %d (default: %d)", maxSize, defaultSize));
+
+            setSize(getSize());
+        } else
+            setSize(defaultSize);
     }
 }

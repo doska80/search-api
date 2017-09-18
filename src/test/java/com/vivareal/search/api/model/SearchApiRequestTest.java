@@ -26,33 +26,32 @@ public class SearchApiRequestTest {
 
         int from = 0;
         request.setFrom(from);
-        assertEquals(from, request.getFrom().intValue());
+        assertEquals(from, request.getFrom());
 
         from = 10;
         request.setFrom(from);
-        assertEquals(from, request.getFrom().intValue());
+        assertEquals(from, request.getFrom());
 
         from = MAX_VALUE;
         request.setFrom(from);
-        assertEquals(from, request.getFrom().intValue());
+        assertEquals(from, request.getFrom());
     }
 
     @Test
     public void shouldApplyDefaultSizeFromPaginationIfSizeFromNotBeInformed() {
         SearchApiRequest request = new SearchApiRequest();
-        assertNull(request.getFrom());
+        assertEquals(0, request.getFrom());
 
         request.setPaginationValues(DEFAULT_SIZE, MAX_SIZE);
-        assertEquals(DEFAULT_SIZE_FROM, request.getFrom().intValue());
+        assertEquals(DEFAULT_SIZE_FROM, request.getFrom());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldApplyDefaultSizeFromPaginationIfSizeFromIsNegative() {
         SearchApiRequest request = new SearchApiRequest();
         request.setFrom(-10);
 
         request.setPaginationValues(DEFAULT_SIZE, MAX_SIZE);
-        assertEquals(DEFAULT_SIZE_FROM, request.getFrom().intValue());
     }
 
     @Test
@@ -62,42 +61,39 @@ public class SearchApiRequestTest {
 
         int size = 0;
         request.setSize(size);
-        assertEquals(size, request.getSize().intValue());
+        assertEquals(size, request.getSize());
 
         size = 10;
         request.setSize(size);
-        assertEquals(size, request.getSize().intValue());
+        assertEquals(size, request.getSize());
 
         size = 40;
         request.setSize(size);
-        assertEquals(size, request.getSize().intValue());
+        assertEquals(size, request.getSize());
     }
 
     @Test
     public void shouldApplyDefaultSizePaginationIfSizeNotBeInformed() {
         SearchApiRequest request = new SearchApiRequest();
-        assertNull(request.getSize());
+        assertEquals(Integer.MAX_VALUE, request.getSize());
 
         request.setPaginationValues(DEFAULT_SIZE, MAX_SIZE);
-        assertEquals(DEFAULT_SIZE, request.getSize().intValue());
+        assertEquals(DEFAULT_SIZE, request.getSize());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldApplyDefaultSizePaginationIfSizeIsNegative() {
         SearchApiRequest request = new SearchApiRequest();
         request.setSize(-10);
 
         request.setPaginationValues(DEFAULT_SIZE, MAX_SIZE);
-        assertEquals(DEFAULT_SIZE, request.getSize().intValue());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void shouldApplyDefaultSizePaginationIfSizeIsGreaterThanMaxSize() {
         SearchApiRequest request = new SearchApiRequest();
         request.setSize(41);
 
         request.setPaginationValues(DEFAULT_SIZE, MAX_SIZE);
-        assertEquals(DEFAULT_SIZE, request.getSize().intValue());
     }
-
 }
