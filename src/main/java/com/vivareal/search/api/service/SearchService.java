@@ -49,6 +49,7 @@ public class SearchService {
     public SearchResponse search(SearchApiRequest request) {
         String index = request.getIndex();
         request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
+        request.setFacetingValues(ES_FACET_SIZE.getValue(index));
 
         SearchRequestBuilder searchRequestBuilder = null;
 

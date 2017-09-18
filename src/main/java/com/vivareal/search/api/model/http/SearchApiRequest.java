@@ -12,13 +12,13 @@ public class SearchApiRequest extends FilterableApiRequest implements Pageable, 
     private Set<String> facets;
 
     @ApiModelProperty("Sets the size of facets")
-    private Integer facetSize;
+    private int facetSize = Integer.MAX_VALUE;
 
     @ApiModelProperty("From index to start the search from")
-    private Integer from;
+    private int from = 0;
 
     @ApiModelProperty("The number of search hits to return")
-    private Integer size;
+    private int size = Integer.MAX_VALUE;
 
     public Set<String> getFacets() {
         return facets;
@@ -28,27 +28,27 @@ public class SearchApiRequest extends FilterableApiRequest implements Pageable, 
         this.facets = facets;
     }
 
-    public Integer getFacetSize() {
+    public int getFacetSize() {
         return facetSize;
     }
 
-    public void setFacetSize(Integer facetSize) {
+    public void setFacetSize(int facetSize) {
         this.facetSize = facetSize;
     }
 
-    public Integer getFrom() {
+    public int getFrom() {
         return from;
     }
 
-    public void setFrom(Integer from) {
+    public void setFrom(int from) {
         this.from = from;
     }
 
-    public Integer getSize() {
+    public int getSize() {
         return size;
     }
 
-    public void setSize(Integer size) {
+    public void setSize(int size) {
         this.size = size;
     }
 
