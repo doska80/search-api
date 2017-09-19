@@ -406,11 +406,11 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleFilterWithBetween() {
+    public void shouldReturnSearchRequestBuilderWithSingleFilterWithRange() {
         final String field = "field";
         final int from = 3, to = 5;
 
-        getOperators(BETWEEN).parallelStream().forEach(
+        getOperators(RANGE).parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s [%d,%d]", field, op, from, to)).build());
@@ -428,11 +428,11 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderWithSingleFilterWithBetweenWhenNot() {
+    public void shouldReturnSearchRequestBuilderWithSingleFilterWithRangeWhenNot() {
         final String field = "field";
         final int from = 5, to = 10;
 
-        getOperators(BETWEEN).parallelStream().forEach(
+        getOperators(RANGE).parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("NOT %s %s [%d,%d]", field, op, from, to)).build());

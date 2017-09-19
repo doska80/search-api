@@ -20,7 +20,7 @@ public enum RelationalOperator {
     LESS_EQUAL("LTE", "<="),
     VIEWPORT("@"),
     LIKE("LIKE"),
-    BETWEEN("BETWEEN");
+    RANGE("RANGE");
 
     private String[] alias;
 

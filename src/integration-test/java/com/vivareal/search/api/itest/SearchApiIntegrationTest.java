@@ -1348,4 +1348,49 @@ public class SearchApiIntegrationTest {
             index++;
         }
     }
+
+    @Test
+    public void validateSearchUsingRangeOperator() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=numeric RANGE [1,5]", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(5))
+            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, 5).boxed().collect(toList())))
+        ;
+    }
+
+    @Test
+    public void validateSearchUsingRangeOperatorWhenNot() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=NOT numeric RANGE [1,5]&size=%d", TEST_DATA_INDEX, standardDatasetSize))
+        .then()
+            .body("totalCount", equalTo(25))
+            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(6, standardDatasetSize).boxed().collect(toList())))
+        ;
+    }
+
+    @Test
+    public void validateSearchUsingInvalidRangeOperator() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_BAD_REQUEST)
+        .when()
+            .get(format("%s?filter=NOT numeric RANGE [1]", TEST_DATA_INDEX))
+        ;
+    }
 }
