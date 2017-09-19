@@ -1,6 +1,13 @@
-plugins {
-    id 'com.github.lkishalmi.gatling' version '0.4.1'
+buildscript {
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.lkishalmi.gradle:gradle-gatling-plugin:0.4.1"
+    }
 }
+
+apply plugin: "com.github.lkishalmi.gatling"
 
 repositories {
     jcenter()
