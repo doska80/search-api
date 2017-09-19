@@ -282,8 +282,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     assertEquals(field, range.fieldName());
                     assertEquals(value, range.from());
                     assertNull(range.to());
-                    assertEquals(false, range.includeLower());
-                    assertEquals(true, range.includeUpper());
+                    assertFalse(range.includeLower());
+                    assertTrue(range.includeUpper());
                 }
             )
         );
@@ -303,8 +303,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     assertEquals(field, range.fieldName());
                     assertEquals(value, range.from());
                     assertNull(range.to());
-                    assertEquals(true, range.includeLower());
-                    assertEquals(true, range.includeUpper());
+                    assertTrue(range.includeLower());
+                    assertTrue(range.includeUpper());
                 }
             )
         );
@@ -324,8 +324,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     assertEquals(field, range.fieldName());
                     assertEquals(value, range.to());
                     assertNull(range.from());
-                    assertEquals(true, range.includeLower());
-                    assertEquals(false, range.includeUpper());
+                    assertTrue(range.includeLower());
+                    assertFalse(range.includeUpper());
                 }
             )
         );
@@ -345,8 +345,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     assertEquals(field, range.fieldName());
                     assertEquals(value, range.to());
                     assertNull(range.from());
-                    assertEquals(true, range.includeLower());
-                    assertEquals(true, range.includeUpper());
+                    assertTrue(range.includeLower());
+                    assertTrue(range.includeUpper());
                 }
             )
         );
@@ -400,6 +400,50 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     assertNotNull(wildcardQueryBuilder);
                     assertEquals(field, wildcardQueryBuilder.fieldName());
                     assertEquals(expected, wildcardQueryBuilder.value());
+                }
+            )
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilterWithBetween() {
+        final String field = "field";
+        final int from = 3, to = 5;
+
+        getOperators(BETWEEN).parallelStream().forEach(
+            op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
+                request -> {
+                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s [%d,%d]", field, op, from, to)).build());
+                    RangeQueryBuilder rangeQueryBuilder = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                    assertNotNull(rangeQueryBuilder);
+                    assertEquals(field, rangeQueryBuilder.fieldName());
+                    assertEquals(from, rangeQueryBuilder.from());
+                    assertEquals(to, rangeQueryBuilder.to());
+                    assertTrue(rangeQueryBuilder.includeLower());
+                    assertTrue(rangeQueryBuilder.includeUpper());
+                }
+            )
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderWithSingleFilterWithBetweenWhenNot() {
+        final String field = "field";
+        final int from = 5, to = 10;
+
+        getOperators(BETWEEN).parallelStream().forEach(
+            op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
+                request -> {
+                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("NOT %s %s [%d,%d]", field, op, from, to)).build());
+                    RangeQueryBuilder rangeQueryBuilder = (RangeQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).mustNot().get(0);
+
+                    assertNotNull(rangeQueryBuilder);
+                    assertEquals(field, rangeQueryBuilder.fieldName());
+                    assertEquals(from, rangeQueryBuilder.from());
+                    assertEquals(to, rangeQueryBuilder.to());
+                    assertTrue(rangeQueryBuilder.includeLower());
+                    assertTrue(rangeQueryBuilder.includeUpper());
                 }
             )
         );
@@ -920,9 +964,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertNotNull(mustFirstLevel);
         assertNotNull(mustNotFirstLevel);
         assertNotNull(shouldFirstLevel);
-        assertTrue(mustFirstLevel.size() == 1);
-        assertTrue(mustNotFirstLevel.size() == 1);
-        assertTrue(shouldFirstLevel.size() == 2);
+        assertEquals(1, mustFirstLevel.size());
+        assertEquals(1, mustNotFirstLevel.size());
+        assertEquals(2, shouldFirstLevel.size());
 
         // querystring
         QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) shouldFirstLevel.get(0);
@@ -956,8 +1000,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertEquals(field3Name, mustRangeSecondLevelField3.fieldName());
         assertEquals(field3Value, mustRangeSecondLevelField3.from());
         assertNull(mustRangeSecondLevelField3.to());
-        assertEquals(false, mustRangeSecondLevelField3.includeLower());
-        assertEquals(true, mustRangeSecondLevelField3.includeUpper());
+        assertFalse(mustRangeSecondLevelField3.includeLower());
+        assertTrue(mustRangeSecondLevelField3.includeUpper());
 
         BoolQueryBuilder queryBuilderThirdLevel = (BoolQueryBuilder) mustSecondLevel.get(1);
         List<QueryBuilder> shouldThirdLevel = queryBuilderThirdLevel.should(); //1
@@ -971,8 +1015,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertEquals(field4Name, shouldRangeThirdLevelField4.fieldName());
         assertEquals(field4Value, shouldRangeThirdLevelField4.to());
         assertNull(shouldRangeThirdLevelField4.from());
-        assertEquals(true, shouldRangeThirdLevelField4.includeLower());
-        assertEquals(false, shouldRangeThirdLevelField4.includeUpper());
+        assertTrue(shouldRangeThirdLevelField4.includeLower());
+        assertFalse(shouldRangeThirdLevelField4.includeUpper());
 
         // field 5
         TermsQueryBuilder mustTermsThirdLevelField5 = (TermsQueryBuilder) mustThirdLevel.get(0);
