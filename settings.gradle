@@ -1,19 +1,3 @@
-pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.toString() == 'org.springframework.boot') {
-                useModule("org.springframework.boot:spring-boot-gradle-plugin:${requested.version}")
-            }
-        }
-    }
-
-    repositories {
-        maven { url "http://repo.spring.io/release" }
-        maven { url "http://repo.spring.io/milestone" }
-        gradlePluginPortal()
-    }
-}
-
 rootProject.name = 'search-api'
 
 include 'load-test'
