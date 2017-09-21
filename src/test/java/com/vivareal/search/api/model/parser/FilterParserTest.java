@@ -140,4 +140,17 @@ public class FilterParserTest {
         Filter like = parser.parse(value);
         assertEquals("field LIKE \"* % ? _ \\* \n \\? \\x\"", like.toString());
     }
+
+    @Test
+    public void testSingleRange() {
+        String value = "field RANGE [\"a\", 5]";
+        Filter like = parser.parse(value);
+        assertEquals("field RANGE [\"a\", 5]", like.toString());
+    }
+
+    @Test(expected = ParserException.class)
+    public void testSingleInvalidRange() {
+        String value = "field RANGE [1,]";
+        parser.parse(value);
+    }
 }

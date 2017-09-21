@@ -2,6 +2,7 @@ package com.vivareal.search.api.model.parser;
 
 
 import com.vivareal.search.api.model.query.LikeValue;
+import com.vivareal.search.api.model.query.RangeValue;
 import com.vivareal.search.api.model.query.Value;
 import com.vivareal.search.api.model.query.ViewportValue;
 import org.jparsec.Parser;
@@ -48,6 +49,14 @@ public class ValueParser {
 
         static Parser<Value> get() {
             return VALUE_LIKE;
+        }
+    }
+
+    public static class Range {
+        private static final Parser<Value> VALUE_RANGE = VALUE_IN.label("range").map(RangeValue::new);
+
+        static Parser<Value> get() {
+            return VALUE_RANGE;
         }
     }
 }

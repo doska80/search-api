@@ -161,6 +161,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 addFilterQuery(queryBuilder, matchQuery(fieldName, singleValue), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
 
+                            case RANGE:
+                                addFilterQuery(queryBuilder, rangeQuery(fieldName).from(((Value) multiValues.get(0)).value()).to(((Value) multiValues.get(1)).value()).includeLower(true).includeUpper(true), logicalOperator, not, nested, fieldName, nestedQueries);
+                                break;
+
                             case GREATER:
                                 addFilterQuery(queryBuilder, rangeQuery(fieldName).from(singleValue).includeLower(false), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;

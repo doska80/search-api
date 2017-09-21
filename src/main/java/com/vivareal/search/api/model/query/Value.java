@@ -72,8 +72,9 @@ public class Value {
 
         Object simpleValue = contents.get(0);
         if (simpleValue instanceof String) {
-            return String.format("\"%s\"", simpleValue);
+            return format("\"%s\"", simpleValue);
         }
+
         return simpleValue.toString();
     }
 }

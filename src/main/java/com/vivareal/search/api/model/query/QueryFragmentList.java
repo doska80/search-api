@@ -21,14 +21,14 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
     private List<QueryFragment> validateSingleRecursiveQueryFragmentList(List<QueryFragment> queryFragments) {
 
         if (CollectionUtils.isEmpty(queryFragments))
-            throw new IllegalStateException("Generic error occurred when validate QueryFragment recursively. QueryFragment cannot null or empty");
+            throw new IllegalArgumentException("Generic error occurred when validate QueryFragment recursively. QueryFragment cannot null or empty");
 
         QueryFragment fragment = queryFragments.get(0);
         if (hasOnlyAnInternalQueryFragmentList(queryFragments)) // e.g. ((((queryFragmentList)))), will be extracted to a single (queryFragmentList)
             return (List<QueryFragment>) fragment;
 
         if (fragment instanceof QueryFragmentItem && ((QueryFragmentItem) fragment).getLogicalOperator() != null)
-            throw new IllegalStateException("The first item cannot have a logical operator prefix");
+            throw new IllegalArgumentException("The first item cannot have a logical operator prefix");
 
         // If there isn't a single nested QueryFragmentList
         return queryFragments;
