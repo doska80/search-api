@@ -1,6 +1,5 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.0.M3'
         integrationTestComposeMode = project.hasProperty('circleCi') ? 'circleci' : 'localhost'
         integrationTestComposeFile = "${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose-${integrationTestComposeMode}.yml"
     }
@@ -13,12 +12,13 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-        classpath "com.avast.gradle:docker-compose-gradle-plugin:0.5.0"
-        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5"
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
+        classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.5'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
         classpath 'com.gradle:build-scan-plugin:1.9'
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
+        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.4'
     }
 }
 
@@ -33,6 +33,7 @@ apply plugin: 'jacoco'
 apply plugin: 'docker-compose'
 apply plugin: 'com.github.ben-manes.versions'
 apply plugin: 'io.spring.dependency-management'
+apply plugin: "me.champeau.gradle.jmh"
 
 buildScan {
     licenseAgreementUrl = 'https://gradle.com/terms-of-service'
@@ -87,7 +88,7 @@ configurations {
 
 dependencyManagement {
     dependencies {
-        dependencySet(group:'org.springframework.cloud', version: '2.0.0.M2') {
+        dependencySet(group:'org.springframework.cloud', version: SPRING_CLOUD_VERSION) {
             entry 'spring-cloud-starter-hystrix'
             entry 'spring-cloud-starter-hystrix-dashboard'
             entry 'spring-cloud-netflix-turbine'
@@ -98,14 +99,14 @@ dependencyManagement {
 dependencies {
     compile 'com.netflix.servo:servo-core:0.12.17'
 
-    compile 'org.springframework.cloud:spring-cloud-starter-hystrix'
-    compile 'org.springframework.cloud:spring-cloud-starter-hystrix-dashboard'
-    compile 'org.springframework.cloud:spring-cloud-netflix-turbine'
+    compile 'org.springframework.cloud:spring-cloud-starter-hystrix:' + SPRING_CLOUD_VERSION
+    compile 'org.springframework.cloud:spring-cloud-starter-hystrix-dashboard:' + SPRING_CLOUD_VERSION
+    compile 'org.springframework.cloud:spring-cloud-netflix-turbine:' + SPRING_CLOUD_VERSION
 
-    compile 'org.springframework.boot:spring-boot-starter-undertow'
-    compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.springframework.boot:spring-boot-starter-actuator'
-    compile 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+    compile 'org.springframework.boot:spring-boot-starter-undertow:'+ SPRING_BOOT_VERSION
+    compile 'org.springframework.boot:spring-boot-starter-web:'+ SPRING_BOOT_VERSION
+    compile 'org.springframework.boot:spring-boot-starter-actuator:'+ SPRING_BOOT_VERSION
+    compile 'org.springframework.boot:spring-boot-starter-data-elasticsearch:'+ SPRING_BOOT_VERSION
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
     compile 'biz.paluch.logging:logstash-gelf:1.11.1'
@@ -124,7 +125,7 @@ dependencies {
     testCompile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
     testCompile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:' + ELASTICSEARCH_VERSION
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'org.springframework.boot:spring-boot-starter-test:' + SPRING_BOOT_VERSION
     // Fixtures
     testCompile 'br.com.six2six:fixture-factory:3.1.0'
     testCompile 'com.jayway.restassured:rest-assured:2.9.0'
@@ -297,4 +298,16 @@ if(!project.hasProperty('noDockerCompose')) {
         waitForTestDependencyHealthy('es', 180, isESHealthy)
         waitForTestDependencyHealthy('searchApi', 120, isSearchApiHealthy)
     }
+}
+
+jmh {
+    iterations = 1
+    fork = 1
+    threads = 4
+    batchSize = 1
+    timeUnit = 'us'           // Output time unit. Available time units are: [m, s, ms, us, ns].
+
+    verbosity = 'NORMAL'      // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
+    benchmarkMode = ['all']   // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
+    include = ['.*Benchmark']
 }

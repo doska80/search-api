@@ -87,3 +87,6 @@ aws_default_region:
 
 es_cluster_name:
 	$(if $(value ES_CLUSTER_NAME),,$(error "ES_CLUSTER_NAME is required for Makefile"))
+
+benchmark:
+	./gradlew clean jmh --no-daemon

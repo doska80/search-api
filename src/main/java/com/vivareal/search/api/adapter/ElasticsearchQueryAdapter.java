@@ -146,7 +146,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         searchBuilder.setSize(request.getSize());
     }
 
-    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
+    public void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
         ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.parse(f), filter.getIndex(), newHashMap()));
     }
 
