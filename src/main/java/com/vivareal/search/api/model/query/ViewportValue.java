@@ -2,15 +2,18 @@ package com.vivareal.search.api.model.query;
 
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static org.apache.lucene.geo.GeoUtils.checkLatitude;
 import static org.apache.lucene.geo.GeoUtils.checkLongitude;
 
 public class ViewportValue extends Value {
     public ViewportValue(List<List<Value>> content) {
-        super(content);
-
         if (CollectionUtils.isEmpty(content))
             throw new IllegalArgumentException("The viewport cannot be empty");
 
@@ -24,8 +27,12 @@ public class ViewportValue extends Value {
             throw new IllegalArgumentException("The viewport pair must have a lat/long");
 
         content.forEach(point -> {
-            checkLatitude(point.get(0).value());
-            checkLongitude(point.get(1).value());
+            checkLatitude(point.get(0).first());
+            checkLongitude(point.get(1).first());
         });
+
+        this.contents = content.stream()
+                .map(lv -> new Value(asList(lv.get(0), lv.get(1))))
+                .collect(toCollection(() -> new ArrayList<>(content.size())));
     }
 }

@@ -16,14 +16,14 @@ public class ValueParserTest {
     public void testInteger() {
         String value = "123456";
         Value parsed = parser.parse(value);
-        assertEquals(Integer.valueOf(value), parsed.getContents(0));
+        assertEquals(Integer.valueOf(value), parsed.first());
     }
 
     @Test
     public void testFloat() {
         String value = "123.456";
         Value parsed = parser.parse(value);
-        assertEquals(Double.valueOf(value), parsed.getContents(0));
+        assertEquals(Double.valueOf(value), parsed.first());
     }
 
     @Test(expected = ParserException.class)
@@ -40,14 +40,14 @@ public class ValueParserTest {
     public void testSingleQuotedString() {
         String value = "'single-quoted and with a lot of spaces'";
         Value parsed = parser.parse(value);
-        assertEquals(value.substring(1, value.length() - 1), parsed.getContents(0));
+        assertEquals(value.substring(1, value.length() - 1), parsed.first());
     }
 
     @Test
     public void testDoubleQuotedString() {
         String value = "\"single-quoted and with a lot of spaces and sôme spécial chars\"";
         Value parsed = parser.parse(value);
-        assertEquals(value.substring(1, value.length() - 1), parsed.getContents(0));
+        assertEquals(value.substring(1, value.length() - 1), parsed.first());
     }
 
     @Test
