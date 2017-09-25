@@ -1,7 +1,5 @@
 package com.vivareal.search.api.model.query;
 
-import static java.lang.String.valueOf;
-
 public class LikeValue extends Value {
 
     private static final int SPACE_ASCII_CODE = 32;
@@ -19,7 +17,7 @@ public class LikeValue extends Value {
     private static final int SCAPE_ASCII_CODE = 92;
 
     public LikeValue(Value content) {
-        super(normalizeQuery(valueOf(content.getContents(0))));
+        super(normalizeQuery(content.value()));
     }
 
     private static String normalizeQuery(final String query) {
@@ -83,5 +81,4 @@ public class LikeValue extends Value {
             finalQuery.append(SCAPE_ASCII_STRING);
         finalQuery.append(charToAppend);
     }
-
 }

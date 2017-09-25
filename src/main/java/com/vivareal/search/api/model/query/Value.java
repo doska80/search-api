@@ -3,48 +3,66 @@ package com.vivareal.search.api.model.query;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
-import static org.springframework.util.CollectionUtils.isEmpty;
 
 public class Value {
 
-    protected List<Object> contents = EMPTY_CONTENTS;
-
-    private static final List<Object> EMPTY_CONTENTS = emptyList();
+    protected List<Object> contents;
 
     public static final Value NULL_VALUE = new Value(null);
 
-    // Empty contructor on purpose in order to allow Fixtures creation by reflection
-    private Value() {
+    public Value() {
+        this.contents = emptyList();
     }
 
     public Value(Object content) {
-        this.contents = content instanceof List ? (List<Object>) content : singletonList(content);
+        this(content instanceof List ? (List<Object>) content : singletonList(content));
     }
 
     public Value(List<Object> contents) {
-        this.contents = contents;
+        this.contents = ofNullable(contents).orElse(emptyList());
     }
 
-    public List<Object> getContents() {
-        return contents;
+    public int size() {
+        return contents.size();
     }
 
-    public Object getContents(int index) {
-        return ofNullable(contents).map(c -> c.get(index)).orElseThrow(() -> new IndexOutOfBoundsException(String.valueOf(index)));
+    public boolean isEmpty() {
+        return size() == 0;
     }
 
-    public <T> T value() {
+    public <T> T first() {
         return value(0);
     }
 
+    public <T> T last() {
+        return value(size() - 1);
+    }
+
+    public <T> T value() {
+        return first();
+    }
+
     public <T> T value(int index) {
-        return (T) getContents(index);
+        return value(index, 0);
+    }
+
+    public <T> T value(int index, int indexList) {
+        T value = (T) contents.get(index);
+
+        if (value instanceof Value)
+            value = ((Value) value).value(indexList);
+        else if (value instanceof List)
+            value = (T) ((List) value).get(indexList);
+
+        return value;
     }
 
     @Override
@@ -64,10 +82,10 @@ public class Value {
 
     @Override
     public String toString() {
-        if (isEmpty(contents) || (contents.size() == 1 && contents.get(0) == null))
+        if (isEmpty() || (size() == 1 && contents.get(0) == null))
             return "NULL";
 
-        if (contents.size() > 1)
+        if (size() > 1)
             return format("[%s]", Joiner.on(", ").join(contents));
 
         Object simpleValue = contents.get(0);
@@ -76,5 +94,13 @@ public class Value {
         }
 
         return simpleValue.toString();
+    }
+
+    public Stream<Object> stream() {
+        return contents.stream();
+    }
+
+    public List<Object> contents() {
+        return Collections.unmodifiableList(contents);
     }
 }
