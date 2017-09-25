@@ -1,10 +1,10 @@
 package com.vivareal.search.api.model.parser;
 
 
+import com.vivareal.search.api.model.query.GeoPointValue;
 import com.vivareal.search.api.model.query.LikeValue;
 import com.vivareal.search.api.model.query.RangeValue;
 import com.vivareal.search.api.model.query.Value;
-import com.vivareal.search.api.model.query.ViewportValue;
 import org.jparsec.Parser;
 
 import static java.lang.String.valueOf;
@@ -34,17 +34,6 @@ public class ValueParser {
         return VALUE_PARSER;
     }
 
-    static class Viewport {
-        private static final Parser<Value> VALUE_VIEWPORT =
-            between(isChar('['), ValueParser.get().sepBy1(isChar(',')).sepBy1(isChar(';')), isChar(']'))
-            .label("viewport")
-            .map(ViewportValue::new);
-
-        static Parser<Value> get() {
-            return VALUE_VIEWPORT;
-        }
-    }
-
     static class Like {
         private static final Parser<Value> VALUE_LIKE = STRING.label("like").map(LikeValue::new);
 
@@ -58,6 +47,36 @@ public class ValueParser {
 
         static Parser<Value> get() {
             return VALUE_RANGE;
+        }
+    }
+
+    public static class GeoPoint {
+        static Parser<Value> get(final Type type) {
+            return between(isChar('['), ValueParser.get().sepBy1(between(WHITESPACES.skipMany(), isChar(','), WHITESPACES.skipMany())), isChar(']'))
+                .label(type.name())
+                .map(values -> new GeoPointValue(values, type));
+        }
+
+        public enum Type {
+
+            VIEWPORT(2, 2),
+            POLYGON(3, 1000);
+
+            Type(int minSize, int maxSize) {
+                this.minSize = minSize;
+                this.maxSize = maxSize;
+            }
+
+            private int minSize;
+            private int maxSize;
+
+            public int getMinSize() {
+                return minSize;
+            }
+
+            public int getMaxSize() {
+                return maxSize;
+            }
         }
     }
 }
