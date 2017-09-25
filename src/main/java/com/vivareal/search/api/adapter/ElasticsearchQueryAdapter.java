@@ -142,7 +142,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
                     String fieldName = filter.getField().getName();
                     settingsAdapter.checkFieldName(indexName, fieldName, false);
-                    boolean nested = settingsAdapter.isTypeOf(indexName, fieldName.split("\\.")[0], FIELD_TYPE_NESTED);
+                    boolean nested = settingsAdapter.isTypeOf(indexName, filter.getField().getNames().get(0), FIELD_TYPE_NESTED);
 
                     final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
                     logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
