@@ -2,7 +2,7 @@ package com.vivareal.search.api.model.query;
 
 import com.google.common.base.Objects;
 
-import java.util.Collection;
+import java.util.List;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
@@ -11,13 +11,13 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 public class Field {
 
     private boolean not;
-    private final Collection<String> names;
+    private final List<String> names;
 
-    public Field(final Collection<String> names) {
+    public Field(final List<String> names) {
         this(false, names);
     }
 
-    private Field(boolean not, final Collection<String> names) {
+    private Field(boolean not, final List<String> names) {
 
         if (isEmpty(names)) {
             throw new IllegalArgumentException("The field name cannot be empty");
@@ -39,7 +39,7 @@ public class Field {
         return this.names.stream().collect(joining("."));
     }
 
-    public Collection<String> getNames() {
+    public List<String> getNames() {
         return this.names;
     }
 
