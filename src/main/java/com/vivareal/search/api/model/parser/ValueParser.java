@@ -12,6 +12,7 @@ import static org.jparsec.Parsers.*;
 import static org.jparsec.Scanners.*;
 
 public class ValueParser {
+
     private static final Parser<Value> BOOLEAN = or(stringCaseInsensitive("FALSE").retn(false), stringCaseInsensitive("TRUE").retn(true)).label("boolean").map(Value::new);
 
     private static final Parser<Value> NULL = stringCaseInsensitive("NULL").retn(Value.NULL_VALUE).label("null");
@@ -33,7 +34,7 @@ public class ValueParser {
         return VALUE_PARSER;
     }
 
-    public static class Viewport {
+    static class Viewport {
         private static final Parser<Value> VALUE_VIEWPORT =
             between(isChar('['), ValueParser.get().sepBy1(isChar(',')).sepBy1(isChar(';')), isChar(']'))
             .label("viewport")
@@ -44,7 +45,7 @@ public class ValueParser {
         }
     }
 
-    public static class Like {
+    static class Like {
         private static final Parser<Value> VALUE_LIKE = STRING.label("like").map(LikeValue::new);
 
         static Parser<Value> get() {
@@ -52,7 +53,7 @@ public class ValueParser {
         }
     }
 
-    public static class Range {
+    static class Range {
         private static final Parser<Value> VALUE_RANGE = VALUE_IN.label("range").map(RangeValue::new);
 
         static Parser<Value> get() {

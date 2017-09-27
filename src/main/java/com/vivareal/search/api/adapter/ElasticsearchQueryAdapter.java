@@ -1,5 +1,6 @@
 package com.vivareal.search.api.adapter;
 
+import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.exception.UnsupportedFieldException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
@@ -66,6 +67,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private static final String NOT_NESTED = "not_nested";
 
     @Override
+    @Trace
     public GetRequestBuilder getById(BaseApiRequest request, String id) {
         settingsAdapter.checkIndex(request);
 
@@ -81,11 +83,13 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     @Override
+    @Trace
     public SearchRequestBuilder query(FilterableApiRequest request) {
         return prepareQuery(request, (searchBuilder, queryBuilder) -> buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder));
     }
 
     @Override
+    @Trace
     public SearchRequestBuilder query(SearchApiRequest request) {
         return prepareQuery(request, (searchBuilder, queryBuilder) -> buildQueryBySearchApiRequest(request, searchBuilder, queryBuilder));
     }
@@ -119,7 +123,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
-        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.get().parse(f), filter.getIndex(), newHashMap()));
+        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.parse(f), filter.getIndex(), newHashMap()));
     }
 
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment, final String indexName, Map<String, BoolQueryBuilder> nestedQueries) {
@@ -339,7 +343,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void applySort(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
         Set<String> value = ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex());
         if (!isEmpty(value)) {
-            Sort sort = SortParser.get().parse(value.stream().collect(joining(",")));
+            Sort sort = SortParser.parse(value.stream().collect(joining(",")));
             sort.forEach(item -> {
                 String fieldName = item.getField().getName();
                 settingsAdapter.checkFieldName(request.getIndex(), fieldName, false);
@@ -351,7 +355,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void applyFacets(SearchRequestBuilder searchRequestBuilder, final Facetable request) {
         Set<String> value = request.getFacets();
         if (!isEmpty(value)) {
-            List<Field> facets = FacetParser.get().parse(value.stream().collect(joining(",")));
+            List<Field> facets = FacetParser.parse(value.stream().collect(joining(",")));
             facets.forEach(facet -> {
 
                 final String indexName = request.getIndex();

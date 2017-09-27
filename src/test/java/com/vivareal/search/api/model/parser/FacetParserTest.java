@@ -11,17 +11,15 @@ import static org.junit.Assert.assertEquals;
 
 public class FacetParserTest {
 
-    private static Parser<List<Field>> parser = FacetParser.get();
-
     @Test
     public void testOneFacetField() {
-        List<Field> fields = parser.parse("field");
+        List<Field> fields = FacetParser.parse("field");
         assertEquals("field", fields.get(0).toString());
     }
 
     @Test
     public void testMultipleFacetFields() {
-        List<Field> fields = parser.parse("field1, field2,       field3");
+        List<Field> fields = FacetParser.parse("field1, field2,       field3");
         assertEquals("field1", fields.get(0).toString());
         assertEquals("field2", fields.get(1).toString());
         assertEquals("field3", fields.get(2).toString());
@@ -29,7 +27,7 @@ public class FacetParserTest {
 
     @Test
     public void testMultipleFacetFieldsWithNested() {
-        List<Field> fields = parser.parse("field1, field1.field2,       field1.field2.field3");
+        List<Field> fields = FacetParser.parse("field1, field1.field2,       field1.field2.field3");
         assertEquals("field1", fields.get(0).toString());
         assertEquals("field1.field2", fields.get(1).toString());
         assertEquals("field1.field2.field3", fields.get(2).toString());
@@ -37,11 +35,11 @@ public class FacetParserTest {
 
     @Test(expected = ParserException.class)
     public void testEmptyFacetField() {
-        parser.parse("");
+        FacetParser.parse("");
     }
 
     @Test
     public void testMultipleFacetFieldsWithNot() {
-        parser.parse("field1, NOT field2");
+        FacetParser.parse("field1, NOT field2");
     }
 }

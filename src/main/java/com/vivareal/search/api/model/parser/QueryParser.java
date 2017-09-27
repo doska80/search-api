@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
+import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.query.*;
 import org.jparsec.Parser;
 
@@ -10,10 +11,10 @@ import static org.jparsec.Parsers.sequence;
 import static org.jparsec.Scanners.isChar;
 
 public class QueryParser {
-    public static final Parser<QueryFragment> QUERY_PARSER =
+    static final Parser<QueryFragment> QUERY_PARSER =
             sequence(LOGICAL_OPERATOR_PARSER.asOptional(), FilterParser.get(), QueryFragmentItem::new);
 
-    public static final Parser<QueryFragment> RECURSIVE_QUERY_PARSER = getRecursive();
+    static final Parser<QueryFragment> RECURSIVE_QUERY_PARSER = getRecursive();
 
     private static Parser<QueryFragment> getRecursive() {
         Parser.Reference<QueryFragment> ref = newReference();
@@ -27,7 +28,8 @@ public class QueryParser {
         return parser;
     }
 
-    public static Parser<QueryFragment> get() {
-        return RECURSIVE_QUERY_PARSER;
+    @Trace
+    public static QueryFragment parse(String string) {
+        return RECURSIVE_QUERY_PARSER.parse(string);
     }
 }

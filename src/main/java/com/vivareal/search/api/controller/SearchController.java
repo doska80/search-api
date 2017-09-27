@@ -4,6 +4,7 @@ import com.netflix.config.ConfigurationManager;
 import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
+import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
@@ -68,6 +69,7 @@ public class SearchController {
             @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "90")
         }
     )
+    @Trace(dispatcher=true)
     public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) throws InterruptedException, ExecutionException, TimeoutException {
         return searchService.getById(request, id)
             .map(ResponseEntity::ok)
@@ -88,6 +90,7 @@ public class SearchController {
             @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "70")
         }
     )
+    @Trace(dispatcher=true)
     public ResponseEntity<Object> search(SearchApiRequest request) {
         return new ResponseEntity<>(new SearchResponseEnvelope<>(request.getIndex(), searchService.search(request)), OK);
     }
@@ -108,6 +111,7 @@ public class SearchController {
 
     @RequestMapping(value = "/{index}/stream", method = GET)
     @ApiIgnore
+    @Trace(dispatcher=true)
     public StreamingResponseBody stream(FilterableApiRequest request, HttpServletResponse httpServletResponse) {
         httpServletResponse.setContentType("application/x-ndjson;charset=UTF-8");
         return out -> searchService.stream(request, out);

@@ -18,13 +18,13 @@ import static org.jparsec.Terminals.operators;
 
 public class OperatorParser {
 
-    public static final Parser<LogicalOperator> LOGICAL_OPERATOR_PARSER = get(LogicalOperator::getOperators, LogicalOperator::get, "logical operator");
+    static final Parser<LogicalOperator> LOGICAL_OPERATOR_PARSER = get(LogicalOperator::getOperators, LogicalOperator::get, "logical operator");
 
-    public static final Parser<RelationalOperator> RELATIONAL_OPERATOR_PARSER = get(RelationalOperator::getOperators, RelationalOperator::get, "relational operator");
+    static final Parser<RelationalOperator> RELATIONAL_OPERATOR_PARSER = get(RelationalOperator::getOperators, RelationalOperator::get, "relational operator");
 
-    public static final Parser<OrderOperator> ORDER_OPERATOR_PARSER = get(OrderOperator::getOperators, OrderOperator::get, "order operator");
+    static final Parser<OrderOperator> ORDER_OPERATOR_PARSER = get(OrderOperator::getOperators, OrderOperator::get, "order operator");
 
-    public static Parser<String> exact(RelationalOperator operator) {
+    static Parser<String> exact(RelationalOperator operator) {
         return between(WHITESPACES.skipMany(), or(Stream.of(operator.getAlias()).map(Scanners::string).toArray(Parser[]::new)).or(string(operator.name())), WHITESPACES.skipMany()).retn(operator.name());
     }
 
