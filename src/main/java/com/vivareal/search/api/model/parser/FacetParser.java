@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
+import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.query.Field;
 import org.jparsec.Parser;
 
@@ -12,7 +13,8 @@ public class FacetParser {
 
     private static final Parser<List<Field>> FACET_PARSER = FieldParser.getWithoutNot().sepBy1(isChar(',').next(WHITESPACES.skipMany())).label("multiple fields");
 
-    public static Parser<List<Field>> get() {
-        return FACET_PARSER;
+    @Trace
+    public static List<Field> parse(String string) {
+        return FACET_PARSER.parse(string);
     }
 }

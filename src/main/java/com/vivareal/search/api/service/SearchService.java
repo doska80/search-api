@@ -1,5 +1,6 @@
 package com.vivareal.search.api.service;
 
+import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.controller.stream.ElasticSearchStream;
 import com.vivareal.search.api.exception.QueryPhaseExecutionException;
@@ -34,6 +35,7 @@ public class SearchService {
     @Autowired
     private ElasticSearchStream elasticSearch;
 
+    @Trace
     public Optional<Object> getById(BaseApiRequest request, String id) throws InterruptedException, ExecutionException, TimeoutException {
         try {
             return ofNullable(this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS).getSource());
@@ -46,6 +48,7 @@ public class SearchService {
         }
     }
 
+    @Trace
     public SearchResponse search(SearchApiRequest request) {
         String index = request.getIndex();
         request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
