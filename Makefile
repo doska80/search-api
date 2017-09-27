@@ -75,7 +75,7 @@ teardown: destroy-stack
 # Notifications config
 SLK_CHANNEL=squad-search
 SLK_USER_GROUP=search
-SLK_CD_URL=http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_$(ENV_CAPS)/parambuild?IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&delay=0sec
+SLK_CD_URL=http://jenkins.vivareal.com/view/SEARCH-API-V2/job/SEARCH_API_V2_$(ENV_CAPS)/parambuild?IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&delay=0sec
 include make/slk/Makefile
 
 push-with-notification: push notify-success-build
