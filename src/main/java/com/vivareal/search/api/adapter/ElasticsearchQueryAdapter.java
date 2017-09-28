@@ -98,7 +98,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
         settingsAdapter.checkIndex(request);
         SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());
-        searchBuilder.setPreference("_replica_first"); // <3
 
         BoolQueryBuilder queryBuilder = boolQuery();
         builder.accept(searchBuilder, queryBuilder);
