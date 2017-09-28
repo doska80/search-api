@@ -1159,7 +1159,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             SearchRequestBuilder builder = elasticsearchQueryAdapter.query(request.build());
 
             assertEquals(request.build().getIndex(), builder.request().indices()[0]);
-            assertEquals("_replica_first", builder.request().preference());
             assertThat(builder.request().source().query(), instanceOf(BoolQueryBuilder.class));
         }
         );

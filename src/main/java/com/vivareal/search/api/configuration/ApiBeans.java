@@ -19,6 +19,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import static com.vivareal.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
+import static com.vivareal.search.api.configuration.ThreadPoolConfig.QUEUE_SIZE;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Configuration
@@ -49,6 +51,8 @@ public class ApiBeans implements DisposableBean {
                 .put("transport.tcp.compress", true)
                 .put("cluster.name", clusterName)
                 .put("request.headers.X-Found-Cluster", "${cluster.name}")
+                .put("thread_pool.search.size", MIN_SIZE)
+                .put("thread_pool.search.queue_size", QUEUE_SIZE)
                 .build();
         this.esClient = new PreBuiltTransportClient(settings);
 

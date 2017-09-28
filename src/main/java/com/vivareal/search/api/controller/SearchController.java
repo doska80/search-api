@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.*;
+import static com.vivareal.search.api.configuration.ThreadPoolConfig.MAX_SIZE;
+import static com.vivareal.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.ResponseEntity.notFound;
@@ -39,9 +42,6 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 @Api("v2")
 @DefaultProperties(
     defaultFallback = "fallback",
-    commandProperties = {
-        @HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "10000")
-    },
     ignoreExceptions = {
         IllegalArgumentException.class
     }
@@ -64,9 +64,14 @@ public class SearchController {
     })
     @HystrixCommand(
         commandProperties = {
-            @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "5000"),
-            @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "100"),
-            @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "90")
+            @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
+            @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "5000"),
+            @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "100"),
+            @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "90")
+        },
+        threadPoolProperties = {
+            @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
+            @HystrixProperty(name = MAXIMUM_SIZE, value = MAX_SIZE)
         }
     )
     @Trace(dispatcher=true)
@@ -85,9 +90,14 @@ public class SearchController {
     })
     @HystrixCommand(
         commandProperties = {
-            @HystrixProperty(name = "circuitBreaker.sleepWindowInMilliseconds", value = "10000"),
-            @HystrixProperty(name = "circuitBreaker.requestVolumeThreshold", value = "30"),
-            @HystrixProperty(name = "circuitBreaker.errorThresholdPercentage", value = "70")
+            @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
+            @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "10000"),
+            @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "30"),
+            @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "70")
+        },
+        threadPoolProperties = {
+            @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
+            @HystrixProperty(name = MAXIMUM_SIZE, value = MAX_SIZE)
         }
     )
     @Trace(dispatcher=true)
