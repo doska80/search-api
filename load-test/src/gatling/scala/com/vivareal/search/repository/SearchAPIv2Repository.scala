@@ -5,6 +5,7 @@ import org.json4s.native.JsonMethods._
 import org.json4s.{DefaultFormats, JValue}
 
 import scala.collection.JavaConverters._
+import scala.io.Source
 import scala.util.Try
 import scalaj.http.{Http, HttpResponse}
 
@@ -29,10 +30,12 @@ object SearchAPIv2Repository {
     }}
   }
 
-  def getIds: Range = {
-      val response: HttpResponse[String] = Http(s"http://${http.getString("base")}${http.getString("listings")}?size=1&includeFields=id&sort=id+DESC").asString
-      val json: JValue = parse(response.body)
-      val lastId = (json \ "result" \ "listings" \ "id").extract[Array[String]].head.toInt
-      lastId to (lastId - gatling.getInt("byid.users")) by -1
+  def getIds: Iterator[String] = {
+    val ids = gatling.getInt("byid.users") * gatling.getInt("repeat")
+    Source.fromURL(s"http://${http.getString("base")}${http.getString("listings")}/stream?includeFields=id")
+      .getLines
+      .take(ids)
+      .map(parse(_))
+      .map(json => (json \ "id").extract[String])
   }
 }

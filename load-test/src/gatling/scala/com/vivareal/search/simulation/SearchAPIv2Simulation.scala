@@ -33,13 +33,13 @@ class SearchAPIv2Simulation extends Simulation {
 
   val byID = scenario("Find by ID")
     .repeat(gatling.getInt("repeat")) {
-      .feed(SearchAPIv2Feeder(SearchAPIv2Repository.getIds))
+      feed(SearchAPIv2Feeder(SearchAPIv2Repository.getIds))
         .exec(http("By ID").get(index + "/${value}"))
     }
 
   setUp(filters.inject(rampUsers(gatling.getInt("users")) over (gatling.getInt("rampUp") seconds)),
     facets.inject(rampUsers(gatling.getInt("facets.users")) over (gatling.getInt("rampUp") seconds)),
-    byID.inject(rampUsers(gatling.getInt("byid.users")) over gatling.getInt("rampUp")))
+    byID.inject(rampUsers(gatling.getInt("byid.users")) over (gatling.getInt("rampUp") seconds)))
     .protocols(httpConf)
     .maxDuration(gatling.getInt("maxDuration") seconds)
 }
