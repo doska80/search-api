@@ -41,6 +41,7 @@ import static java.lang.Integer.parseInt;
 import static java.lang.String.valueOf;
 import static java.util.Optional.*;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.lucene.search.join.ScoreMode.None;
@@ -196,12 +197,25 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 addFilterQuery(queryBuilder, termsQuery(fieldName, values), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
 
+                            case POLYGON:
+                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
+                                    throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT.toString(), POLYGON);
+
+                                List<GeoPoint> points = filterValue
+                                    .stream()
+                                    .map(point -> new GeoPoint(((Value) point).<Double>value(1), ((Value) point).<Double>value(0)))
+                                    .collect(toList());
+
+                                addFilterQuery(queryBuilder, geoPolygonQuery(fieldName, points), logicalOperator, not, nested, fieldName, nestedQueries);
+                                break;
+
                             case VIEWPORT:
                                 if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
                                     throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT.toString(), VIEWPORT);
 
-                                GeoPoint topRight = new GeoPoint(filterValue.value(0, 0), filterValue.value(0, 1));
-                                GeoPoint bottomLeft = new GeoPoint(filterValue.value(1, 0), filterValue.value(1, 1));
+                                GeoPoint topRight = new GeoPoint(filterValue.value(0, 1), filterValue.value(0, 0));
+                                GeoPoint bottomLeft = new GeoPoint(filterValue.value(1, 1), filterValue.value(1, 0));
+
                                 addFilterQuery(queryBuilder, geoBoundingBoxQuery(filter.getField().getName()).setCornersOGC(bottomLeft, topRight), logicalOperator, not, nested, fieldName, nestedQueries);
                                 break;
 

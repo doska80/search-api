@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
+import com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type;
 import com.vivareal.search.api.model.query.Value;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
@@ -10,7 +11,7 @@ import static org.junit.Assert.assertEquals;
 public class ValueParserTest {
     private static final Parser<Value> parser = ValueParser.get();
 
-    private static final Parser<Value> parserViewport = ValueParser.Viewport.get();
+    private static final Parser<Value> parserViewport = ValueParser.GeoPoint.get(Type.VIEWPORT);
 
     @Test
     public void testInteger() {
@@ -113,7 +114,7 @@ public class ValueParserTest {
 
     @Test
     public void testMultipleNegativeDoubleIN() {
-        String value = "[-23.5534103,-46.6597479;-23.5534103,-46.6597479]";
+        String value = "[[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
         Value viewport = parserViewport.parse(value);
         assertEquals("[[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }
@@ -127,16 +128,16 @@ public class ValueParserTest {
 
     @Test(expected = ParserException.class)
     public void testInvalidFirstMultipleNegativeDoubleIN() {
-        parserViewport.parse("[-23.5534103,-46.6597479;-23.5534103]");
+        parserViewport.parse("[[-23.5534103,-46.6597479],[-23.5534103]]");
     }
 
     @Test(expected = ParserException.class)
     public void testInvalidSecondMultipleNegativeDoubleIN() {
-        parserViewport.parse("[-46.6597479;-23.5534103,-46.6597479]");
+        parserViewport.parse("[[-46.6597479],[-23.5534103,-46.6597479]]");
     }
 
     @Test(expected = ParserException.class)
     public void testInvalidMultipleNegativeDoubleIN() {
-        parserViewport.parse("[-23.5534103,-46.6597479;-23.5534103,-46.6597479;-23.5534103,-46.6597479]");
+        parserViewport.parse("[[-23.5534103,-46.6597479],[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]");
     }
 }

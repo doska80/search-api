@@ -372,7 +372,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=geo VIEWPORT [%.2f,%.2f;%.2f,%.2f]", TEST_DATA_INDEX, from * -1f, (float) to, to * -1f, (float) from))
+            .get(format("%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]", TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f))
         .then()
             .body("totalCount", equalTo(to - from - 1))
             .body("result.testdata", hasSize(to - from - 1))
@@ -392,7 +392,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=geo VIEWPORT [%.2f,%.2f;%.2f,%.2f] AND isEven EQ true", TEST_DATA_INDEX, from * -1f, (float) to, to * -1f, (float) from))
+            .get(format("%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]] AND isEven EQ true", TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f))
         .then()
             .body("totalCount", equalTo((to - from - 1) / 2))
             .body("result.testdata", hasSize((to - from - 1) / 2))
@@ -406,8 +406,8 @@ public class SearchApiIntegrationTest {
         int secondThird = 2 * standardDatasetSize / 3;
         int to = standardDatasetSize;
 
-        String filter1 = format("geo VIEWPORT [%.2f,%.2f;%.2f,%.2f]", from * -1f, (float) firstThird, firstThird * -1f, (float) from);
-        String filter2 = format("geo VIEWPORT [%.2f,%.2f;%.2f,%.2f]", secondThird * -1f, (float) to, to * -1f, (float) secondThird);
+        String filter1 = format("geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]", (float) firstThird, from * -1f, (float) from, firstThird * -1f);
+        String filter2 = format("geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]", (float) to, secondThird * -1f, (float) secondThird, to * -1f);
 
         given()
             .log().all()
@@ -888,7 +888,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=geo VIEWPORT [%.2f,%.2f;%.2f,%.2f] AND (numeric <= %d AND (isEven=true OR object.odd <> null))", TEST_DATA_INDEX, from * -1f, (float) to, to * -1f, (float) from, half))
+            .get(format("%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]] AND (numeric <= %d AND (isEven=true OR object.odd <> null))", TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f, half))
         .then()
             .body("totalCount", equalTo(expected))
             .body("result.testdata", hasSize(expected))
@@ -910,7 +910,7 @@ public class SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?filter=geo VIEWPORT [%.2f,%.2f;%.2f,%.2f] AND (numeric <= %d AND (isEven=true OR nested.odd <> null))", TEST_DATA_INDEX, from * -1f, (float) to, to * -1f, (float) from, half))
+            .get(format("%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]] AND (numeric <= %d AND (isEven=true OR nested.odd <> null))", TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f, half))
         .then()
             .body("totalCount", equalTo(expected))
             .body("result.testdata", hasSize(expected))
@@ -1391,6 +1391,35 @@ public class SearchApiIntegrationTest {
             .statusCode(SC_BAD_REQUEST)
         .when()
             .get(format("%s?filter=NOT numeric RANGE [1]", TEST_DATA_INDEX))
+        ;
+    }
+
+    @Test
+    public void validateSearchUsingPolygon() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(format("%s?filter=geo POLYGON [[0.0,0.0],[0.0,3.0],[3.0,-3.0],[-3.0,0.0]]", TEST_DATA_INDEX))
+        .then()
+            .body("totalCount", equalTo(2))
+            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, 2).boxed().collect(toList())))
+        ;
+    }
+
+    @Test
+    public void validateSearchUsingPolygonWithLessThan3Points() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_BAD_REQUEST)
+        .when()
+            .get(format("%s?filter=geo POLYGON [[0.0,0.0],[0.0,3.0]]", TEST_DATA_INDEX))
         ;
     }
 }

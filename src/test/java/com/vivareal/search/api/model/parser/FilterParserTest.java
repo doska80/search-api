@@ -83,22 +83,22 @@ public class FilterParserTest {
 
     @Test(expected = ParserException.class)
     public void testInvalidRelationalViewports() {
-        parser.parse("address.geoLocation EQ [-23.5534103,-46.6597479;-23.5534103,-46.6597479]");
+        parser.parse("address.geoLocation EQ [[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]");
     }
 
     @Test(expected = ParserException.class)
     public void testInvalidSingleViewports() {
-        parser.parse("address.geoLocation VIEWPORT [-23.5534103,-46.6597479]");
+        parser.parse("address.geoLocation VIEWPORT [[-23.5534103,-46.6597479]]");
     }
 
     @Test(expected = ParserException.class)
     public void testInvalidMultipleViewports() {
-        parser.parse("address.geoLocation VIEWPORT [-46.6597479;-23.5534103,-46.6597479]");
+        parser.parse("address.geoLocation VIEWPORT [[-46.6597479],[-23.5534103,-46.6597479]]");
     }
 
     @Test(expected = ParserException.class)
     public void testInvalidMultipleViewportsOnSecond() {
-        parser.parse("address.geoLocation VIEWPORT [-23.5534103,-46.6597479;-23.5534103]");
+        parser.parse("address.geoLocation VIEWPORT [[-23.5534103,-46.6597479],[-23.5534103]]");
     }
 
     @Test(expected = ParserException.class)
@@ -110,26 +110,26 @@ public class FilterParserTest {
     public void testEmptyViewports() {
         parser.parse("address.geoLocation VIEWPORT");
         parser.parse("address.geoLocation VIEWPORT []");
-        parser.parse("address.geoLocation VIEWPORT [;]");
+        parser.parse("address.geoLocation VIEWPORT [,]");
     }
 
     @Test
     public void testMultipleViewports() {
-        String value = "address.geoLocation VIEWPORT [-23.5534103,-46.6597479;-23.5534103,-46.6597479]";
+        String value = "address.geoLocation VIEWPORT [[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
         Filter viewport = parser.parse(value);
         assertEquals("address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }
 
     @Test(expected = ParserException.class)
     public void testSingleViewports() {
-        String value = "address.geoLocation VIEWPORT [-23.5534103,-46.6597479]";
+        String value = "address.geoLocation VIEWPORT [[-23.5534103,-46.6597479]]";
         Filter viewport = parser.parse(value);
         assertEquals("address.geoLocation VIEWPORT [-23.5534103, -46.6597479]", viewport.toString());
     }
 
     @Test
     public void testMultipleViewportsWithAlias() {
-        String value = "address.geoLocation @ [-23.5534103,-46.6597479;-23.5534103,-46.6597479]";
+        String value = "address.geoLocation @ [[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
         Filter viewport = parser.parse(value);
         assertEquals("address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
     }

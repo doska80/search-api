@@ -7,6 +7,7 @@ import com.vivareal.search.api.model.mapping.MappingType;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -368,7 +369,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         getOperators(VIEWPORT).parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
-                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s [%s,%s;%s,%s]", field, op, northEastLat, northEastLon, southWestLat, southWestLon)).build());
+                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s [[%s,%s],[%s,%s]]", field, op, northEastLon, northEastLat, southWestLon, southWestLat)).build());
                     GeoBoundingBoxQueryBuilder geoBoundingBoxQueryBuilder = (GeoBoundingBoxQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
                     int delta = 0;
@@ -378,6 +379,37 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     assertEquals(southWestLon, geoBoundingBoxQueryBuilder.topLeft().getLon(), delta);
                     assertEquals(southWestLat, geoBoundingBoxQueryBuilder.bottomRight().getLat(), delta);
                     assertEquals(northEastLon, geoBoundingBoxQueryBuilder.bottomRight().getLon(), delta);
+                }
+            )
+        );
+    }
+
+    @Test
+    public void shouldReturnSearchRequestBuilderByPolygon() {
+
+        String query = "field.location POLYGON [[-1.1,2.2],[3.3,-4.4],[5.5,6.6]]";
+
+        when(settingsAdapter.isTypeOf(INDEX_NAME, "field.location", MappingType.FIELD_TYPE_GEOPOINT)).thenReturn(true);
+
+        getOperators(POLYGON).parallelStream().forEach(
+            op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
+                request -> {
+                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(query).build());
+                    GeoPolygonQueryBuilder polygon = (GeoPolygonQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                    assertNotNull(polygon);
+                    assertFalse(polygon.ignoreUnmapped());
+                    assertEquals("field.location", polygon.fieldName());
+                    assertEquals(GeoValidationMethod.STRICT, polygon.getValidationMethod());
+
+                    // if the last point is different of the first, ES add a copy of the first point in the last array position
+                    assertEquals(4, polygon.points().size());
+
+                    // inverted (lat/lon) to adapt GeoJson format (lon/lat)
+                    assertEquals(new GeoPoint(2.2, -1.1), polygon.points().get(0));
+                    assertEquals(new GeoPoint(-4.4, 3.3), polygon.points().get(1));
+                    assertEquals(new GeoPoint(6.6, 5.5), polygon.points().get(2));
+                    assertEquals(new GeoPoint(2.2, -1.1), polygon.points().get(3));
                 }
             )
         );
@@ -895,13 +927,13 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         when(settingsAdapter.isTypeOf(INDEX_NAME, field6Name, MappingType.FIELD_TYPE_GEOPOINT)).thenReturn(true);
 
-        String filter = String.format("%s %s %s %s %s %s %s %s (%s %s %s %s (%s %s %s %s %s %s %s %s (%s %s [%s,%s;%s,%s])))",
+        String filter = String.format("%s %s %s %s %s %s %s %s (%s %s %s %s (%s %s %s %s %s %s %s %s (%s %s [[%s,%s],[%s,%s]])))",
             field1Name, field1RelationalOperator, field1Value, OR.name(),
             field2Name, field2RelationalOperator, field2Value, AND.name(),
             field3Name, field3RelationalOperator, field3Value, AND.name(),
             field4Name, field4RelationalOperator, field4Value, OR.name(),
             field5Name, field5RelationalOperator, Arrays.toString(field5Value), AND.name(),
-            field6Name, field6RelationalOperator, northEastLat, northEastLon, southWestLat, southWestLon
+            field6Name, field6RelationalOperator, northEastLon, northEastLat, southWestLon, southWestLat
         );
 
         SearchApiRequest searchApiRequest = fullRequest
