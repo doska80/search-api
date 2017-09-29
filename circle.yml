@@ -31,7 +31,7 @@ dependencies:
     - ~/.gradle
 test:
   override:
-    - make GRADLE_EXTRA_ARGS="-x integrationTest -PnewRelicKey=$NEW_RELIC_KEY" build
+    - make GRADLE_EXTRA_ARGS="-PcircleCi -PnewRelicKey=$NEW_RELIC_KEY" build
   post:
     - mkdir -p $CIRCLE_TEST_REPORTS/junit/
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;

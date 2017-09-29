@@ -1,6 +1,8 @@
 buildscript {
     ext {
         springBootVersion = '2.0.0.M3'
+        integrationTestComposeMode = project.hasProperty('circleCi') ? 'circleci' : 'localhost'
+        integrationTestComposeFile = "${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose-${integrationTestComposeMode}.yml"
     }
 
     repositories {
@@ -252,7 +254,7 @@ configurations{
 
 task integrationTest(type: Test) {
     doFirst {
-        if(!isSearchApiHealthy() && !isESHealthy()) {
+        if(!isESHealthy() && !isSearchApiHealthy()) {
             throw new RuntimeException("Searchapi compose is not healthy");
         }
     }
@@ -272,18 +274,26 @@ tasks.withType(Test) {
  ****************************/
 
 if(!project.hasProperty('noDockerCompose')) {
+
     dockerCompose {
+        useComposeFiles = [integrationTestComposeFile]
         stopContainers = true
         removeContainers = false
         removeVolumes = false
+        waitForTcpPorts = false
 
         environment.put 'ELASTICSEARCH_VERSION', ELASTICSEARCH_VERSION
     }
 
     dockerCompose.isRequiredBy(integrationTest)
 
+
+    composeUp.doFirst {
+        println "Using: $integrationTestComposeFile"
+    }
+
     composeUp.doLast {
-        waitForTestDependencyHealthy('searchApi', 60, isSearchApiHealthy)
         waitForTestDependencyHealthy('es', 180, isESHealthy)
+        waitForTestDependencyHealthy('searchApi', 120, isSearchApiHealthy)
     }
 }
