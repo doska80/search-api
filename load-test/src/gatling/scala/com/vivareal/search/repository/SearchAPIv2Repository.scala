@@ -31,7 +31,7 @@ object SearchAPIv2Repository {
   }
 
   def getIds: Iterator[String] = {
-    val ids = gatling.getInt("byid.users") * gatling.getInt("repeat")
+    val ids = gatling.getInt("ids.users") * gatling.getInt("repeat")
     Source.fromURL(s"http://${http.getString("base")}${http.getString("listings")}/stream?includeFields=id")
       .getLines
       .take(ids)
