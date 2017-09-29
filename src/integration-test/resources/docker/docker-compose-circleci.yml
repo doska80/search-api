@@ -1,0 +1,48 @@
+version: '2'
+services:
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION}
+    environment:
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "xpack.security.enabled=false"
+      - "bootstrap.system_call_filter=false"
+      - "bootstrap.memory_lock=false"
+      - "transport.host=localhost"
+      - "cluster.name=itest"
+    network_mode: "host"
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${ELASTICSEARCH_VERSION}
+    depends_on:
+      - es
+    network_mode: "host"
+    environment:
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "ELASTICSEARCH_URL=http://localhost:9200"
+      - "xpack.security.enabled=false"
+    ports:
+      - "5601:5601"
+
+  search-api:
+    build:
+      context: ../../../../
+      args:
+        ARTIFACT: ./build/libs/search-api.jar
+    network_mode: "host"
+    image: search-api:itest-latest
+    depends_on:
+      - es
+      - kibana
+    environment:
+      - "JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,address=5005,server=y,suspend=n -Dspring.profiles.active=test -Des.hostname=localhost -Xmx500m -Xms500m"
+    ports:
+      - "5005:5005"
+      - "8482:8482"
