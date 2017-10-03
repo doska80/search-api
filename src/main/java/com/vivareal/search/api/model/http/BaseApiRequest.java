@@ -1,5 +1,7 @@
 package com.vivareal.search.api.model.http;
 
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.vivareal.search.api.model.search.Fetchable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -40,5 +42,16 @@ public class BaseApiRequest implements Fetchable {
     public void setExcludeFields(Set<String> excludeFields) {
         this.excludeFields = excludeFields;
     }
-}
 
+    protected ToStringHelper addValuesToStringHelper(ToStringHelper stringHelper) {
+        return stringHelper
+        .add("index", getIndex())
+        .add("includeFields", getIncludeFields())
+        .add("excludeFields", getExcludeFields());
+    }
+
+    @Override
+    public String toString() {
+        return addValuesToStringHelper(MoreObjects.toStringHelper(this).omitNullValues()).toString();
+    }
+}
