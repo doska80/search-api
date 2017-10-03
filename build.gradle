@@ -186,11 +186,17 @@ sonarqube {
         property "sonar.projectName", "search-api-v2"
         property "sonar.scm.provider", "git"
         property "sonar.host.url", "http://sonarqube.vivareal.io/"
-        property "sonar.sources", "src/main"
         property "sonar.sourceEncoding", "UTF-8"
-        property "sonar.tests", "src/test"
         property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
         property "sonar.login", "9eb3df2e079962a62dd40c39a9430795c856280e"
+        property "sonar.sources", sourceSets.main.allSource.srcDirs
+        property "sonar.tests", [sourceSets.test.java.srcDirs, 'src/integration-test/java'].flatten()
+    }
+}
+
+project(":load-test") {
+    sonarqube {
+        skipProject = true
     }
 }
 
