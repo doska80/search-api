@@ -116,8 +116,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void buildQueryBySearchApiRequest(SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
-        applyFacets(searchBuilder, request);
         buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
+        applyFacets(searchBuilder, request);
     }
 
     private void applyPage(SearchRequestBuilder searchBuilder, FilterableApiRequest request) {
