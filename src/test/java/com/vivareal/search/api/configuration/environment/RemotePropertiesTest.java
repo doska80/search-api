@@ -17,6 +17,7 @@ import static java.lang.String.valueOf;
 import static java.util.Collections.EMPTY_SET;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.of;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
 import static org.junit.Assert.*;
@@ -28,12 +29,12 @@ public class RemotePropertiesTest {
     private static final String CUSTOM_INDEX = "customIndex";
 
     private static final Set<RemoteProperties> PROPERTIES_AS_SET = newLinkedHashSet(QS_DEFAULT_FIELDS, ES_DEFAULT_SORT, SOURCE_INCLUDES, SOURCE_EXCLUDES);
-    private static final Set<RemoteProperties> NUMERIC_PROPERTIES = newLinkedHashSet(ES_DEFAULT_SIZE, ES_MAX_SIZE, ES_FACET_SIZE, ES_CONTROLLER_SEARCH_TIMEOUT, ES_CONTROLLER_STREAM_TIMEOUT, ES_STREAM_SIZE, ES_SCROLL_TIMEOUT);
-    private static final Set<RemoteProperties> TEXT_PROPERTIES = Stream.of(values()).filter(p -> !PROPERTIES_AS_SET.contains(p) && !NUMERIC_PROPERTIES.contains(p)).collect(toSet());
+    private static final Set<RemoteProperties> NUMERIC_PROPERTIES = newLinkedHashSet(ES_DEFAULT_SIZE, ES_MAX_SIZE, ES_FACET_SIZE, ES_QUERY_TIMEOUT_VALUE, ES_CONTROLLER_SEARCH_TIMEOUT, ES_CONTROLLER_STREAM_TIMEOUT, ES_STREAM_SIZE, ES_SCROLL_TIMEOUT);
+    private static final Set<RemoteProperties> TEXT_PROPERTIES = of(values()).filter(p -> !PROPERTIES_AS_SET.contains(p) && !NUMERIC_PROPERTIES.contains(p)).collect(toSet());
 
     @Before
     public void resetIndexPropertiesMap() throws IllegalAccessException, NoSuchFieldException {
-        Stream.of(values()).map(RemoteProperties::getIndexProperties).forEach(Map::clear);
+        of(values()).map(RemoteProperties::getIndexProperties).forEach(Map::clear);
     }
 
     //****************************
@@ -127,7 +128,7 @@ public class RemotePropertiesTest {
 
     @Test
     public void checkValueIfPropertyNeverSet() {
-        Stream.of(values()).forEach(property -> {
+        of(values()).forEach(property -> {
             assertNull(property.name(), property.getValue(DEFAULT_INDEX));
             assertNull(property.name(), property.getValue(NON_EXISTING_INDEX));
         });

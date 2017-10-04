@@ -29,6 +29,8 @@ public enum RemoteProperties {
     ES_DEFAULT_SORT("es.default.sort", AS_SET, NON_EMPTY_COLLECTION),
     ES_MAX_SIZE("es.max.size", AS_INTEGER),
     ES_FACET_SIZE("es.facet.size", AS_INTEGER),
+    ES_QUERY_TIMEOUT_VALUE("es.query.timeout.value", AS_LONG),
+    ES_QUERY_TIMEOUT_UNIT("es.query.timeout.unit"),
     ES_CONTROLLER_SEARCH_TIMEOUT("es.controller.search.timeout", AS_LONG),
     ES_CONTROLLER_STREAM_TIMEOUT("es.controller.stream.timeout", AS_INTEGER),
     ES_STREAM_SIZE("es.stream.size", AS_INTEGER),

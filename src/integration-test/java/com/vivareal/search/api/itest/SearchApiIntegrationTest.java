@@ -2,8 +2,6 @@ package com.vivareal.search.api.itest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.http.ContentType;
-import com.jayway.restassured.response.Response;
 import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
 import org.apache.commons.io.IOUtils;
@@ -18,10 +16,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +29,7 @@ import java.util.stream.Stream;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_TYPE;
+import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.*;
 import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.String.format;
@@ -45,19 +41,12 @@ import static java.util.stream.IntStream.rangeClosed;
 import static java.util.stream.Stream.concat;
 import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @TestPropertySource({ "classpath:application.properties", "classpath:application-test.properties", "classpath:configuration/application-itest.properties"})
 @ContextConfiguration(classes = SearchApiIntegrationTestContext.class)
 public class SearchApiIntegrationTest {
-
-    @BeforeClass
-    public static void setup() {
-        loadAll();
-    }
 
     @Value("${itest.standard.dataset.size}")
     private Integer standardDatasetSize;
@@ -76,8 +65,26 @@ public class SearchApiIntegrationTest {
 
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    @BeforeClass
+    public static void setup() {
+        loadAll();
+    }
+
     @Before
-    public void clearTestData() throws IOException {
+    public void forceCircuitClosed() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get("/forceClosed/true")
+        ;
+    }
+
+    @PostConstruct
+    public void setupIndexHandler() throws IOException {
         esIndexHandler.truncateIndexData(TEST_DATA_INDEX);
         esIndexHandler.addStandardTestData();
 
@@ -87,7 +94,7 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void responseOkWhenSearchAnExistingDocumentById() throws IOException {
+    public void responseOkWhenSearchAnExistingDocumentById() {
         rangeClosed(1, standardDatasetSize).boxed().forEach(id ->
             given()
                 .log().all()
@@ -127,7 +134,7 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void responseOkWhenSearchAnExistingDocumentByIdWithIncludeAndExcludeFields() throws IOException {
+    public void responseOkWhenSearchAnExistingDocumentByIdWithIncludeAndExcludeFields() {
         int id = standardDatasetSize / 2;
         given()
             .log().all()
@@ -547,15 +554,13 @@ public class SearchApiIntegrationTest {
             .log().all()
             .baseUri(baseUrl)
             .contentType(JSON)
-        .expect()
-            .statusCode(SC_OK)
         .when()
             .get(format("%s?filter=nested.special_string LIKE '%% with special chars \\* and + and %n and \\? and %% and 5%% and _ and with_underscore of _ to search %%'", TEST_DATA_INDEX))
+            .peek()
         .then()
             .body("totalCount", equalTo(standardDatasetSize))
             .body("result.testdata", hasSize(defaultPageSize))
-            .body("result.testdata.nested.special_string", everyItem(containsString("with special chars")))
-        ;
+            .body("result.testdata.nested.special_string", everyItem(containsString("with special chars")));
     }
 
     @Test
@@ -1161,7 +1166,7 @@ public class SearchApiIntegrationTest {
     }
 
     @Test
-    public void validateUpdateClusterProperty() throws InterruptedException {
+    public void validateUpdateClusterProperty() throws InterruptedException, IOException {
         int size = 10;
         esIndexHandler.putStandardProperty("es.default.size", size);
         esIndexHandler.addStandardProperties();
@@ -1179,6 +1184,10 @@ public class SearchApiIntegrationTest {
         .then()
             .body("result.testdata", hasSize(size))
         ;
+
+        esIndexHandler.truncateIndexData(SEARCH_API_PROPERTIES_INDEX);
+        esIndexHandler.setDefaultProperties();
+        esIndexHandler.addStandardProperties();
     }
 
     @Test

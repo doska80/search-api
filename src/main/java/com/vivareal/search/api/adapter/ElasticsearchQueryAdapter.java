@@ -16,6 +16,7 @@ import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
@@ -29,6 +30,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import static com.google.common.collect.Maps.newHashMap;
@@ -97,7 +99,12 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
         settingsAdapter.checkIndex(request);
-        SearchRequestBuilder searchBuilder = transportClient.prepareSearch(request.getIndex());
+        SearchRequestBuilder searchBuilder = transportClient
+            .prepareSearch(request.getIndex())
+            .setTimeout(
+                new TimeValue(ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
+                TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex())))
+            );
 
         BoolQueryBuilder queryBuilder = boolQuery();
         builder.accept(searchBuilder, queryBuilder);
