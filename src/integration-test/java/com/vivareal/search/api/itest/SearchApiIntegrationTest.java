@@ -6,6 +6,7 @@ import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -20,9 +21,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -32,6 +35,7 @@ import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEAR
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_TYPE;
 import static java.lang.Math.ceil;
+import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
 import static java.util.stream.Collectors.joining;
@@ -1115,7 +1119,7 @@ public class SearchApiIntegrationTest {
         .when()
             .get("/cluster/settings")
         .then()
-            .body("testdata['index.number_of_shards']", equalTo("1"))
+            .body("testdata['index.number_of_shards']", equalTo("3"))
             .body("testdata['index.number_of_replicas']", equalTo("1"))
             .body("testdata['geo']", equalTo("geo_point"))
             .body("testdata['isEven']", equalTo("boolean"))
@@ -1258,7 +1262,7 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void searchStreamSizeWorks() throws Exception {
-        Object numberShards = given()
+        Integer numberShards = given()
             .log().all()
             .baseUri(baseUrl)
             .contentType(JSON)
@@ -1266,16 +1270,21 @@ public class SearchApiIntegrationTest {
             .get("/cluster/settings")
         .then()
             .extract()
-            .path(format("%s['index.number_of_shards']", TEST_DATA_TYPE));
+            .path(format("%s['index.number_of_shards'].toInteger()", TEST_DATA_TYPE));
 
-        URL stream = new URL(format("%s%s/stream?includeFields=id&size=1", baseUrl, TEST_DATA_INDEX));
-        InputStream in = stream.openStream();
-        byte[] buffer = new byte[1024];
-        in.read(buffer);
+        Function<Integer, Integer> getHits = size -> {
+            try {
+                byte[] buffer = IOUtils.toByteArray(new URL(format("%s%s/stream?includeFields=id&size=%d", baseUrl, TEST_DATA_INDEX, max(size, 1))));
+                return StringUtils.countMatches(new String(buffer), '\n');
+            } catch (IOException e) {
+                return -1;
+            }
+        };
 
-        assertEquals(numberShards, StringUtils.countMatches(new String(buffer), '\n'));
-
-        in.close();
+        assertTrue(numberShards <= getHits.apply(numberShards));
+        assertTrue(numberShards <= getHits.apply(numberShards - 1));
+        assertTrue((numberShards * 2) <= getHits.apply(numberShards + 1));
+        assertTrue(getHits.apply(numberShards) <= standardDatasetSize);
     }
 
     @Test
