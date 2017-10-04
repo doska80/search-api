@@ -108,6 +108,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void buildQueryByFilterableApiRequest(FilterableApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
+        applyPage(searchBuilder, request);
         addFieldList(searchBuilder, request);
         applySort(searchBuilder, request);
         applyQueryString(queryBuilder, request);
@@ -115,9 +116,13 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     private void buildQueryBySearchApiRequest(SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
-        this.buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
-
         applyFacets(searchBuilder, request);
+        buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
+    }
+
+    private void applyPage(SearchRequestBuilder searchBuilder, FilterableApiRequest request) {
+        String index = request.getIndex();
+        request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
         searchBuilder.setFrom(request.getFrom());
         searchBuilder.setSize(request.getSize());
     }
@@ -368,14 +373,14 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void applyFacets(SearchRequestBuilder searchRequestBuilder, final Facetable request) {
         Set<String> value = request.getFacets();
         if (!isEmpty(value)) {
-            List<Field> facets = FacetParser.parse(value.stream().collect(joining(",")));
-            facets.forEach(facet -> {
+            final String indexName = request.getIndex();
+            request.setFacetingValues(ES_FACET_SIZE.getValue(indexName));
 
-                final String indexName = request.getIndex();
+            final int facetSize = request.getFacetSize();
+            final int shardSize = parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)));
+
+            FacetParser.parse(value.stream().collect(joining(","))).forEach(facet -> {
                 final String fieldName = facet.getName();
-                final int facetSize = request.getFacetSize();
-                final int shardSize = parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)));
-
                 settingsAdapter.checkFieldName(indexName, fieldName, false);
 
                 AggregationBuilder agg = terms(fieldName)

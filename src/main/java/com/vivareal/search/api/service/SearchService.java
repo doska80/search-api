@@ -50,15 +50,11 @@ public class SearchService {
 
     @Trace
     public SearchResponse search(SearchApiRequest request) {
-        String index = request.getIndex();
-        request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
-        request.setFacetingValues(ES_FACET_SIZE.getValue(index));
-
         SearchRequestBuilder searchRequestBuilder = null;
 
         try {
             searchRequestBuilder = this.queryAdapter.query(request);
-            return searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(index));
+            return searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
         } catch (Exception e) {
             if (getRootCause(e) instanceof IllegalArgumentException)
                 throw new IllegalArgumentException(e);
