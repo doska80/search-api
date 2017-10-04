@@ -2,8 +2,11 @@ package com.vivareal.search.api.itest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Response;
 import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -27,6 +30,7 @@ import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_TYPE;
 import static java.lang.Math.ceil;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
@@ -37,6 +41,7 @@ import static java.util.stream.IntStream.rangeClosed;
 import static java.util.stream.Stream.concat;
 import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -1242,12 +1247,34 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void searchStreamWorks() throws Exception {
-        URL stream = new URL(format("%s%s/stream", baseUrl, TEST_DATA_INDEX));
+        URL stream = new URL(format("%s%s/stream?includeFields=id", baseUrl, TEST_DATA_INDEX));
         InputStream in = stream.openStream();
         byte[] buffer = new byte[1024];
         in.read(buffer);
         String contents = new String(buffer);
         assertTrue("Wrong content: \n" + contents, contents.contains("id"));
+        in.close();
+    }
+
+    @Test
+    public void searchStreamSizeWorks() throws Exception {
+        Object numberShards = given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .when()
+            .get("/cluster/settings")
+        .then()
+            .extract()
+            .path(format("%s['index.number_of_shards']", TEST_DATA_TYPE));
+
+        URL stream = new URL(format("%s%s/stream?includeFields=id&size=1", baseUrl, TEST_DATA_INDEX));
+        InputStream in = stream.openStream();
+        byte[] buffer = new byte[1024];
+        in.read(buffer);
+
+        assertEquals(numberShards, StringUtils.countMatches(new String(buffer), '\n'));
+
         in.close();
     }
 
