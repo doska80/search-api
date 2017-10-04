@@ -35,4 +35,9 @@ public class SearchApiRequest extends FilterableApiRequest implements Facetable 
         .add("facets", getFacets())
         .add("facetSize", getFacetSize());
     }
+
+    @Override
+    public boolean maxSizeValidation() {
+        return true;
+    }
 }
