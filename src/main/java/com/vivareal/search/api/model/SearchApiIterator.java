@@ -32,14 +32,13 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
         if (loop == null) throw new IllegalArgumentException("loop can not be null");
         this.loop = loop;
 
-        this.size = ofNullable(size).orElse(MAX_VALUE);
-
+        this.size = size;
         this.count = hits();
     }
 
     @Override
     public boolean hasNext() {
-        return hits() > 0 && count < size;
+        return hits() > 0 && count <= size;
     }
 
     @Override

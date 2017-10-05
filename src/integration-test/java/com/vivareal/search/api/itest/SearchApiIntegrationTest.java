@@ -1281,9 +1281,9 @@ public class SearchApiIntegrationTest {
             }
         };
 
-        assertTrue(numberShards <= getHits.apply(numberShards));
-        assertTrue(numberShards <= getHits.apply(numberShards - 1));
-        assertTrue((numberShards * 2) <= getHits.apply(numberShards + 1));
+        assertEquals(numberShards, getHits.apply(numberShards));
+        assertEquals(numberShards - 1, getHits.apply(numberShards - 1).intValue());
+        assertEquals(numberShards + 1, getHits.apply(numberShards + 1).intValue());
         assertTrue(getHits.apply(numberShards) <= standardDatasetSize);
     }
 
