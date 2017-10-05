@@ -2,8 +2,12 @@ package com.vivareal.search.api.itest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Response;
 import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,9 +21,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static com.jayway.restassured.RestAssured.given;
@@ -27,7 +33,9 @@ import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_TYPE;
 import static java.lang.Math.ceil;
+import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
 import static java.util.stream.Collectors.joining;
@@ -37,6 +45,7 @@ import static java.util.stream.IntStream.rangeClosed;
 import static java.util.stream.Stream.concat;
 import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -1110,7 +1119,7 @@ public class SearchApiIntegrationTest {
         .when()
             .get("/cluster/settings")
         .then()
-            .body("testdata['index.number_of_shards']", equalTo("1"))
+            .body("testdata['index.number_of_shards']", equalTo("3"))
             .body("testdata['index.number_of_replicas']", equalTo("1"))
             .body("testdata['geo']", equalTo("geo_point"))
             .body("testdata['isEven']", equalTo("boolean"))
@@ -1242,13 +1251,40 @@ public class SearchApiIntegrationTest {
 
     @Test
     public void searchStreamWorks() throws Exception {
-        URL stream = new URL(format("%s%s/stream", baseUrl, TEST_DATA_INDEX));
+        URL stream = new URL(format("%s%s/stream?includeFields=id", baseUrl, TEST_DATA_INDEX));
         InputStream in = stream.openStream();
         byte[] buffer = new byte[1024];
         in.read(buffer);
         String contents = new String(buffer);
         assertTrue("Wrong content: \n" + contents, contents.contains("id"));
         in.close();
+    }
+
+    @Test
+    public void searchStreamSizeWorks() throws Exception {
+        Integer numberShards = given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .when()
+            .get("/cluster/settings")
+        .then()
+            .extract()
+            .path(format("%s['index.number_of_shards'].toInteger()", TEST_DATA_TYPE));
+
+        Function<Integer, Integer> getHits = size -> {
+            try {
+                byte[] buffer = IOUtils.toByteArray(new URL(format("%s%s/stream?includeFields=id&size=%d", baseUrl, TEST_DATA_INDEX, max(size, 1))));
+                return StringUtils.countMatches(new String(buffer), '\n');
+            } catch (IOException e) {
+                return -1;
+            }
+        };
+
+        assertEquals(numberShards, getHits.apply(numberShards));
+        assertEquals(numberShards - 1, getHits.apply(numberShards - 1).intValue());
+        assertEquals(numberShards + 1, getHits.apply(numberShards + 1).intValue());
+        assertTrue(getHits.apply(numberShards) <= standardDatasetSize);
     }
 
     @Test

@@ -35,6 +35,10 @@ public class Field {
         return not;
     }
 
+    public String firstName() {
+        return this.names.get(0);
+    }
+
     public String getName() {
         return this.names.stream().collect(joining("."));
     }

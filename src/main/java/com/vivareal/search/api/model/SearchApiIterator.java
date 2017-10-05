@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
+import static java.lang.Integer.MAX_VALUE;
 import static java.util.Optional.ofNullable;
 
 public class SearchApiIterator<T> implements Iterator<T[]> {
@@ -17,7 +18,11 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
 
     private Function<SearchScrollRequestBuilder, SearchResponse> loop;
 
-    public SearchApiIterator(TransportClient client, SearchResponse response, Function<SearchScrollRequestBuilder, SearchResponse> loop) {
+    private final Integer size;
+
+    private int count;
+
+    public SearchApiIterator(TransportClient client, SearchResponse response, Function<SearchScrollRequestBuilder, SearchResponse> loop, Integer size) {
         if (response == null) throw new IllegalArgumentException("response can not be null");
         this.response = response;
 
@@ -26,13 +31,14 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
 
         if (loop == null) throw new IllegalArgumentException("loop can not be null");
         this.loop = loop;
+
+        this.size = size;
+        this.count = hits();
     }
 
     @Override
     public boolean hasNext() {
-        return ofNullable(response.getHits())
-                .map(e -> e.getHits().length)
-                .orElse(0) > 0;
+        return hits() > 0 && count <= size;
     }
 
     @Override
@@ -43,6 +49,12 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
 
         response = loop.apply(client.prepareSearchScroll(response.getScrollId()));
 
+        this.count += hits();
+
         return result;
+    }
+
+    private int hits() {
+        return ofNullable(response.getHits()).map(e -> e.getHits().length).orElse(0);
     }
 }

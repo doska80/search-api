@@ -68,6 +68,10 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
         ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
 
+        ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
+        ES_MAX_SIZE.setValue(INDEX_NAME, "200");
+        ES_FACET_SIZE.setValue(INDEX_NAME, "20");
+
         // initialize variables to ElasticsearchQueryAdapter
         setField(this.queryAdapter, "transportClient", transportClient);
         setField(this.queryAdapter, "settingsAdapter", settingsAdapter);

@@ -16,11 +16,15 @@ public interface Pageable extends Indexable {
         setFrom(getFrom());
 
         if(getSize() != Integer.MAX_VALUE) {
-            if (getSize() < 0 || getSize() > maxSize)
+            if (getSize() < 0 || (getSize() > maxSize) && maxSizeValidation())
                 throw new IllegalArgumentException(format("Parameter [size] must be a positive integer less than %d (default: %d)", maxSize, defaultSize));
 
             setSize(getSize());
         } else
             setSize(defaultSize);
+    }
+
+    default boolean maxSizeValidation() {
+        return false;
     }
 }

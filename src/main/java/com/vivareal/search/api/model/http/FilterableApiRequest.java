@@ -1,12 +1,12 @@
 package com.vivareal.search.api.model.http;
 
-import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.vivareal.search.api.model.search.*;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;
 
-public class FilterableApiRequest extends BaseApiRequest implements Filterable, Queryable, Sortable {
+public class FilterableApiRequest extends BaseApiRequest implements Filterable, Queryable, Pageable, Sortable {
 
     @ApiModelProperty(value = "Query string")
     private String q;
@@ -22,6 +22,12 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
 
     @ApiModelProperty(value = "Sorting in the format: field (ASC|DESC), default sort order is ascending, multiple sort are supported", example = "field1 ASC, field2 DESC")
     private Set<String> sort;
+
+    @ApiModelProperty("From index to start the search from")
+    private int from = 0;
+
+    @ApiModelProperty("The number of search hits to return")
+    private int size = Integer.MAX_VALUE;
 
     public String getQ() {
         return q;
@@ -63,18 +69,30 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
         this.sort = sort;
     }
 
-    @Override
-    public String toString() {
-        return MoreObjects.toStringHelper(this)
-        .add("index", getIndex())
-        .add("includeFields", getIncludeFields())
-        .add("excludeFields", getExcludeFields())
+    public int getFrom() {
+        return from;
+    }
+
+    public void setFrom(int from) {
+        this.from = from;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    protected ToStringHelper addValuesToStringHelper(ToStringHelper stringHelper) {
+        return super.addValuesToStringHelper(stringHelper)
         .add("filter", getFilter())
         .add("q", getQ())
         .add("mm", getMm())
         .add("fields", getFields())
-        .add("sort", getSort())
-        .omitNullValues()
-        .toString();
+        .add("from", getFrom())
+        .add("size", getSize())
+        .add("sort", getSort());
     }
 }
