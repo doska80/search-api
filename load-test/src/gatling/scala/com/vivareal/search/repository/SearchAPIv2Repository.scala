@@ -20,7 +20,8 @@ object SearchAPIv2Repository {
 
   val facets = config.getConfig("api.facets")
 
-  def getFacets: List[(String, String)] = {
+  lazy val getFacets: List[(String, String)] = {
+    println(s"* Getting facets..")
     facets.getStringList("list").asScala.foldLeft(List[(String, String)]()) { (list, facet) => {
       val limit: Int = Try { facets.getInt(s"limits.$facet") }.getOrElse(10)
       val response: HttpResponse[String] = Http(s"http://${http.getString("base")}${http.getString("listings")}?size=0&facets=$facet&facetSize=$limit").asString
@@ -32,10 +33,17 @@ object SearchAPIv2Repository {
 
   def getIds: Iterator[String] = {
     val size = gatling.getInt("ids.users") * gatling.getInt("repeat")
+    println(s"* Getting stream ids.. (size:$size)")
     Source.fromURL(s"http://${http.getString("base")}${http.getString("listings")}/stream?includeFields=id&size=$size")
       .getLines
       .take(size)
       .map(parse(_))
       .map(json => (json \ "id").extract[String])
+  }
+
+  object ScenarioName {
+    val FILTERS = "filters"
+    val FACETS = "facets"
+    val IDS = "ids"
   }
 }
