@@ -109,13 +109,13 @@ public class SearchController {
         throw e;
     }
 
-    @RequestMapping(value = {"/forceOpen/{force}"}, method = GET)
+    @RequestMapping(value = {"/force{operation:Open|Closed}/{flag}"}, method = GET)
     @ApiIgnore
-    public ResponseEntity<Object> forceOpen(@PathVariable("force") boolean force) {
+    public ResponseEntity<Object> forceOpen(@PathVariable String operation, @PathVariable boolean flag) {
         if(Arrays.stream(environment.getActiveProfiles()).noneMatch(env -> env.equalsIgnoreCase("test")))
             return new ResponseEntity<>(NOT_FOUND);
 
-        ConfigurationManager.getConfigInstance().setProperty("hystrix.command.default.circuitBreaker.forceOpen", force);
+        ConfigurationManager.getConfigInstance().setProperty("hystrix.command.default.circuitBreaker.force" + operation, flag);
         return new ResponseEntity<>(OK);
     }
 
