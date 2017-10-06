@@ -29,7 +29,7 @@ gatling {
 task('uploadReport', type: JavaExec) {
     main = 'com.vivareal.search.config.S3Uploader'
     args = ['build/reports/gatling', System.getenv('REPORT_VERSION') ?: 'SNAPSHOT']
-    jvmArgs = System.properties.findAll { it.key.startsWith("gatling.") || it.key.startsWith("api.") || it.key.startsWith("aws.") }.collect { "-D$it" }
+    jvmArgs = System.properties.findAll { prop -> ['gatling', 'api', 'aws', 'slack'].findAll { allowedKey -> prop.key.startsWith("$allowedKey.") } }.collect { "-D$it" }
     classpath sourceSets.gatling.runtimeClasspath
     classpath configurations.gatling
 }
