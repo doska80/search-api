@@ -1,10 +1,15 @@
 package com.vivareal.search.api.model.parser;
 
 import com.vivareal.search.api.model.query.Sort;
+import org.assertj.core.util.Lists;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.util.Lists.newArrayList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -43,12 +48,12 @@ public class SortParserTest {
 
     @Test
     public void testMultipleSortWithIndex() {
-        Sort sort = SortParser.parse("field ASC,field2 ASC,field3 DESC");
+        List<Sort.Item> items = newArrayList(SortParser.parse("field ASC,field2 ASC,field3 DESC, field  ASC"));
 
-        assertThat(sort, hasSize(3));
-        assertEquals("field ASC", sort.get(0).toString());
-        assertEquals("field2 ASC", sort.get(1).toString());
-        assertEquals("field3 DESC", sort.get(2).toString());
+        assertThat(items, hasSize(3));
+        assertEquals("field ASC", items.get(0).toString());
+        assertEquals("field2 ASC", items.get(1).toString());
+        assertEquals("field3 DESC", items.get(2).toString());
     }
 
     @Test(expected = ParserException.class)

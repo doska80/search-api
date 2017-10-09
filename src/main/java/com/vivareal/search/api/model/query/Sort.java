@@ -1,15 +1,16 @@
 package com.vivareal.search.api.model.query;
 
+import com.google.common.base.Objects;
+
+import java.util.*;
+
+import static com.google.common.base.Objects.equal;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.List;
+public final class Sort extends AbstractSet<Sort.Item> {
 
-import static java.lang.String.format;
-
-public final class Sort extends AbstractList<Sort.Item> {
-    private List<Item> items = new ArrayList<>();
+    private Set<Item> items = new LinkedHashSet<>();
 
     public Sort(Field field, OrderOperator orderOperator) {
         items.add(new Item(field, orderOperator));
@@ -20,8 +21,8 @@ public final class Sort extends AbstractList<Sort.Item> {
     }
 
     @Override
-    public Item get(int index) {
-        return items.get(index);
+    public Iterator<Item> iterator() {
+        return items.iterator();
     }
 
     @Override
@@ -38,7 +39,7 @@ public final class Sort extends AbstractList<Sort.Item> {
         private final Field field;
         private final OrderOperator orderOperator;
 
-        public Item(Field field, OrderOperator orderOperator) {
+        private Item(Field field, OrderOperator orderOperator) {
             this.field = field;
             this.orderOperator = orderOperator;
         }
@@ -54,6 +55,19 @@ public final class Sort extends AbstractList<Sort.Item> {
         @Override
         public String toString() {
             return format("%s %s", field, orderOperator);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Item item = (Item) o;
+            return equal(field, item.field) && equal(orderOperator, item.orderOperator);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(field, orderOperator);
         }
     }
 }

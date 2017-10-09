@@ -78,4 +78,21 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         ;
     }
 
+    @Test
+    public void validateSortAscWhenNestedType() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(TEST_DATA_INDEX + "?includeFields=nested.id&sort=nested.id ASC")
+        .then()
+            .body("totalCount", equalTo(standardDatasetSize))
+            .body("result.testdata", hasSize(defaultPageSize))
+            .body("result.testdata.nested.id", equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList())))
+        ;
+    }
+
 }

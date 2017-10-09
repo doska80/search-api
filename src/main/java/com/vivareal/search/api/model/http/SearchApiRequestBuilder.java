@@ -2,7 +2,6 @@ package com.vivareal.search.api.model.http;
 
 import java.util.Set;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 public class SearchApiRequestBuilder {
@@ -70,7 +69,7 @@ public class SearchApiRequestBuilder {
         protected Set<String> fields;
 
         protected String filter;
-        protected Set<String> sort;
+        protected String sort;
         protected String q;
 
         private FilterableRequestBuilder() {}
@@ -118,11 +117,6 @@ public class SearchApiRequestBuilder {
         }
 
         public FilterableRequestBuilder sort(String sort) {
-            return sort(newHashSet(sort));
-
-        }
-
-        public FilterableRequestBuilder sort(Set<String> sort) {
             this.sort = sort;
             return this;
         }
@@ -217,12 +211,6 @@ public class SearchApiRequestBuilder {
 
         @Override
         public ComplexRequestBuilder sort(String sort) {
-            return sort(newHashSet(sort));
-
-        }
-
-        @Override
-        public ComplexRequestBuilder sort(Set<String> sort) {
             this.sort = sort;
             return this;
         }

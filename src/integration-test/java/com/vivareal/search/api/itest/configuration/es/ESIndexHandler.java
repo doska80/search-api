@@ -128,6 +128,7 @@ public class ESIndexHandler {
 
         Map<String, Object> nestedObject = unmodifiableMap(Stream.of(
             new SimpleEntry<>("object", kv),
+            new SimpleEntry<>("id", id),
             new SimpleEntry<>("number", id * 2),
             new SimpleEntry<>("float", id * 3.5f),
             new SimpleEntry<>("string", format("string with char %s", (char) (id + 'a' - 1))),
