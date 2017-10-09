@@ -41,11 +41,21 @@ public class ESIndexHandler {
     public static final String SEARCH_API_PROPERTIES_TYPE = "properties";
 
     private final RestClient restClient;
+
     private int standardDatasetSize;
     private int standardDatasetFacetDecrease;
     private final Long timeout;
 
     private Map<String, Object> properties;
+
+    @Value("${es.query.timeout.unit}")
+    private String queryTimeoutUnit;
+
+    @Value("${es.query.timeout.value}")
+    private Integer queryTimeoutValue;
+
+    @Value("${es.default.size}")
+    private Integer size;
 
     @Autowired
     public ESIndexHandler(RestClient restClient,
@@ -73,7 +83,9 @@ public class ESIndexHandler {
     }
 
     public void setDefaultProperties() {
-        putStandardProperty("es.default.size", 20);
+        putStandardProperty("es.default.size", size);
+        putStandardProperty("es.query.timeout.unit", queryTimeoutUnit);
+        putStandardProperty("es.query.timeout.value", queryTimeoutValue);
     }
 
     public void addStandardProperties() {
@@ -97,7 +109,11 @@ public class ESIndexHandler {
         refreshIndex(TEST_DATA_INDEX);
     }
 
-    private String createStandardEntityForId(int id) {
+    public String createStandardEntityForId(int id) {
+        return writeValueAsStringFromMap(id, createStandardEntityForId(id, true));
+    }
+
+    public Map<String, Object> createStandardEntityForId(int id, boolean complexMapping) {
         boolean isEven = id % 2 == 0;
 
         Map<String, Object> kv = unmodifiableMap(Stream.of(
@@ -123,17 +139,19 @@ public class ESIndexHandler {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("id", valueOf(id));
         data.put("numeric", id);
-        data.put("field" + id, "value" + id);
         data.put("isEven", isEven);
         data.put("array_integer", rangeClosed(1, id).boxed().collect(toList()));
         data.put("nested", nestedObject);
         data.put("object", nestedObject);
-        data.put("geo", geo);
+        if (complexMapping) {
+            data.put("field" + id, "value" + id);
+            data.put("geo", geo);
+        }
         data.put("facetString", (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? "A" : "B"));
         data.put("facetInteger", (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? 1 : 2));
         data.put("facetBoolean", (id <= (standardDatasetSize - standardDatasetFacetDecrease)));
 
-        return writeValueAsStringFromMap(id, data);
+        return data;
     }
 
     private String writeValueAsStringFromMap(Object id, Map<String, Object> data) {

@@ -20,6 +20,11 @@ public class QueryPhaseExecutionException extends RuntimeException {
         this.query = "{}";
     }
 
+    public QueryPhaseExecutionException(final String message, final String query) {
+        super(message);
+        this.query = query;
+    }
+
     public QueryPhaseExecutionException(final String query, final Throwable t) {
         super(MESSAGE, t);
         this.query = query;

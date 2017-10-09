@@ -8,6 +8,7 @@ import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.geo.GeoPoint;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -22,6 +23,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -67,6 +69,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         SOURCE_INCLUDES.setValue(INDEX_NAME, "");
         SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
         ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
+        ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, "100");
+        ES_QUERY_TIMEOUT_UNIT.setValue(INDEX_NAME, "MILLISECONDS");
 
         ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
         ES_MAX_SIZE.setValue(INDEX_NAME, "200");
@@ -144,6 +148,13 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                 validateFetchSources(includeFields, excludeFields, fetchSourceContext);
             }
         );
+    }
+
+    @Test
+    public void shouldApplyTimeoutOnQueryBody() {
+        SearchApiRequest request = fullRequest.build();
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request);
+        assertEquals(new TimeValue(100, TimeUnit.MILLISECONDS), searchRequestBuilder.request().source().timeout());
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.controller.stream.ElasticSearchStream;
 import com.vivareal.search.api.exception.QueryPhaseExecutionException;
+import com.vivareal.search.api.exception.QueryTimeoutException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
@@ -21,7 +22,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_SEARCH_TIMEOUT;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 
@@ -54,7 +55,12 @@ public class SearchService {
 
         try {
             searchRequestBuilder = this.queryAdapter.query(request);
-            return searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
+            SearchResponse searchResponse = searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
+
+            if (searchResponse.isTimedOut())
+                throw new QueryTimeoutException(searchRequestBuilder.toString());
+
+            return searchResponse;
         } catch (Exception e) {
             if (getRootCause(e) instanceof IllegalArgumentException)
                 throw new IllegalArgumentException(e);

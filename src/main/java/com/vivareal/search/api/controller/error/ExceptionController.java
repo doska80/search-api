@@ -1,6 +1,7 @@
 package com.vivareal.search.api.controller.error;
 
 import com.vivareal.search.api.exception.QueryPhaseExecutionException;
+import com.vivareal.search.api.exception.QueryTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.*;
 
 @Controller
 public class ExceptionController implements ErrorController {
@@ -58,7 +58,8 @@ public class ExceptionController implements ErrorController {
     private HttpStatus getStatus(HttpServletRequest request, Map<String, Object> errorBody) {
         Throwable e = errorAttributes.getError(new DispatcherServletWebRequest(request));
         if(e != null) {
-            errorBody.put("message", getRootCauseMessage(e));
+            String rootCauseMessage = getRootCauseMessage(e);
+            errorBody.put("message", rootCauseMessage);
 
             if(e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException) {
                 errorBody.put("status", BAD_REQUEST.value());
@@ -70,9 +71,14 @@ public class ExceptionController implements ErrorController {
                 LOG.error("Path: [{}] - Request Parameters: [{}] - RootCauseMessage: [{}] - Additional Message: [{}]",
                     errorBody.getOrDefault("path", "None"),
                     getParametersFromRequest(request),
-                    getRootCauseMessage(e),
+                    rootCauseMessage,
                     "Query: " + ((QueryPhaseExecutionException) e).getQuery()
                 );
+                if (e instanceof QueryTimeoutException) {
+                    errorBody.put("status", GATEWAY_TIMEOUT.value());
+                    errorBody.put("error", GATEWAY_TIMEOUT.getReasonPhrase());
+                    return GATEWAY_TIMEOUT;
+                }
             }
         }
 
