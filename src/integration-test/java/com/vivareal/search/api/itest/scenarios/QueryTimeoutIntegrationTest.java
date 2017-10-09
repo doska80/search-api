@@ -1,16 +1,10 @@
 package com.vivareal.search.api.itest.scenarios;
 
-import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
+import com.vivareal.search.api.itest.SearchApiIntegrationTest;
 import com.vivareal.search.api.itest.configuration.es.BulkESIndexHandler;
-import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
@@ -18,38 +12,22 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_TYPE;
+import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.*;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.HttpStatus.SC_GATEWAY_TIMEOUT;
 
 @RunWith(SpringRunner.class)
-@TestPropertySource({ "classpath:application.properties", "classpath:application-test.properties", "classpath:configuration/application-itest.properties"})
-@ContextConfiguration(classes = SearchApiIntegrationTestContext.class)
-public class QueryTimeoutTest {
-
-    @Value("${search.api.base.url}")
-    private String baseUrl;
-
-    @Autowired
-    private ESIndexHandler esIndexHandler;
+public class QueryTimeoutIntegrationTest extends SearchApiIntegrationTest {
 
     @Autowired
     private BulkESIndexHandler bulkESIndexHandler;
 
-    @BeforeClass
-    public static void setup() {
-        loadAll();
-    }
-
+    @Override
     @PostConstruct
     public void setupIndexHandler() throws IOException {
         esIndexHandler.truncateIndexData(TEST_DATA_INDEX);

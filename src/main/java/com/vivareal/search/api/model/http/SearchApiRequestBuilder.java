@@ -165,6 +165,7 @@ public class SearchApiRequestBuilder {
         private int size;
         private int facetSize;
         private Set<String> facets;
+        private String cursorId;
 
         private ComplexRequestBuilder() {}
 
@@ -246,6 +247,11 @@ public class SearchApiRequestBuilder {
             return this;
         }
 
+        public ComplexRequestBuilder cursorId(String cursorId) {
+            this.cursorId = cursorId;
+            return this;
+        }
+
         @Override
         public SearchApiRequest build() {
             SearchApiRequest request = new SearchApiRequest();
@@ -285,6 +291,9 @@ public class SearchApiRequestBuilder {
 
             if (allNotNull(size))
                 request.setSize(size);
+
+            if (allNotNull(cursorId))
+                request.setCursorId(cursorId);
 
             return request;
         }

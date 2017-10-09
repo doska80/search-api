@@ -7,8 +7,10 @@ import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.search.DocValueFormat;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.SearchSortValues;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.InternalAggregation;
@@ -24,9 +26,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.elasticsearch.search.SearchHit.createFromMap;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -106,9 +111,9 @@ public class ESResponseSerializerTest {
 
         setField(aggregations, "aggregations", aggregationList);
 
-        String expected = "{\"time\":123,\"totalCount\":2,\"result\":{\"test\":[{\"id\":\"1\",\"field\":\"string\"},{\"id\":\"2\",\"facet.field\":\"string\"}],\"facets\":{\"field\":{\"string\":1},\"facet.field\":{\"string\":1}}}}";
+        String expected = "{\"time\":123,\"totalCount\":2,\"result\":{\"" + INDEX_NAME + "\":[{\"id\":\"1\",\"field\":\"string\"},{\"id\":\"2\",\"facet.field\":\"string\"}],\"facets\":{\"field\":{\"string\":1},\"facet.field\":{\"string\":1}}}}";
 
-        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>("test", searchResponse)));
+        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
     }
 
     @Test
@@ -129,9 +134,9 @@ public class ESResponseSerializerTest {
 
         when(searchHits.getHits()).thenReturn(hits);
 
-        String expected = "{\"time\":2,\"totalCount\":1,\"result\":{\"test\":[{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],\"object\":{\"child\":{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],}}}]}}";
+        String expected = "{\"time\":2,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],\"object\":{\"child\":{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],}}}]}}";
 
-        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>("test", searchResponse)));
+        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
     }
 
     @Test
@@ -188,9 +193,9 @@ public class ESResponseSerializerTest {
 
         setField(aggregations, "aggregations", aggregationList);
 
-        String expected = "{\"time\":123,\"totalCount\":56789,\"result\":{\"test\":[],\"facets\":{\"field\":{\"value\":10},\"facet.field\":{\"value\":10}}}}";
+        String expected = "{\"time\":123,\"totalCount\":56789,\"result\":{\"" + INDEX_NAME + "\":[],\"facets\":{\"field\":{\"value\":10},\"facet.field\":{\"value\":10}}}}";
 
-        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>("test", searchResponse)));
+        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
     }
 
     @Test
@@ -235,9 +240,31 @@ public class ESResponseSerializerTest {
 
         setField(aggregations, "aggregations", aggregationList);
 
-        String expected = "{\"time\":123,\"totalCount\":0,\"result\":{\"test\":[],\"facets\":{\"field\":{},\"facet.field\":{}}}}";
+        String expected = "{\"time\":123,\"totalCount\":0,\"result\":{\"" + INDEX_NAME + "\":[],\"facets\":{\"field\":{},\"facet.field\":{}}}}";
 
-        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>("test", searchResponse)));
+        assertEquals(expected, mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
+    }
+
+    @Test
+    public void shouldReturnCursorIdOnResponse() throws IOException {
+        SearchResponse searchResponse = mock(SearchResponse.class);
+        when(searchResponse.getTookInMillis()).thenReturn(2L);
+
+        SearchHits searchHits = mock(SearchHits.class);
+        when(searchResponse.getHits()).thenReturn(searchHits);
+        when(searchHits.getTotalHits()).thenReturn(1L);
+
+        SearchHit[] hits = new SearchHit[1];
+
+        Map<String, Object> values = new LinkedHashMap<>();
+        BytesReference source = new BytesArray("{\"id\":1}");
+        values.put("_source", source);
+
+        values.put("sort", new SearchSortValues(new Object[]{0.23456, "A_B"}, new DocValueFormat[]{DocValueFormat.RAW, DocValueFormat.RAW}));
+        hits[0] = createFromMap(values);
+
+        when(searchHits.getHits()).thenReturn(hits);
+        assertThat(mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)), containsString("\"cursorId\":\"0.23456_A%5fB\""));
     }
 
 }
