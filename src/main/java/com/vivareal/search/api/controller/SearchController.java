@@ -14,10 +14,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.elasticsearch.action.get.GetResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +37,7 @@ import static com.vivareal.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.ResponseEntity.notFound;
+import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
 @RestController
@@ -47,6 +50,10 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
     }
 )
 public class SearchController {
+
+    private static BodyBuilder builderOK = ok();
+
+    private static ResponseEntity<Object> notFoundResponse = notFound().build();
 
     @Autowired
     private SearchService searchService;
@@ -76,9 +83,12 @@ public class SearchController {
     )
     @Trace(dispatcher=true)
     public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) throws InterruptedException, ExecutionException, TimeoutException {
-        return searchService.getById(request, id)
-            .map(ResponseEntity::ok)
-            .orElse(notFound().build());
+        GetResponse response = searchService.getById(request, id);
+
+        if(response.isExists())
+            return builderOK.body(response.getSourceAsBytesRef().utf8ToString());
+
+        return notFoundResponse;
     }
 
     @RequestMapping(value = "/{index}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
