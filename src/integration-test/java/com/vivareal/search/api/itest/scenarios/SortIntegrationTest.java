@@ -94,5 +94,4 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
             .body("result.testdata.nested.id", equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList())))
         ;
     }
-
 }

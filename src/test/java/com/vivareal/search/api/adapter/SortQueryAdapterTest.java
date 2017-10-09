@@ -4,9 +4,7 @@ import com.vivareal.search.api.model.http.SearchApiRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 
 import java.util.List;
 import java.util.Map;
@@ -14,15 +12,12 @@ import java.util.Map;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
-import static org.assertj.core.util.Sets.newLinkedHashSet;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
 

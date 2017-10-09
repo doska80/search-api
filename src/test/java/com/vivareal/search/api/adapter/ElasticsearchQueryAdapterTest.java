@@ -20,7 +20,6 @@ import org.mockito.Mock;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -35,6 +34,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
+import static java.util.stream.Stream.of;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -69,6 +69,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
         ES_MAX_SIZE.setValue(INDEX_NAME, "200");
         ES_FACET_SIZE.setValue(INDEX_NAME, "20");
+        ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
 
         ESClient esClient = new ESClient(transportClient);
         SourceFieldAdapter sourceFieldAdapter = new SourceFieldAdapter(settingsAdapter);
@@ -125,7 +126,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         intersection.retainAll(includeFields);
         List<String> excludedAfterValidation = excludeFields.stream().filter(field -> !intersection.contains(field)).sorted().collect(toList());
         assertEquals(excludeFields.size() - intersection.size(), fetchSourceContext.excludes().length);
-        assertEquals(Stream.of(fetchSourceContext.excludes()).sorted().collect(toList()), excludedAfterValidation);
+        assertEquals(of(fetchSourceContext.excludes()).sorted().collect(toList()), excludedAfterValidation);
     }
 
     @Test
@@ -521,6 +522,24 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
                         return value;
                     }).toArray()).equals(terms.values()));
+                }
+            )
+        );
+    }
+
+    @Test
+    public void shouldValidateQueyUsingInOperatorByIds() {
+        final String field = "id";
+        final Set<Object> values = newHashSet("\"123\"", 456, "\"7a8b9\"");
+
+        IN.getAlias().parallelStream().forEach(
+            op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
+                request -> {
+                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s %s", field, op, Arrays.toString(values.toArray()))).build());
+                    IdsQueryBuilder idsQueryBuilder = (IdsQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+
+                    assertEquals("ids", idsQueryBuilder.getName());
+                    assertEquals(values.stream().map(value -> value.toString().replaceAll("\"", "")).collect(toSet()), idsQueryBuilder.ids());
                 }
             )
         );

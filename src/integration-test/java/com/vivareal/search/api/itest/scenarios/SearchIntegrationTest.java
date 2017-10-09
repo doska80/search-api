@@ -25,7 +25,6 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
@@ -268,58 +267,6 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
             .body("totalCount", equalTo(limit))
             .body("result.testdata", hasSize(limit))
             .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, limit).boxed().collect(toList())));
-    }
-
-    @Test
-    public void validateInFilterOnSingleField() {
-        given()
-            .log().all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
-        .expect()
-            .statusCode(SC_OK)
-        .when()
-            .get(TEST_DATA_INDEX + "?filter=numeric IN [1, " + standardDatasetSize + "]")
-        .then()
-            .body("totalCount", equalTo(2))
-            .body("result.testdata", hasSize(2))
-            .body("result.testdata.numeric.sort()", equalTo(Stream.of(1, standardDatasetSize).collect(toList())));
-    }
-
-    @Test
-    public void validateInFilterOnArrayField() {
-        List<Integer> range = rangeClosed(standardDatasetSize - 3, standardDatasetSize).boxed().collect(toList());
-
-        given()
-            .log().all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
-        .expect()
-            .statusCode(SC_OK)
-        .when()
-            .get(TEST_DATA_INDEX + "?filter=object.object.array_string IN [" + range.stream().map(i -> format("\"%d\"", i)).collect(joining(",")) + "]")
-            .then()
-            .body("totalCount", equalTo(range.size()))
-            .body("result.testdata", hasSize(range.size()))
-            .body("result.testdata.numeric.sort()", equalTo(range));
-    }
-
-    @Test
-    public void validateInFilterOnArrayFieldWhenNested() {
-        List<Integer> range = rangeClosed(standardDatasetSize - 3, standardDatasetSize).boxed().collect(toList());
-
-        given()
-            .log().all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
-        .expect()
-            .statusCode(SC_OK)
-        .when()
-            .get(TEST_DATA_INDEX + "?filter=nested.object.array_string IN [" + range.stream().map(i -> format("\"%d\"", i)).collect(joining(",")) + "]")
-        .then()
-            .body("totalCount", equalTo(range.size()))
-            .body("result.testdata", hasSize(range.size()))
-            .body("result.testdata.numeric.sort()", equalTo(range));
     }
 
     @Test
