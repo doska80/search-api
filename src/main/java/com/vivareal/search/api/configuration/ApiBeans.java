@@ -53,6 +53,8 @@ public class ApiBeans implements DisposableBean {
                 .put("request.headers.X-Found-Cluster", "${cluster.name}")
                 .put("thread_pool.search.size", MIN_SIZE)
                 .put("thread_pool.search.queue_size", QUEUE_SIZE)
+                .put("thread_pool.get.size", MIN_SIZE)
+                .put("thread_pool.get.queue_size", QUEUE_SIZE)
                 .build();
         this.esClient = new PreBuiltTransportClient(settings);
 
