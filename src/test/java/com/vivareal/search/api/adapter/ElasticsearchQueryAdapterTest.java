@@ -54,15 +54,11 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
 
     @Mock
-    private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
-
-    private ElasticsearchQueryAdapter elasticsearchQueryAdapter = new ElasticsearchQueryAdapter();
+    private ElasticsearchSettingsAdapter settingsAdapter;
 
     @Before
     public void setup() {
         initMocks(this);
-
-        this.queryAdapter = spy(elasticsearchQueryAdapter);
 
         QS_MM.setValue(INDEX_NAME,"75%");
         QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
@@ -71,16 +67,23 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
         ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, "100");
         ES_QUERY_TIMEOUT_UNIT.setValue(INDEX_NAME, "MILLISECONDS");
-
         ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
         ES_MAX_SIZE.setValue(INDEX_NAME, "200");
         ES_FACET_SIZE.setValue(INDEX_NAME, "20");
 
-        // initialize variables to ElasticsearchQueryAdapter
-        setField(this.queryAdapter, "transportClient", transportClient);
-        setField(this.queryAdapter, "settingsAdapter", settingsAdapter);
-        setField(elasticsearchQueryAdapter, "transportClient", transportClient);
-        setField(elasticsearchQueryAdapter, "settingsAdapter", settingsAdapter);
+        ESClient esClient = new ESClient(transportClient);
+        SourceFieldAdapter sourceFieldAdapter = new SourceFieldAdapter(esClient, settingsAdapter);
+
+        when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
+        when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
+
+        this.queryAdapter = spy(new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter));
+
+        Map<String, String[]> defaultSourceFields = new HashMap<>();
+        defaultSourceFields.put(INDEX_NAME, new String[0]);
+
+        setField(settingsAdapter, "defaultSourceIncludes", defaultSourceFields);
+        setField(settingsAdapter, "defaultSourceExcludes", defaultSourceFields);
 
         doNothing().when(settingsAdapter).checkIndex(any());
 
@@ -1098,7 +1101,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
-                SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request.index(INDEX_NAME).includeFields(newHashSet(includes)).excludeFields(newHashSet(excludes)).build());
+                SearchRequestBuilder requestBuilder = queryAdapter.query(request.index(INDEX_NAME).includeFields(newHashSet(includes)).excludeFields(newHashSet(excludes)).build());
                 FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
 
                 assertNotNull(fetchSourceContext);
@@ -1115,7 +1118,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     public void testFetchSourceEmptyFields() {
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
-                SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request.index(INDEX_NAME).build());
+                SearchRequestBuilder requestBuilder = queryAdapter.query(request.index(INDEX_NAME).build());
 
                 FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
                 assertNotNull(fetchSourceContext);
@@ -1135,7 +1138,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
-                SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request.index(INDEX_NAME).excludeFields(newHashSet(excludes)).build());
+                SearchRequestBuilder requestBuilder = queryAdapter.query(request.index(INDEX_NAME).excludeFields(newHashSet(excludes)).build());
 
                 FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
                 assertNotNull(fetchSourceContext);
@@ -1155,7 +1158,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
-                SearchRequestBuilder requestBuilder = elasticsearchQueryAdapter.query(request.index(INDEX_NAME).includeFields(newHashSet(includes)).excludeFields(newHashSet(excludes)).build());
+                SearchRequestBuilder requestBuilder = queryAdapter.query(request.index(INDEX_NAME).includeFields(newHashSet(includes)).excludeFields(newHashSet(excludes)).build());
                 FetchSourceContext fetchSourceContext = requestBuilder.request().source().fetchSource();
                 assertNotNull(fetchSourceContext);
                 assertThat(fetchSourceContext.includes(), arrayWithSize(2));
@@ -1171,7 +1174,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     public void testPreparationQuery() {
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
         request -> {
-            SearchRequestBuilder builder = elasticsearchQueryAdapter.query(request.build());
+            SearchRequestBuilder builder = queryAdapter.query(request.build());
 
             assertEquals(request.build().getIndex(), builder.request().indices()[0]);
             assertThat(builder.request().source().query(), instanceOf(BoolQueryBuilder.class));

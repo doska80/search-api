@@ -1,11 +1,8 @@
 package com.vivareal.search.api.controller.stream;
 
 import com.vivareal.search.api.adapter.QueryAdapter;
-import com.vivareal.search.api.adapter.SettingsAdapter;
 import com.vivareal.search.api.model.SearchApiIterator;
-import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
-import com.vivareal.search.api.model.http.SearchApiRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -16,9 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
-import java.util.Map;
 
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.parseInt;

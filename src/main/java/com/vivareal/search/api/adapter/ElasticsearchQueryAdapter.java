@@ -9,12 +9,13 @@ import com.vivareal.search.api.model.parser.FacetParser;
 import com.vivareal.search.api.model.parser.QueryParser;
 import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.*;
-import com.vivareal.search.api.model.search.*;
+import com.vivareal.search.api.model.search.Facetable;
+import com.vivareal.search.api.model.search.Filterable;
+import com.vivareal.search.api.model.search.Queryable;
+import com.vivareal.search.api.model.search.Sortable;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
@@ -26,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +46,6 @@ import static java.lang.String.valueOf;
 import static java.util.Optional.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -56,30 +57,35 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
+@DependsOn("searchApiEnv")
 public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder, SearchRequestBuilder> {
 
     private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
-    @Autowired
-    private TransportClient transportClient;
-
-    @Autowired
-    @Qualifier("elasticsearchSettings")
-    private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
-
     private static final String NOT_NESTED = "not_nested";
+
+    private ESClient esClient;
+
+    private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+    private SourceFieldAdapter sourceFieldAdapter;
+
+    @Autowired
+    public ElasticsearchQueryAdapter(ESClient esClient, @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter, SourceFieldAdapter sourceFieldAdapter) {
+        this.esClient = esClient;
+        this.settingsAdapter = settingsAdapter;
+        this.sourceFieldAdapter = sourceFieldAdapter;
+    }
 
     @Override
     @Trace
     public GetRequestBuilder getById(BaseApiRequest request, String id) {
         settingsAdapter.checkIndex(request);
 
-        Pair<String[], String[]> fetchSourceFields = getFetchSourceFields(request);
-        GetRequestBuilder requestBuilder = transportClient.prepareGet()
-            .setIndex(request.getIndex())
-            .setType(request.getIndex())
-            .setId(id)
-            .setFetchSource(fetchSourceFields.getLeft(), fetchSourceFields.getRight());
+        GetRequestBuilder requestBuilder = esClient.prepareGet(request, id)
+            .setOperationThreaded(false);
+
+        sourceFieldAdapter.apply(requestBuilder, request);
+
         LOG.debug("Query getById {}", requestBuilder != null ? requestBuilder.request() : null);
 
         return requestBuilder;
@@ -99,8 +105,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
         settingsAdapter.checkIndex(request);
-        SearchRequestBuilder searchBuilder = transportClient
-            .prepareSearch(request.getIndex())
+        SearchRequestBuilder searchBuilder = esClient.prepareSearch(request)
             .setTimeout(
                 new TimeValue(ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
                 TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex())))
@@ -116,7 +121,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private void buildQueryByFilterableApiRequest(FilterableApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
         applyPage(searchBuilder, request);
-        addFieldList(searchBuilder, request);
+        sourceFieldAdapter.apply(searchBuilder, request);
         applySort(searchBuilder, request);
         applyQueryString(queryBuilder, request);
         applyFilterQuery(queryBuilder, request);
@@ -407,39 +412,17 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private void applyFacetsByNestedFields(SearchRequestBuilder searchRequestBuilder, final String name, final AggregationBuilder agg) {
         Optional<AggregationBuilder> nestedAgg = ofNullable(searchRequestBuilder.request().source().aggregations())
-            .flatMap(builder ->
-                builder.getAggregatorFactories()
-                .stream()
-                .filter(aggregationBuilder -> aggregationBuilder instanceof NestedAggregationBuilder && name.equals(aggregationBuilder.getName()))
-                .findFirst()
-            );
+        .flatMap(builder ->
+        builder.getAggregatorFactories()
+        .stream()
+        .filter(aggregationBuilder -> aggregationBuilder instanceof NestedAggregationBuilder && name.equals(aggregationBuilder.getName()))
+        .findFirst()
+        );
 
         if (nestedAgg.isPresent()) {
             nestedAgg.get().subAggregation(agg);
         } else {
             searchRequestBuilder.addAggregation(nested(name, name).subAggregation(agg));
         }
-    }
-
-    private void addFieldList(SearchRequestBuilder searchRequestBuilder, final Fetchable request) {
-        Pair<String[], String[]> fetchSource = getFetchSourceFields(request);
-        searchRequestBuilder.setFetchSource(fetchSource.getLeft(), fetchSource.getRight());
-    }
-
-    private Pair<String[], String[]> getFetchSourceFields(Fetchable request) {
-        String indexName = request.getIndex();
-
-        String[] includes = SOURCE_INCLUDES.getValue(request.getIncludeFields(), indexName)
-            .stream()
-            .filter(field -> settingsAdapter.checkFieldName(indexName, field, true))
-            .toArray(String[]::new);
-
-        String[] excludes = SOURCE_EXCLUDES.getValue(request.getExcludeFields(), indexName)
-            .stream()
-            .filter(field -> !contains(includes, field))
-            .filter(field -> settingsAdapter.checkFieldName(indexName, field, true))
-            .toArray(String[]::new);
-
-        return Pair.of(includes, excludes);
     }
 }

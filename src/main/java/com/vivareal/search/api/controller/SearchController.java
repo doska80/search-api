@@ -61,7 +61,7 @@ public class SearchController {
     @Autowired
     private Environment environment;
 
-    @RequestMapping(value = {"/{index}/{id:[0-9\\-]+}"}, method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @RequestMapping(value = {"/{index}/{id:[0-9]+}"}, method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ApiOperation(value = "Search by index with id", notes = "Returns index by identifier")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "Successfully get by id"),

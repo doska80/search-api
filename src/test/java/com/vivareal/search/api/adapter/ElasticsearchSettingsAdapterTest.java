@@ -6,6 +6,7 @@ import com.vivareal.search.api.exception.PropertyNotFoundException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,10 +29,9 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
 
     @Before
     public void setup() {
-        this.settingsAdapter = spy(new ElasticsearchSettingsAdapter());
+        this.settingsAdapter = spy(new ElasticsearchSettingsAdapter(new ESClient(transportClient)));
         this.structuredIndices = spy(structuredIndicesSettings());
 
-        setField(this.settingsAdapter, "transportClient", transportClient);
         setField(this.settingsAdapter, "structuredIndices", structuredIndices);
     }
 

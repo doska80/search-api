@@ -48,7 +48,7 @@
     </appender>
 
     <root level="INFO">
-        <springProfile name="dev">
+        <springProfile name="dev, test">
             <appender-ref ref="CONSOLE"/>
         </springProfile>
         <springProfile name="qa, prod">
