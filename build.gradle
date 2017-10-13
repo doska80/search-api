@@ -120,7 +120,6 @@ dependencies {
     newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
 
     // elasticsearch/lucene unit tests
-    testCompile 'org.apache.lucene:lucene-test-framework:' + LUCENE_VERSION
     testCompile 'org.elasticsearch.test:framework:' + ELASTICSEARCH_VERSION
     testCompile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
     testCompile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:' + ELASTICSEARCH_VERSION
