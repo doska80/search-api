@@ -134,7 +134,7 @@ dependencies {
 
 task wrapper(type: Wrapper) {
     gradleVersion = '4.2.1'
-    distributionType = DistributionType.ALL
+    distributionType = Wrapper.DistributionType.ALL
 }
 
 bootRun {
