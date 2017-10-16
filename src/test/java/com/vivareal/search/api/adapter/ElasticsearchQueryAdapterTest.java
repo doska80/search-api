@@ -56,6 +56,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     @Mock
     private ElasticsearchSettingsAdapter settingsAdapter;
 
+    @Mock
+    private SearchAfterQueryAdapter searchAfterQueryAdapter;
+
     @Before
     public void setup() {
         initMocks(this);
@@ -77,7 +80,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
         when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
 
-        this.queryAdapter = spy(new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter));
+        this.queryAdapter = spy(new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter));
 
         Map<String, String[]> defaultSourceFields = new HashMap<>();
         defaultSourceFields.put(INDEX_NAME, new String[0]);
@@ -86,6 +89,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         setField(settingsAdapter, "defaultSourceExcludes", defaultSourceFields);
 
         doNothing().when(settingsAdapter).checkIndex(any());
+        doNothing().when(searchAfterQueryAdapter).apply(any(), any());
 
         when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
         when(settingsAdapter.isTypeOf(anyString(), anyString(), any(MappingType.class))).thenReturn(false);

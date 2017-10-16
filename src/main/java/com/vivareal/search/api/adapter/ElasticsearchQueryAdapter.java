@@ -7,7 +7,6 @@ import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.parser.FacetParser;
 import com.vivareal.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.*;
 import com.vivareal.search.api.model.search.Facetable;
 import com.vivareal.search.api.model.search.Filterable;
@@ -22,7 +21,6 @@ import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +37,10 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.mapping.MappingType.*;
+import static com.vivareal.search.api.model.parser.SortParser.parse;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.lang.Integer.parseInt;
-import static java.lang.String.valueOf;
 import static java.util.Optional.*;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
@@ -51,6 +49,7 @@ import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.nested;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
+import static org.elasticsearch.search.sort.SortOrder.valueOf;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -68,12 +67,18 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
     private SourceFieldAdapter sourceFieldAdapter;
+    private SearchAfterQueryAdapter searchAfterQueryAdapter;
 
     @Autowired
-    public ElasticsearchQueryAdapter(ESClient esClient, @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter, SourceFieldAdapter sourceFieldAdapter) {
+    public ElasticsearchQueryAdapter(ESClient esClient,
+                                     @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String,
+                                     Map<String, Object>>, String> settingsAdapter,
+                                     SourceFieldAdapter sourceFieldAdapter,
+                                     SearchAfterQueryAdapter searchAfterQueryAdapter) {
         this.esClient = esClient;
         this.settingsAdapter = settingsAdapter;
         this.sourceFieldAdapter = sourceFieldAdapter;
+        this.searchAfterQueryAdapter = searchAfterQueryAdapter;
     }
 
     @Override
@@ -123,8 +128,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         applyPage(searchBuilder, request);
         sourceFieldAdapter.apply(searchBuilder, request);
         applySort(searchBuilder, request);
+        applyPage(searchBuilder, request);
         applyQueryString(queryBuilder, request);
         applyFilterQuery(queryBuilder, request);
+        searchAfterQueryAdapter.apply(searchBuilder, request);
     }
 
     private void buildQueryBySearchApiRequest(SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
@@ -372,11 +379,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void applySort(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
         Set<String> value = ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex());
         if (!isEmpty(value)) {
-            Sort sort = SortParser.parse(value.stream().collect(joining(",")));
-            sort.forEach(item -> {
+            parse(value.stream().collect(joining(","))).forEach(item -> {
                 String fieldName = item.getField().getName();
                 settingsAdapter.checkFieldName(request.getIndex(), fieldName, false);
-                searchRequestBuilder.addSort(fieldName, SortOrder.valueOf(item.getOrderOperator().name()));
+                searchRequestBuilder.addSort(fieldName, valueOf(item.getOrderOperator().name()));
             });
         }
     }
@@ -388,7 +394,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             request.setFacetingValues(ES_FACET_SIZE.getValue(indexName));
 
             final int facetSize = request.getFacetSize();
-            final int shardSize = parseInt(valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)));
+            final int shardSize = parseInt(String.valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)));
 
             FacetParser.parse(value.stream().collect(joining(","))).forEach(facet -> {
                 final String fieldName = facet.getName();

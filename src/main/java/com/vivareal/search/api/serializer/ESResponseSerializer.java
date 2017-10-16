@@ -5,21 +5,22 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
+import org.apache.commons.lang3.ArrayUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
 import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 
-public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<SearchResponse>> {
+import static com.vivareal.search.api.adapter.SearchAfterQueryAdapter.SORT_SEPARATOR;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Stream.of;
 
-    private static Logger LOG = LoggerFactory.getLogger(ESResponseSerializer.class);
+public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<SearchResponse>> {
 
     public ESResponseSerializer() {
         this((Class<SearchResponseEnvelope<SearchResponse>>) null);
@@ -42,9 +43,12 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
         jgen.writeNumberField("time", searchResponse.getTookInMillis());
         jgen.writeNumberField("totalCount", searchResponse.getHits().getTotalHits());
 
+        SearchHit[] hits = searchResponse.getHits().getHits();
+        writeCursorId(hits, jgen);
+
         jgen.writeObjectFieldStart("result");
         jgen.writeArrayFieldStart(value.getIndexName());
-        writeResultSet(searchResponse, jgen);
+        writeResultSet(hits, jgen);
         jgen.writeEndArray();
         writeFacets(searchResponse, jgen);
         jgen.writeEndObject();
@@ -52,8 +56,7 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
         jgen.writeEndObject();
     }
 
-    private void writeResultSet(SearchResponse searchResponse, JsonGenerator jgen) throws IOException {
-        SearchHit[] hits = searchResponse.getHits().getHits();
+    private void writeResultSet(final SearchHit[] hits, JsonGenerator jgen) throws IOException {
         if (hits.length > 0) {
             int len = hits.length - 1;
             for (int i = 0; i < len; i++) {
@@ -64,7 +67,7 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
         }
     }
 
-    private void writeFacets(SearchResponse searchResponse, JsonGenerator jgen) throws IOException {
+    private void writeFacets(final SearchResponse searchResponse, JsonGenerator jgen) throws IOException {
         if (searchResponse.getAggregations() != null) {
             jgen.writeObjectFieldStart("facets");
             for (Aggregation agg : searchResponse.getAggregations()) {
@@ -81,15 +84,23 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
     }
 
     @SuppressWarnings("unchecked")
-    private void writeFacet(Aggregation agg, JsonGenerator jgen) throws IOException {
+    private void writeFacet(final Aggregation agg, JsonGenerator jgen) throws IOException {
         jgen.writeObjectFieldStart(agg.getName());
         writeFacetBuckets(((InternalMappedTerms) agg).getBuckets(), jgen);
         jgen.writeEndObject();
     }
 
-    private void writeFacetBuckets(List<Terms.Bucket> buckets, JsonGenerator jgen) throws IOException {
+    private void writeFacetBuckets(final List<Terms.Bucket> buckets, JsonGenerator jgen) throws IOException {
         for (Terms.Bucket bucket : buckets) {
             jgen.writeNumberField(bucket.getKeyAsString(), bucket.getDocCount());
+        }
+    }
+
+    private void writeCursorId(final SearchHit[] hits, JsonGenerator jgen) throws IOException {
+        if (hits.length > 0) {
+            Object[] sortValues = hits[hits.length - 1].getSortValues();
+            if (!ArrayUtils.isEmpty(sortValues))
+                jgen.writeStringField("cursorId", of(sortValues).map(value -> String.valueOf(value).replaceAll("_", "%5f")).collect(joining(SORT_SEPARATOR)));
         }
     }
 }

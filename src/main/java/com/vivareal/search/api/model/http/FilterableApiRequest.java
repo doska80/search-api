@@ -1,7 +1,10 @@
 package com.vivareal.search.api.model.http;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
-import com.vivareal.search.api.model.search.*;
+import com.vivareal.search.api.model.search.Filterable;
+import com.vivareal.search.api.model.search.Pageable;
+import com.vivareal.search.api.model.search.Queryable;
+import com.vivareal.search.api.model.search.Sortable;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;
@@ -28,6 +31,9 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
 
     @ApiModelProperty("The number of search hits to return")
     private int size = Integer.MAX_VALUE;
+
+    @ApiModelProperty("The cursor_id to use in pagination")
+    private String cursorId;
 
     public String getQ() {
         return q;
@@ -85,6 +91,14 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
         this.size = size;
     }
 
+    public String getCursorId() {
+        return cursorId;
+    }
+
+    public void setCursorId(String cursorId) {
+        this.cursorId = cursorId;
+    }
+
     protected ToStringHelper addValuesToStringHelper(ToStringHelper stringHelper) {
         return super.addValuesToStringHelper(stringHelper)
         .add("filter", getFilter())
@@ -93,6 +107,7 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
         .add("fields", getFields())
         .add("from", getFrom())
         .add("size", getSize())
+        .add("cursorId", getCursorId())
         .add("sort", getSort());
     }
 }
