@@ -11,12 +11,8 @@ import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,8 +36,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 import static org.elasticsearch.index.query.Operator.OR;
-import static org.elasticsearch.search.sort.SortOrder.ASC;
-import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
@@ -59,6 +53,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     @Mock
     private SearchAfterQueryAdapter searchAfterQueryAdapter;
 
+    @Mock
+    private SortQueryAdapter sortQueryAdapter;
+
     @Before
     public void setup() {
         initMocks(this);
@@ -67,7 +64,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         QS_DEFAULT_FIELDS.setValue(INDEX_NAME,"field,field1");
         SOURCE_INCLUDES.setValue(INDEX_NAME, "");
         SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
-        ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
         ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, "100");
         ES_QUERY_TIMEOUT_UNIT.setValue(INDEX_NAME, "MILLISECONDS");
         ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
@@ -75,12 +71,12 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         ES_FACET_SIZE.setValue(INDEX_NAME, "20");
 
         ESClient esClient = new ESClient(transportClient);
-        SourceFieldAdapter sourceFieldAdapter = new SourceFieldAdapter(esClient, settingsAdapter);
+        SourceFieldAdapter sourceFieldAdapter = new SourceFieldAdapter(settingsAdapter);
 
         when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
         when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
 
-        this.queryAdapter = spy(new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter));
+        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter, sortQueryAdapter);
 
         Map<String, String[]> defaultSourceFields = new HashMap<>();
         defaultSourceFields.put(INDEX_NAME, new String[0]);
@@ -90,6 +86,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         doNothing().when(settingsAdapter).checkIndex(any());
         doNothing().when(searchAfterQueryAdapter).apply(any(), any());
+        doNothing().when(sortQueryAdapter).apply(any(), any());
 
         when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
         when(settingsAdapter.isTypeOf(anyString(), anyString(), any(MappingType.class))).thenReturn(false);
@@ -688,38 +685,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     }
 
     @Test
-    public void shouldReturnSearchRequestBuilderSortedBy() {
-        String fieldName1 = "field1";
-        SortOrder fieldValue1 = ASC;
-
-        String fieldName2 = "field2";
-        SortOrder fieldValue2 = DESC;
-
-        String fieldName3 = "field3";
-        SortOrder fieldValue3 = ASC;
-
-
-        newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
-            request -> {
-                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.sort(String.format("%s %s, %s %s, %s %s", fieldName1, fieldValue1.name(), fieldName2, fieldValue2.name(), fieldName3, fieldValue3.name())).build());
-                List<FieldSortBuilder> sorts = (List) searchRequestBuilder.request().source().sorts();
-
-                assertNotNull(sorts);
-                assertTrue(sorts.size() == 3);
-
-                assertEquals(fieldName1, sorts.get(0).getFieldName());
-                assertEquals(fieldValue1, sorts.get(0).order());
-
-                assertEquals(fieldName2, sorts.get(1).getFieldName());
-                assertEquals(fieldValue2, sorts.get(1).order());
-
-                assertEquals(fieldName3, sorts.get(2).getFieldName());
-                assertEquals(fieldValue3, sorts.get(2).order());
-            }
-        );
-    }
-
-    @Test
     public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() {
         Set<String> includeFields = newHashSet("field1", "field2", "field3");
         Set<String> excludeFields = newHashSet("field3", "field4");
@@ -877,30 +842,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     @Test
     public void shouldReturnSimpleSearchRequestBuilderWithRecursiveRequest() {
 
-        // Display results
-        Set<String> includeFields  = newHashSet("field1", "field2");
-        Set<String> excludeFields = newHashSet("field3", "field4");
-
-        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> {
-            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
-        });
-
-        // Sort
-        String sortFieldName1 = "field1";
-        SortOrder sortFieldValue1 = ASC;
-
-        String sortFieldName2 = "field2";
-        SortOrder sortFieldValue2 = DESC;
-
-        String sortFieldName3 = "field3";
-        SortOrder sortFieldValue3 = ASC;
-
-        String sort = String.format("%s %s, %s %s, %s %s", sortFieldName1, sortFieldValue1.name(), sortFieldName2, sortFieldValue2.name(), sortFieldName3, sortFieldValue3.name());
-
-        // Facets
-        Set<String> facets = newHashSet("field1", "field2");
-        Integer facetSize = 10;
-
         // QueryString
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
         String fieldName1 = "field1";
@@ -913,10 +854,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         float boostValue3 = 5.0f;
         Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
         String mm = "50%";
-
-        // Pagination
-        Integer from = 40;
-        Integer size = 20;
 
         // Filters
         String field1Name = "field1";
@@ -959,17 +896,10 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         );
 
         SearchApiRequest searchApiRequest = fullRequest
-            .includeFields(includeFields)
-            .excludeFields(excludeFields)
             .filter(filter)
-            .sort(sort)
-            .facets(facets)
-            .facetSize(facetSize)
             .q(q)
             .fields(fields)
             .mm(mm)
-            .from(from)
-            .size(size)
             .build();
 
         SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
@@ -977,38 +907,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         // index
         assertEquals(searchApiRequest.getIndex(), searchRequestBuilder.request().indices()[0]);
-
-        // pagination
-        assertEquals(searchApiRequest.getFrom(), source.from());
-        assertEquals(searchApiRequest.getSize(), source.size());
-
-        // display
-        FetchSourceContext fetchSourceContext = source.fetchSource();
-        validateFetchSources(includeFields, excludeFields, fetchSourceContext);
-
-        // sort
-        List<FieldSortBuilder> sorts = (List) source.sorts();
-        assertNotNull(sorts);
-        assertTrue(sorts.size() == 3);
-        assertEquals(sortFieldName1, sorts.get(0).getFieldName());
-        assertEquals(sortFieldValue1, sorts.get(0).order());
-        assertEquals(sortFieldName2, sorts.get(1).getFieldName());
-        assertEquals(sortFieldValue2, sorts.get(1).order());
-        assertEquals(sortFieldName3, sorts.get(2).getFieldName());
-        assertEquals(sortFieldValue3, sorts.get(2).order());
-
-        //facets
-        List<AggregationBuilder> aggregations = source.aggregations().getAggregatorFactories();
-        assertNotNull(aggregations);
-        assertTrue(aggregations.size() == facets.size());
-        assertTrue(searchRequestBuilder.toString().contains("\"size\" : " + facetSize));
-        assertTrue(searchRequestBuilder.toString().contains("\"shard_size\" : 8"));
-        int facet1 = 0;
-        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet1)).field()));
-        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet1)).order()));
-        int facet2 = 1;
-        assertThat(facets, hasItem(((TermsAggregationBuilder) aggregations.get(facet2)).field()));
-        assertFalse(Terms.Order.count(true) == (((TermsAggregationBuilder) aggregations.get(facet2)).order()));
 
         // filters
         List<QueryBuilder> mustFirstLevel = ((BoolQueryBuilder) source.query()).must();

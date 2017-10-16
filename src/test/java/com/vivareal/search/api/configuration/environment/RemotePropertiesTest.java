@@ -28,7 +28,7 @@ public class RemotePropertiesTest {
     private static final String NON_EXISTING_INDEX = "nonExistingIndex";
     private static final String CUSTOM_INDEX = "customIndex";
 
-    private static final Set<RemoteProperties> PROPERTIES_AS_SET = newLinkedHashSet(QS_DEFAULT_FIELDS, ES_DEFAULT_SORT, SOURCE_INCLUDES, SOURCE_EXCLUDES);
+    private static final Set<RemoteProperties> PROPERTIES_AS_SET = newLinkedHashSet(QS_DEFAULT_FIELDS, SOURCE_INCLUDES, SOURCE_EXCLUDES);
     private static final Set<RemoteProperties> NUMERIC_PROPERTIES = newLinkedHashSet(ES_DEFAULT_SIZE, ES_MAX_SIZE, ES_FACET_SIZE, ES_QUERY_TIMEOUT_VALUE, ES_CONTROLLER_SEARCH_TIMEOUT, ES_CONTROLLER_STREAM_TIMEOUT, ES_STREAM_SIZE, ES_SCROLL_TIMEOUT);
     private static final Set<RemoteProperties> TEXT_PROPERTIES = of(values()).filter(p -> !PROPERTIES_AS_SET.contains(p) && !NUMERIC_PROPERTIES.contains(p)).collect(toSet());
 

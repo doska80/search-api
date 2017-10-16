@@ -11,7 +11,6 @@ import com.vivareal.search.api.model.query.*;
 import com.vivareal.search.api.model.search.Facetable;
 import com.vivareal.search.api.model.search.Filterable;
 import com.vivareal.search.api.model.search.Queryable;
-import com.vivareal.search.api.model.search.Sortable;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -37,7 +36,6 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.mapping.MappingType.*;
-import static com.vivareal.search.api.model.parser.SortParser.parse;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.lang.Integer.parseInt;
@@ -49,7 +47,6 @@ import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.nested;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
-import static org.elasticsearch.search.sort.SortOrder.valueOf;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -68,17 +65,20 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
     private SourceFieldAdapter sourceFieldAdapter;
     private SearchAfterQueryAdapter searchAfterQueryAdapter;
+    private SortQueryAdapter sortQueryAdapter;
 
     @Autowired
     public ElasticsearchQueryAdapter(ESClient esClient,
                                      @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String,
                                      Map<String, Object>>, String> settingsAdapter,
                                      SourceFieldAdapter sourceFieldAdapter,
-                                     SearchAfterQueryAdapter searchAfterQueryAdapter) {
+                                     SearchAfterQueryAdapter searchAfterQueryAdapter,
+                                     SortQueryAdapter sortQueryAdapter) {
         this.esClient = esClient;
         this.settingsAdapter = settingsAdapter;
         this.sourceFieldAdapter = sourceFieldAdapter;
         this.searchAfterQueryAdapter = searchAfterQueryAdapter;
+        this.sortQueryAdapter = sortQueryAdapter;
     }
 
     @Override
@@ -127,10 +127,10 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void buildQueryByFilterableApiRequest(FilterableApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
         applyPage(searchBuilder, request);
         sourceFieldAdapter.apply(searchBuilder, request);
-        applySort(searchBuilder, request);
         applyPage(searchBuilder, request);
         applyQueryString(queryBuilder, request);
         applyFilterQuery(queryBuilder, request);
+        sortQueryAdapter.apply(searchBuilder, request);
         searchAfterQueryAdapter.apply(searchBuilder, request);
     }
 
@@ -374,17 +374,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
         if (number < -100 || number > 100)
             throw new IllegalArgumentException(errorMessage);
-    }
-
-    private void applySort(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
-        Set<String> value = ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex());
-        if (!isEmpty(value)) {
-            parse(value.stream().collect(joining(","))).forEach(item -> {
-                String fieldName = item.getField().getName();
-                settingsAdapter.checkFieldName(request.getIndex(), fieldName, false);
-                searchRequestBuilder.addSort(fieldName, valueOf(item.getOrderOperator().name()));
-            });
-        }
     }
 
     private void applyFacets(SearchRequestBuilder searchRequestBuilder, final Facetable request) {

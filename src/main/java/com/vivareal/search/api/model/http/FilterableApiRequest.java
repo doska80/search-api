@@ -24,7 +24,7 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
     private Set<String> fields;
 
     @ApiModelProperty(value = "Sorting in the format: field (ASC|DESC), default sort order is ascending, multiple sort are supported", example = "field1 ASC, field2 DESC")
-    private Set<String> sort;
+    private String sort;
 
     @ApiModelProperty("From index to start the search from")
     private int from = 0;
@@ -67,11 +67,11 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
         this.fields = fields;
     }
 
-    public Set<String> getSort() {
+    public String getSort() {
         return sort;
     }
 
-    public void setSort(Set<String> sort) {
+    public void setSort(String sort) {
         this.sort = sort;
     }
 

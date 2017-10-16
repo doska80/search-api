@@ -12,13 +12,10 @@ import java.util.Map;
 @Component
 public class SourceFieldAdapter {
 
-    private ESClient esClient;
-
     private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
     @Autowired
-    public SourceFieldAdapter(ESClient esClient, @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter) {
-        this.esClient = esClient;
+    public SourceFieldAdapter(@Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter) {
         this.settingsAdapter = settingsAdapter;
     }
 
