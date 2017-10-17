@@ -15,13 +15,13 @@ public enum RelationalOperator {
     EQUAL("EQ", ":", "="),
     GREATER("GT", ">"),
     GREATER_EQUAL("GTE", ">="),
-    IN("IN"),
+    IN("INTO"),
     LESS("LT", "<"),
     LESS_EQUAL("LTE", "<="),
     VIEWPORT("@"),
-    LIKE("LIKE"),
-    RANGE("RANGE"),
-    POLYGON("POLYGON");
+    LIKE("LK"),
+    RANGE("RG"),
+    POLYGON("PG");
 
     private String[] alias;
 
