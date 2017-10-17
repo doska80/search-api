@@ -181,7 +181,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
-                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, getOperators(EQUAL).get(0))).build());
+                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, EQUAL.name())).build());
 
                 NestedQueryBuilder nestedQueryBuilder = (NestedQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
                 assertNotNull(nestedQueryBuilder);
@@ -200,7 +200,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
 
-        getOperators(DIFFERENT).parallelStream().forEach(
+        DIFFERENT.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, op)).build());
@@ -219,7 +219,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field1";
         final Object value = "Lorem Ipsum";
 
-        getOperators(EQUAL).parallelStream().forEach(
+        EQUAL.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, op)).build());
@@ -235,7 +235,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     @Test
     public void shouldReturnSearchRequestBuilderByTwoFragmentLevelsUsingOR() {
-        getOperators(EQUAL).parallelStream().forEach(
+        EQUAL.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter("(x1:1 AND y1:1) OR (x1:2 AND y2:2)").build());
@@ -252,7 +252,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     @Test
     public void shouldReturnSearchRequestBuilderByTwoFragmentLevelsUsingAND() {
-        getOperators(EQUAL).parallelStream().forEach(
+        EQUAL.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter("(x1:1 OR y1:1) AND (x1:2 OR y2:2)").build());
@@ -269,7 +269,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     @Test
     public void shouldReturnSearchRequestBuilderByTwoFragmentLevelsUsingNOT() {
-        getOperators(EQUAL).parallelStream().forEach(
+        EQUAL.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter("NOT((x1:1 AND y1:1) OR (x1:2 AND y2:2))").build());
@@ -293,7 +293,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field1";
         final Object value = 10;
 
-        getOperators(GREATER).forEach(
+        GREATER.getAlias().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, op)).build());
@@ -314,7 +314,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field1";
         final Object value = 10;
 
-        getOperators(GREATER_EQUAL).parallelStream().forEach(
+        GREATER_EQUAL.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, op)).build());
@@ -335,7 +335,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field1";
         final Object value = 10;
 
-        getOperators(LESS).parallelStream().forEach(
+        LESS.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, op)).build());
@@ -356,7 +356,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field1";
         final Object value = 10;
 
-        getOperators(LESS_EQUAL).parallelStream().forEach(
+        LESS_EQUAL.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, op)).build());
@@ -385,7 +385,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         when(settingsAdapter.isTypeOf(INDEX_NAME, field, MappingType.FIELD_TYPE_GEOPOINT)).thenReturn(true);
 
-        getOperators(VIEWPORT).parallelStream().forEach(
+        VIEWPORT.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s [[%s,%s],[%s,%s]]", field, op, northEastLon, northEastLat, southWestLon, southWestLat)).build());
@@ -410,7 +410,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         when(settingsAdapter.isTypeOf(INDEX_NAME, "field.location", MappingType.FIELD_TYPE_GEOPOINT)).thenReturn(true);
 
-        getOperators(POLYGON).parallelStream().forEach(
+        POLYGON.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(query).build());
@@ -442,7 +442,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         when(settingsAdapter.isTypeOf(INDEX_NAME, field, FIELD_TYPE_KEYWORD)).thenReturn(true);
 
-        getOperators(LIKE).parallelStream().forEach(
+        LIKE.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(format(field, value, op)).build());
@@ -461,7 +461,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field";
         final int from = 3, to = 5;
 
-        getOperators(RANGE).parallelStream().forEach(
+        RANGE.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s [%d,%d]", field, op, from, to)).build());
@@ -483,7 +483,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field";
         final int from = 5, to = 10;
 
-        getOperators(RANGE).parallelStream().forEach(
+        RANGE.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("NOT %s %s [%d,%d]", field, op, from, to)).build());
@@ -505,7 +505,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         final String field = "field1";
         final Object[] values = new Object[]{1, "\"string\"", 1.2, true};
 
-        getOperators(IN).parallelStream().forEach(
+        IN.getAlias().parallelStream().forEach(
             op -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.filter(String.format("%s %s %s", field, op, Arrays.toString(values))).build());
@@ -857,28 +857,28 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         // Filters
         String field1Name = "field1";
-        String field1RelationalOperator = getOperators(EQUAL).get(1);
+        String field1RelationalOperator = EQUAL.name();
         Object field1Value = "\"string\"";
 
         String field2Name = "field2";
-        String field2RelationalOperator = getOperators(DIFFERENT).get(1);
+        String field2RelationalOperator = DIFFERENT.name();
         Object field2Value = 5432;
 
         String field3Name = "field3";
-        String field3RelationalOperator = getOperators(GREATER).get(1);
+        String field3RelationalOperator = GREATER.name();
         Object field3Value = 3;
 
         String field4Name = "field4";
-        String field4RelationalOperator = getOperators(LESS).get(1);
+        String field4RelationalOperator = LESS.name();
         Object field4Value = 8;
 
         String field5Name = "field5";
-        String field5RelationalOperator = getOperators(IN).get(0);
+        String field5RelationalOperator = IN.name();
         Object[] field5Value = new Object[]{1, "\"string\"", 1.2, true};
 
 
         String field6Name = "field6.location";
-        String field6RelationalOperator = getOperators(VIEWPORT).get(0);
+        String field6RelationalOperator = VIEWPORT.name();
         double northEastLat = 42.0;
         double northEastLon = -74.0;
         double southWestLat = -40.0;

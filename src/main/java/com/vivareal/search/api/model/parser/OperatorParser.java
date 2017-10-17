@@ -25,7 +25,11 @@ public class OperatorParser {
     static final Parser<OrderOperator> ORDER_OPERATOR_PARSER = get(OrderOperator::getOperators, OrderOperator::get, "order operator");
 
     static Parser<String> exact(RelationalOperator operator) {
-        return between(WHITESPACES.skipMany(), or(Stream.of(operator.getAlias()).map(Scanners::string).toArray(Parser[]::new)).or(string(operator.name())), WHITESPACES.skipMany()).retn(operator.name());
+        return between(WHITESPACES.skipMany(), or(operator.getAlias().stream().map(Scanners::string).toArray(Parser[]::new)), WHITESPACES.skipMany()).retn(operator.name());
+    }
+
+    static Parser<String> exact(RelationalOperator... operator) {
+        return Parsers.or(Stream.of(operator).map(OperatorParser::exact).toArray(Parser[]::new));
     }
 
     private static <T> Parser<T> get(Supplier<String[]> operators, Function<String, T> getFn, String label) {
