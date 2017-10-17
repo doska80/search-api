@@ -110,6 +110,12 @@ public class QueryParserTest {
         assertEquals("(rooms EQUAL 3)", query2.toString());
     }
 
+    @Test
+    public void enumName() {
+        QueryFragment query = QueryParser.parse("x LESS_EQUAL 10");
+        assertEquals("(x LESS_EQUAL 10)", query.toString());
+    }
+
     @Test(expected = ParserException.class)
     public void oneRecursionWithLogicalPrefix() {
         QueryParser.parse("AND field:1");

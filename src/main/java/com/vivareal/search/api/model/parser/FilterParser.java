@@ -12,7 +12,7 @@ import static org.jparsec.Parsers.sequence;
 
 public class FilterParser {
 
-    private static final Parser<Filter> NORMAL_PARSER = sequence(FieldParser.get(), RELATIONAL_OPERATOR_PARSER, ValueParser.get(), Filter::new).label("filter");
+    private static final Parser<Filter> NORMAL_PARSER = sequence(FieldParser.get(), exact(DIFFERENT, EQUAL, GREATER_EQUAL, GREATER, IN, LESS_EQUAL, LESS), ValueParser.get(), Filter::new).label("filter");
 
     private static final Parser<Filter> LIKE_PARSER = sequence(FieldParser.get(), exact(LIKE), ValueParser.Like.get(), Filter::new).label("LIKE filter");
 

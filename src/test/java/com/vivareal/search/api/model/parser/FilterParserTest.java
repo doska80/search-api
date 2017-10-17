@@ -107,9 +107,17 @@ public class FilterParserTest {
     }
 
     @Test(expected = ParserException.class)
-    public void testEmptyViewports() {
+    public void testEmptyViewportsWithoutValue() {
         parser.parse("address.geoLocation VIEWPORT");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testEmptyViewportsEmptyValue() {
         parser.parse("address.geoLocation VIEWPORT []");
+    }
+
+    @Test(expected = ParserException.class)
+    public void testEmptyViewportsEmptyPoints() {
         parser.parse("address.geoLocation VIEWPORT [,]");
     }
 
