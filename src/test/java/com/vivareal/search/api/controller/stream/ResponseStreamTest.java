@@ -5,74 +5,59 @@ import org.junit.Test;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Iterator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public class ResponseStreamTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionWhenStreamIsNull() {
-        ResponseStream.create(null);
+        ResponseStream.iterate(null, null, null);
     }
 
     @Test
-    public void shouldCallWriteAndFlush() throws IOException {
+    public void shouldSuccessfulIterate() throws IOException {
         OutputStream mockStream = mock(OutputStream.class);
 
-        byte[] bytes = new byte[0];
+        final String[][] data = {
+            {"tincas", "urubu", "pizza"},
+            {"socks", "pinto"},
+            {}
+        };
 
-        ResponseStream.create(mockStream).write(bytes);
+        class MyIterator implements Iterator<String[]> {
 
-        verify(mockStream).write(bytes);
-        verify(mockStream).flush();
-    }
+            int counter = 0;
 
-    @Test
-    public void shouldAppendNewLine() {
-        OutputStream mockStream = mock(OutputStream.class);
-
-
-        byte[] array = new byte[]{1, 2, 3};
-
-        byte[] bytesWithNewLine = ResponseStream.create(mockStream)
-                .appendNewLine(array);
-
-        assertEquals(3, array.length);
-        assertEquals(4, bytesWithNewLine.length);
-        assertEquals('\n', bytesWithNewLine[bytesWithNewLine.length - 1]);
-    }
-
-    @Test
-    public void shouldCreateFlatedByteArray() {
-        OutputStream mockStream = mock(OutputStream.class);
-
-        final class ByteArray {
-            private byte[] array;
-
-            private ByteArray(byte[] array) {
-                this.array = array;
+            @Override
+            public boolean hasNext() {
+                return counter < data.length;
             }
 
-            private byte[] getArray() {
-                return array;
+            @Override
+            public String[] next() {
+                return data[counter++];
             }
         }
 
-        ByteArray data[] = {
-                new ByteArray(new byte[]{1, 2, 3}),
-                new ByteArray(new byte[]{4, 5, 6, 7}),
-                new ByteArray(new byte[]{8, 9, 10, 11, 12})
-        };
+        ResponseStream.iterate(mockStream, new MyIterator(), String::getBytes);
 
-        byte[] result = ResponseStream.create(mockStream).flatArray(data, ByteArray::getArray);
+        int callCount = 0;
+        for (String[] hits : data) {
+            for (String hit: hits) {
+                verify(mockStream, times(1)).write(hit.getBytes());
+                ++callCount;
+            }
+        }
 
-        assertEquals(15, result.length);
-
-        assertTrue(Arrays.equals(data[0].array, new byte[]{result[0], result[1], result[2]}));
-        assertTrue(Arrays.equals(data[1].array, new byte[]{result[4], result[5], result[6], result[7]}));
-        assertTrue(Arrays.equals(data[2].array, new byte[]{result[9], result[10], result[11], result[12], result[13]}));
+        verify(mockStream, times(callCount)).write('\n');
+        verify(mockStream, times(data.length)).flush();
     }
 }
