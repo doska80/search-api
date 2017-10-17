@@ -5,11 +5,7 @@ import org.elasticsearch.action.search.SearchScrollRequestBuilder;
 import org.elasticsearch.client.transport.TransportClient;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.function.Function;
-
-import static java.lang.Integer.MAX_VALUE;
-import static java.util.Optional.ofNullable;
 
 public class SearchApiIterator<T> implements Iterator<T[]> {
     private TransportClient client;
@@ -43,9 +39,7 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
 
     @Override
     public T[] next() {
-        T[] result = (T[]) ofNullable(response.getHits())
-                .flatMap(e -> ofNullable(e.getHits()))
-                .orElseThrow(NoSuchElementException::new);
+        T[] result = (T[]) response.getHits().getHits();
 
         response = loop.apply(client.prepareSearchScroll(response.getScrollId()));
 
@@ -55,6 +49,6 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
     }
 
     private int hits() {
-        return ofNullable(response.getHits()).map(e -> e.getHits().length).orElse(0);
+        return response.getHits().getHits().length;
     }
 }

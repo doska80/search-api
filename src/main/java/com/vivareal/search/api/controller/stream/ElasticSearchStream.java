@@ -16,9 +16,7 @@ import java.io.OutputStream;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static java.lang.Integer.MAX_VALUE;
-import static java.lang.Integer.parseInt;
 import static java.lang.Math.min;
-import static java.lang.String.valueOf;
 
 @Component
 public class ElasticSearchStream {
@@ -46,8 +44,7 @@ public class ElasticSearchStream {
         }
 
         int streamTimeout = ES_CONTROLLER_STREAM_TIMEOUT.getValue(index);
-        ResponseStream.create(stream)
-                .withIterator(new SearchApiIterator<>(client, requestBuilder.get(),
+        ResponseStream.iterate(stream, new SearchApiIterator<>(client, requestBuilder.get(),
                         scroll -> scroll.setScroll(keepAlive).execute().actionGet(streamTimeout), count), (SearchHit sh) -> BytesReference.toBytes(sh.getSourceRef()));
     }
 }
