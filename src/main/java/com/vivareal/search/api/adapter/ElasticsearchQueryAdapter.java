@@ -210,19 +210,24 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 break;
 
                             case LIKE:
-                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_KEYWORD))
+                                if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_KEYWORD))
                                     throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_KEYWORD.toString(), LIKE);
 
                                 addFilterQuery(queryBuilder, wildcardQuery(fieldName, filter.getValue().first()), logicalOperator, not, nested, fieldFirstName, nestedQueries);
                                 break;
 
                             case IN:
-                                Object[] values = filterValue.stream().map(contents -> ((com.vivareal.search.api.model.query.Value) contents).value(0)).toArray();
-                                addFilterQuery(queryBuilder, termsQuery(fieldName, values), logicalOperator, not, nested, fieldFirstName, nestedQueries);
+                                if (fieldName.equals(ES_MAPPING_META_FIELDS_ID.getValue(indexName))) {
+                                    String[] values = filterValue.stream().map(contents -> ((Value) contents).value(0)).map(Object::toString).toArray(String[]::new);
+                                    addFilterQuery(queryBuilder, idsQuery().addIds(values), logicalOperator, not, nested, fieldFirstName, nestedQueries);
+                                } else {
+                                    Object[] values = filterValue.stream().map(contents -> ((Value) contents).value(0)).toArray();
+                                    addFilterQuery(queryBuilder, termsQuery(fieldName, values), logicalOperator, not, nested, fieldFirstName, nestedQueries);
+                                }
                                 break;
 
                             case POLYGON:
-                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
+                                if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
                                     throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT.toString(), POLYGON);
 
                                 List<GeoPoint> points = filterValue
@@ -234,7 +239,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                 break;
 
                             case VIEWPORT:
-                                if(!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
+                                if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
                                     throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT.toString(), VIEWPORT);
 
                                 GeoPoint topRight = new GeoPoint(filterValue.value(0, 1), filterValue.value(0, 0));
