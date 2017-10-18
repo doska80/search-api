@@ -260,11 +260,13 @@ public class ESResponseSerializerTest {
         BytesReference source = new BytesArray("{\"id\":1}");
         values.put("_source", source);
 
-        values.put("sort", new SearchSortValues(new Object[]{0.23456, "A_B"}, new DocValueFormat[]{DocValueFormat.RAW, DocValueFormat.RAW}));
+        String _uid = INDEX_NAME + "#1028071465";
+
+        values.put("sort", new SearchSortValues(new Object[]{0.23456, "A_B", _uid}, new DocValueFormat[]{DocValueFormat.RAW, DocValueFormat.RAW}));
         hits[0] = createFromMap(values);
 
         when(searchHits.getHits()).thenReturn(hits);
-        assertThat(mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)), containsString("\"cursorId\":\"0.23456_A%5fB\""));
+        assertThat(mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)), containsString("\"cursorId\":\"0.23456_A%5fB_" + _uid + "\""));
     }
 
 }
