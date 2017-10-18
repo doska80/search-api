@@ -12,6 +12,7 @@ import static com.vivareal.search.api.configuration.environment.RemoteProperties
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.vivareal.search.api.model.parser.SortParser.parse;
 import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
+import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.elasticsearch.search.sort.SortOrder.valueOf;
 
 @Component
@@ -35,5 +36,6 @@ public class SortQueryAdapter {
 
             searchRequestBuilder.addSort(fieldSortBuilder);
         });
+        searchRequestBuilder.addSort(fieldSort("_uid").order(DESC));
     }
 }

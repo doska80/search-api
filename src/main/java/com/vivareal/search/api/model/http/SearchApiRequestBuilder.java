@@ -6,7 +6,7 @@ import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 public class SearchApiRequestBuilder {
 
-    public static final String INDEX_NAME = "my_index";
+    public static final String INDEX_NAME = "index-name";
 
     private SearchApiRequestBuilder() {}
 

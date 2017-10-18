@@ -4,6 +4,7 @@ import com.vivareal.search.api.model.http.SearchApiRequest;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.List;
@@ -21,14 +22,17 @@ import static org.mockito.Mockito.when;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
 
-    private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter = mock(SettingsAdapter.class);
+    private static SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter = mock(SettingsAdapter.class);
 
     private SortQueryAdapter sortQueryAdapter = new SortQueryAdapter(settingsAdapter);
 
-    @Test
-    public void shouldApplySortByDefault() {
+    @BeforeClass
+    public static void setup() {
         ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
+    }
 
+    @Test
+    public void shouldApplySortByDefaultProperty() {
         SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
         SearchApiRequest request = fullRequest.build();
 
@@ -40,6 +44,10 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
         assertEquals("id", sorts.get(0).getFieldName());
         assertEquals("ASC", sorts.get(0).order().name());
         assertNull(sorts.get(0).getNestedPath());
+
+        assertEquals("_uid", sorts.get(1).getFieldName());
+        assertEquals("DESC", sorts.get(1).order().name());
+        assertNull(sorts.get(1).getNestedPath());
     }
 
     @Test
@@ -67,6 +75,10 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
         assertEquals(fieldName2, sorts.get(1).getFieldName());
         assertEquals(sortOrder2, sorts.get(1).order());
         assertEquals("nested", sorts.get(1).getNestedPath());
+
+        assertEquals("_uid", sorts.get(2).getFieldName());
+        assertEquals("DESC", sorts.get(2).order().name());
+        assertNull(sorts.get(2).getNestedPath());
     }
 
 }

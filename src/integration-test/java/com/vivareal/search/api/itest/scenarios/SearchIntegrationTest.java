@@ -1144,8 +1144,8 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
             .get(format("%s?filter=(field10:\"value10\" AND isEven:true) OR (field9:\"value9\" AND isEven:false)", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(2))
-            .body("result.testdata[0].id", equalTo("10"))
-            .body("result.testdata[1].id", equalTo("9"))
+            .body("result.testdata[0].id", equalTo("9"))
+            .body("result.testdata[1].id", equalTo("10"))
         ;
     }
 
