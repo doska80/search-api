@@ -111,7 +111,7 @@ There are only two endpoints to **searching** and **monitoring**:
     | `filter`          | `string`   | Query DSL
     | `includeFields`   | `string[]` | Fields that will be included in the result
     | `excludeFields`   | `string[]` | Fields that will be excluded in the result
-    
+
     There are many parameters and you can see [here](http://search-api-v2.vivareal.com).
 
 - **Monitoring** endpoints:
@@ -122,9 +122,9 @@ There are only two endpoints to **searching** and **monitoring**:
 
 ### Query language syntax
 
-SearchAPI provides a Query DSL creating flexible queries to our search engine. The idea is to abstract any kind of complexity to making queries and search optimizations. 
+SearchAPI provides a Query DSL creating flexible queries to our search engine. The idea is to abstract any kind of complexity to making queries and search optimizations.
 
-Basically, you need just use `filter` query parameter for that, for example: 
+Basically, you need just use `filter` query parameter for that, for example:
 
 <pre>
 curl -X GET http://api/v2/listings<b>?filter=</b>field1 EQ 'value1' AND (field2 EQ 'value2'OR field3 EQ 'value3')
@@ -139,7 +139,7 @@ You can see more details in [wiki](https://github.com/VivaReal/search-api/wiki).
 ## How to Deploy
 
 We are deploying SearchAPI with Amazon AWS using [El Asno Alado](https://github.com/VivaReal/el-asno-alado) project and the mainly file to configure deploy is a [Makefile](https://github.com/VivaReal/search-api/blob/master/Makefile) located in the project's root directory.
-    
+
 First of all, you need to setup your AWS Credentials and sync git submodules:
 
 ```sh
@@ -173,16 +173,26 @@ make ENV=${ENV} \
 - `ES_CLUSTER_NAME` is a string with the current [ElasticSearch](https://github.com/VivaReal/search-es) cluster.
 
 ### Deploying from Jenkins
- 
+
 <a href="http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_PROD/build?delay=0sec">
   <img src="http://ftp-chi.osuosl.org/pub/jenkins/art/jenkins-logo/logo+title.svg" alt="Jenkins" width="150">
-</a> 
+</a>
 
 ## Load Tests
 
 There is a `load-test` sub-project that responsible to execute load tests for **SearchAPI**.
 
 See [Load Test](load-test/)
+
+## Code Benchmark test
+
+We are using [jmh](http://openjdk.java.net/projects/code-tools/jmh) to code benchmark test and [jmh Gradle Plugin](https://github.com/melix/jmh-gradle-plugin).
+
+To run code benchmark tests:
+
+```sh
+make benchmark
+```
 
 ----
 

@@ -28,8 +28,12 @@ public class QueryParser {
         return parser;
     }
 
+    public static Parser<QueryFragment> get() {
+        return RECURSIVE_QUERY_PARSER;
+    }
+
     @Trace
     public static QueryFragment parse(String string) {
-        return RECURSIVE_QUERY_PARSER.parse(string);
+        return get().parse(string);
     }
 }
