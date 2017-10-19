@@ -1,7 +1,7 @@
 package com.vivareal.search.simulation
 
 import com.typesafe.config.ConfigFactory
-import com.vivareal.search.config.SearchAPIv2Feeder
+import com.vivareal.search.config.{SearchAPIv2Feeder}
 import com.vivareal.search.repository.SearchAPIv2Repository
 import com.vivareal.search.repository.SearchAPIv2Repository.ScenarioName._
 import io.gatling.core.Predef._
@@ -26,20 +26,26 @@ class SearchAPIv2Simulation extends Simulation {
       .map {
         case FILTERS => scenario(FILTERS)
           .repeat(gatling.getInt("repeat")) {
-            feed(SearchAPIv2Feeder(SearchAPIv2Repository.getFacets).random)
+            feed(SearchAPIv2Feeder.filters(SearchAPIv2Repository.getFacets).random)
               .exec(http("Filter ${name}").get(index + "?filter=${name}:\"${value}\""))
           }
 
         case FACETS => scenario(FACETS)
           .repeat(gatling.getInt("repeat")) {
-            feed(SearchAPIv2Feeder(SearchAPIv2Repository.getFacets).random)
+            feed(SearchAPIv2Feeder.filters(SearchAPIv2Repository.getFacets).random)
               .exec(http("Facet ${name}").get(index + "?filter=${name}:\"${value}\"&facets=${name}"))
           }
 
         case IDS => scenario(IDS)
           .repeat(gatling.getInt("repeat")) {
-            feed(SearchAPIv2Feeder(SearchAPIv2Repository.getIds))
+            feed(SearchAPIv2Feeder.ids(SearchAPIv2Repository.getIds()))
               .exec(http("By ID").get(index + "/${value}"))
+          }
+
+        case IDS_IN => scenario(IDS_IN)
+          .repeat(gatling.getInt("repeat")) {
+            feed(SearchAPIv2Feeder.idsIN(SearchAPIv2Repository.getIds(IDS_IN, Some(gatling.getInt("idsIn.range") * gatling.getInt("idsIn.users")))))
+              .exec(http("By ID's IN").get(index + "?filter=id IN [${value}]"))
           }
       }
     .map(scn => scn.inject(rampUsers(gatling.getInt(s"${scn.name}.users")) over (gatling.getInt("rampUp") seconds)))
