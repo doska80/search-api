@@ -36,7 +36,7 @@ public class ElasticSearchStream {
         SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
         requestBuilder.setScroll(keepAlive).setSize(ES_STREAM_SIZE.getValue(index));
 
-        Integer count = MAX_VALUE;
+        int count = MAX_VALUE;
         if(request.getSize() != Integer.MAX_VALUE && request.getSize() != 0) {
             count = request.getSize();
             requestBuilder.setSize(min(request.getSize(), ES_STREAM_SIZE.getValue(index)));
