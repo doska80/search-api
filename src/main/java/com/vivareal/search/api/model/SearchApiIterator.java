@@ -8,25 +8,24 @@ import java.util.Iterator;
 import java.util.function.Function;
 
 public class SearchApiIterator<T> implements Iterator<T[]> {
-    private TransportClient client;
 
+    private TransportClient client;
     private SearchResponse response;
 
     private Function<SearchScrollRequestBuilder, SearchResponse> loop;
 
-    private final Integer size;
-
+    private final int size;
     private int count;
 
-    public SearchApiIterator(TransportClient client, SearchResponse response, Function<SearchScrollRequestBuilder, SearchResponse> loop, Integer size) {
-        if (response == null) throw new IllegalArgumentException("response can not be null");
-        this.response = response;
+    public SearchApiIterator(TransportClient client, SearchResponse response, Function<SearchScrollRequestBuilder, SearchResponse> loop, int size) {
+        if ((this.response = response) == null)
+            throw new IllegalArgumentException("response can not be null");
 
-        if (client == null) throw new IllegalArgumentException("client can not be null");
-        this.client = client;
+        if ((this.client = client) == null)
+            throw new IllegalArgumentException("client can not be null");
 
-        if (loop == null) throw new IllegalArgumentException("loop can not be null");
-        this.loop = loop;
+        if ((this.loop = loop) == null)
+            throw new IllegalArgumentException("loop can not be null");
 
         this.size = size;
         this.count = hits();
@@ -42,7 +41,6 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
         T[] result = (T[]) response.getHits().getHits();
 
         response = loop.apply(client.prepareSearchScroll(response.getScrollId()));
-
         this.count += hits();
 
         return result;

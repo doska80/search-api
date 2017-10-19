@@ -4,16 +4,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Iterator;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class ResponseStreamTest {
 
@@ -32,9 +25,8 @@ public class ResponseStreamTest {
             {}
         };
 
-        class MyIterator implements Iterator<String[]> {
-
-            int counter = 0;
+        ResponseStream.iterate(mockStream, new Iterator<String[]>(){
+            private int counter = 0;
 
             @Override
             public boolean hasNext() {
@@ -45,9 +37,7 @@ public class ResponseStreamTest {
             public String[] next() {
                 return data[counter++];
             }
-        }
-
-        ResponseStream.iterate(mockStream, new MyIterator(), String::getBytes);
+        }, String::getBytes);
 
         int callCount = 0;
         for (String[] hits : data) {
