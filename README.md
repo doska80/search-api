@@ -196,4 +196,4 @@ make benchmark
 
 ----
 
-Made with <a href="https://www.myinstants.com/media/sounds/i-will-always-love-you-low.mp3">&#9829;</a> from the VivaReal's Search team.
+Made with <a href="https://www.myinstants.com/media/sounds/i-will-always-love-you-low.mp3">&#9829;</a> by the VivaReal's engineering team.
