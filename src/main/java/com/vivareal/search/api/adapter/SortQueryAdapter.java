@@ -25,6 +25,9 @@ public class SortQueryAdapter {
     }
 
     public void apply(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
+        if (request.getSort() != null && "".equals(request.getSort().trim()))
+            return;
+
         parse(ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex())).forEach(item -> {
             String fieldName = item.getField().getName();
 
