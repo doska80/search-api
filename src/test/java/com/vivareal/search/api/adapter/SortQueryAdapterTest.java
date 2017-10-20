@@ -81,4 +81,14 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
         assertNull(sorts.get(2).getNestedPath());
     }
 
+    @Test
+    public void shouldNotApplySortWhenClientInputSortEmptyOnRequest() {
+        SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+        SearchApiRequest request = fullRequest.build();
+        request.setSort("");
+
+        sortQueryAdapter.apply(requestBuilder, request);
+        assertNull(requestBuilder.request().source());
+    }
+
 }

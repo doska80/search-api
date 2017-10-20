@@ -34,7 +34,7 @@ object SearchAPIv2Repository {
   def getIds(contextId: String = "ids", sizeOpt: Option[Int] = None): Iterator[String] = {
     val size = sizeOpt.getOrElse(gatling.getInt(s"$contextId.users")) * gatling.getInt("repeat")
     println(s"* Getting stream ids.. (size:$size)")
-    Source.fromURL(s"http://${http.getString("base")}${http.getString("listings")}/stream?includeFields=id&size=$size")
+    Source.fromURL(s"http://${http.getString("base")}${http.getString("listings")}/stream?includeFields=id&sort=&size=$size")
       .getLines
       .take(size)
       .map(parse(_))
