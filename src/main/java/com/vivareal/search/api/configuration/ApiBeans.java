@@ -5,8 +5,10 @@ import com.vivareal.search.api.serializer.ESResponseSerializer;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.Transport;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +21,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static com.vivareal.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
-import static com.vivareal.search.api.configuration.ThreadPoolConfig.QUEUE_SIZE;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Configuration
@@ -46,15 +46,9 @@ public class ApiBeans implements DisposableBean {
     @Scope(SCOPE_SINGLETON)
     public TransportClient transportClient() throws UnknownHostException {
         Settings settings = Settings.builder()
-                .put("client.transport.nodes_sampler_interval", "5s")
-                .put("client.transport.sniff", true)
-                .put("transport.tcp.compress", true)
-                .put("cluster.name", clusterName)
-                .put("request.headers.X-Found-Cluster", "${cluster.name}")
-                .put("thread_pool.search.size", MIN_SIZE)
-                .put("thread_pool.search.queue_size", QUEUE_SIZE)
-                .put("thread_pool.get.size", MIN_SIZE)
-                .put("thread_pool.get.queue_size", QUEUE_SIZE)
+                .put(TransportClient.CLIENT_TRANSPORT_SNIFF.getKey(), true)
+                .put(Transport.TRANSPORT_TCP_COMPRESS.getKey(), true)
+                .put(ClusterName.CLUSTER_NAME_SETTING.getKey(), clusterName)
                 .build();
         this.esClient = new PreBuiltTransportClient(settings);
 
