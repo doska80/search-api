@@ -14,7 +14,7 @@ import static java.util.Optional.ofNullable;
 
 public class Value {
 
-    protected List<Object> contents;
+    List<Object> contents;
 
     public static final Value NULL_VALUE = new Value(null);
 

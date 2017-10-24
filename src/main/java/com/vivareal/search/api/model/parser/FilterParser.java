@@ -4,7 +4,6 @@ import com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type;
 import com.vivareal.search.api.model.query.Filter;
 import org.jparsec.Parser;
 
-import static com.vivareal.search.api.model.parser.OperatorParser.RELATIONAL_OPERATOR_PARSER;
 import static com.vivareal.search.api.model.parser.OperatorParser.exact;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static org.jparsec.Parsers.or;

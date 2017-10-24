@@ -33,7 +33,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @Scope(SCOPE_SINGLETON)
 public class SearchApiEnv {
 
-    private static Logger LOG = LoggerFactory.getLogger(SearchApiEnv.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SearchApiEnv.class);
 
     private static final String SEARCH_API_CONFIG_ENDPOINT = "/search-api-properties/properties/_search";
     private static final Header SEARCH_API_HEADERS = new BasicHeader("Content-Type", "application/json; charset=UTF-8");
@@ -42,8 +42,8 @@ public class SearchApiEnv {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    private Map<String, Object> localProperties = new HashMap<>();
-    private Map<String, Object> remoteProperties = new HashMap<>();
+    private final Map<String, Object> localProperties = new HashMap<>();
+    private final Map<String, Object> remoteProperties = new HashMap<>();
 
     public SearchApiEnv(final Environment env, final RestClient restClient) {
         this.restClient = restClient;

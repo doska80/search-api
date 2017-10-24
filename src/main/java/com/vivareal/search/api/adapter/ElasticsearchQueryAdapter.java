@@ -56,18 +56,18 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 @DependsOn("searchApiEnv")
 public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder, SearchRequestBuilder> {
 
-    private static Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
     private static final String NOT_NESTED = "not_nested";
 
     private static final String MM_ERROR_MESSAGE = "Minimum Should Match (mm) should be a valid integer number (-100 <> +100)";
 
-    private ESClient esClient;
+    private final ESClient esClient;
 
-    private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
-    private SourceFieldAdapter sourceFieldAdapter;
-    private SearchAfterQueryAdapter searchAfterQueryAdapter;
-    private SortQueryAdapter sortQueryAdapter;
+    private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+    private final SourceFieldAdapter sourceFieldAdapter;
+    private final SearchAfterQueryAdapter searchAfterQueryAdapter;
+    private final SortQueryAdapter sortQueryAdapter;
 
     @Autowired
     public ElasticsearchQueryAdapter(ESClient esClient,
@@ -93,7 +93,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
 
         sourceFieldAdapter.apply(requestBuilder, request);
 
-        LOG.debug("Query getById {}", requestBuilder != null ? requestBuilder.request() : null);
+        LOG.debug("Query getById {}", requestBuilder.request());
 
         return requestBuilder;
     }

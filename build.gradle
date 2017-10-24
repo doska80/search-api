@@ -257,7 +257,7 @@ configurations{
 task integrationTest(type: Test) {
     doFirst {
         if(!isESHealthy() && !isSearchApiHealthy()) {
-            throw new RuntimeException("Searchapi compose is not healthy");
+            throw new RuntimeException("Searchapi compose is not healthy")
         }
     }
 

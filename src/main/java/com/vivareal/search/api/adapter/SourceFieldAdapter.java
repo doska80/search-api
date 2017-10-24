@@ -12,7 +12,7 @@ import java.util.Map;
 @Component
 public class SourceFieldAdapter {
 
-    private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+    private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
     @Autowired
     public SourceFieldAdapter(@Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter) {

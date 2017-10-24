@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;

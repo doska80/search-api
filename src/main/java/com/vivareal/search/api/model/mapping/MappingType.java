@@ -23,7 +23,7 @@ public enum MappingType {
         this.types = types;
     }
 
-    private Set<String> types;
+    private final Set<String> types;
 
     public boolean typeOf(final String foundType) {
         return types.contains(foundType);

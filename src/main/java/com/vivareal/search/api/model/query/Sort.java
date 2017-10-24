@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.joining;
 
 public final class Sort extends AbstractSet<Sort.Item> {
 
-    private Set<Item> items = new LinkedHashSet<>();
+    private final Set<Item> items = new LinkedHashSet<>();
 
     public Sort(Field field, OrderOperator orderOperator) {
         items.add(new Item(field, orderOperator));

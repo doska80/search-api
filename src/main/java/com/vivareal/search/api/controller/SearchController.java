@@ -51,9 +51,9 @@ import static org.springframework.web.bind.annotation.RequestMethod.GET;
 )
 public class SearchController {
 
-    private static BodyBuilder builderOK = ok();
+    private static final BodyBuilder builderOK = ok();
 
-    private static ResponseEntity<Object> notFoundResponse = notFound().build();
+    private static final ResponseEntity<Object> notFoundResponse = notFound().build();
 
     @Autowired
     private SearchService searchService;

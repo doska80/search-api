@@ -5,6 +5,7 @@ import com.vivareal.search.api.itest.configuration.es.BulkESIndexHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
@@ -21,6 +22,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.HttpStatus.SC_GATEWAY_TIMEOUT;
 
+@Component
 @RunWith(SpringRunner.class)
 public class QueryTimeoutIntegrationTest extends SearchApiIntegrationTest {
 

@@ -6,6 +6,7 @@ import br.com.six2six.fixturefactory.loader.TemplateLoader;
 import com.vivareal.search.api.model.query.*;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static com.vivareal.search.api.model.query.RelationalOperator.EQUAL;
 import static java.util.Arrays.asList;
@@ -24,7 +25,7 @@ public class ParserTemplateLoader implements TemplateLoader {
         }});
 
         Fixture.of(Value.class).addTemplate("value", new Rule() {{
-            add("contents", Arrays.asList("value"));
+            add("contents", singletonList("value"));
         }});
 
         Fixture.of(Value.class).addTemplate("null", new Rule() {{

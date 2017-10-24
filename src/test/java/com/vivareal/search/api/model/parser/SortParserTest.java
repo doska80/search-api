@@ -1,12 +1,9 @@
 package com.vivareal.search.api.model.parser;
 
 import com.vivareal.search.api.model.query.Sort;
-import org.assertj.core.util.Lists;
-import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.util.Lists.newArrayList;
