@@ -136,9 +136,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         Set<String> includeFields = newHashSet("field1", "field2", "field3");
         Set<String> excludeFields = newHashSet("field3", "field4");
 
-        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> {
-            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
-        });
+        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
 
         newArrayList(basicRequest, filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
@@ -708,9 +706,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         Set<String> includeFields = newHashSet("field1", "field2", "field3");
         Set<String> excludeFields = newHashSet("field3", "field4");
 
-        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> {
-            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
-        });
+        concat(includeFields.stream(), excludeFields.stream()).forEach(field -> when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
@@ -781,19 +777,17 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         List<String> validMMs = Lists.newArrayList("-100%", "100%", "75%", "-2");
 
         validMMs.forEach(
-            mm -> {
-                newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
-                    request -> {
-                        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).mm(mm).build());
-                        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
+            mm -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
+                request -> {
+                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).mm(mm).build());
+                    QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
 
-                        assertNotNull(queryStringQueryBuilder);
-                        assertEquals(q, queryStringQueryBuilder.queryString());
-                        assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
-                        assertEquals(OR, queryStringQueryBuilder.defaultOperator());
-                    }
-                );
-            }
+                    assertNotNull(queryStringQueryBuilder);
+                    assertEquals(q, queryStringQueryBuilder.queryString());
+                    assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
+                    assertEquals(OR, queryStringQueryBuilder.defaultOperator());
+                }
+            )
         );
     }
 
@@ -1016,9 +1010,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     public void testFetchSourceFields() {
         String[] includes = {"field1", "field2"}, excludes = {"field3", "field4"};
 
-        concat(stream(includes), stream(excludes)).forEach(field -> {
-            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
-        });
+        concat(stream(includes), stream(excludes)).forEach(field -> when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
@@ -1053,9 +1045,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     public void testFetchSourceIncludesEmptyFields() {
         String[] excludes = {"field3", "field4"};
 
-        stream(excludes).forEach(field -> {
-            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
-        });
+        stream(excludes).forEach(field -> when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
@@ -1073,9 +1063,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     public void testFetchSourceFilterExcludeFields() {
         String[] includes = {"field1", "field2"}, excludes = {"field1", "field3"};
 
-        concat(stream(includes), stream(excludes)).forEach(field -> {
-            when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true);
-        });
+        concat(stream(includes), stream(excludes)).forEach(field -> when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {

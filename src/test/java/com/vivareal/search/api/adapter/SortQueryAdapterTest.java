@@ -22,9 +22,9 @@ import static org.mockito.Mockito.when;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
 
-    private static SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter = mock(SettingsAdapter.class);
+    private static final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter = mock(SettingsAdapter.class);
 
-    private SortQueryAdapter sortQueryAdapter = new SortQueryAdapter(settingsAdapter);
+    private final SortQueryAdapter sortQueryAdapter = new SortQueryAdapter(settingsAdapter);
 
     @BeforeClass
     public static void setup() {

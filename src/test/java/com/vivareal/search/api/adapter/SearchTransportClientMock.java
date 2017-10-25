@@ -13,12 +13,12 @@ import static org.elasticsearch.common.settings.Settings.EMPTY;
 @RunWith(com.carrotsearch.randomizedtesting.RandomizedRunner.class)
 public class SearchTransportClientMock {
 
-    protected ComplexRequestBuilder fullRequest = create().index(INDEX_NAME).from(0).size(20);
+    protected final ComplexRequestBuilder fullRequest = create().index(INDEX_NAME).from(0).size(20);
 
-    protected BasicRequestBuilder basicRequest = basic().index(INDEX_NAME);
+    protected final BasicRequestBuilder basicRequest = basic().index(INDEX_NAME);
 
-    protected FilterableRequestBuilder filterableRequest = filterable().index(INDEX_NAME);
+    protected final FilterableRequestBuilder filterableRequest = filterable().index(INDEX_NAME);
 
-    protected TransportClient transportClient = new MockTransportClient(EMPTY);
+    protected final TransportClient transportClient = new MockTransportClient(EMPTY);
 
 }

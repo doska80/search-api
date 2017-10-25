@@ -1,11 +1,9 @@
 package com.vivareal.search.api.model.query;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 import static com.vivareal.search.api.model.query.RelationalOperator.RelationalOperatorMap.OPERATORS;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toList;
 
 public enum RelationalOperator {
 
@@ -21,7 +19,7 @@ public enum RelationalOperator {
     RANGE("RG"),
     POLYGON("PG");
 
-    private Set<String> alias;
+    private final Set<String> alias;
 
     RelationalOperator(String... alias) {
         this.alias = new HashSet<>();
@@ -46,6 +44,6 @@ public enum RelationalOperator {
     }
 
     static class RelationalOperatorMap {
-        static Map<String, RelationalOperator> OPERATORS = new HashMap<>();
+        static final Map<String, RelationalOperator> OPERATORS = new HashMap<>();
     }
 }

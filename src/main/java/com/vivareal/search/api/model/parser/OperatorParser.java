@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 import static org.jparsec.Parsers.between;
 import static org.jparsec.Parsers.or;
 import static org.jparsec.Scanners.WHITESPACES;
-import static org.jparsec.Scanners.string;
 import static org.jparsec.Terminals.fragment;
 import static org.jparsec.Terminals.operators;
 

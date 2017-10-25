@@ -2,7 +2,7 @@ package com.vivareal.search.api.model.query;
 
 public class QueryFragmentOperator implements QueryFragment {
 
-    private LogicalOperator operator;
+    private final LogicalOperator operator;
 
     public QueryFragmentOperator(LogicalOperator operator) {
         this.operator = operator;

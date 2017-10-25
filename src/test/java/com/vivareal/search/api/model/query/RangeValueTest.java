@@ -2,7 +2,6 @@ package com.vivareal.search.api.model.query;
 
 import org.junit.Test;
 
-import static org.assertj.core.util.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 
 public class RangeValueTest {

@@ -67,8 +67,8 @@ public class ValueParser {
                 this.maxSize = maxSize;
             }
 
-            private int minSize;
-            private int maxSize;
+            private final int minSize;
+            private final int maxSize;
 
             public int getMinSize() {
                 return minSize;

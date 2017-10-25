@@ -7,7 +7,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
@@ -33,7 +32,7 @@ public class RemotePropertiesTest {
     private static final Set<RemoteProperties> TEXT_PROPERTIES = of(values()).filter(p -> !PROPERTIES_AS_SET.contains(p) && !NUMERIC_PROPERTIES.contains(p)).collect(toSet());
 
     @Before
-    public void resetIndexPropertiesMap() throws IllegalAccessException, NoSuchFieldException {
+    public void resetIndexPropertiesMap() {
         of(values()).map(RemoteProperties::getIndexProperties).forEach(Map::clear);
     }
 
@@ -69,7 +68,7 @@ public class RemotePropertiesTest {
     }
 
     private Integer numberAsInteger(Number number) {
-        return Integer.valueOf(number.intValue());
+        return number.intValue();
     }
 
     @Test
@@ -81,9 +80,9 @@ public class RemotePropertiesTest {
             List<String> defaultIndex = newArrayList(DEFAULT_INDEX, DEFAULT_INDEX, DEFAULT_INDEX);
             property.setValue(DEFAULT_INDEX, defaultIndex.stream().collect(joining(",")));
 
-            assertEquals(property.name(), customIndex.stream().collect(toSet()), property.getValue(CUSTOM_INDEX));
-            assertEquals(property.name(), defaultIndex.stream().collect(toSet()), property.getValue(DEFAULT_INDEX));
-            assertEquals(property.name(), defaultIndex.stream().collect(toSet()), property.getValue(NON_EXISTING_INDEX));
+            assertEquals(property.name(), new HashSet<>(customIndex), property.getValue(CUSTOM_INDEX));
+            assertEquals(property.name(), new HashSet<>(defaultIndex), property.getValue(DEFAULT_INDEX));
+            assertEquals(property.name(), new HashSet<>(defaultIndex), property.getValue(NON_EXISTING_INDEX));
         });
     }
 

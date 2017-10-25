@@ -1106,7 +1106,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
     }
 
     @Test
-    public void searchStreamSizeWorks() throws Exception {
+    public void searchStreamSizeWorks() {
         Integer numberShards = given()
             .log().all()
             .baseUri(baseUrl)

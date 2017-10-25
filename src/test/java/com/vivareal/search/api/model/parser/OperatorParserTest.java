@@ -17,8 +17,8 @@ import static org.junit.Assert.assertThat;
 
 public class OperatorParserTest {
 
-    private static Parser<RelationalOperator> relationalParser = OperatorParser.RELATIONAL_OPERATOR_PARSER;
-    private static Parser<LogicalOperator> logicalParser = OperatorParser.LOGICAL_OPERATOR_PARSER;
+    private static final Parser<RelationalOperator> relationalParser = OperatorParser.RELATIONAL_OPERATOR_PARSER;
+    private static final Parser<LogicalOperator> logicalParser = OperatorParser.LOGICAL_OPERATOR_PARSER;
 
     @Test
     public void testRelationalEqualsOperator() {

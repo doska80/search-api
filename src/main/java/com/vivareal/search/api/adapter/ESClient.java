@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ESClient {
 
-    private TransportClient transportClient;
+    private final TransportClient transportClient;
 
     @Autowired
     public ESClient(TransportClient transportClient) {

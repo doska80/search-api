@@ -8,13 +8,11 @@ import com.vivareal.search.api.model.mapping.MappingType;
 import com.vivareal.search.api.model.search.Fetchable;
 import com.vivareal.search.api.model.search.Indexable;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -40,17 +38,17 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 @Component("elasticsearchSettings")
 public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String, Map<String, Object>>, String> {
 
-    private static Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
 
     public static final String SHARDS = "index.number_of_shards";
     public static final String REPLICAS = "index.number_of_replicas";
 
     private Map<String, Map<String, Object>> structuredIndices;
 
-    private ESClient esClient;
+    private final ESClient esClient;
 
-    private Map<String, String[]> defaultSourceIncludes;
-    private Map<String, String[]> defaultSourceExcludes;
+    private final Map<String, String[]> defaultSourceIncludes;
+    private final Map<String, String[]> defaultSourceExcludes;
 
     @Autowired
     public ElasticsearchSettingsAdapter(ESClient esClient) {

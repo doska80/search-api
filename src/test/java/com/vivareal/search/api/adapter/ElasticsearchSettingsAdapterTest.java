@@ -6,7 +6,6 @@ import com.vivareal.search.api.exception.PropertyNotFoundException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,8 +23,8 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
 
     private ElasticsearchSettingsAdapter settingsAdapter;
     private Map<String, Map<String, Object>> structuredIndices;
-    private BaseApiRequest validIndexRequest = basicRequest.build();
-    private BaseApiRequest invalidIndexRequest = basicRequest.index("not-valid-index").build();
+    private final BaseApiRequest validIndexRequest = basicRequest.build();
+    private final BaseApiRequest invalidIndexRequest = basicRequest.index("not-valid-index").build();
 
     @Before
     public void setup() {

@@ -43,7 +43,7 @@ public class Field {
         return this.names.stream().collect(joining("."));
     }
 
-    public List<String> getNames() {
+    private List<String> getNames() {
         return this.names;
     }
 

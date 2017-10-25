@@ -22,7 +22,7 @@ import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.WAIT_U
 @Service
 public class BulkESIndexHandler {
 
-    private static Logger LOG = LoggerFactory.getLogger(BulkESIndexHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BulkESIndexHandler.class);
 
     private final RestHighLevelClient restHighLevelClient;
 

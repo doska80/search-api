@@ -9,7 +9,7 @@ import java.io.IOException;
 
 public class QueryPhaseExecutionException extends RuntimeException {
 
-    private static Logger LOG = LoggerFactory.getLogger(QueryPhaseExecutionException.class);
+    private static final Logger LOG = LoggerFactory.getLogger(QueryPhaseExecutionException.class);
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String MESSAGE = "Error on executing the query by remote server";
