@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
@@ -40,14 +37,14 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 @Service
 public class ESIntegrationTestSetup {
 
-    private static Logger LOG = LoggerFactory.getLogger(ESIntegrationTestSetup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ESIntegrationTestSetup.class);
 
 
     private static final String INDEXES_FILE = "/es/bootstrap.json";
 
-    private StrSubstitutor boostrapVariables;
+    private final StrSubstitutor boostrapVariables;
     private Map<String, Object> boostrapConfiguration;
-    private ESIndexHandler esIndexHandler;
+    private final ESIndexHandler esIndexHandler;
 
     @Autowired
     public ESIntegrationTestSetup(@Value("${es.hostname}") String elasticSearchHost,
@@ -65,7 +62,7 @@ public class ESIntegrationTestSetup {
     }
 
     @PostConstruct
-    public void configESForIntegrationTest() throws InterruptedException {
+    public void configESForIntegrationTest() {
         readConfigurationFile();
         executeConfigurationCommands();
         warmUp();
@@ -107,7 +104,7 @@ public class ESIntegrationTestSetup {
             .toArray(Header[]::new);
         String body = ofNullable(req.get("body")).map(item -> (Map<String, String>) item).map(item -> item.get("raw")).orElse("");
 
-        LOG.info(format("Executing single command: [%s] [%s] [%s] [%s]", url, method, headers, body));
+        LOG.info(format("Executing single command: [%s] [%s] [%s] [%s]", url, method, Arrays.toString(headers), body));
 
         try (RestClient restClient = RestClient.builder(new HttpHost(url.getHost(), url.getPort(), url.getProtocol())).build()) {
             Response response = restClient.performRequest(method.name(), url.getPath(), emptyMap(), new NStringEntity(body, APPLICATION_JSON), headers);

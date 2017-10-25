@@ -11,7 +11,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class SearchAfterQueryAdapterTest extends SearchTransportClientMock {
 
-    private SearchAfterQueryAdapter searchAfterQueryAdapter = new SearchAfterQueryAdapter();
+    private final SearchAfterQueryAdapter searchAfterQueryAdapter = new SearchAfterQueryAdapter();
 
     @Test
     public void shouldApplySearchAfterAndSetFromToZeroWhenFieldUsedInSortIsValid() {

@@ -9,7 +9,7 @@ public class QueryParserBenchmark {
 
     @State(Scope.Benchmark)
     public static class QueryState {
-        Parser<QueryFragment> parser = QueryParser.get();
+        final Parser<QueryFragment> parser = QueryParser.get();
     }
 
     @Benchmark

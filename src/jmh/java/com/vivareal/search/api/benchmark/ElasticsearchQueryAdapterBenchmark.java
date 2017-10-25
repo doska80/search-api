@@ -17,7 +17,7 @@ public class ElasticsearchQueryAdapterBenchmark {
 
     @State(Scope.Benchmark)
     public static class ElasticsearchQueryAdapterState {
-        ElasticsearchQueryAdapter adapter = new ElasticsearchQueryAdapter(null, new ElasticsearchSettingsAdapter(null) {
+        final ElasticsearchQueryAdapter adapter = new ElasticsearchQueryAdapter(null, new ElasticsearchSettingsAdapter(null) {
             @Override
             public boolean checkFieldName(String index, String fieldName, boolean acceptAsterisk) {
                 return true;
@@ -28,8 +28,8 @@ public class ElasticsearchQueryAdapterBenchmark {
                 return type != FIELD_TYPE_NESTED;
             }
         }, null, null, null);
-        BoolQueryBuilder bqb = boolQuery();
-        Filterable filterable = SearchApiRequestBuilder.create().index("tincas").filter("a = 1").build();
+        final BoolQueryBuilder bqb = boolQuery();
+        final Filterable filterable = SearchApiRequestBuilder.create().index("tincas").filter("a = 1").build();
     }
 
     @Benchmark

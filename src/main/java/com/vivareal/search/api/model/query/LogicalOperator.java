@@ -12,12 +12,10 @@ public enum LogicalOperator implements QueryFragment {
     AND("AND", "&&"),
     OR("OR", "||");
 
-    private String[] alias;
-
     LogicalOperator(String... alias) {
-        if (alias.length < 1) throw new IllegalArgumentException("Operator must have at least 1 alias");
-        this.alias = alias;
-        Stream.of(this.alias).forEach(label -> OPERATORS.put(label, this));
+        if (alias.length < 1)
+            throw new IllegalArgumentException("Operator must have at least 1 alias");
+        Stream.of(alias).forEach(label -> OPERATORS.put(label, this));
     }
 
     public static String[] getOperators() {
@@ -31,6 +29,6 @@ public enum LogicalOperator implements QueryFragment {
     }
 
     static class LogicalOperatorMap {
-        static Map<String, LogicalOperator> OPERATORS = new HashMap<>();
+        static final Map<String, LogicalOperator> OPERATORS = new HashMap<>();
     }
 }

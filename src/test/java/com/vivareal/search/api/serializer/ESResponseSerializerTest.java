@@ -38,7 +38,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 public class ESResponseSerializerTest {
 
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public static void setup() {

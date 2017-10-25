@@ -1,7 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
 import com.vivareal.search.api.model.query.QueryFragment;
-import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 

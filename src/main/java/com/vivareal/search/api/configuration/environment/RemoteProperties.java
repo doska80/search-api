@@ -10,8 +10,6 @@ import java.util.stream.Stream;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
-import static java.lang.Integer.parseInt;
-import static java.lang.Long.parseLong;
 import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
@@ -43,11 +41,11 @@ public enum RemoteProperties {
 
     public static final String DEFAULT_INDEX = "default";
 
-    private String property;
-    private Function<String, ?> parser;
-    private Function<Object, Boolean> isRequestValueValid;
+    private final String property;
+    private final Function<String, ?> parser;
+    private final Function<Object, Boolean> isRequestValueValid;
 
-    private Map<String, Object> indexProperties;
+    private final Map<String, Object> indexProperties;
 
     RemoteProperties(String property) {
         this(property, AS_STRING);
@@ -94,23 +92,23 @@ public enum RemoteProperties {
 
     static class FieldsParser {
 
-        static Function<String, String> AS_STRING = Function.identity();
+        static final Function<String, String> AS_STRING = Function.identity();
 
-        static Function<String, Set<String>> AS_SET = property -> ofNullable(property)
+        static final Function<String, Set<String>> AS_SET = property -> ofNullable(property)
             .filter(StringUtils::isNotBlank)
             .map(value -> value.split(","))
             .map(stringArray -> Stream.of(stringArray).collect(toSet()))
             .orElse(emptySet());
 
-        static Function<String, Integer> AS_INTEGER = Integer::parseInt;
+        static final Function<String, Integer> AS_INTEGER = Integer::parseInt;
 
-        static Function<String, Long> AS_LONG = Long::parseLong;
+        static final Function<String, Long> AS_LONG = Long::parseLong;
     }
 
     static class IsRequestValidFunction {
 
-        static Function<Object, Boolean> NON_NULL_OBJECT = Objects::nonNull;
+        static final Function<Object, Boolean> NON_NULL_OBJECT = Objects::nonNull;
 
-        static Function<Object, Boolean> NON_EMPTY_COLLECTION = collection -> !CollectionUtils.isEmpty((Collection<?>) collection);
+        static final Function<Object, Boolean> NON_EMPTY_COLLECTION = collection -> !CollectionUtils.isEmpty((Collection<?>) collection);
     }
 }

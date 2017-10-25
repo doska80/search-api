@@ -32,7 +32,7 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 @Service
 public class ESIndexHandler {
 
-    private static Logger LOG = LoggerFactory.getLogger(ESIndexHandler.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ESIndexHandler.class);
 
     public static final String TEST_DATA_INDEX = "/testdata";
     public static final String TEST_DATA_TYPE = "testdata";
@@ -42,11 +42,11 @@ public class ESIndexHandler {
 
     private final RestClient restClient;
 
-    private int standardDatasetSize;
-    private int standardDatasetFacetDecrease;
+    private final int standardDatasetSize;
+    private final int standardDatasetFacetDecrease;
     private final Long timeout;
 
-    private Map<String, Object> properties;
+    private final Map<String, Object> properties;
 
     @Value("${es.query.timeout.unit}")
     private String queryTimeoutUnit;
