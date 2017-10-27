@@ -27,8 +27,6 @@ PORT:=8482
 ES_PORT?=9300
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
-# TODO - Use DefaultAWSCredentialsProviderChain
-RUN_OPTS+=-Daws.access.key=$(AWS_ACCESS_KEY_ID) -Daws.secret.key=$(AWS_SECRET_ACCESS_KEY)
 RUN_OPTS+=-server -XX:+UseConcMarkSweepGC -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=80
 RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 100)m -Xms$(shell expr $(RUN_MEMORY) - 100)m
 
@@ -47,8 +45,6 @@ RUN_CMD= docker run \
 		$(DOCKER_NET_CONFIG) \
 		-v $(LOG):$(CONTAINER_LOG) \
 		-e JAVA_OPTS='"$(RUN_OPTS)"' \
-		-e AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) \
-		-e AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) \
 		$(REMOVE_CONTAINER_FLAG) --name $(CONTAINER_NAME) \
 		$(DAEMON_FLAG) -m $(RUN_MEMORY)M -ti $(IMAGE_NAME)
 
