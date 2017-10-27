@@ -1,7 +1,7 @@
 package com.vivareal.search.api;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
 import org.springframework.cloud.netflix.turbine.EnableTurbine;
@@ -26,13 +26,13 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.springframework.http.HttpStatus.*;
 import static springfox.documentation.builders.PathSelectors.regex;
 
+@SpringBootApplication
 @Configuration
 @EnableAsync
 @ComponentScan(basePackages = {"com.vivareal.search.api.adapter",
         "com.vivareal.search.api.configuration",
         "com.vivareal.search.api.controller",
         "com.vivareal.search.api.service"})
-@EnableAutoConfiguration
 @EnableSwagger2
 @EnableHystrix
 @EnableHystrixDashboard
