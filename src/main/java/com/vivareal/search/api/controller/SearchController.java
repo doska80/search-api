@@ -5,6 +5,7 @@ import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.newrelic.api.agent.Trace;
+import com.vivareal.search.api.controller.error.ExceptionHandler;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
@@ -28,6 +29,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -61,6 +63,9 @@ public class SearchController {
     @Autowired
     private Environment environment;
 
+    @Autowired
+    private ExceptionHandler exceptionHandler;
+
     @RequestMapping(value = {"/{index}/{id:[0-9]+}"}, method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @ApiOperation(value = "Search by index with id", notes = "Returns index by identifier")
     @ApiResponses(value = {
@@ -71,6 +76,7 @@ public class SearchController {
     })
     @HystrixCommand(
         commandProperties = {
+            @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
             @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
             @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "5000"),
             @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "100"),
@@ -100,6 +106,7 @@ public class SearchController {
     })
     @HystrixCommand(
         commandProperties = {
+            @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
             @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
             @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "10000"),
             @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "30"),
@@ -115,8 +122,9 @@ public class SearchController {
         return new ResponseEntity<>(new SearchResponseEnvelope<>(request.getIndex(), searchService.search(request)), OK);
     }
 
-    public ResponseEntity<Object> fallback(Throwable e) throws Throwable {
-        throw e;
+    public ResponseEntity<Object> fallback(Throwable e) {
+        ResponseEntity<Map<String, Object>> error = exceptionHandler.error(e);
+        return new ResponseEntity<>(error.getBody(), error.getStatusCode());
     }
 
     @RequestMapping(value = {"/force{operation:Open|Closed}/{flag}"}, method = GET)
