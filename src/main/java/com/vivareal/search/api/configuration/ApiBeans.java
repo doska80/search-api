@@ -45,9 +45,6 @@ public class ApiBeans implements DisposableBean {
     @Value("${es.cluster.name}")
     private String clusterName;
 
-    @Value("${es.transport.client.processors}")
-    private Integer transportProcessors;
-
     @Bean
     @Scope(SCOPE_SINGLETON)
     public TransportClient transportClient() throws UnknownHostException {
@@ -55,7 +52,6 @@ public class ApiBeans implements DisposableBean {
                 .put(TransportClient.CLIENT_TRANSPORT_SNIFF.getKey(), true)
                 .put(Transport.TRANSPORT_TCP_COMPRESS.getKey(), true)
                 .put(ClusterName.CLUSTER_NAME_SETTING.getKey(), clusterName)
-                .put(EsExecutors.PROCESSORS_SETTING.getKey(), ofNullable(transportProcessors).orElseGet(() -> getRuntime().availableProcessors() * 2))
                 .build();
         this.esClient = new PreBuiltTransportClient(settings);
 
