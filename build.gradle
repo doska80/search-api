@@ -71,11 +71,11 @@ jar {
 import org.apache.tools.ant.filters.ReplaceTokens
 
 repositories {
-    jcenter()
+    mavenLocal()
     mavenCentral()
     maven { url "http://repo.spring.io/release" }
     maven { url "http://repo.spring.io/milestone" }
-    mavenLocal()
+    jcenter()
 }
 
 configurations {
