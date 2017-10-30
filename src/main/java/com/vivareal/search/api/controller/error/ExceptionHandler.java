@@ -15,9 +15,11 @@ import org.springframework.web.servlet.handler.DispatcherServletWebRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
+import static java.util.Objects.nonNull;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
@@ -43,56 +45,63 @@ public class ExceptionHandler {
     }
 
     public ResponseEntity<Map<String, Object>> error(Throwable e, HttpServletRequest request) {
-        Map<String, Object> errorBody = errorAttributes.getErrorAttributes(new DispatcherServletWebRequest(request), getTraceParameter(request));
-        HttpStatus status = getStatus(e, request, errorBody);
+        Map<String, Object> errorBody = errorAttributes.getErrorAttributes(new DispatcherServletWebRequest(request), false);
+
+        HttpStatus httpStatus = getStatusCode(e, request);
+        Optional<String> rootCauseMessage = Optional.empty();
 
         errorBody.put("request", request.getParameterMap());
-
-        return new ResponseEntity<>(errorBody, status);
-    }
-
-    private boolean getTraceParameter(HttpServletRequest request) {
-        String parameter = request.getParameter("trace");
-        return parameter != null && !"FALSE".equalsIgnoreCase(parameter);
-    }
-
-    private HttpStatus setResponseStatus(Map<String, Object> errorBody, HttpStatus httpStatus) {
         errorBody.put("status", httpStatus.value());
         errorBody.put("error", httpStatus.getReasonPhrase());
-        return httpStatus;
+        if(e != null) {
+            rootCauseMessage = Optional.of(getRootCauseMessage(e));
+            rootCauseMessage.ifPresent(msg -> errorBody.put("message", msg));
+        }
+
+        if(httpStatus.is5xxServerError())
+            logErrorMsg2Appenders(e, request, errorBody, rootCauseMessage);
+
+        return new ResponseEntity<>(errorBody, httpStatus);
     }
 
-    private HttpStatus getStatus(Throwable e, HttpServletRequest request, Map<String, Object> errorBody) {
-        if(e != null) {
-            String rootCauseMessage = getRootCauseMessage(e);
-            errorBody.put("message", rootCauseMessage);
+    private void logErrorMsg2Appenders(Throwable e, HttpServletRequest request, Map<String, Object> errorBody, Optional<String> rootCauseMessage) {
+        StringBuilder builder = new StringBuilder("Path: [" + errorBody.getOrDefault("path", "None") + "]");
+        builder.append(" - Request Parameters: [" + getParametersFromRequest(request) + "]");
+        rootCauseMessage.ifPresent(rootCause -> builder.append(" - RootCauseMessage: [" + rootCause + "]"));
+        String additionalMessage = additionalMessage(e);
 
-            if(e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException)
-                return setResponseStatus(errorBody, BAD_REQUEST);
-
-            if (e instanceof QueryPhaseExecutionException) {
-                LOG.error("Path: [{}] - Request Parameters: [{}] - RootCauseMessage: [{}] - Additional Message: [{}]",
-                errorBody.getOrDefault("path", "None"),
-                getParametersFromRequest(request),
-                rootCauseMessage,
-                "Query: " + ((QueryPhaseExecutionException) e).getQuery()
-                );
-
-                if (e instanceof QueryTimeoutException || getRootCause(e) instanceof TimeoutException)
-                    return setResponseStatus(errorBody, GATEWAY_TIMEOUT);
-            }
+        if(nonNull(additionalMessage)) {
+            builder.append(additionalMessage);
+            LOG.error(builder.toString());
+        } else {
+            LOG.error(builder.toString(), e);
         }
+    }
+
+    private String additionalMessage(Throwable e) {
+        if (e != null && e instanceof QueryPhaseExecutionException)
+            return " - Query: [" + ((QueryPhaseExecutionException) e).getQuery() + "]";
+
+        return null;
+    }
+
+    private HttpStatus getStatusCode(Throwable e, HttpServletRequest request) {
+        if(e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException)
+            return BAD_REQUEST;
+
+        if (e instanceof QueryTimeoutException || getRootCause(e) instanceof TimeoutException)
+            return GATEWAY_TIMEOUT;
 
         Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
         if (statusCode != null) {
             try {
-                return setResponseStatus(errorBody, HttpStatus.valueOf(statusCode));
+                return HttpStatus.valueOf(statusCode);
             } catch (Exception ex) {
                 LOG.error("Invalid http status code", ex);
             }
         }
 
-        return setResponseStatus(errorBody, INTERNAL_SERVER_ERROR);
+        return INTERNAL_SERVER_ERROR;
     }
 
     private String getParametersFromRequest(final HttpServletRequest request) {
