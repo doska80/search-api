@@ -56,4 +56,20 @@
             <appender-ref ref="ASYNC_SENTRY"/>
         </springProfile>
     </root>
+
+    <logger name="org.springframework">
+        <level value="warn" />
+    </logger>
+
+    <logger name="com.netflix">
+        <level value="warn" />
+    </logger>
+
+    <logger name="com.getsentry">
+        <level value="warn" />
+    </logger>
+
+    <logger name="springfox">
+        <level value="warn" />
+    </logger>
 </configuration>
