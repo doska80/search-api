@@ -1,6 +1,7 @@
 package com.vivareal.search.api.configuration.environment;
 
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.unit.TimeValue;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -10,9 +11,11 @@ import java.util.stream.Stream;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
+import static java.lang.Long.parseLong;
 import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toSet;
+import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 
 public enum RemoteProperties {
 
@@ -30,8 +33,8 @@ public enum RemoteProperties {
     ES_FACET_SIZE("es.facet.size", AS_INTEGER),
     ES_QUERY_TIMEOUT_VALUE("es.query.timeout.value", AS_LONG),
     ES_QUERY_TIMEOUT_UNIT("es.query.timeout.unit"),
-    ES_CONTROLLER_SEARCH_TIMEOUT("es.controller.search.timeout", AS_LONG),
-    ES_CONTROLLER_STREAM_TIMEOUT("es.controller.stream.timeout", AS_INTEGER),
+    ES_CONTROLLER_SEARCH_TIMEOUT("es.controller.search.timeout", AS_TIME_VALUE_MILLIS),
+    ES_CONTROLLER_STREAM_TIMEOUT("es.controller.stream.timeout", AS_TIME_VALUE_MILLIS),
     ES_STREAM_SIZE("es.stream.size", AS_INTEGER),
     ES_SCROLL_TIMEOUT("es.scroll.timeout", AS_INTEGER),
     SOURCE_INCLUDES("source.default.includes", AS_SET, NON_EMPTY_COLLECTION),
@@ -62,7 +65,6 @@ public enum RemoteProperties {
 
         this.indexProperties = new HashMap<>();
     }
-
 
     String getProperty() {
         return property;
@@ -103,6 +105,8 @@ public enum RemoteProperties {
         static final Function<String, Integer> AS_INTEGER = Integer::parseInt;
 
         static final Function<String, Long> AS_LONG = Long::parseLong;
+
+        static final Function<String, TimeValue> AS_TIME_VALUE_MILLIS = s -> timeValueMillis(parseLong(s));
     }
 
     static class IsRequestValidFunction {

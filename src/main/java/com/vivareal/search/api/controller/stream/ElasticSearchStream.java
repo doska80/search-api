@@ -51,8 +51,8 @@ public class ElasticSearchStream {
             requestBuilder.setTerminateAfter(count);
         }
 
-        int streamTimeout = ES_CONTROLLER_STREAM_TIMEOUT.getValue(index);
+        TimeValue streamTimeout = ES_CONTROLLER_STREAM_TIMEOUT.getValue(index);
         ResponseStream.iterate(stream, new SearchApiIterator<>(client, requestBuilder.get(),
-                        scroll -> scroll.setScroll(keepAlive).execute().actionGet(streamTimeout), count), (SearchHit sh) -> BytesReference.toBytes(sh.getSourceRef()));
+                        scroll -> scroll.setScroll(keepAlive).get(streamTimeout), count), (SearchHit sh) -> BytesReference.toBytes(sh.getSourceRef()));
     }
 }
