@@ -13,13 +13,13 @@ import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.common.unit.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.OutputStream;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_SEARCH_TIMEOUT;
@@ -39,7 +39,7 @@ public class SearchService {
     @Trace
     public GetResponse getById(BaseApiRequest request, String id) throws InterruptedException, ExecutionException, TimeoutException {
         try {
-            return this.queryAdapter.getById(request, id).execute().actionGet(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS);
+            return this.queryAdapter.getById(request, id).get((TimeValue) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
         } catch (Exception e) {
             if (getRootCause(e) instanceof IllegalArgumentException)
                 throw new IllegalArgumentException(e);
@@ -55,7 +55,7 @@ public class SearchService {
 
         try {
             searchRequestBuilder = this.queryAdapter.query(request);
-            SearchResponse searchResponse = searchRequestBuilder.execute().actionGet((Long) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
+            SearchResponse searchResponse = searchRequestBuilder.get((TimeValue) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
 
             if (searchResponse.isTimedOut())
                 throw new QueryTimeoutException(searchRequestBuilder.toString());

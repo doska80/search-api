@@ -1,5 +1,6 @@
 package com.vivareal.search.api.configuration.environment;
 
+import org.elasticsearch.common.unit.TimeValue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -7,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
@@ -19,6 +21,7 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.of;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
+import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 import static org.junit.Assert.*;
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
@@ -28,8 +31,9 @@ public class RemotePropertiesTest {
     private static final String CUSTOM_INDEX = "customIndex";
 
     private static final Set<RemoteProperties> PROPERTIES_AS_SET = newLinkedHashSet(QS_DEFAULT_FIELDS, SOURCE_INCLUDES, SOURCE_EXCLUDES);
-    private static final Set<RemoteProperties> NUMERIC_PROPERTIES = newLinkedHashSet(ES_DEFAULT_SIZE, ES_MAX_SIZE, ES_FACET_SIZE, ES_QUERY_TIMEOUT_VALUE, ES_CONTROLLER_SEARCH_TIMEOUT, ES_CONTROLLER_STREAM_TIMEOUT, ES_STREAM_SIZE, ES_SCROLL_TIMEOUT);
-    private static final Set<RemoteProperties> TEXT_PROPERTIES = of(values()).filter(p -> !PROPERTIES_AS_SET.contains(p) && !NUMERIC_PROPERTIES.contains(p)).collect(toSet());
+    private static final Set<RemoteProperties> NUMERIC_PROPERTIES = newLinkedHashSet(ES_DEFAULT_SIZE, ES_MAX_SIZE, ES_FACET_SIZE, ES_QUERY_TIMEOUT_VALUE, ES_STREAM_SIZE, ES_SCROLL_TIMEOUT);
+    private static final Set<RemoteProperties> TIME_AS_SET = newLinkedHashSet(ES_CONTROLLER_SEARCH_TIMEOUT, ES_CONTROLLER_STREAM_TIMEOUT);
+    private static final Set<RemoteProperties> TEXT_PROPERTIES = of(values()).filter(p -> !PROPERTIES_AS_SET.contains(p) && !NUMERIC_PROPERTIES.contains(p) && !TIME_AS_SET.contains(p)).collect(toSet());
 
     @Before
     public void resetIndexPropertiesMap() {
@@ -64,6 +68,18 @@ public class RemotePropertiesTest {
             assertEquals(property.name(), numberAsInteger(MAX_VALUE), numberAsInteger(property.getValue(CUSTOM_INDEX)));
             assertEquals(property.name(), numberAsInteger(MIN_VALUE), numberAsInteger(property.getValue(DEFAULT_INDEX)));
             assertEquals(property.name(), numberAsInteger(MIN_VALUE), numberAsInteger(property.getValue(NON_EXISTING_INDEX)));
+        });
+    }
+
+    @Test
+    public void validateGetValueForTimeValueProperties() {
+        TIME_AS_SET.forEach(property -> {
+            property.setValue(CUSTOM_INDEX, "0");
+            property.setValue(DEFAULT_INDEX, "10");
+
+            assertEquals(property.name(), timeValueMillis(0), property.getValue(CUSTOM_INDEX));
+            assertEquals(property.name(), timeValueMillis(10), property.getValue(DEFAULT_INDEX));
+            assertEquals(property.name(), timeValueMillis(10), property.getValue(NON_EXISTING_INDEX));
         });
     }
 
@@ -102,7 +118,7 @@ public class RemotePropertiesTest {
 
     @Test
     public void setEmptyValuesForNumericProperties() {
-        NUMERIC_PROPERTIES.forEach(property -> {
+        Stream.concat(TIME_AS_SET.stream(), NUMERIC_PROPERTIES.stream()).forEach(property -> {
             try {
                 property.setValue(DEFAULT_INDEX, EMPTY);
                 assertFalse(property.name() + ": Exception should be threw setting empty value", true);
@@ -180,6 +196,28 @@ public class RemotePropertiesTest {
             // Test over non existing index
             assertEquals(property.name(), numberAsInteger(MIN_VALUE), numberAsInteger(property.getValue(null, NON_EXISTING_INDEX)));
             assertEquals(property.name(), numberAsInteger(0), numberAsInteger(property.getValue(0, NON_EXISTING_INDEX)));
+        });
+    }
+
+    @Test
+    public void checkIsValidRequestValueForTimeValueProperties() {
+        TIME_AS_SET.forEach(property -> {
+            System.out.println("Testing remote property as TimeValue: " + property);
+
+            property.setValue(CUSTOM_INDEX, "0");
+            property.setValue(DEFAULT_INDEX, "10");
+
+            // Test over custom index
+            assertEquals(property.name(), timeValueMillis(0), property.getValue(null, CUSTOM_INDEX));
+            assertEquals(property.name(), timeValueMillis(11), property.getValue(timeValueMillis(11), CUSTOM_INDEX));
+
+            // Test over default index
+            assertEquals(property.name(), timeValueMillis(10), property.getValue(null, DEFAULT_INDEX));
+            assertEquals(property.name(), timeValueMillis(12), property.getValue(timeValueMillis(12), DEFAULT_INDEX));
+
+            // Test over non existing index
+            assertEquals(property.name(), timeValueMillis(10), property.getValue(null, NON_EXISTING_INDEX));
+            assertEquals(property.name(), timeValueMillis(13), property.getValue(timeValueMillis(13), NON_EXISTING_INDEX));
         });
     }
 
