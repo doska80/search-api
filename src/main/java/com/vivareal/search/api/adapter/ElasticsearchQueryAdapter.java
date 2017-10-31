@@ -89,6 +89,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         settingsAdapter.checkIndex(request);
 
         GetRequestBuilder requestBuilder = esClient.prepareGet(request, id)
+            .setRealtime(false)
             .setOperationThreaded(false);
 
         sourceFieldAdapter.apply(requestBuilder, request);
