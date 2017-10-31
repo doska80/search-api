@@ -39,7 +39,7 @@ public class SearchService {
     @Trace
     public GetResponse getById(BaseApiRequest request, String id) throws InterruptedException, ExecutionException, TimeoutException {
         try {
-            return this.queryAdapter.getById(request, id).execute().get(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS);
+            return this.queryAdapter.getById(request, id).execute().actionGet(ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()), TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             if (getRootCause(e) instanceof IllegalArgumentException)
                 throw new IllegalArgumentException(e);
