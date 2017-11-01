@@ -91,10 +91,11 @@ public class SearchController {
     public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) throws InterruptedException, ExecutionException, TimeoutException {
         GetResponse response = searchService.getById(request, id);
 
-        if(response.isExists())
-            return builderOK.body(response.getSourceAsBytesRef().utf8ToString());
+        if(!response.isExists())
+            return notFoundResponse;
 
-        return notFoundResponse;
+        byte[] sourceAsBytes = response.getSourceAsBytes();
+        return builderOK.body(new String(sourceAsBytes, 0, sourceAsBytes.length));
     }
 
     @RequestMapping(value = "/{index}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
