@@ -1,56 +1,51 @@
 package com.vivareal.search.simulation
 
-import com.typesafe.config.ConfigFactory
-import com.vivareal.search.config.{SearchAPIv2Feeder}
-import com.vivareal.search.repository.SearchAPIv2Repository
-import com.vivareal.search.repository.SearchAPIv2Repository.ScenarioName._
+import com.typesafe.config.ConfigFactory.load
+import com.typesafe.config.ConfigValueFactory.fromAnyRef
+import com.vivareal.search.config.SearchAPIv2Feeder.feeder
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 class SearchAPIv2Simulation extends Simulation {
 
-  val config = ConfigFactory.load()
+  val globalConfig = load()
 
-  val gatling = config.getConfig("gatling")
+  val users = globalConfig.getInt("gatling.users")
+  val repeat = globalConfig.getInt("gatling.repeat")
 
-  val httpConf = http.baseURL(s"http://${config.getString("api.http.base")}")
+  val runIncludeScenarios = globalConfig.getString("gatling.includeScenarios")
+  val runIncludeScenariosSpl = runIncludeScenarios.split(",").toList
+  val runExcludeScenariosSpl = globalConfig.getString("gatling.excludeScenarios").split(",").toList
 
-  val api = config.getConfig("api")
+  val httpConf = http.baseURL(s"http://${globalConfig.getString("api.http.base")}")
 
-  val index = config.getString("api.http.listings")
+  val path = globalConfig.getString("api.http.path")
 
-  val scenarios = gatling.getString("scenarios").split(",")
-    .toList
-      .map {
-        case FILTERS => scenario(FILTERS)
-          .repeat(gatling.getInt("repeat")) {
-            feed(SearchAPIv2Feeder.filters(SearchAPIv2Repository.getFacets).random)
-              .exec(http("Filter ${name}").get(index + "?filter=${name}:\"${value}\""))
-          }
+  val index = globalConfig.getString("api.index")
 
-        case FACETS => scenario(FACETS)
-          .repeat(gatling.getInt("repeat")) {
-            feed(SearchAPIv2Feeder.filters(SearchAPIv2Repository.getFacets).random)
-              .exec(http("Facet ${name}").get(index + "?filter=${name}:\"${value}\"&facets=${name}"))
-          }
+  val scenariosConf = load("scenarios.conf")
 
-        case IDS => scenario(IDS)
-          .repeat(gatling.getInt("repeat")) {
-            feed(SearchAPIv2Feeder.ids(SearchAPIv2Repository.getIds()))
-              .exec(http("By ID").get(index + "/${value}"))
-          }
+  var scenarios = scenariosConf.getObjectList("scenarios").asScala
+    .map(configValue => configValue.toConfig)
+    .filter(config => !runExcludeScenariosSpl.contains(config.getString("scenario.id")))
+    .filter(config => "_all".equals(runIncludeScenarios) || runIncludeScenariosSpl.contains(config.getString("scenario.id")))
+    .map(config => {
 
-        case IDS_IN => scenario(IDS_IN)
-          .repeat(gatling.getInt("repeat")) {
-            feed(SearchAPIv2Feeder.idsIN(SearchAPIv2Repository.getIds(IDS_IN, Some(gatling.getInt("idsIn.range") * gatling.getInt("idsIn.users")))))
-              .exec(http("By ID's IN").get(index + "?filter=id IN [${value}]"))
-          }
-      }
-    .map(scn => scn.inject(rampUsers(gatling.getInt(s"${scn.name}.users")) over (gatling.getInt("rampUp") seconds)))
+      def updatedConfig = config.withValue("scenario.users", fromAnyRef(if (users > 0) users else config.getInt("scenario.users")))
+        .withValue("scenario.repeat", fromAnyRef(if (repeat > 0) repeat else config.getInt("scenario.repeat")))
+
+      scenario(updatedConfig.getString("scenario.decription"))
+        .repeat(updatedConfig.getInt("scenario.repeat")) {
+          feed(feeder(updatedConfig).random)
+            .exec(http(updatedConfig.getString("scenario.title")).get(path + index + updatedConfig.getString("scenario.query")))
+        }.inject(rampUsers(updatedConfig.getInt("scenario.users")) over (globalConfig.getInt("gatling.rampUp") seconds))
+    }).toList
 
   setUp(scenarios)
     .protocols(httpConf)
-    .maxDuration(gatling.getInt("maxDuration") seconds)
+    .maxDuration(globalConfig.getInt("gatling.maxDuration") seconds)
+
 }

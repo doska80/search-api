@@ -1,3 +1,0 @@
-rootProject.name = 'search-api'
-
-include 'load-test'
