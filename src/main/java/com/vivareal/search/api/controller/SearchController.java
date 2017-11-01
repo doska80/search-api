@@ -36,8 +36,6 @@ import java.util.concurrent.TimeoutException;
 import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.*;
 import static com.vivareal.search.api.configuration.ThreadPoolConfig.MAX_SIZE;
 import static com.vivareal.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -95,8 +93,7 @@ public class SearchController {
         if(!response.isExists())
             return notFoundResponse;
 
-        byte[] sourceAsBytes = response.getSourceAsBytes();
-        return builderOK.body(new String(sourceAsBytes, 0, sourceAsBytes.length));
+        return builderOK.body(new String(response.getSourceAsBytes()));
     }
 
     @RequestMapping(value = "/{index}", method = GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -122,7 +119,7 @@ public class SearchController {
     )
     @Trace(dispatcher=true)
     public ResponseEntity<Object> search(SearchApiRequest request) {
-        return new ResponseEntity<>(new SearchResponseEnvelope<>(request.getIndex(), searchService.search(request)), OK);
+        return builderOK.body(new SearchResponseEnvelope<>(request.getIndex(), searchService.search(request)));
     }
 
     public ResponseEntity<Object> fallback(Throwable e) {
@@ -134,10 +131,10 @@ public class SearchController {
     @ApiIgnore
     public ResponseEntity<Object> forceOpen(@PathVariable String operation, @PathVariable boolean flag) {
         if(Arrays.stream(environment.getActiveProfiles()).noneMatch(env -> env.equalsIgnoreCase("test")))
-            return new ResponseEntity<>(NOT_FOUND);
+            return notFoundResponse;
 
         ConfigurationManager.getConfigInstance().setProperty("hystrix.command.default.circuitBreaker.force" + operation, flag);
-        return new ResponseEntity<>(OK);
+        return builderOK.build();
     }
 
     @RequestMapping(value = "/{index}/stream", method = GET)
