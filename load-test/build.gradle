@@ -1,9 +1,11 @@
 buildscript {
     repositories {
-        maven { url "https://plugins.gradle.org/m2/" }
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
-        classpath "gradle.plugin.com.github.lkishalmi.gradle:gradle-gatling-plugin:0.4.1"
+        classpath "gradle.plugin.com.github.lkishalmi.gatling:gradle-gatling-plugin:0.7.1"
     }
 }
 
@@ -15,13 +17,13 @@ repositories {
 }
 
 dependencies {
-    gatling 'org.scalaj:scalaj-http_2.11:2.3.0'
-    gatling 'org.json4s:json4s-native_2.11:3.5.3'
+    gatling 'org.scalaj:scalaj-http_2.12:2.3.0'
+    gatling 'org.json4s:json4s-native_2.12:3.5.3'
     gatling 'com.amazonaws:aws-java-sdk-s3:1.11.185'
 }
 
 gatling {
-    toolVersion = '2.2.5'
+    toolVersion = '2.3.0'
     jvmArgs = ['-server', '-Xms512M', '-Xmx512M', '-XX:MaxMetaspaceSize=512m']
     simulations = { include "**/*Simulation.scala" }
 }
