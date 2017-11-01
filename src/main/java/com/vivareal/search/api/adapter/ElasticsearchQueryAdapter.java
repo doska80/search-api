@@ -287,7 +287,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private void addFilterQueryByLogicalOperator(BoolQueryBuilder boolQueryBuilder, final QueryBuilder query, final LogicalOperator logicalOperator, final boolean not, final boolean nested) {
         if(logicalOperator.equals(AND)) {
             if (!not || nested)
-                boolQueryBuilder.must(query);
+                boolQueryBuilder.filter(query);
             else
                 boolQueryBuilder.mustNot(query);
         } else if(logicalOperator.equals(LogicalOperator.OR)) {
