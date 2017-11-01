@@ -77,6 +77,7 @@ public class SearchController {
     @HystrixCommand(
         commandProperties = {
             @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
+            @HystrixProperty(name = EXECUTION_ISOLATION_SEMAPHORE_MAX_CONCURRENT_REQUESTS, value = "64"),
             @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
             @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "5000"),
             @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "100"),
@@ -108,6 +109,7 @@ public class SearchController {
     @HystrixCommand(
         commandProperties = {
             @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
+            @HystrixProperty(name = EXECUTION_ISOLATION_SEMAPHORE_MAX_CONCURRENT_REQUESTS, value = "64"),
             @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
             @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "10000"),
             @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "30"),
