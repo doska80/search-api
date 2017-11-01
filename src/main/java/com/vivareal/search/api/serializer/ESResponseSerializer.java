@@ -19,6 +19,7 @@ import java.util.List;
 import static com.vivareal.search.api.adapter.SearchAfterQueryAdapter.SORT_SEPARATOR;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.of;
+import static org.elasticsearch.common.bytes.BytesReference.toBytes;
 
 public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<SearchResponse>> {
 
@@ -56,14 +57,19 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
         jgen.writeEndObject();
     }
 
+    private String hitAsString(SearchHit h) {
+        byte[] bytes = toBytes(h.getSourceRef());
+        return new String(bytes, 0, bytes.length);
+    }
+
     private void writeResultSet(final SearchHit[] hits, JsonGenerator jgen) throws IOException {
         if (hits.length > 0) {
             int len = hits.length - 1;
             for (int i = 0; i < len; i++) {
-                jgen.writeRaw(hits[i].getSourceRef().utf8ToString());
+                jgen.writeRaw(hitAsString(hits[i]));
                 jgen.writeRaw(",");
             }
-            jgen.writeRaw(hits[len].getSourceRef().utf8ToString());
+            jgen.writeRaw(hitAsString(hits[len]));
         }
     }
 
