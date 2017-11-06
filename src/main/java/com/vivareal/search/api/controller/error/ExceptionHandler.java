@@ -2,8 +2,10 @@ package com.vivareal.search.api.controller.error;
 
 import com.vivareal.search.api.exception.QueryPhaseExecutionException;
 import com.vivareal.search.api.exception.QueryTimeoutException;
+import org.jparsec.error.ParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.servlet.error.ErrorAttributes;
 import org.springframework.http.HttpStatus;
@@ -86,7 +88,7 @@ public class ExceptionHandler {
     }
 
     private HttpStatus getStatusCode(Throwable e, HttpServletRequest request) {
-        if(e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException)
+        if(e instanceof IllegalArgumentException || getRootCause(e) instanceof IllegalArgumentException || e instanceof InvalidPropertyException || e instanceof ParserException)
             return BAD_REQUEST;
 
         if (e instanceof QueryTimeoutException || getRootCause(e) instanceof TimeoutException)
