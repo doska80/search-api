@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 
 import static java.lang.String.format;
 import static java.util.Objects.nonNull;
+import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
@@ -67,7 +68,7 @@ public class ExceptionHandler {
     }
 
     private void logErrorMsg2Appenders(Throwable e, HttpServletRequest request, Map<String, Object> errorBody, Optional<String> rootCauseMessage) {
-        StringBuilder builder = new StringBuilder("Path: [" + errorBody.getOrDefault("path", "None") + "]");
+        StringBuilder builder = new StringBuilder("Path: [" + ofNullable(request.getServletPath()).orElse("None") + "]");
         builder.append(" - Request Parameters: [" + getParametersFromRequest(request) + "]");
         rootCauseMessage.ifPresent(rootCause -> builder.append(" - RootCauseMessage: [" + rootCause + "]"));
         String additionalMessage = additionalMessage(e);
