@@ -1,6 +1,9 @@
 package com.vivareal.search.api;
 
+import com.vivareal.search.api.configuration.NewRelicTransactionInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.actuate.endpoint.mvc.EndpointHandlerMappingCustomizer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
@@ -11,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import springfox.documentation.annotations.ApiIgnore;
@@ -38,6 +42,14 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @EnableHystrixDashboard
 @EnableTurbine
 public class SearchAPI implements WebMvcConfigurer {
+
+    @Autowired
+    private NewRelicTransactionInterceptor requestInterceptor;
+
+    @Bean
+    public EndpointHandlerMappingCustomizer mappingCustomizer() {
+        return mapping -> mapping.setInterceptors(new Object[] { requestInterceptor });
+    }
 
     @Bean
     public Docket api() {
@@ -68,6 +80,11 @@ public class SearchAPI implements WebMvcConfigurer {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("redirect:/swagger-ui.html");
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(requestInterceptor);
     }
 
     public static void main(String[] args) {
