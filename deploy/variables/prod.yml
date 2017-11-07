@@ -119,8 +119,8 @@ scaling_secondary_spot:
     times: 3
     wait: 180
 key_name: api
-instance_type: c4.large
-secondary_instance_type: c3.large
+instance_type: c5.large
+secondary_instance_type: c4.large
 public_ip: false
 instance_monitoring: true
 tags:
