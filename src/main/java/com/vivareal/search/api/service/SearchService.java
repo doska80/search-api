@@ -1,5 +1,6 @@
 package com.vivareal.search.api.service;
 
+import com.newrelic.api.agent.NewRelic;
 import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.adapter.QueryAdapter;
 import com.vivareal.search.api.controller.stream.ElasticSearchStream;
@@ -23,11 +24,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_SEARCH_TIMEOUT;
+import static java.lang.System.nanoTime;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 
 @Component
 public class SearchService {
+
+    private static final long FILTER_THRESHOLD = 5000000000L; // 5 seconds
 
     @Autowired
     @Qualifier("ElasticsearchQuery")
@@ -71,6 +75,11 @@ public class SearchService {
     }
 
     public void stream(FilterableApiRequest request, OutputStream stream) {
+        final long startTime = nanoTime();
+
         elasticSearch.stream(request, stream);
+
+        if((nanoTime() - startTime) > FILTER_THRESHOLD)
+            NewRelic.ignoreTransaction();
     }
 }
