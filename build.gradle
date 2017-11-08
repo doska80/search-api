@@ -190,12 +190,6 @@ sonarqube {
     }
 }
 
-project(":load-test") {
-    sonarqube {
-        skipProject = true
-    }
-}
-
 test {
     testLogging {
         events 'skipped', 'failed'
