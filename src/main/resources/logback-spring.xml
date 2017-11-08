@@ -20,7 +20,7 @@
         <dsn>
             http://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry-logs.vivareal.com/64?options
         </dsn>
-        <tags>environment:${environment},version:${version},codename:${codename}</tags>
+        <tags>environment:${environment},version:${version},codename:${codename},cluster:${es.cluster.name}</tags>
         <ravenFactory>com.getsentry.raven.DefaultRavenFactory</ravenFactory>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -32,7 +32,7 @@
         <port>12201</port>
         <version>1.1</version>
         <extractStackTrace>true</extractStackTrace>
-        <additionalFields>environment=${environment},application=${application},product=search</additionalFields>
+        <additionalFields>environment=${environment},application=${application},product=search,cluster=${es.cluster.name},server=${java.rmi.server.hostname}</additionalFields>
         <additionalFieldTypes>environment=String,application=String,product=String</additionalFieldTypes>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
