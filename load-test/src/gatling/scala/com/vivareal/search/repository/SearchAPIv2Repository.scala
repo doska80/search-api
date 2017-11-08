@@ -6,6 +6,7 @@ import org.json4s.{DefaultFormats, JValue}
 
 import scala.collection.JavaConverters._
 import scala.io.Source
+import scalaj.http.HttpOptions.{connTimeout, readTimeout}
 import scalaj.http.{Http, HttpResponse}
 
 object SearchAPIv2Repository {
@@ -28,7 +29,10 @@ object SearchAPIv2Repository {
         def fct = facet.toConfig
 
         println(s"* Getting facets to... $title")
-        val response: HttpResponse[String] = Http(s"$url?${fct.getString("query")}").asString
+
+        val response: HttpResponse[String] = Http(s"$url?${fct.getString("query")}")
+          .options(readTimeout(http.getInt("readTimeout")), connTimeout(http.getInt("connTimeout")))
+          .asString
 
         if (response.code >= 400) {
           println(s"Exiting application. Error to get facet: $response")

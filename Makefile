@@ -5,6 +5,8 @@ ORG:=vivareal
 PROJECT_NAME:=search-api-v2
 include make/pro/Makefile
 
+AWS_DEFAULT_REGION?=us-east-1
+
 ENV:=dev
 include make/env/Makefile
 
