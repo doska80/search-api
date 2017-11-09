@@ -5,34 +5,35 @@ import com.typesafe.config.ConfigValueFactory.fromAnyRef
 import com.vivareal.search.config.SearchAPIv2Feeder.feeder
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
-
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 class SearchAPIv2Simulation extends Simulation {
 
-  val globalConfig = load()
+  private val globalConfig = load()
 
-  val users = globalConfig.getInt("gatling.users")
-  val repeat = globalConfig.getInt("gatling.repeat")
+  private val users = globalConfig.getInt("gatling.users")
+  private val repeat = globalConfig.getInt("gatling.repeat")
 
-  val runIncludeScenarios = globalConfig.getString("gatling.includeScenarios")
-  val runIncludeScenariosSpl = runIncludeScenarios.split(",").toList
-  val runExcludeScenariosSpl = globalConfig.getString("gatling.excludeScenarios").split(",").toList
+  private val runIncludeScenarios = globalConfig.getString("gatling.includeScenarios")
+  private val runIncludeScenariosSpl = runIncludeScenarios.split(",").toList
+  private val runExcludeScenariosSpl = globalConfig.getString("gatling.excludeScenarios").split(",").toList
 
-  val httpConf = http.baseURL(s"http://${globalConfig.getString("api.http.base")}")
+  private val httpConf = http.baseURL(s"http://${globalConfig.getString("api.http.base")}")
 
-  val path = globalConfig.getString("api.http.path")
+  private val path = globalConfig.getString("api.http.path")
 
-  val index = globalConfig.getString("api.index")
+  private val index = globalConfig.getString("api.index")
 
-  val scenariosConf = load("scenarios.conf")
+  private val scenariosConf = load("scenarios.conf")
 
-  var scenarios = scenariosConf.getObjectList("scenarios").asScala
+  private var scenarios = scenariosConf.getObjectList("scenarios").asScala
     .map(configValue => configValue.toConfig)
     .filter(config => !runExcludeScenariosSpl.contains(config.getString("scenario.id")))
     .filter(config => "_all".equals(runIncludeScenarios) || runIncludeScenariosSpl.contains(config.getString("scenario.id")))
     .map(config => {
+
+      println(s"Preparing current scenario: ${config.getString("scenario.title")}")
 
       def updatedConfig = config.withValue("scenario.users", fromAnyRef(if (users > 0) users else config.getInt("scenario.users")))
         .withValue("scenario.repeat", fromAnyRef(if (repeat > 0) repeat else config.getInt("scenario.repeat")))
