@@ -7,6 +7,8 @@ include make/pro/Makefile
 
 AWS_DEFAULT_REGION?=us-east-1
 
+NEWRELIC_ENABLED?=false
+
 ENV:=dev
 include make/env/Makefile
 
@@ -31,15 +33,12 @@ ES_PORT?=9300
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 RUN_OPTS+=-server -XX:+UseConcMarkSweepGC -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=80
 RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 100)m -Xms$(shell expr $(RUN_MEMORY) - 100)m
+RUN_OPTS+=-Dnewrelic.config.agent_enabled=$(NEWRELIC_ENABLED)
 
 # Elasticsearch
 RUN_OPTS+=-Des.hostname=$(ENV)-search-es-api-$(ES_CLUSTER_NAME).vivareal.com
 RUN_OPTS+=-Des.port=$(ES_PORT)
 RUN_OPTS+=-Des.cluster.name=$(ES_CLUSTER_NAME)
-
-ifneq ($(NEWRELIC_AGENT),)
-  RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
-endif
 
 include make/jmx/Makefile
 
