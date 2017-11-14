@@ -1,5 +1,6 @@
 package com.vivareal.search.api.itest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
 import org.junit.Before;
@@ -40,6 +41,8 @@ public class SearchApiIntegrationTest {
 
     @Autowired
     protected ESIndexHandler esIndexHandler;
+
+    protected static final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeClass
     public static void setup() {

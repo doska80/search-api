@@ -1,7 +1,6 @@
 package com.vivareal.search.api.itest.scenarios;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vivareal.search.api.itest.SearchApiIntegrationTest;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,8 +34,6 @@ import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 public class SearchIntegrationTest extends SearchApiIntegrationTest {
-
-    private static final ObjectMapper mapper = new ObjectMapper();
 
     @Test
     public void responseOkWhenSearchAnExistingDocumentById() {
