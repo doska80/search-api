@@ -34,6 +34,7 @@ RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 RUN_OPTS+=-server -XX:+UseConcMarkSweepGC -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=80
 RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 100)m -Xms$(shell expr $(RUN_MEMORY) - 100)m
 RUN_OPTS+=-Dnewrelic.config.agent_enabled=$(NEWRELIC_ENABLED)
+RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
 
 # Elasticsearch
 RUN_OPTS+=-Des.hostname=$(ENV)-search-es-api-$(ES_CLUSTER_NAME).vivareal.com
