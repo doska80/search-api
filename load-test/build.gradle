@@ -30,10 +30,11 @@ gatling {
 }
 
 task('uploadReport', type: JavaExec) {
-    main = 'com.vivareal.search.config.S3Uploader'
+    main = 'com.vivareal.search.config.SimulationResultsProcessor'
     args = ['build/reports/gatling', System.getenv('REPORT_VERSION') ?: 'SNAPSHOT']
     jvmArgs = System.properties.findAll { prop -> ['gatling', 'api', 'aws', 'slack'].findAll { allowedKey -> prop.key.startsWith("$allowedKey.") } }.collect { "-D$it" }
     classpath sourceSets.gatling.runtimeClasspath
     classpath configurations.gatling
 }
+
 uploadReport.mustRunAfter gatlingRun
