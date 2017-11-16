@@ -2,9 +2,11 @@ package com.vivareal.search.simulation
 
 import com.typesafe.config.ConfigFactory.load
 import com.typesafe.config.ConfigValueFactory.fromAnyRef
+import com.vivareal.search.config.ScenariosLoader
 import com.vivareal.search.config.SearchAPIv2Feeder.feeder
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
+
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
@@ -25,7 +27,7 @@ class SearchAPIv2Simulation extends Simulation {
 
   private val index = globalConfig.getString("api.index")
 
-  private val scenariosConf = load("scenarios.conf")
+  private val scenariosConf = ScenariosLoader.load()
 
   private var scenarios = scenariosConf.getObjectList("scenarios").asScala
     .map(configValue => configValue.toConfig)
