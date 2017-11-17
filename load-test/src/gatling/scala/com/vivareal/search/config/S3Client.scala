@@ -10,6 +10,7 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.services.s3.AmazonS3ClientBuilder
 import com.amazonaws.services.s3.model._
 import com.typesafe.config.ConfigFactory
+import com.vivareal.search.config.SlackNotifier.aws
 
 object S3Client {
 
@@ -23,7 +24,7 @@ object S3Client {
   acl.grantPermission(GroupGrantee.AllUsers, Permission.Read)
 
   def upload(file: File, fileName: String): Unit = {
-    client.putObject(new PutObjectRequest(aws.getString("s3.bucket"), s"${aws.getString("s3.folder")}/$fileName", file).withAccessControlList(acl))
+    client.putObject(new PutObjectRequest(aws.getString("s3.bucket"), s"${aws.getString("s3.folder")}/${aws.getString("s3.reports")}/$fileName", file).withAccessControlList(acl))
   }
 
   def readFromBucket(bucketName: String, key: String): String = {
