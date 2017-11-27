@@ -1,8 +1,8 @@
 package com.vivareal.search.api.adapter;
 
+import com.vivareal.search.api.model.mapping.MappingType;
 import com.vivareal.search.api.model.search.Fetchable;
 import com.vivareal.search.api.model.search.Indexable;
-import com.vivareal.search.api.model.mapping.MappingType;
 
 public interface SettingsAdapter<T, U> {
 

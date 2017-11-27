@@ -8,7 +8,6 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.util.concurrent.EsExecutors;
 import org.elasticsearch.transport.Transport;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.DisposableBean;
@@ -22,8 +21,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import static java.lang.Runtime.getRuntime;
-import static java.util.Optional.ofNullable;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 @Configuration

@@ -2,7 +2,6 @@ package com.vivareal.search.api.model.parser;
 
 import com.vivareal.search.api.model.query.LogicalOperator;
 import com.vivareal.search.api.model.query.RelationalOperator;
-import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
@@ -17,13 +16,12 @@ import static org.junit.Assert.assertThat;
 
 public class OperatorParserTest {
 
-    private static final Parser<RelationalOperator> relationalParser = OperatorParser.RELATIONAL_OPERATOR_PARSER;
-    private static final Parser<LogicalOperator> logicalParser = OperatorParser.LOGICAL_OPERATOR_PARSER;
+    private OperatorParser operatorParser = new OperatorParser();
 
     @Test
     public void testRelationalEqualsOperator() {
         List<RelationalOperator> ops = of(":", "=", "EQ")
-                .map(relationalParser::parse)
+                .map(operatorParser.getRelationalOperatorParser()::parse)
                 .collect(toList());
 
         assertThat(ops, hasSize(3));
@@ -32,13 +30,13 @@ public class OperatorParserTest {
 
     @Test(expected = ParserException.class)
     public void testRelationalInvalidOperator() {
-        relationalParser.parse("?");
+        operatorParser.getRelationalOperatorParser().parse("?");
     }
 
     @Test
     public void testLogicalAndOperator() {
         List<LogicalOperator> ops = of("AND", "&&")
-                .map(logicalParser::parse)
+                .map(operatorParser.getLogicalOperatorParser()::parse)
                 .collect(toList());
 
         assertThat(ops, hasSize(2));
@@ -47,6 +45,6 @@ public class OperatorParserTest {
 
     @Test(expected = ParserException.class)
     public void testLogicalInvalidOperator() {
-        logicalParser.parse("?");
+        operatorParser.getLogicalOperatorParser().parse("?");
     }
 }

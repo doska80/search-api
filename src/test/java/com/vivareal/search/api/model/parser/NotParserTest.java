@@ -7,21 +7,23 @@ import static org.junit.Assert.assertTrue;
 
 public class NotParserTest {
 
+    private NotParser notParser = new NotParser();
+
     @Test
     public void testNot() {
-        Boolean not = NotParser.get().parse("NOT ");
+        Boolean not = notParser.get().parse("NOT ");
         assertTrue(not);
     }
 
     @Test
     public void testWithoutNot() {
-        Boolean not = NotParser.get().parse("");
+        Boolean not = notParser.get().parse("");
         assertFalse(not);
     }
 
     @Test
     public void testNotWithSpaces() {
-        Boolean not = NotParser.get().parse("    NOT   ");
+        Boolean not = notParser.get().parse("    NOT   ");
         assertTrue(not);
     }
 }

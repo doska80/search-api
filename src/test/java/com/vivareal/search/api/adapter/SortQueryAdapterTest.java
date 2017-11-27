@@ -1,6 +1,10 @@
 package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.vivareal.search.api.model.parser.FieldParser;
+import com.vivareal.search.api.model.parser.NotParser;
+import com.vivareal.search.api.model.parser.OperatorParser;
+import com.vivareal.search.api.model.parser.SortParser;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
@@ -22,9 +26,18 @@ import static org.mockito.Mockito.when;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
 
-    private static final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter = mock(SettingsAdapter.class);
+    private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
 
-    private final SortQueryAdapter sortQueryAdapter = new SortQueryAdapter(settingsAdapter);
+    private SortQueryAdapter sortQueryAdapter;
+
+    public SortQueryAdapterTest() {
+        FieldParser fieldParser = new FieldParser(new NotParser());
+        OperatorParser operatorParser = new OperatorParser();
+        SortParser sortParser = new SortParser(fieldParser, operatorParser);
+
+        this.settingsAdapter = mock(SettingsAdapter.class);
+        this.sortQueryAdapter = new SortQueryAdapter(settingsAdapter, sortParser);
+    }
 
     @BeforeClass
     public static void setup() {

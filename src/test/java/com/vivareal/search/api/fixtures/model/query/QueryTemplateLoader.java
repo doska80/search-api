@@ -1,18 +1,18 @@
-package com.vivareal.search.api.fixtures.model.parser;
+package com.vivareal.search.api.fixtures.model.query;
 
 import br.com.six2six.fixturefactory.Fixture;
 import br.com.six2six.fixturefactory.Rule;
 import br.com.six2six.fixturefactory.loader.TemplateLoader;
-import com.vivareal.search.api.model.query.*;
-
-import java.util.Arrays;
-import java.util.Collections;
+import com.vivareal.search.api.model.query.Field;
+import com.vivareal.search.api.model.query.Filter;
+import com.vivareal.search.api.model.query.QueryFragmentItem;
+import com.vivareal.search.api.model.query.Value;
 
 import static com.vivareal.search.api.model.query.RelationalOperator.EQUAL;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
-public class ParserTemplateLoader implements TemplateLoader {
+public class QueryTemplateLoader implements TemplateLoader {
 
     @Override
     public void load() {

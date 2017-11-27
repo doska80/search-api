@@ -2,8 +2,6 @@ package com.vivareal.search.api.model.query;
 
 import org.junit.Test;
 
-import java.util.Collections;
-
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;

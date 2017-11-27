@@ -1,6 +1,5 @@
 package com.vivareal.search.api.configuration.environment;
 
-import org.elasticsearch.common.unit.TimeValue;
 import org.junit.Before;
 import org.junit.Test;
 

@@ -11,6 +11,12 @@ import static org.junit.Assert.assertEquals;
 
 public class FieldParserTest {
 
+    private FieldParser fieldParser;
+
+    public FieldParserTest() {
+        this.fieldParser = new FieldParser(new NotParser());
+    }
+
     @Test
     public void testValidFieldNames() {
         String[] fieldNames = new String[]{
@@ -20,7 +26,7 @@ public class FieldParserTest {
                 "_fieldUnderscoredCamelCase",
                 "field1CamelCase2With3Numbers"
         };
-        Parser<Field> parser = FieldParser.get();
+        Parser<Field> parser = fieldParser.get();
         Stream.of(fieldNames).forEach(fieldName -> {
             Field parsedField = parser.parse(fieldName);
             assertEquals(parsedField.getName(), fieldName);
@@ -29,64 +35,64 @@ public class FieldParserTest {
 
     @Test(expected = ParserException.class)
     public void testInvalidFieldNamesWithSpaces() {
-        FieldParser.get().parse("field with space");
+        fieldParser.get().parse("field with space");
     }
 
     @Test(expected = ParserException.class)
     public void testBlankFieldNames() {
-        FieldParser.get().parse("");
+        fieldParser.get().parse("");
     }
 
     @Test(expected = ParserException.class)
     public void testDotFieldNames() {
-        FieldParser.get().parse(".");
+        fieldParser.get().parse(".");
     }
 
     @Test(expected = ParserException.class)
     public void testRootNestedFieldNames() {
-        FieldParser.get().parse(".abc.def");
+        fieldParser.get().parse(".abc.def");
     }
 
     @Test
     public void testNestedFieldNames() {
-        Field field = FieldParser.get().parse("field.field2.field3");
+        Field field = fieldParser.get().parse("field.field2.field3");
         assertEquals(field.getName(), "field.field2.field3");
     }
 
     @Test(expected = ParserException.class)
     public void testDoublePointFieldNames() {
-        FieldParser.get().parse("field..field2");
+        fieldParser.get().parse("field..field2");
     }
 
     @Test(expected = ParserException.class)
     public void testDotEndedFieldNames() {
-        FieldParser.get().parse("field.");
+        fieldParser.get().parse("field.");
     }
 
     @Test(expected = ParserException.class)
     public void testInvalidFieldNamesWithSpecialChars() {
-        FieldParser.get().parse("ãçéntêdFïeld");
+        fieldParser.get().parse("ãçéntêdFïeld");
     }
 
     @Test
     public void testStringNames() {
-        Field field = FieldParser.get().parse("field.field2.field3.field4");
+        Field field = fieldParser.get().parse("field.field2.field3.field4");
         assertEquals("field.field2.field3.field4", field.toString());
     }
 
     @Test(expected = ParserException.class)
     public void testFieldNotWithInvalidPointEnding() {
-        FieldParser.get().parse("NOT field.");
+        fieldParser.get().parse("NOT field.");
     }
 
     @Test(expected = ParserException.class)
     public void testFieldNotWithInvalidPoint() {
-        FieldParser.get().parse("NOT .");
+        fieldParser.get().parse("NOT .");
     }
 
 
     @Test(expected = ParserException.class)
     public void testNotWithBlankFieldName() {
-        FieldParser.get().parse("NOT ");
+        fieldParser.get().parse("NOT ");
     }
 }

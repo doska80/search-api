@@ -4,6 +4,8 @@ import com.google.common.collect.Sets;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.mapping.MappingType;
+import com.vivareal.search.api.model.parser.*;
+import com.vivareal.search.api.model.parser.QueryParser;
 import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -77,7 +79,13 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
         when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
 
-        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter, sortQueryAdapter);
+        OperatorParser operatorParser = new OperatorParser();
+        NotParser notParser = new NotParser();
+        FieldParser fieldParser = new FieldParser(new NotParser());
+        FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
+        QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
+        FacetParser facetParser = new FacetParser(fieldParser);
+        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter, sortQueryAdapter, queryParser, facetParser);
 
         Map<String, String[]> defaultSourceFields = new HashMap<>();
         defaultSourceFields.put(INDEX_NAME, new String[0]);

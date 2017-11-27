@@ -31,10 +31,7 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @SpringBootApplication
 @Configuration
 @EnableAsync
-@ComponentScan(basePackages = {"com.vivareal.search.api.adapter",
-        "com.vivareal.search.api.configuration",
-        "com.vivareal.search.api.controller",
-        "com.vivareal.search.api.service"})
+@ComponentScan(basePackages = {"com.vivareal.search.api"})
 @EnableSwagger2
 @EnableHystrix
 @EnableHystrixDashboard

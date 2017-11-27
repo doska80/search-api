@@ -67,6 +67,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private final SourceFieldAdapter sourceFieldAdapter;
     private final SearchAfterQueryAdapter searchAfterQueryAdapter;
     private final SortQueryAdapter sortQueryAdapter;
+    private final QueryParser queryParser;
+    private final FacetParser facetParser;
 
     @Autowired
     public ElasticsearchQueryAdapter(ESClient esClient,
@@ -74,12 +76,16 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                      Map<String, Object>>, String> settingsAdapter,
                                      SourceFieldAdapter sourceFieldAdapter,
                                      SearchAfterQueryAdapter searchAfterQueryAdapter,
-                                     SortQueryAdapter sortQueryAdapter) {
+                                     SortQueryAdapter sortQueryAdapter,
+                                     QueryParser queryParser,
+                                     FacetParser facetParser) {
         this.esClient = esClient;
         this.settingsAdapter = settingsAdapter;
         this.sourceFieldAdapter = sourceFieldAdapter;
         this.searchAfterQueryAdapter = searchAfterQueryAdapter;
         this.sortQueryAdapter = sortQueryAdapter;
+        this.queryParser = queryParser;
+        this.facetParser = facetParser;
     }
 
     @Override
@@ -149,7 +155,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     }
 
     public void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
-        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, QueryParser.parse(f), filter.getIndex()));
+        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, queryParser.parse(f), filter.getIndex()));
     }
 
     private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment, final String indexName) {
@@ -374,7 +380,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         final int facetSize = request.getFacetSize();
         final int shardSize = parseInt(String.valueOf(settingsAdapter.settingsByKey(request.getIndex(), SHARDS)));
 
-        FacetParser.parse(value.stream().collect(joining(","))).forEach(facet -> {
+        facetParser.parse(value.stream().collect(joining(","))).forEach(facet -> {
             final String fieldName = facet.getName();
             final String firstName = facet.firstName();
             settingsAdapter.checkFieldName(indexName, fieldName, false);

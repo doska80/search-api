@@ -1,7 +1,7 @@
 package com.vivareal.search.api.model.http;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
-import com.vivareal.search.api.model.search.*;
+import com.vivareal.search.api.model.search.Facetable;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Set;

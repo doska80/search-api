@@ -1,5 +1,6 @@
 package com.vivareal.search.api.adapter;
 
+import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.search.Sortable;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -10,7 +11,6 @@ import java.util.Map;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
-import static com.vivareal.search.api.model.parser.SortParser.parse;
 import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.elasticsearch.search.sort.SortOrder.valueOf;
@@ -19,16 +19,19 @@ import static org.elasticsearch.search.sort.SortOrder.valueOf;
 public class SortQueryAdapter {
 
     private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+    private SortParser sortParser;
 
-    public SortQueryAdapter(@Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter) {
+    public SortQueryAdapter(@Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
+                            SortParser sortParser) {
         this.settingsAdapter = settingsAdapter;
+        this.sortParser = sortParser;
     }
 
     public void apply(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
         if (request.getSort() != null && "".equals(request.getSort().trim()))
             return;
 
-        parse(ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex())).forEach(item -> {
+        sortParser.parse(ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex())).forEach(item -> {
             String fieldName = item.getField().getName();
 
             FieldSortBuilder fieldSortBuilder = fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));

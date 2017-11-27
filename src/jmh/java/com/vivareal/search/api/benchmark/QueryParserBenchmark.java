@@ -1,15 +1,20 @@
 package com.vivareal.search.api.benchmark;
 
-import com.vivareal.search.api.model.parser.QueryParser;
+import com.vivareal.search.api.model.parser.*;
 import com.vivareal.search.api.model.query.QueryFragment;
 import org.jparsec.Parser;
-import org.openjdk.jmh.annotations.*;
+import org.openjdk.jmh.annotations.Benchmark;
+import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.State;
 
 public class QueryParserBenchmark {
 
     @State(Scope.Benchmark)
     public static class QueryState {
-        final Parser<QueryFragment> parser = QueryParser.get();
+        OperatorParser operatorParser = new OperatorParser();
+        NotParser notParser = new NotParser();
+        FilterParser filterParser = new FilterParser(new FieldParser(notParser), operatorParser, new ValueParser());
+        final Parser<QueryFragment> parser = new QueryParser(operatorParser, filterParser, notParser).get();
     }
 
     @Benchmark
