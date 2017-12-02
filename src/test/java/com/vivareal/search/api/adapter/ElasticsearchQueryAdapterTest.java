@@ -194,7 +194,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                 assertNotNull(nestedQueryBuilder);
                 assertTrue(nestedQueryBuilder.toString().contains("\"path\" : \"" + field.split("\\.")[0] + "\""));
 
-                MatchQueryBuilder filter = (MatchQueryBuilder) nestedQueryBuilder.query();
+                MatchQueryBuilder filter = (MatchQueryBuilder) ((BoolQueryBuilder) nestedQueryBuilder.query()).filter().get(0);
                 assertNotNull(filter);
                 assertEquals(field, filter.fieldName());
                 assertEquals(value, filter.value());
