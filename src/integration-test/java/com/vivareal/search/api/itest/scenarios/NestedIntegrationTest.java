@@ -11,11 +11,47 @@ import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.IntStream.range;
+import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.HttpStatus.SC_OK;
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 public class NestedIntegrationTest extends SearchApiIntegrationTest {
+
+    @Test
+    public void validateLogicalOperatorNot() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(TEST_DATA_INDEX + "?filter=nested.id>=10 AND nested.id<=20 AND NOT nested.even<>null")
+        .then()
+            .body("result.testdata.nested.id.sort()", equalTo(rangeClosed(10, 20).boxed().filter(id -> id % 2 != 0).collect(toList())))
+            .body("result.testdata.nested.even", everyItem(isEmptyOrNullString()));
+    }
+
+    @Test
+    public void validateComplexQueryUsingNestedAndNoNestedFieldsRecursively() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(TEST_DATA_INDEX + "?filter=object.object.field IN ['common'] AND facetString:'A' AND (nested.object.field:'common' AND nested.id>=10 AND nested.id<=20)")
+        .then()
+            .body("result.testdata.nested.id.sort()", equalTo(rangeClosed(10, 18).boxed().collect(toList())))
+            .body("result.testdata.facetString", everyItem(is("A")))
+            .body("result.testdata.object.object.field", everyItem(is("common")));
+    }
 
     @Test
     public void shouldBeSameResultWithDifferentQueries() throws IOException {
