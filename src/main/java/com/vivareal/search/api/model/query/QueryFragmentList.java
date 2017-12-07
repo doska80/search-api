@@ -1,13 +1,13 @@
 package com.vivareal.search.api.model.query;
 
 import com.google.common.base.Objects;
-import org.springframework.util.CollectionUtils;
 
 import java.util.AbstractList;
 import java.util.List;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 public class QueryFragmentList extends AbstractList<QueryFragment> implements QueryFragment {
 
@@ -19,23 +19,21 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
     }
 
     private List<QueryFragment> validateSingleRecursiveQueryFragmentList(List<QueryFragment> queryFragments) {
+        if (isNotEmpty(queryFragments)) {
+            QueryFragment fragment = queryFragments.get(0);
+            if (hasOnlyAnInternalQueryFragmentList(queryFragments)) // e.g. ((((queryFragmentList)))), will be extracted to a single (queryFragmentList)
+                return (List<QueryFragment>) fragment;
 
-        if (CollectionUtils.isEmpty(queryFragments))
-            throw new IllegalArgumentException("Generic error occurred when validate QueryFragment recursively. QueryFragment cannot null or empty");
+            if (fragment instanceof QueryFragmentItem && ((QueryFragmentItem) fragment).getLogicalOperator() != null)
+                throw new IllegalArgumentException("The first item cannot have a logical operator prefix");
+        }
 
-        QueryFragment fragment = queryFragments.get(0);
-        if (hasOnlyAnInternalQueryFragmentList(queryFragments)) // e.g. ((((queryFragmentList)))), will be extracted to a single (queryFragmentList)
-            return (List<QueryFragment>) fragment;
-
-        if (fragment instanceof QueryFragmentItem && ((QueryFragmentItem) fragment).getLogicalOperator() != null)
-            throw new IllegalArgumentException("The first item cannot have a logical operator prefix");
-
-        // If there isn't a single nested QueryFragmentList
+        // If the QueryFragmentList is empty or if there are multiple nested QueryFragmentList
         return queryFragments;
     }
 
     private boolean hasOnlyAnInternalQueryFragmentList(List<QueryFragment> queryFragments) {
-        return !CollectionUtils.isEmpty(queryFragments)
+        return isNotEmpty(queryFragments)
             && queryFragments.size() == 1
             && queryFragments.get(0) instanceof QueryFragmentList;
     }

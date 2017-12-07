@@ -21,7 +21,6 @@ public class QueryParser {
     public QueryParser(OperatorParser operatorParser, FilterParser filterParser, NotParser notParser) {
         queryParser = sequence(operatorParser.getLogicalOperatorParser().asOptional(), filterParser.get(), QueryFragmentItem::new);
 
-
         Parser.Reference<QueryFragment> ref = newReference();
         Parser<QueryFragment> lazy = ref.lazy();
         recursiveQueryParser = lazy.between(isChar('('), isChar(')'))
@@ -30,6 +29,10 @@ public class QueryParser {
             .label("query")
             .map(QueryFragmentList::new);
         ref.set(recursiveQueryParser);
+    }
+
+    Parser<QueryFragment> getRecursiveQueryParser() {
+        return recursiveQueryParser;
     }
 
     @Trace
