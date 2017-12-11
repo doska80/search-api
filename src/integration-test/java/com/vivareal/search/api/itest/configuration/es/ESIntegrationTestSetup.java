@@ -122,7 +122,6 @@ public class ESIntegrationTestSetup {
 
             esIndexHandler.truncateIndexData(TEST_DATA_INDEX);
             esIndexHandler.truncateIndexData(SEARCH_API_PROPERTIES_INDEX);
-
         } catch (IOException e) {
             LOG.error("Unable to warm up default index data");
         }

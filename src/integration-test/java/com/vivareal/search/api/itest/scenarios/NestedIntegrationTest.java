@@ -64,7 +64,7 @@ public class NestedIntegrationTest extends SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(TEST_DATA_INDEX + "?filter=nested.even:null AND array_integer:10 AND nested.id <=25 AND nested.object.field:'common' AND object.object.field:'common' AND (nested.string LIKE 'string with char w%' OR nested.string LIKE 'string with char y%') AND nested.id >=20")
+            .get(TEST_DATA_INDEX + "?filter=nested.even:null AND array_integer:10 AND nested.id <=25 AND nested.object.field:'common' AND object.object.field:'common' AND (nested.string LIKE 'string with char W%' OR nested.string LIKE 'string with char Y%') AND nested.id >=20")
         .then()
             .body("totalCount", equalTo(2))
             .body("result.testdata.nested.even", everyItem(isEmptyOrNullString()))
