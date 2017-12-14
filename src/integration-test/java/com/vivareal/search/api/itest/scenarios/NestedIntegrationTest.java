@@ -1,6 +1,7 @@
 package com.vivareal.search.api.itest.scenarios;
 
 import com.vivareal.search.api.itest.SearchApiIntegrationTest;
+import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -15,6 +16,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.HttpStatus.SC_OK;
+import static org.assertj.core.util.Lists.newArrayList;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertEquals;
@@ -51,6 +53,22 @@ public class NestedIntegrationTest extends SearchApiIntegrationTest {
             .body("result.testdata.nested.id.sort()", equalTo(rangeClosed(10, 18).boxed().collect(toList())))
             .body("result.testdata.facetString", everyItem(is("A")))
             .body("result.testdata.object.object.field", everyItem(is("common")));
+    }
+
+    @Test
+    public void validateFilterFromNestedQueriesIntoAndOutRecursive() {
+        given()
+            .log().all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+        .expect()
+            .statusCode(SC_OK)
+        .when()
+            .get(TEST_DATA_INDEX + "?filter=nested.even:null AND array_integer:10 AND nested.id <=25 AND nested.object.field:'common' AND object.object.field:'common' AND (nested.string LIKE 'string with char w%' OR nested.string LIKE 'string with char y%') AND nested.id >=20")
+        .then()
+            .body("totalCount", equalTo(2))
+            .body("result.testdata.nested.even", everyItem(isEmptyOrNullString()))
+            .body("result.testdata.nested.id.sort()", equalTo(newArrayList(23, 25)));
     }
 
     @Test

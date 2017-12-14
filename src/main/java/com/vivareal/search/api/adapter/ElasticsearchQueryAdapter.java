@@ -175,8 +175,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
             if (queryFragmentFilter instanceof QueryFragmentList) {
                 BoolQueryBuilder recursiveQueryBuilder = boolQuery();
                 logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
-                nestedMap = addFilterQuery(new HashMap<>(), queryBuilder, recursiveQueryBuilder, logicalOperator, isNotBeforeCurrentQueryFragment(queryFragmentList, index), false, null);
-                applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter, indexName, nestedMap);
+                Map<QueryType, Map<String, BoolQueryBuilder>> innerNestedMap = addFilterQuery(new HashMap<>(), queryBuilder, recursiveQueryBuilder, logicalOperator, isNotBeforeCurrentQueryFragment(queryFragmentList, index), false, null);
+                applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter, indexName, innerNestedMap);
 
             } else if (queryFragmentFilter instanceof QueryFragmentItem) {
                 QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
