@@ -143,6 +143,7 @@ bootRun {
     execSpec {
         systemProperties = System.properties
   }
+  jvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"]
 }
 
 task newrelicDeps(dependsOn: 'bootJar') {

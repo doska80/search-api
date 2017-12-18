@@ -22,7 +22,7 @@ public class FilterParser {
 
     @Autowired
     public FilterParser(FieldParser fieldParser, OperatorParser operatorParser, ValueParser valueParser) {
-        normalParser = sequence(fieldParser.get(), operatorParser.exact(DIFFERENT, EQUAL, GREATER_EQUAL, GREATER, IN, LESS_EQUAL, LESS), valueParser.get(), Filter::new).label("filter");
+        normalParser = sequence(fieldParser.get(), operatorParser.exact(DIFFERENT, EQUAL, GREATER_EQUAL, GREATER, IN, LESS_EQUAL, LESS, CONTAINS_ALL), valueParser.get(), Filter::new).label("filter");
         likeParser = sequence(fieldParser.get(), operatorParser.exact(LIKE), valueParser.getLikeValue(), Filter::new).label("LIKE filter");
         rangeParser = sequence(fieldParser.get(), operatorParser.exact(RANGE), valueParser.getRangeValue(), Filter::new).label("RANGE filter");
         viewportParser = sequence(fieldParser.get(), operatorParser.exact(VIEWPORT), valueParser.getGeoPointValue(Type.VIEWPORT), Filter::new).label("VIEWPORT filter");

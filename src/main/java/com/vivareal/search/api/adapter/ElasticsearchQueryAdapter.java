@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 
 import static com.vivareal.search.api.adapter.ElasticsearchQueryAdapter.QueryType.*;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
@@ -264,6 +265,11 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                         GeoPoint bottomLeft = new GeoPoint(filterValue.value(1, 1), filterValue.value(1, 0));
 
                         addFilterQuery(nestedMap, queryBuilder, geoBoundingBoxQuery(fieldName).setCornersOGC(bottomLeft, topRight), logicalOperator, not, nested, fieldFirstName);
+                        break;
+
+                    case CONTAINS_ALL:
+                        Object[] values = filterValue.stream().map(contents -> ((Value) contents).value(0)).toArray();
+                        Stream.of(values).forEach((value) -> addFilterQuery(nestedMap, queryBuilder, matchQuery(fieldName, value), AND, not, nested, fieldFirstName));
                         break;
 
                     default:
