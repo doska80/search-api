@@ -22,6 +22,7 @@ import org.mockito.Mock;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
@@ -1095,6 +1096,46 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
             assertEquals(request.build().getIndex(), builder.request().indices()[0]);
             assertThat(builder.request().source().query(), instanceOf(BoolQueryBuilder.class));
+        }
+        );
+    }
+
+    @Test
+    public void shouldCreateContainsAllQuery() {
+        newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
+        request -> {
+            final SearchRequestBuilder builder = queryAdapter.query(request.filter("x CONTAINS_ALL [1,2,3]").build());
+            final QueryBuilder query = builder.request().source().query();
+            assertThat(query, instanceOf(BoolQueryBuilder.class));
+            final BoolQueryBuilder boolQuery = (BoolQueryBuilder) query;
+            final AtomicInteger counter = new AtomicInteger(1);
+            assertEquals(3, boolQuery.filter().size());
+            boolQuery.filter().forEach(filter -> {
+                assertThat(filter, instanceOf(MatchQueryBuilder.class));
+                final MatchQueryBuilder match = (MatchQueryBuilder) filter;
+                assertEquals("x", match.fieldName());
+                assertEquals(counter.getAndIncrement(), match.value());
+            });
+        }
+        );
+    }
+
+    @Test
+    public void shouldCreateNotContainsAllQuery() {
+        newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
+        request -> {
+            final SearchRequestBuilder builder = queryAdapter.query(request.filter("NOT x CONTAINS_ALL [1,2,3]").build());
+            final QueryBuilder query = builder.request().source().query();
+            assertThat(query, instanceOf(BoolQueryBuilder.class));
+            final BoolQueryBuilder boolQuery = (BoolQueryBuilder) query;
+            final AtomicInteger counter = new AtomicInteger(1);
+            assertEquals(3, boolQuery.mustNot().size());
+            boolQuery.mustNot().forEach(filter -> {
+                assertThat(filter, instanceOf(MatchQueryBuilder.class));
+                final MatchQueryBuilder match = (MatchQueryBuilder) filter;
+                assertEquals("x", match.fieldName());
+                assertEquals(counter.getAndIncrement(), match.value());
+            });
         }
         );
     }
