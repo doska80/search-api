@@ -734,7 +734,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).build());
-                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
+                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
 
                 assertNotNull(queryStringQueryBuilder);
                 assertEquals(q, queryStringQueryBuilder.queryString());
@@ -765,7 +765,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
             request -> {
                 SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).fields(fields).build());
-                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
+                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
 
                 assertNotNull(queryStringQueryBuilder);
                 assertEquals(q, queryStringQueryBuilder.queryString());
@@ -789,7 +789,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             mm -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
                 request -> {
                     SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).mm(mm).build());
-                    QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).should().get(0);
+                    QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
 
                     assertNotNull(queryStringQueryBuilder);
                     assertEquals(q, queryStringQueryBuilder.queryString());
@@ -938,12 +938,12 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertNotNull(filterFirstLevel);
         assertNotNull(mustNotFirstLevel);
         assertNotNull(shouldFirstLevel);
-        assertEquals(1, filterFirstLevel.size());
+        assertEquals(2, filterFirstLevel.size());
         assertEquals(1, mustNotFirstLevel.size());
-        assertEquals(2, shouldFirstLevel.size());
+        assertEquals(1, shouldFirstLevel.size());
 
         // querystring
-        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) shouldFirstLevel.get(0);
+        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) filterFirstLevel.get(0);
         Map<String, Float> fieldsAndWeights = new HashMap<>(3);
         fieldsAndWeights.put(fieldName1, boostValue1);
         fieldsAndWeights.put(fieldName2, boostValue2);
@@ -955,7 +955,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertTrue(fieldsAndWeights.equals(queryStringQueryBuilder.fields()));
 
         // field 1
-        MatchQueryBuilder shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(1);
+        MatchQueryBuilder shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(0);
         assertEquals(field1Name, shouldMatchField1.fieldName());
         assertEquals(String.valueOf(field1Value).replaceAll("\"", ""), shouldMatchField1.value());
         assertEquals(OR, shouldMatchField1.operator());
@@ -966,7 +966,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertEquals(field2Value, mustNotMatchField2.value());
 
         // Second Level
-        List<QueryBuilder> filterSecondLevel = ((BoolQueryBuilder) filterFirstLevel.get(0)).filter();
+        List<QueryBuilder> filterSecondLevel = ((BoolQueryBuilder) filterFirstLevel.get(1)).filter();
         assertTrue(filterSecondLevel.size() == 2);
 
         // field 3
