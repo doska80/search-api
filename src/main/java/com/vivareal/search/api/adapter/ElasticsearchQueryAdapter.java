@@ -411,7 +411,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                 }
             }
         });
-        queryStringQueries.forEach((nestedPath, nestedQuery) -> queryBuilder.should().add(nestedQuery));
+        queryStringQueries.forEach((nestedPath, nestedQuery) -> queryBuilder.filter().add(nestedQuery));
     }
 
     private QueryStringQueryBuilder buildQueryStringQuery(QueryStringQueryBuilder queryStringQueryBuilder, final String indexName, final String q, final String[] boostFieldValues, final String mm) {
