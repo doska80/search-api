@@ -14,6 +14,7 @@ import java.util.function.Function;
 public final class ResponseStream {
 
     private static final Logger LOG = LoggerFactory.getLogger(ResponseStream.class);
+    private static final char BLANK_LINE = '\n';
 
     public static <T> void iterate(OutputStream stream, Iterator<T[]> iterator, Function<T, byte[]> byteFn) {
         if (stream == null) throw new IllegalArgumentException("stream cannot be null");
@@ -21,9 +22,9 @@ public final class ResponseStream {
             while (iterator.hasNext()) {
                 for (T hit: iterator.next()) {
                     stream.write(byteFn.apply(hit));
-                    stream.write('\n');
+                    stream.write(BLANK_LINE);
                 }
-
+                stream.write(BLANK_LINE);
                 stream.flush();
             }
         } catch (IOException e) {

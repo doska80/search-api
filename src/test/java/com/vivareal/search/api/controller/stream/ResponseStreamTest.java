@@ -39,7 +39,7 @@ public class ResponseStreamTest {
             }
         }, String::getBytes);
 
-        int callCount = 0;
+        int callCount = data.length;
         for (String[] hits : data) {
             for (String hit: hits) {
                 verify(mockStream, times(1)).write(hit.getBytes());

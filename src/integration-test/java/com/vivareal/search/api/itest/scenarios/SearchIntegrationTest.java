@@ -1103,7 +1103,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
     }
 
     @Test
-    public void searchStreamSizeWorks() {
+    public void searchStreamSizeWorksBasedOnNumberOfShards() {
         Integer numberShards = given()
             .log().all()
             .baseUri(baseUrl)
@@ -1123,9 +1123,12 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
             }
         };
 
-        assertEquals(numberShards, getHits.apply(numberShards));
-        assertEquals(numberShards - 1, getHits.apply(numberShards - 1).intValue());
-        assertEquals(numberShards + 1, getHits.apply(numberShards + 1).intValue());
+        // Increasing blank lines for the end of stream
+        int blankLinesEnd = 1;
+
+        assertEquals(Integer.valueOf(numberShards + blankLinesEnd), getHits.apply(numberShards));
+        assertEquals((numberShards + blankLinesEnd) - 1, getHits.apply(numberShards - 1).intValue());
+        assertEquals((numberShards + blankLinesEnd) + 1, getHits.apply(numberShards + 1).intValue());
         assertTrue(getHits.apply(numberShards) <= standardDatasetSize);
     }
 
