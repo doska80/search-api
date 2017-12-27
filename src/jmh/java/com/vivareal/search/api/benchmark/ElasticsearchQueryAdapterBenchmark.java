@@ -27,7 +27,7 @@ public class ElasticsearchQueryAdapterBenchmark {
             public boolean isTypeOf(String index, String fieldName, MappingType type) {
                 return type != FIELD_TYPE_NESTED;
             }
-        }, null, null, null);
+        }, null, null, null, null, null);
         final BoolQueryBuilder bqb = boolQuery();
         final Filterable filterable = SearchApiRequestBuilder.create().index("tincas").filter("a = 1").build();
     }

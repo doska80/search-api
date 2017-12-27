@@ -14,7 +14,7 @@ public class QueryParserBenchmark {
         OperatorParser operatorParser = new OperatorParser();
         NotParser notParser = new NotParser();
         FilterParser filterParser = new FilterParser(new FieldParser(notParser), operatorParser, new ValueParser());
-        final Parser<QueryFragment> parser = new QueryParser(operatorParser, filterParser, notParser).get();
+        final QueryParser parser = new QueryParser(operatorParser, filterParser, notParser);
     }
 
     @Benchmark
