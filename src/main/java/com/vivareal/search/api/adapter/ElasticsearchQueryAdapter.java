@@ -1,21 +1,19 @@
 package com.vivareal.search.api.adapter;
 
 import com.newrelic.api.agent.Trace;
-import com.vivareal.search.api.exception.UnsupportedFieldException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.parser.FacetParser;
-import com.vivareal.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.query.*;
 import com.vivareal.search.api.model.search.Facetable;
-import com.vivareal.search.api.model.search.Filterable;
 import com.vivareal.search.api.model.search.Queryable;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.AbstractQueryBuilder;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.NestedQueryBuilder;
+import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -27,23 +25,20 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 
-import static com.vivareal.search.api.adapter.ElasticsearchQueryAdapter.QueryType.*;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.model.mapping.MappingType.*;
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static com.vivareal.search.api.model.query.RelationalOperator.*;
+import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_STRING;
 import static java.lang.Integer.parseInt;
-import static java.util.Optional.empty;
-import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.commons.lang3.math.NumberUtils.toInt;
@@ -63,7 +58,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
     private static final String NOT_NESTED = "not_nested";
-
     private static final String MM_ERROR_MESSAGE = "Minimum Should Match (mm) should be a valid integer number (-100 <> +100)";
 
     private final ESClient esClient;
@@ -72,24 +66,23 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private final SourceFieldAdapter sourceFieldAdapter;
     private final SearchAfterQueryAdapter searchAfterQueryAdapter;
     private final SortQueryAdapter sortQueryAdapter;
-    private final QueryParser queryParser;
+    private final FilterQueryAdapter filterQueryAdapter;
     private final FacetParser facetParser;
 
     @Autowired
     public ElasticsearchQueryAdapter(ESClient esClient,
-                                     @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String,
-                                     Map<String, Object>>, String> settingsAdapter,
+                                     @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
                                      SourceFieldAdapter sourceFieldAdapter,
                                      SearchAfterQueryAdapter searchAfterQueryAdapter,
                                      SortQueryAdapter sortQueryAdapter,
-                                     QueryParser queryParser,
+                                     FilterQueryAdapter filterQueryAdapter,
                                      FacetParser facetParser) {
         this.esClient = esClient;
         this.settingsAdapter = settingsAdapter;
         this.sourceFieldAdapter = sourceFieldAdapter;
         this.searchAfterQueryAdapter = searchAfterQueryAdapter;
         this.sortQueryAdapter = sortQueryAdapter;
-        this.queryParser = queryParser;
+        this.filterQueryAdapter = filterQueryAdapter;
         this.facetParser = facetParser;
     }
 
@@ -142,7 +135,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         sourceFieldAdapter.apply(searchBuilder, request);
         applyPage(searchBuilder, request);
         applyQueryString(queryBuilder, request);
-        applyFilterQuery(queryBuilder, request);
+        filterQueryAdapter.apply(queryBuilder, request);
         sortQueryAdapter.apply(searchBuilder, request);
         searchAfterQueryAdapter.apply(searchBuilder, request);
     }
@@ -157,227 +150,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         request.setPaginationValues(ES_DEFAULT_SIZE.getValue(index), ES_MAX_SIZE.getValue(index));
         searchBuilder.setFrom(request.getFrom());
         searchBuilder.setSize(request.getSize());
-    }
-
-    public void applyFilterQuery(BoolQueryBuilder queryBuilder, final Filterable filter) {
-        ofNullable(filter.getFilter()).ifPresent(f -> applyFilterQuery(queryBuilder, queryParser.parse(f), filter.getIndex(), new HashMap<>()));
-    }
-
-    private void applyFilterQuery(BoolQueryBuilder queryBuilder, final QueryFragment queryFragment, final String indexName, Map<QueryType, Map<String, BoolQueryBuilder>> nestedMap) {
-        if (queryFragment == null || !(queryFragment instanceof QueryFragmentList))
-            return;
-
-        QueryFragmentList queryFragmentList = (QueryFragmentList) queryFragment;
-        LogicalOperator logicalOperator = AND;
-
-        for (int index = 0; index < queryFragmentList.size(); index++) {
-            QueryFragment queryFragmentFilter = queryFragmentList.get(index);
-
-            if (queryFragmentFilter instanceof QueryFragmentList) {
-                BoolQueryBuilder recursiveQueryBuilder = boolQuery();
-                logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
-                Map<QueryType, Map<String, BoolQueryBuilder>> innerNestedMap = addFilterQuery(new HashMap<>(), queryBuilder, recursiveQueryBuilder, logicalOperator, isNotBeforeCurrentQueryFragment(queryFragmentList, index), false, null);
-                applyFilterQuery(recursiveQueryBuilder, queryFragmentFilter, indexName, innerNestedMap);
-
-            } else if (queryFragmentFilter instanceof QueryFragmentItem) {
-                QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
-                Filter filter = queryFragmentItem.getFilter();
-
-                String fieldName = filter.getField().getName();
-                String fieldFirstName = filter.getField().firstName();
-                settingsAdapter.checkFieldName(indexName, fieldName, false);
-                boolean nested = settingsAdapter.isTypeOf(indexName, fieldFirstName, FIELD_TYPE_NESTED);
-
-                final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
-                logicalOperator = getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
-                RelationalOperator operator = filter.getRelationalOperator();
-
-                if (filter.getValue().isEmpty()) {
-                    addFilterQuery(nestedMap, queryBuilder, existsQuery(fieldName), logicalOperator, DIFFERENT.equals(operator) == not, nested, fieldFirstName);
-                    continue;
-                }
-
-                Value filterValue = filter.getValue();
-
-                switch (operator) {
-                    case DIFFERENT:
-                        addFilterQuery(nestedMap, queryBuilder, matchQuery(fieldName, filterValue.value()), logicalOperator, !not, nested, fieldFirstName);
-                        break;
-
-                    case EQUAL:
-                        addFilterQuery(nestedMap, queryBuilder, matchQuery(fieldName, filterValue.value()), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case RANGE:
-                        addFilterQuery(nestedMap, queryBuilder, rangeQuery(fieldName).from(filterValue.value(0)).to(filterValue.value(1)).includeLower(true).includeUpper(true), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case GREATER:
-                        addFilterQuery(nestedMap, queryBuilder, rangeQuery(fieldName).from(filterValue.value()).includeLower(false), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case GREATER_EQUAL:
-                        addFilterQuery(nestedMap, queryBuilder, rangeQuery(fieldName).from(filterValue.value()).includeLower(true), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case LESS:
-                        addFilterQuery(nestedMap, queryBuilder, rangeQuery(fieldName).to(filterValue.value()).includeUpper(false), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case LESS_EQUAL:
-                        addFilterQuery(nestedMap, queryBuilder, rangeQuery(fieldName).to(filterValue.value()).includeUpper(true), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case LIKE:
-                        if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_KEYWORD))
-                            throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_KEYWORD.toString(), LIKE);
-
-                        addFilterQuery(nestedMap, queryBuilder, wildcardQuery(fieldName, filter.getValue().first()), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case IN:
-                        if (fieldName.equals(ES_MAPPING_META_FIELDS_ID.getValue(indexName))) {
-                            String[] values = filterValue.stream().map(contents -> ((Value) contents).value(0)).map(Object::toString).toArray(String[]::new);
-                            addFilterQuery(nestedMap, queryBuilder, idsQuery().addIds(values), logicalOperator, not, nested, fieldFirstName);
-                        } else {
-                            Object[] values = filterValue.stream().map(contents -> ((Value) contents).value(0)).toArray();
-                            addFilterQuery(nestedMap, queryBuilder, termsQuery(fieldName, values), logicalOperator, not, nested, fieldFirstName);
-                        }
-                        break;
-
-                    case POLYGON:
-                        if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
-                            throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT.toString(), POLYGON);
-
-                        List<GeoPoint> points = filterValue
-                            .stream()
-                            .map(point -> new GeoPoint(((Value) point).<Double>value(1), ((Value) point).<Double>value(0)))
-                            .collect(toList());
-
-                        addFilterQuery(nestedMap, queryBuilder, geoPolygonQuery(fieldName, points), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case VIEWPORT:
-                        if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
-                            throw new UnsupportedFieldException(fieldName, settingsAdapter.getFieldType(indexName, fieldName), FIELD_TYPE_GEOPOINT.toString(), VIEWPORT);
-
-                        GeoPoint topRight = new GeoPoint(filterValue.value(0, 1), filterValue.value(0, 0));
-                        GeoPoint bottomLeft = new GeoPoint(filterValue.value(1, 1), filterValue.value(1, 0));
-
-                        addFilterQuery(nestedMap, queryBuilder, geoBoundingBoxQuery(fieldName).setCornersOGC(bottomLeft, topRight), logicalOperator, not, nested, fieldFirstName);
-                        break;
-
-                    case CONTAINS_ALL:
-                        Object[] values = filterValue.stream().map(contents -> ((Value) contents).value(0)).toArray();
-                        Stream.of(values).forEach((value) -> addFilterQuery(nestedMap, queryBuilder, matchQuery(fieldName, value), AND, not, nested, fieldFirstName));
-                        break;
-
-                    default:
-                        throw new UnsupportedOperationException("Unknown Relational Operator " + operator.name());
-                }
-            }
-        }
-    }
-
-    private Map<QueryType, Map<String, BoolQueryBuilder>> addFilterQuery(Map<QueryType, Map<String, BoolQueryBuilder>> nestedMap, BoolQueryBuilder boolQueryBuilder, final QueryBuilder queryBuilder, final LogicalOperator logicalOperator, final boolean not, final boolean nested, final String fieldFirstName) {
-        QueryType queryType = getQueryType(logicalOperator, not);
-        QueryBuilder query = queryBuilder;
-
-        if (nested) {
-            Optional<QueryBuilder> nestedQuery = addNestedQuery(queryType, nestedMap, fieldFirstName, queryBuilder, logicalOperator);
-            if (nestedQuery.isPresent()) {
-                query = nestedQuery.get();
-            } else {
-                return nestedMap;
-            }
-        }
-
-        switch (queryType) {
-            case FILTER:
-                boolQueryBuilder.filter(query);
-                break;
-
-            case MUST_NOT:
-                boolQueryBuilder.mustNot(query);
-                break;
-
-            case SHOULD:
-                boolQueryBuilder.should(query);
-                break;
-
-            case SHOULD_NOT:
-                boolQueryBuilder.should(boolQuery().mustNot(query));
-                break;
-        }
-        return nestedMap;
-    }
-
-    enum QueryType {
-        FILTER, MUST_NOT, SHOULD, SHOULD_NOT
-    }
-
-    private QueryType getQueryType(final LogicalOperator logicalOperator, final boolean not) {
-        if(logicalOperator.equals(AND)) {
-            if (!not) {
-                return FILTER;
-            } else {
-                return MUST_NOT;
-            }
-        } else {
-            if (!not) {
-                return SHOULD;
-            } else {
-                return SHOULD_NOT;
-            }
-        }
-    }
-
-    private Optional<QueryBuilder> addNestedQuery(final QueryType queryType, Map<QueryType, Map<String, BoolQueryBuilder>> nestedMap, final String fieldFirstName, final QueryBuilder queryBuilder, final LogicalOperator logicalOperator) {
-        final boolean nested = false;
-        final boolean not = false;
-
-        if (!nestedMap.containsKey(queryType)) {
-            Map<String, BoolQueryBuilder> m = new HashMap<>();
-            BoolQueryBuilder bq = boolQuery();
-            m.put(fieldFirstName, bq);
-            nestedMap.put(queryType, m);
-
-            addFilterQuery(nestedMap, bq, queryBuilder, logicalOperator, not, nested, fieldFirstName);
-            return of(nestedQuery(fieldFirstName, bq, None));
-
-        } else if (!nestedMap.get(queryType).containsKey(fieldFirstName)) {
-            BoolQueryBuilder bq = boolQuery();
-            nestedMap.get(queryType).put(fieldFirstName, bq);
-
-            addFilterQuery(nestedMap, bq, queryBuilder, logicalOperator, not, nested, fieldFirstName);
-            return of(nestedQuery(fieldFirstName, bq, None));
-
-        } else {
-            addFilterQuery(nestedMap, nestedMap.get(queryType).get(fieldFirstName), queryBuilder, logicalOperator, not, nested, fieldFirstName);
-        }
-
-        return empty();
-    }
-
-    private boolean isNotBeforeCurrentQueryFragment(final QueryFragmentList queryFragmentList, final int index) {
-        if (index - 1 >= 0) {
-            QueryFragment before = queryFragmentList.get(index - 1);
-            if (before instanceof QueryFragmentNot)
-                return ((QueryFragmentNot) before).isNot();
-        }
-        return false;
-    }
-
-    private LogicalOperator getLogicalOperatorByQueryFragmentList(final QueryFragmentList queryFragmentList, int index, LogicalOperator logicalOperator) {
-        if (index + 1 < queryFragmentList.size()) {
-            QueryFragment next = queryFragmentList.get(index + 1);
-            if (next instanceof QueryFragmentItem)
-                return ((QueryFragmentItem) next).getLogicalOperator();
-
-            if (next instanceof QueryFragmentOperator)
-                return ((QueryFragmentOperator) next).getOperator();
-        }
-        return logicalOperator;
     }
 
     private void applyQueryString(BoolQueryBuilder queryBuilder, final Queryable request) {

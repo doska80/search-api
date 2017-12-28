@@ -10,10 +10,12 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
@@ -25,12 +27,15 @@ public class SortQueryAdapter {
     private static final FieldSortBuilder DEFAULT_TIEBREAKER = fieldSort("_uid").order(DESC);
 
     private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
-    private SortParser sortParser;
+    private final SortParser sortParser;
+    private final FilterQueryAdapter filterQueryAdapter;
 
     public SortQueryAdapter(@Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
-                            SortParser sortParser) {
+                            SortParser sortParser,
+                            FilterQueryAdapter filterQueryAdapter) {
         this.settingsAdapter = settingsAdapter;
         this.sortParser = sortParser;
+        this.filterQueryAdapter = filterQueryAdapter;
     }
 
     public void apply(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
@@ -39,12 +44,12 @@ public class SortQueryAdapter {
 
         sortParser.parse(ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex()))
             .stream()
-            .map(item -> asFieldSortBuilder(request.getIndex(), item))
+            .map(item -> asFieldSortBuilder(request.getIndex(), item, request))
             .forEach(searchRequestBuilder::addSort);
         searchRequestBuilder.addSort(DEFAULT_TIEBREAKER);
     }
 
-    private FieldSortBuilder asFieldSortBuilder(String index, Item item) {
+    private FieldSortBuilder asFieldSortBuilder(String index, Item item, final Sortable request) {
         String fieldName = item.getField().getName();
 
         FieldSortBuilder fieldSortBuilder = fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
@@ -52,18 +57,14 @@ public class SortQueryAdapter {
 
         if (settingsAdapter.isTypeOf(index, parentField, FIELD_TYPE_NESTED)) {
             fieldSortBuilder.setNestedPath(parentField);
-            item.getQueryFragmentList()
-                .map(this::asTermsQueryBuilder)
-                .ifPresent(fieldSortBuilder::setNestedFilter);
+
+            item.getQueryFragment().ifPresent(qf -> {
+                BoolQueryBuilder queryBuilder = boolQuery();
+                filterQueryAdapter.apply(queryBuilder, qf, request.getIndex(), new HashMap<>(), true);
+                fieldSortBuilder.setNestedFilter(queryBuilder);
+            });
         }
+
         return fieldSortBuilder;
-    }
-
-    private TermQueryBuilder asTermsQueryBuilder(QueryFragmentList queryFragmentList) {
-        // FIX ME - We are waiting a refactor for ElasticSearchQueryAdapter in order to reuse the Filter created from a QueryFragment
-        QueryFragmentItem queryFragment = (QueryFragmentItem) queryFragmentList.get(0);
-
-        Filter filter = queryFragment.getFilter();
-        return termQuery(filter.getField().getName(), filter.getValue().value());
     }
 }

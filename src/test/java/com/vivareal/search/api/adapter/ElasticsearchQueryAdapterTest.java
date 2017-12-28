@@ -49,6 +49,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
+    private FilterQueryAdapter filterQueryAdapter;
 
     @Mock
     private ElasticsearchSettingsAdapter settingsAdapter;
@@ -84,9 +85,10 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         NotParser notParser = new NotParser();
         FieldParser fieldParser = new FieldParser(new NotParser());
         FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
-        QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
         FacetParser facetParser = new FacetParser(fieldParser);
-        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter, sortQueryAdapter, queryParser, facetParser);
+        QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
+        this.filterQueryAdapter = new FilterQueryAdapter(settingsAdapter, queryParser);
+        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter, sortQueryAdapter, filterQueryAdapter, facetParser);
 
         Map<String, String[]> defaultSourceFields = new HashMap<>();
         defaultSourceFields.put(INDEX_NAME, new String[0]);
