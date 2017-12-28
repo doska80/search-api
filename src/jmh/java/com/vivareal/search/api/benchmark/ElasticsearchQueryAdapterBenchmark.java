@@ -1,7 +1,7 @@
 package com.vivareal.search.api.benchmark;
 
-import com.vivareal.search.api.adapter.ElasticsearchQueryAdapter;
 import com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter;
+import com.vivareal.search.api.adapter.FilterQueryAdapter;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
 import com.vivareal.search.api.model.mapping.MappingType;
 import com.vivareal.search.api.model.search.Filterable;
@@ -17,7 +17,7 @@ public class ElasticsearchQueryAdapterBenchmark {
 
     @State(Scope.Benchmark)
     public static class ElasticsearchQueryAdapterState {
-        final ElasticsearchQueryAdapter adapter = new ElasticsearchQueryAdapter(null, new ElasticsearchSettingsAdapter(null) {
+        final FilterQueryAdapter adapter = new FilterQueryAdapter(new ElasticsearchSettingsAdapter(null) {
             @Override
             public boolean checkFieldName(String index, String fieldName, boolean acceptAsterisk) {
                 return true;
@@ -27,13 +27,13 @@ public class ElasticsearchQueryAdapterBenchmark {
             public boolean isTypeOf(String index, String fieldName, MappingType type) {
                 return type != FIELD_TYPE_NESTED;
             }
-        }, null, null, null, null, null);
+        }, null);
         final BoolQueryBuilder bqb = boolQuery();
         final Filterable filterable = SearchApiRequestBuilder.create().index("tincas").filter("a = 1").build();
     }
 
     @Benchmark
     public void applyFilterQuery(ElasticsearchQueryAdapterState state) {
-        state.adapter.applyFilterQuery(state.bqb, state.filterable);
+        state.adapter.apply(state.bqb, state.filterable);
     }
 }
