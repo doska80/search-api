@@ -19,9 +19,9 @@ import java.util.stream.Stream;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
+import static com.vivareal.search.api.itest.configuration.data.TestData.*;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.*;
-import static java.lang.Math.ceil;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
 import static java.util.stream.Collectors.toList;
@@ -37,7 +37,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
     @Test
     public void responseOkWhenSearchAnExistingDocumentById() {
-        rangeClosed(1, standardDatasetSize).boxed().forEach(id ->
+        rangeClosed(1, standardDatasetSize).boxed().forEach(id -> {
             given()
                 .log().all()
                 .baseUri(baseUrl)
@@ -51,28 +51,28 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
                 .body("$", not(hasKey("nonExistingKey")))
                 .body("numeric", equalTo(id))
                 .body("array_integer", hasSize(id))
-                .body("array_integer", equalTo(rangeClosed(1, id).boxed().collect(toList())))
+                .body("array_integer", equalTo(asserts.allIdsUntil(id)))
                 .body("field" + id, equalTo("value" + id))
-                .body("isEven", equalTo(id%2 == 0))
-                .body("geo.lat", equalTo(-1f * id))
-                .body("geo.lon", equalTo(id * 1f))
+                .body("isEven", equalTo(isEven(id)))
+                .body("geo.lat", equalTo(latitude(id)))
+                .body("geo.lon", equalTo(longitude(id)))
 
-                .body("object.boolean", equalTo(id%2 != 0))
-                .body("object.number", equalTo(id * 2))
-                .body("object.float", equalTo(id * 3.5f))
-                .body("object.string", equalTo(format("string with char %s", (char) (id + 'a' - 1))))
+                .body("object.boolean", equalTo(isOdd(id)))
+                .body("object.number", equalTo(numberForId(id)))
+                .body("object.float", equalTo(floatForId(id)))
+                .body("object.string", equalTo(normalTextForId(id)))
                 .body("object.object.field", equalTo("common"))
                 .body("object.object.array_string", hasSize(id))
-                .body("object.object.array_string", equalTo(rangeClosed(1, id).boxed().map(String::valueOf).collect(toList())))
+                .body("object.object.array_string", equalTo(asserts.allIdsUntil(id, String::valueOf)))
 
-                .body("nested.boolean", equalTo(id%2 != 0))
-                .body("nested.number", equalTo(id * 2))
-                .body("nested.float", equalTo(id * 3.5f))
-                .body("nested.string", equalTo(format("string with char %s", (char) (id + 'a' - 1))))
+                .body("nested.boolean", equalTo(isOdd(id)))
+                .body("nested.number", equalTo(numberForId(id)))
+                .body("nested.float", equalTo(floatForId(id)))
+                .body("nested.string", equalTo(normalTextForId(id)))
                 .body("nested.object.field", equalTo("common"))
                 .body("nested.object.array_string", hasSize(id))
-                .body("nested.object.array_string", equalTo(rangeClosed(1, id).boxed().map(String::valueOf).collect(toList())))
-        );
+                .body("nested.object.array_string", equalTo(asserts.allIdsUntil(id, String::valueOf)));
+        });
     }
 
     @Test
@@ -190,8 +190,8 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
             .get(TEST_DATA_INDEX + "?filter=isEven NE true")
         .then()
             .body("totalCount", equalTo(standardDatasetSize / 2))
-            .body("result.testdata", hasSize(standardDatasetSize / 2))
-            .body("result.testdata.numeric.sort()", equalTo(range(1, standardDatasetSize).boxed().filter(id -> id % 2 != 0).collect(toList())));
+            .body("result.testdata", hasSize(min(defaultPageSize, standardDatasetSize / 2)))
+            .body("result.testdata.numeric", everyItem(isIn(asserts.odd())));
     }
 
     @Test
@@ -209,7 +209,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .then()
             .body("totalCount", equalTo(standardDatasetSize - limit))
             .body("result.testdata", hasSize(standardDatasetSize - limit))
-            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(limit + 1, standardDatasetSize).boxed().collect(toList())));
+            .body("result.testdata.numeric", everyItem(isIn(asserts.idsBetween(limit + 1, standardDatasetSize))));
     }
 
     @Test
@@ -227,7 +227,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .then()
             .body("totalCount", equalTo(standardDatasetSize - limit + 1))
             .body("result.testdata", hasSize(standardDatasetSize - limit + 1))
-            .body("result.testdata.numeric.sort()", equalTo(rangeClosed(limit, standardDatasetSize).boxed().collect(toList())));
+            .body("result.testdata.numeric", everyItem(isIn(asserts.idsBetween(limit, standardDatasetSize))));
     }
 
     @Test
@@ -342,7 +342,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .then()
             .body("totalCount", equalTo(standardDatasetSize / 2))
             .body("result.testdata", hasSize(standardDatasetSize / 2))
-            .body("result.testdata.numeric.sort()", equalTo(range(1, standardDatasetSize).boxed().filter(id -> id % 2 != 0).collect(toList())));
+            .body("result.testdata.numeric", everyItem(isIn(asserts.odd())));
     }
 
     @Test
@@ -359,8 +359,8 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
                     .get(path)
                     .then()
                     .body("totalCount", equalTo(standardDatasetSize / 2))
-                    .body("result.testdata", hasSize(standardDatasetSize / 2))
-                    .body("result.testdata.numeric.sort()", equalTo(rangeClosed(1, standardDatasetSize).boxed().filter(id -> id % 2 != 0).collect(toList())))
+                    .body("result.testdata", hasSize(min(defaultPageSize, standardDatasetSize / 2)))
+                    .body("result.testdata.numeric", everyItem(isIn(asserts.odd())))
             );
     }
 

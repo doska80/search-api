@@ -2,6 +2,7 @@ package com.vivareal.search.api.itest.configuration.es;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vivareal.search.api.itest.configuration.data.TestData;
 import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.vivareal.search.api.itest.configuration.data.TestData.createTestData;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.util.Collections.emptyMap;
@@ -100,7 +102,7 @@ public class ESIndexHandler {
     public void addStandardTestData() {
         List<String> entities = new ArrayList<>(standardDatasetSize);
         for(int id = 1; id<= standardDatasetSize; id++) {
-            String entity = createStandardEntityForId(id);
+            String entity = createStandardEntityForId(id, (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? 1 : 2));
             if(insertEntityByIndex(TEST_DATA_INDEX, TEST_DATA_TYPE, valueOf(id), entity))
                 entities.add(entity);
         }
@@ -109,50 +111,8 @@ public class ESIndexHandler {
         refreshIndex(TEST_DATA_INDEX);
     }
 
-    public String createStandardEntityForId(int id) {
-        return writeValueAsStringFromMap(id, createStandardEntityForId(id, true));
-    }
-
-    public Map<String, Object> createStandardEntityForId(int id, boolean complexMapping) {
-        boolean isEven = id % 2 == 0;
-
-        Map<String, Object> kv = unmodifiableMap(Stream.of(
-            new SimpleEntry<>("field", "common"),
-            new SimpleEntry<>("array_string", rangeClosed(1, id).boxed().map(String::valueOf).collect(toList()))
-        ).collect(toMap(SimpleEntry::getKey, e -> (Object) e.getValue())));
-
-        Map<String, Double> geo = unmodifiableMap(Stream.of(
-            new SimpleEntry<>("lat", id * -1d),
-            new SimpleEntry<>("lon", id * 1d)
-        ).collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
-
-        Map<String, Object> nestedObject = unmodifiableMap(Stream.of(
-            new SimpleEntry<>("object", kv),
-            new SimpleEntry<>("id", id),
-            new SimpleEntry<>("number", id * 2),
-            new SimpleEntry<>("float", id * 3.5f),
-            new SimpleEntry<>("string", format("string with char %s", (char) (id + 'a' - 1))),
-            new SimpleEntry<>("special_string", format("string with special chars * and + and %n and ? and %% and 5%% and _ and with_underscore of %s to search by like", (char) (id + 'a' - 1))),
-            new SimpleEntry<>("boolean", !isEven),
-            new SimpleEntry<>(isEven ? "even" : "odd", true)
-        ).collect(toMap(SimpleEntry::getKey, e -> (Object) e.getValue())));
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("id", valueOf(id));
-        data.put("numeric", id);
-        data.put("isEven", isEven);
-        data.put("array_integer", rangeClosed(1, id).boxed().collect(toList()));
-        data.put("nested", nestedObject);
-        data.put("object", nestedObject);
-        if (complexMapping) {
-            data.put("field" + id, "value" + id);
-            data.put("geo", geo);
-        }
-        data.put("facetString", (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? "A" : "B"));
-        data.put("facetInteger", (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? 1 : 2));
-        data.put("facetBoolean", (id <= (standardDatasetSize - standardDatasetFacetDecrease)));
-
-        return data;
+    public String createStandardEntityForId(int id, int facetValue) {
+        return writeValueAsStringFromMap(id, createTestData(id, facetValue));
     }
 
     private String writeValueAsStringFromMap(Object id, Map<String, Object> data) {

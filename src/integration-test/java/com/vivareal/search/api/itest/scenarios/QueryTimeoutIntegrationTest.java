@@ -1,6 +1,7 @@
 package com.vivareal.search.api.itest.scenarios;
 
 import com.vivareal.search.api.itest.SearchApiIntegrationTest;
+import com.vivareal.search.api.itest.configuration.data.TestData;
 import com.vivareal.search.api.itest.configuration.es.BulkESIndexHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +52,7 @@ public class QueryTimeoutIntegrationTest extends SearchApiIntegrationTest {
         rangeClosed(1, 2000)
             .boxed()
             .forEach(id -> {
-                sources.add(esIndexHandler.createStandardEntityForId(id, false));
+                sources.add(TestData.createTestData(id, 1));
                 if (sources.size() == 500) {
                     bulkESIndexHandler.bulkInsert(TEST_DATA_INDEX.replace("/", ""), TEST_DATA_TYPE, sources);
                     sources.clear();
