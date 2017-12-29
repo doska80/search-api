@@ -5,5 +5,5 @@ public interface QueryFragment {
         return this;
     }
 
-    int MAX_FRAGMENTS = 20;
+    int MAX_FRAGMENTS = 64;
 }
