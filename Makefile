@@ -71,7 +71,7 @@ SLK_DEPLOY_URL=https://console.aws.amazon.com/cloudformation/home?region=$(AWS_D
 teardown: destroy-stack
 
 # Notifications config
-SLK_CHANNEL=squad-search
+SLK_CHANNEL=alerts-search
 SLK_USER_GROUP=search
 SLK_CD_URL=http://jenkins.vivareal.com/view/SEARCH-API-V2/job/SEARCH_API_V2_$(ENV_CAPS)/parambuild?IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&delay=0sec
 include make/slk/Makefile
