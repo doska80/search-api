@@ -50,6 +50,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
     private FilterQueryAdapter filterQueryAdapter;
+    private PageQueryAdapter pageQueryAdapter;
+    private QueryStringAdapter queryStringAdapter;
+    private FacetQueryAdapter facetQueryAdapter;
 
     @Mock
     private ElasticsearchSettingsAdapter settingsAdapter;
@@ -83,12 +86,15 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
         OperatorParser operatorParser = new OperatorParser();
         NotParser notParser = new NotParser();
-        FieldParser fieldParser = new FieldParser(new NotParser());
+        FieldParser fieldParser = new FieldParser(notParser);
         FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
-        FacetParser facetParser = new FacetParser(fieldParser);
         QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
+        FacetParser facetParser = new FacetParser(fieldParser);
+        this.pageQueryAdapter = new PageQueryAdapter();
+        this.queryStringAdapter = new QueryStringAdapter(settingsAdapter);
+        this.facetQueryAdapter = new FacetQueryAdapter(settingsAdapter, facetParser);
         this.filterQueryAdapter = new FilterQueryAdapter(settingsAdapter, queryParser);
-        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, searchAfterQueryAdapter, sortQueryAdapter, filterQueryAdapter, facetParser);
+        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, pageQueryAdapter, searchAfterQueryAdapter, sortQueryAdapter, queryStringAdapter, filterQueryAdapter, facetQueryAdapter);
 
         Map<String, String[]> defaultSourceFields = new HashMap<>();
         defaultSourceFields.put(INDEX_NAME, new String[0]);
