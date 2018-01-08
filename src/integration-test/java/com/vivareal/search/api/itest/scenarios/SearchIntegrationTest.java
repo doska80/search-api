@@ -1070,7 +1070,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
     @Test
     public void hystrixStreamWorks() throws Exception {
-        URL stream = new URL(baseUrl.replace("/v2", "") + "/application/hystrix.stream");
+        URL stream = new URL(baseUrl.replace("/v2", "") + "/actuator/hystrix.stream");
         InputStream in = stream.openStream();
         byte[] buffer = new byte[1024];
         in.read(buffer);

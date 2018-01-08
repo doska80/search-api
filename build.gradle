@@ -14,10 +14,10 @@ buildscript {
     dependencies {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
         classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
-        classpath 'com.gradle:build-scan-plugin:1.10.2'
-        classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
+        classpath 'com.gradle:build-scan-plugin:1.11'
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE'
         classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.5'
     }
 }
@@ -87,28 +87,25 @@ configurations {
 }
 
 dependencyManagement {
-    dependencies {
-        dependencySet(group:'org.springframework.cloud', version: SPRING_CLOUD_VERSION) {
-            entry 'spring-cloud-starter-netflix-hystrix'
-            entry 'spring-cloud-starter-netflix-hystrix-dashboard'
-            entry 'spring-cloud-starter-netflix-turbine'
-        }
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:' + SPRING_CLOUD_VERSION
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:' + SPRING_BOOT_VERSION
     }
 }
 
 dependencies {
     compile 'com.netflix.servo:servo-core:0.12.17'
 
-    compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix:' + SPRING_CLOUD_VERSION
-    compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix-dashboard:' + SPRING_CLOUD_VERSION
-    compile 'org.springframework.cloud:spring-cloud-starter-netflix-turbine:' + SPRING_CLOUD_VERSION
+    compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
+    compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix-dashboard'
+    compile 'org.springframework.cloud:spring-cloud-starter-netflix-turbine'
 
-    compile 'org.springframework.boot:spring-boot-starter-undertow:'+ SPRING_BOOT_VERSION
-    compile 'org.springframework.boot:spring-boot-starter-web:'+ SPRING_BOOT_VERSION
-    compile 'org.springframework.boot:spring-boot-starter-actuator:'+ SPRING_BOOT_VERSION
-    compile 'org.springframework.boot:spring-boot-starter-data-elasticsearch:'+ SPRING_BOOT_VERSION
+    compile 'org.springframework.boot:spring-boot-starter-undertow'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-actuator'
+    compile 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
-    compile 'org.apache.logging.log4j:log4j-core:2.9.1'
+    compile 'org.apache.logging.log4j:log4j-core:2.10.0'
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
     compile 'biz.paluch.logging:logstash-gelf:1.11.1'
@@ -118,7 +115,7 @@ dependencies {
 
     compile 'org.jparsec:jparsec:3.0'
 
-    compile 'org.glowroot:glowroot-agent-api:0.9.26'
+    compile 'org.glowroot:glowroot-agent-api:0.9.28'
     compile 'com.newrelic.agent.java:newrelic-api:' + NEW_RELIC_VERSION
     newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
 
@@ -127,7 +124,7 @@ dependencies {
     testCompile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
     testCompile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:' + ELASTICSEARCH_VERSION
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test:' + SPRING_BOOT_VERSION
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
     // Fixtures
     testCompile 'br.com.six2six:fixture-factory:3.1.0'
     testCompile 'com.jayway.restassured:rest-assured:2.9.0'
@@ -135,15 +132,13 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.3.1'
+    gradleVersion = '4.4.1'
     distributionType = Wrapper.DistributionType.ALL
 }
 
 bootRun {
-    execSpec {
-        systemProperties = System.properties
-  }
-  jvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"]
+    systemProperties = System.properties
+    jvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"]
 }
 
 task newrelicDeps(dependsOn: 'bootJar') {
@@ -206,7 +201,7 @@ test {
  ****************************/
 
 def isSearchApiHealthy = {
-    return isDependencyHealthy('http://localhost:8482/application/health')
+    return isDependencyHealthy('http://localhost:8482/actuator/health')
 }
 
 def isESHealthy = {
