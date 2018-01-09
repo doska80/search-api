@@ -1,6 +1,7 @@
 package com.vivareal.search.api.model;
 
 import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.vivareal.search.api.model.search.Pageable;
 import org.junit.Test;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -92,6 +93,14 @@ public class SearchApiRequestTest {
     public void shouldApplyDefaultSizePaginationIfSizeIsGreaterThanMaxSize() {
         SearchApiRequest request = new SearchApiRequest();
         request.setSize(41);
+
+        request.setPaginationValues(DEFAULT_SIZE, MAX_SIZE);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldApplyDefaultSizePaginationIfSizeIsGreaterThanMaxWindow() {
+        SearchApiRequest request = new SearchApiRequest();
+        request.setSize(Pageable.MAX_WINDOW + 1);
 
         request.setPaginationValues(DEFAULT_SIZE, MAX_SIZE);
     }
