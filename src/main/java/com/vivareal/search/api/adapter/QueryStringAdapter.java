@@ -3,8 +3,8 @@ package com.vivareal.search.api.adapter;
 import com.vivareal.search.api.model.search.Queryable;
 import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.NestedQueryBuilder;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +19,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.commons.lang3.math.NumberUtils.toInt;
 import static org.apache.lucene.search.join.ScoreMode.None;
+import static org.elasticsearch.index.query.QueryBuilders.multiMatchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
-import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 @Component
 public class QueryStringAdapter {
@@ -49,9 +49,9 @@ public class QueryStringAdapter {
             throw new IllegalArgumentException(MM_ERROR_MESSAGE);
     }
 
-    private QueryStringQueryBuilder buildQueryStringQuery(QueryStringQueryBuilder queryStringQueryBuilder, final String indexName, final String q, final String[] boostFieldValues, final String mm) {
-        if (queryStringQueryBuilder == null)
-            queryStringQueryBuilder = queryStringQuery(q);
+    private MultiMatchQueryBuilder buildQueryStringQuery(MultiMatchQueryBuilder multiMatchQueryBuilder, final String indexName, final String q, final String[] boostFieldValues, final String mm) {
+        if (multiMatchQueryBuilder == null)
+            multiMatchQueryBuilder = multiMatchQuery(q);
 
         String fieldName = boostFieldValues[0];
 
@@ -59,8 +59,10 @@ public class QueryStringAdapter {
             fieldName = fieldName.concat(".raw");
 
         float boost = (boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
-        queryStringQueryBuilder.field(fieldName, boost).minimumShouldMatch(mm).tieBreaker(0.2f).phraseSlop(2);
-        return queryStringQueryBuilder;
+        multiMatchQueryBuilder.field(fieldName, boost)
+            .minimumShouldMatch(mm)
+            .tieBreaker(0.2f);
+        return multiMatchQueryBuilder;
     }
 
     public void apply(BoolQueryBuilder queryBuilder, final Queryable request) {
@@ -82,12 +84,12 @@ public class QueryStringAdapter {
                 String nestedField = fieldName.split("\\.")[0];
 
                 if (queryStringQueries.containsKey(nestedField))
-                    buildQueryStringQuery((QueryStringQueryBuilder) ((NestedQueryBuilder) queryStringQueries.get(nestedField)).query(), indexName, request.getQ(), boostFieldValues, mm);
+                    buildQueryStringQuery((MultiMatchQueryBuilder) ((NestedQueryBuilder) queryStringQueries.get(nestedField)).query(), indexName, request.getQ(), boostFieldValues, mm);
                 else
                     queryStringQueries.put(nestedField, nestedQuery(nestedField, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm), None));
             } else {
                 if (queryStringQueries.containsKey(NOT_NESTED))
-                    buildQueryStringQuery((QueryStringQueryBuilder) queryStringQueries.get(NOT_NESTED), indexName, request.getQ(), boostFieldValues, mm);
+                    buildQueryStringQuery((MultiMatchQueryBuilder) queryStringQueries.get(NOT_NESTED), indexName, request.getQ(), boostFieldValues, mm);
                 else
                     queryStringQueries.put(NOT_NESTED, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm));
             }
