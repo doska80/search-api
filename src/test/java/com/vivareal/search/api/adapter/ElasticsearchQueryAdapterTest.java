@@ -736,79 +736,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryString() {
-        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-
-        newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
-            request -> {
-                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).build());
-                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
-
-                assertNotNull(queryStringQueryBuilder);
-                assertEquals(q, queryStringQueryBuilder.queryString());
-                assertEquals(OR, queryStringQueryBuilder.defaultOperator());
-            }
-        );
-    }
-
-    @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithSpecifiedFieldToSearch() {
-        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-
-        String fieldName1 = "field1";
-        float boostValue1 = 1.0f; // default boost value
-
-        String fieldName2 = "field2";
-        float boostValue2 = 2.0f;
-
-        String fieldName3 = "field3";
-        float boostValue3 = 5.0f;
-
-        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName1, FIELD_TYPE_STRING)).thenReturn(true);
-        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName2, FIELD_TYPE_STRING)).thenReturn(false);
-        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName3, FIELD_TYPE_STRING)).thenReturn(false);
-
-        Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
-
-        newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
-            request -> {
-                SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).fields(fields).build());
-                QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
-
-                assertNotNull(queryStringQueryBuilder);
-                assertEquals(q, queryStringQueryBuilder.queryString());
-
-                Map<String, Float> fieldsAndWeights = new HashMap<>(3);
-                fieldsAndWeights.put(fieldName1 + ".raw", boostValue1);
-                fieldsAndWeights.put(fieldName2, boostValue2);
-                fieldsAndWeights.put(fieldName3, boostValue3);
-
-                assertTrue(fieldsAndWeights.equals(queryStringQueryBuilder.fields()));
-            }
-        );
-    }
-
-    @Test
-    public void shouldReturnSearchRequestBuilderByQueryStringWithValidMinimalShouldMatch() {
-        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-        List<String> validMMs = Lists.newArrayList("-100%", "100%", "75%", "-2");
-
-        validMMs.forEach(
-            mm -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
-                request -> {
-                    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).mm(mm).build());
-                    QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
-
-                    assertNotNull(queryStringQueryBuilder);
-                    assertEquals(q, queryStringQueryBuilder.queryString());
-                    assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
-                    assertEquals(OR, queryStringQueryBuilder.defaultOperator());
-                }
-            )
-        );
-    }
-
-    @Test
     public void shouldThrowExceptionWhenMinimalShouldMatchIsInvalid() {
         String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
         List<String> invalidMMs = Lists.newArrayList("-101%", "101%", "75%.1", "75%,1", "75%123", "75%a");
@@ -852,7 +779,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     *
     * 1 + BoolQueryBuilder
     * 	+ filter
-    * 		- QueryStringQueryBuilder
+    * 		- MultiMatchQueryBuilder
     * 		2 + BoolQueryBuilder
     * 			+ filter
     * 				- RangeQueryBuilder (field3)
@@ -951,16 +878,16 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         assertEquals(1, shouldFirstLevel.size());
 
         // querystring
-        QueryStringQueryBuilder queryStringQueryBuilder = (QueryStringQueryBuilder) filterFirstLevel.get(0);
+        MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) filterFirstLevel.get(0);
         Map<String, Float> fieldsAndWeights = new HashMap<>(3);
         fieldsAndWeights.put(fieldName1, boostValue1);
         fieldsAndWeights.put(fieldName2, boostValue2);
         fieldsAndWeights.put(fieldName3, boostValue3);
-        assertNotNull(queryStringQueryBuilder);
-        assertEquals(q, queryStringQueryBuilder.queryString());
-        assertEquals(mm, queryStringQueryBuilder.minimumShouldMatch());
-        assertEquals(OR, queryStringQueryBuilder.defaultOperator());
-        assertTrue(fieldsAndWeights.equals(queryStringQueryBuilder.fields()));
+        assertNotNull(multiMatchQueryBuilder);
+        assertEquals(q, multiMatchQueryBuilder.value());
+        assertEquals(mm, multiMatchQueryBuilder.minimumShouldMatch());
+        assertEquals(OR, multiMatchQueryBuilder.operator());
+        assertTrue(fieldsAndWeights.equals(multiMatchQueryBuilder.fields()));
 
         // field 1
         MatchQueryBuilder shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(0);
