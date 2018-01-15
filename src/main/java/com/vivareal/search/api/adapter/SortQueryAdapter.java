@@ -1,12 +1,12 @@
 package com.vivareal.search.api.adapter;
 
 import com.vivareal.search.api.model.parser.SortParser;
-import com.vivareal.search.api.model.query.*;
 import com.vivareal.search.api.model.query.Sort.Item;
 import com.vivareal.search.api.model.search.Sortable;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.index.query.*;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +16,8 @@ import java.util.Map;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
+import static org.elasticsearch.search.sort.SortBuilders.scoreSort;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.elasticsearch.search.sort.SortOrder.valueOf;
 
@@ -49,8 +49,11 @@ public class SortQueryAdapter {
         searchRequestBuilder.addSort(DEFAULT_TIEBREAKER);
     }
 
-    private FieldSortBuilder asFieldSortBuilder(String index, Item item, final Sortable request) {
+    private SortBuilder asFieldSortBuilder(String index, Item item, final Sortable request) {
         String fieldName = item.getField().getName();
+
+        if(fieldName.equals("_score"))
+            return scoreSort();
 
         FieldSortBuilder fieldSortBuilder = fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
         String parentField = fieldName.split("\\.")[0];
