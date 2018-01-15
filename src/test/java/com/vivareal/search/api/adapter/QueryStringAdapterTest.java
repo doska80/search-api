@@ -103,7 +103,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(request -> {
             SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).build());
-            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
+            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
             assertNotNull(multiMatchQueryBuilder);
             assertEquals(q, multiMatchQueryBuilder.value());
@@ -132,7 +132,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
         newArrayList(filterableRequest, fullRequest).parallelStream().forEach(request -> {
             SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).fields(fields).build());
-            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
+            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
             assertNotNull(multiMatchQueryBuilder);
             assertEquals(q, multiMatchQueryBuilder.value());
@@ -154,7 +154,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         validMMs.forEach(mm -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
         request -> {
             SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).mm(mm).build());
-            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).filter().get(0);
+            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
 
             assertNotNull(multiMatchQueryBuilder);
             assertEquals(q, multiMatchQueryBuilder.value());
