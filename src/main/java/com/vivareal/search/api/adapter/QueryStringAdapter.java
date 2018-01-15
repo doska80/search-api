@@ -94,6 +94,6 @@ public class QueryStringAdapter {
                     queryStringQueries.put(NOT_NESTED, buildQueryStringQuery(null, indexName, request.getQ(), boostFieldValues, mm));
             }
         });
-        queryStringQueries.forEach((nestedPath, nestedQuery) -> queryBuilder.filter().add(nestedQuery));
+        queryStringQueries.forEach((nestedPath, nestedQuery) -> queryBuilder.must().add(nestedQuery));
     }
 }
