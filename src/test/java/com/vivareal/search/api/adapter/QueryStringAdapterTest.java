@@ -74,9 +74,10 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         FacetParser facetParser = new FacetParser(fieldParser);
         PageQueryAdapter pageQueryAdapter = new PageQueryAdapter();
         QueryStringAdapter queryStringAdapter = new QueryStringAdapter(settingsAdapter);
+        FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(settingsAdapter);
         FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(settingsAdapter, facetParser);
         FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(settingsAdapter, queryParser);
-        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, pageQueryAdapter, searchAfterQueryAdapter, sortQueryAdapter, queryStringAdapter, filterQueryAdapter, facetQueryAdapter);
+        this.queryAdapter = new ElasticsearchQueryAdapter(esClient, settingsAdapter, sourceFieldAdapter, pageQueryAdapter, searchAfterQueryAdapter, sortQueryAdapter, queryStringAdapter, functionScoreAdapter, filterQueryAdapter, facetQueryAdapter);
 
         Map<String, String[]> defaultSourceFields = new HashMap<>();
         defaultSourceFields.put(INDEX_NAME, new String[0]);

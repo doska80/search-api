@@ -6,8 +6,12 @@ import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
+import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +28,7 @@ import static com.vivareal.search.api.configuration.environment.RemoteProperties
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.math.NumberUtils.toInt;
+import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.SQRT;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.util.CollectionUtils.isEmpty;
@@ -44,6 +49,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
     private final SearchAfterQueryAdapter searchAfterQueryAdapter;
     private final SortQueryAdapter sortQueryAdapter;
     private final QueryStringAdapter queryStringAdapter;
+    private final FunctionScoreAdapter functionScoreAdapter;
     private final FilterQueryAdapter filterQueryAdapter;
     private final FacetQueryAdapter facetQueryAdapter;
 
@@ -55,6 +61,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
                                      SearchAfterQueryAdapter searchAfterQueryAdapter,
                                      SortQueryAdapter sortQueryAdapter,
                                      QueryStringAdapter queryStringAdapter,
+                                     FunctionScoreAdapter functionScoreAdapter,
                                      FilterQueryAdapter filterQueryAdapter,
                                      FacetQueryAdapter facetQueryAdapter) {
         this.esClient = esClient;
@@ -64,6 +71,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         this.searchAfterQueryAdapter = searchAfterQueryAdapter;
         this.sortQueryAdapter = sortQueryAdapter;
         this.queryStringAdapter = queryStringAdapter;
+        this.functionScoreAdapter = functionScoreAdapter;
         this.filterQueryAdapter = filterQueryAdapter;
         this.facetQueryAdapter = facetQueryAdapter;
     }
@@ -100,12 +108,13 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         settingsAdapter.checkIndex(request);
         SearchRequestBuilder searchBuilder = esClient.prepareSearch(request)
             .setTimeout(new TimeValue(ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
-                        TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex())))
-            );
+                        TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
 
         BoolQueryBuilder queryBuilder = boolQuery();
         builder.accept(searchBuilder, queryBuilder);
-        searchBuilder.setQuery(queryBuilder);
+
+        if(searchBuilder.request().source().query() == null)
+            searchBuilder.setQuery(queryBuilder);
 
         LOG.debug("Request: {} - Query: {}", request, searchBuilder);
         return searchBuilder;
@@ -115,6 +124,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder
         pageQueryAdapter.apply(searchBuilder, request);
         sourceFieldAdapter.apply(searchBuilder, request);
         queryStringAdapter.apply(queryBuilder, request);
+        functionScoreAdapter.apply(searchBuilder, queryBuilder, request);
         filterQueryAdapter.apply(queryBuilder, request);
         sortQueryAdapter.apply(searchBuilder, request);
         searchAfterQueryAdapter.apply(searchBuilder, request);
