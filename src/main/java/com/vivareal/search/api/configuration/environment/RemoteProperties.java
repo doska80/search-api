@@ -22,6 +22,8 @@ public enum RemoteProperties {
     PROFILE("spring.profiles.active"),
     QS_MM("querystring.default.mm"),
     QS_DEFAULT_FIELDS("querystring.default.fields", AS_SET, NON_EMPTY_COLLECTION),
+    SCORE_FACTOR_FIELD("score.factor.field"),
+    SCORE_FACTOR_MODIFIER("score.factor.modifier"),
     ES_HOSTNAME("es.hostname"),
     ES_PORT("es.port"),
     ES_REST_PORT("es.rest.port"),

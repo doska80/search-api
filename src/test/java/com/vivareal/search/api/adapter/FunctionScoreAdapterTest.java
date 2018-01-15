@@ -1,30 +1,27 @@
 package com.vivareal.search.api.adapter;
 
-import com.google.common.collect.Sets;
 import com.vivareal.search.api.model.mapping.MappingType;
 import com.vivareal.search.api.model.parser.*;
-import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
+import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_STRING;
-import static org.elasticsearch.index.query.Operator.OR;
-import static org.junit.Assert.*;
+import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.NONE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -32,7 +29,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
-public class QueryStringAdapterTest extends SearchTransportClientMock {
+public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
     private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
 
@@ -99,68 +96,27 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryString() {
-        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+    public void shouldReturnSearchRequestBuilderByQueryStringWithFactorField() {
+        String field = "myFactorField";
+        SearchRequestBuilder searchRequestBuilder = queryAdapter.query(fullRequest.factorField(field).build());
 
-        newArrayList(filterableRequest, fullRequest).parallelStream().forEach(request -> {
-            SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).build());
-            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
+        assertEquals(FunctionScoreQueryBuilder.class, searchRequestBuilder.request().source().query().getClass());
 
-            assertNotNull(multiMatchQueryBuilder);
-            assertEquals(q, multiMatchQueryBuilder.value());
-            assertEquals(OR, multiMatchQueryBuilder.operator());
-        });
+        FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders = ((FunctionScoreQueryBuilder) searchRequestBuilder.request().source().query()).filterFunctionBuilders();
+
+        assertTrue(filterFunctionBuilders.length == 1);
+
+        assertEquals(field, ((FieldValueFactorFunctionBuilder)filterFunctionBuilders[0].getScoreFunction()).fieldName());
+        assertEquals(NONE, ((FieldValueFactorFunctionBuilder)filterFunctionBuilders[0].getScoreFunction()).modifier());
     }
 
     @Test
-    public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithSpecifiedFieldToSearch() {
-        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+    public void shouldReturnSearchRequestBuilderByQueryStringWithFactorModifier() {
+        Stream.of(FieldValueFactorFunction.Modifier.values()).forEach(modifier -> {
+            SearchRequestBuilder searchRequestBuilder = queryAdapter.query(fullRequest.factorField("myFactorField").factorModifier(modifier.toString()).build());
+            FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders = ((FunctionScoreQueryBuilder) searchRequestBuilder.request().source().query()).filterFunctionBuilders();
 
-        String fieldName1 = "field1";
-        float boostValue1 = 1.0f; // default boost value
-
-        String fieldName2 = "field2";
-        float boostValue2 = 2.0f;
-
-        String fieldName3 = "field3";
-        float boostValue3 = 5.0f;
-
-        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName1, FIELD_TYPE_STRING)).thenReturn(true);
-        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName2, FIELD_TYPE_STRING)).thenReturn(false);
-        when(settingsAdapter.isTypeOf(INDEX_NAME, fieldName3, FIELD_TYPE_STRING)).thenReturn(false);
-
-        Set<String> fields = Sets.newLinkedHashSet(newArrayList(String.format("%s", fieldName1), String.format("%s:%s", fieldName2, boostValue2), String.format("%s:%s", fieldName3, boostValue3)));
-
-        newArrayList(filterableRequest, fullRequest).parallelStream().forEach(request -> {
-            SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).fields(fields).build());
-            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
-
-            assertNotNull(multiMatchQueryBuilder);
-            assertEquals(q, multiMatchQueryBuilder.value());
-
-            Map<String, Float> fieldsAndWeights = new HashMap<>(3);
-            fieldsAndWeights.put(fieldName1 + ".raw", boostValue1);
-            fieldsAndWeights.put(fieldName2, boostValue2);
-            fieldsAndWeights.put(fieldName3, boostValue3);
-
-            assertTrue(fieldsAndWeights.equals(multiMatchQueryBuilder.fields()));
+            assertEquals(modifier, ((FieldValueFactorFunctionBuilder)filterFunctionBuilders[0].getScoreFunction()).modifier());
         });
-    }
-
-    @Test
-    public void shouldReturnSearchRequestBuilderByQueryStringWithValidMinimalShouldMatch() {
-        String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-        List<String> validMMs = Lists.newArrayList("-100%", "100%", "75%", "-2");
-
-        validMMs.forEach(mm -> newArrayList(filterableRequest, fullRequest).parallelStream().forEach(
-        request -> {
-            SearchRequestBuilder searchRequestBuilder = queryAdapter.query(request.q(q).mm(mm).build());
-            MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) ((BoolQueryBuilder) searchRequestBuilder.request().source().query()).must().get(0);
-
-            assertNotNull(multiMatchQueryBuilder);
-            assertEquals(q, multiMatchQueryBuilder.value());
-            assertEquals(mm, multiMatchQueryBuilder.minimumShouldMatch());
-            assertEquals(OR, multiMatchQueryBuilder.operator());
-        }));
     }
 }
