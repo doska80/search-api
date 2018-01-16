@@ -24,9 +24,10 @@ public final class ResponseStream {
                     stream.write(byteFn.apply(hit));
                     stream.write(BLANK_LINE);
                 }
-                stream.write(BLANK_LINE);
                 stream.flush();
             }
+            stream.write(BLANK_LINE);
+            stream.flush();
         } catch (IOException e) {
             LOG.error("write error on iterator stream", e);
         }

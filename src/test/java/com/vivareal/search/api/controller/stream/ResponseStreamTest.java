@@ -39,15 +39,19 @@ public class ResponseStreamTest {
             }
         }, String::getBytes);
 
-        int callCount = data.length;
+        int lineEndCallCount = 0;
+        int flushCallCount = 0;
         for (String[] hits : data) {
             for (String hit: hits) {
                 verify(mockStream, times(1)).write(hit.getBytes());
-                ++callCount;
+                ++lineEndCallCount;
             }
+            ++flushCallCount;
         }
+        ++lineEndCallCount;
+        ++flushCallCount;
 
-        verify(mockStream, times(callCount)).write('\n');
-        verify(mockStream, times(data.length)).flush();
+        verify(mockStream, times(lineEndCallCount)).write('\n');
+        verify(mockStream, times(flushCallCount)).flush();
     }
 }
