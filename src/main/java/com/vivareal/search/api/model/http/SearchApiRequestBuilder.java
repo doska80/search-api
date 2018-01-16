@@ -66,6 +66,8 @@ public class SearchApiRequestBuilder {
 
     public static class FilterableRequestBuilder extends BasicRequestBuilder {
         protected String mm;
+        protected String factorField;
+        protected String factorModifier;
         protected Set<String> fields;
 
         protected String filter;
@@ -106,6 +108,16 @@ public class SearchApiRequestBuilder {
             return this;
         }
 
+        public FilterableRequestBuilder factorField(String factorField) {
+            this.factorField = factorField;
+            return this;
+        }
+
+        public FilterableRequestBuilder factorModifier(String factorModifier) {
+            this.factorModifier = factorModifier;
+            return this;
+        }
+
         public FilterableRequestBuilder fields(Set<String> fields) {
             this.fields = fields;
             return this;
@@ -139,6 +151,12 @@ public class SearchApiRequestBuilder {
 
             if (allNotNull(mm))
                 request.setMm(mm);
+
+            if (allNotNull(factorField))
+                request.setFactorField(factorField);
+
+            if (allNotNull(factorModifier))
+                request.setFactorModifier(factorModifier);
 
             if (allNotNull(fields))
                 request.setFields(fields);
@@ -194,6 +212,18 @@ public class SearchApiRequestBuilder {
         @Override
         public ComplexRequestBuilder mm(String mm) {
             this.mm = mm;
+            return this;
+        }
+
+        @Override
+        public ComplexRequestBuilder factorField(String factorField) {
+            this.factorField = factorField;
+            return this;
+        }
+
+        @Override
+        public ComplexRequestBuilder factorModifier(String factorModifier) {
+            this.factorModifier = factorModifier;
             return this;
         }
 
@@ -258,6 +288,12 @@ public class SearchApiRequestBuilder {
 
             if (allNotNull(mm))
                 request.setMm(mm);
+
+            if (allNotNull(factorField))
+                request.setFactorField(factorField);
+
+            if (allNotNull(factorModifier))
+                request.setFactorModifier(factorModifier);
 
             if (allNotNull(fields))
                 request.setFields(fields);

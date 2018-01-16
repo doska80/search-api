@@ -12,6 +12,7 @@ import java.util.Map;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.REPLICAS;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.WHITE_LIST_METAFIELDS;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.vivareal.search.api.model.mapping.MappingType.*;
 import static org.junit.Assert.assertEquals;
@@ -60,9 +61,20 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
     }
 
     @Test
-    public void checkFieldName() {
+    public void checkValidFieldName() {
         assertTrue(settingsAdapter.checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_TEXT, false));
+    }
+
+    @Test
+    public void checkAsteriskFieldName() {
         assertTrue(settingsAdapter.checkFieldName(validIndexRequest.getIndex(), "*", true));
+    }
+
+    @Test
+    public void checkWhiteListFieldName() {
+        WHITE_LIST_METAFIELDS.forEach(field -> {
+            assertTrue(settingsAdapter.checkFieldName(validIndexRequest.getIndex(), field, false));
+        });
     }
 
     @Test(expected = InvalidFieldException.class)

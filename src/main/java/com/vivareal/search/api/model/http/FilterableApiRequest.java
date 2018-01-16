@@ -6,8 +6,11 @@ import com.vivareal.search.api.model.search.Pageable;
 import com.vivareal.search.api.model.search.Queryable;
 import com.vivareal.search.api.model.search.Sortable;
 import io.swagger.annotations.ApiModelProperty;
+import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 
 import java.util.Set;
+
+import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.SQRT;
 
 public class FilterableApiRequest extends BaseApiRequest implements Filterable, Queryable, Pageable, Sortable {
 
@@ -16,6 +19,12 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
 
     @ApiModelProperty(value = "Minimum should match (-100..+100)", example = "10, 75%")
     private String mm;
+
+    @ApiModelProperty(value = "Field to influence the score")
+    private String factorField;
+
+    @ApiModelProperty(value = "Modifier to apply to the field value factor, can be one of: none, log, log1p, log2p, ln, ln1p, ln2p, square, sqrt, or reciprocal. Defaults to none")
+    private String factorModifier;
 
     @ApiModelProperty(value = "Query DSL", example = "field1:3 AND field2:2 AND(field3=1 OR (field4 IN [1,\"abc\"] AND field5 <> 3))")
     private String filter;
@@ -49,6 +58,22 @@ public class FilterableApiRequest extends BaseApiRequest implements Filterable, 
 
     public void setMm(String mm) {
         this.mm = mm;
+    }
+
+    public String getFactorField() {
+        return factorField;
+    }
+
+    public void setFactorField(String factorField) {
+        this.factorField = factorField;
+    }
+
+    public String getFactorModifier() {
+        return factorModifier;
+    }
+
+    public void setFactorModifier(String factorModifier) {
+        this.factorModifier = factorModifier;
     }
 
     public String getFilter() {
