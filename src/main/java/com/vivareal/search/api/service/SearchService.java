@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_SEARCH_TIMEOUT;
+import static java.lang.String.format;
 import static java.lang.System.nanoTime;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
@@ -60,6 +61,9 @@ public class SearchService {
         try {
             searchRequestBuilder = this.queryAdapter.query(request);
             SearchResponse searchResponse = searchRequestBuilder.get((TimeValue) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
+
+            if(searchResponse.getFailedShards() != 0)
+                throw new QueryPhaseExecutionException(format("%d of %d shards failed", searchResponse.getFailedShards(), searchResponse.getTotalShards()), searchRequestBuilder.toString());
 
             if (searchResponse.isTimedOut())
                 throw new QueryTimeoutException(searchRequestBuilder.toString());
