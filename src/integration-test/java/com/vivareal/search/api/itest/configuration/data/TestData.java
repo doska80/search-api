@@ -61,6 +61,7 @@ public class TestData {
         new SimpleEntry<>("number", numberForId(id)),
         new SimpleEntry<>("float", floatForId(id)),
         new SimpleEntry<>("string", normalTextForId(id)),
+        new SimpleEntry<>("string_text", normalTextForId(id)),
         new SimpleEntry<>("special_string", specialTextForId(id)),
         new SimpleEntry<>("boolean", !isEven),
         new SimpleEntry<>(evenField(id), true)

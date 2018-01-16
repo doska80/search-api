@@ -30,7 +30,7 @@ public class QueryStringIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(TEST_DATA_INDEX + "?q='string with char a'&fields=object.string&mm=100%")
+        .get(TEST_DATA_INDEX + "?q='string with char a'&fields=object.string_text&mm=100%")
         .then()
         .body("totalCount", equalTo(1))
         .body("result.testdata.id.get(0)", equalTo("1"));
@@ -45,7 +45,7 @@ public class QueryStringIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(TEST_DATA_INDEX + "?q='string with char i'&fields=object.string&filter=numeric < 10&mm=100%")
+        .get(TEST_DATA_INDEX + "?q='string with char i'&fields=object.string_text&filter=numeric < 10&mm=100%")
         .then()
         .body("totalCount", equalTo(1))
         .body("result.testdata.id.get(0)", equalTo("9"));
