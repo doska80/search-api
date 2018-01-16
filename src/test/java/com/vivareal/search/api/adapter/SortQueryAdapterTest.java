@@ -6,6 +6,8 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.TermsQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.ScoreSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -105,6 +107,23 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
         assertEquals("_uid", sorts.get(2).getFieldName());
         assertEquals("DESC", sorts.get(2).order().name());
         assertNull(sorts.get(2).getNestedPath());
+    }
+
+    @Test
+    public void shouldApplySortByScore() {
+        String fieldName = "_score";
+
+        SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+        SearchApiRequest request = fullRequest.build();
+        request.setSort(fieldName);
+
+        when(settingsAdapter.isTypeOf(request.getIndex(), fieldName, FIELD_TYPE_NESTED)).thenReturn(false);
+
+        sortQueryAdapter.apply(requestBuilder, request);
+        List<SortBuilder> sorts = (List) requestBuilder.request().source().sorts();
+
+        assertEquals(SortOrder.DESC, sorts.get(0).order());
+        assertEquals(ScoreSortBuilder.class, sorts.get(0).getClass());
     }
 
     @Test

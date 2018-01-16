@@ -25,11 +25,13 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newConcurrentMap;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
 import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
+import static java.util.Collections.unmodifiableSet;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
@@ -42,6 +44,8 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
 
     public static final String SHARDS = "index.number_of_shards";
     public static final String REPLICAS = "index.number_of_replicas";
+
+    public static final Set<String> WHITE_LIST_METAFIELDS = unmodifiableSet(newHashSet("_id", "_score"));
 
     private Map<String, Map<String, Object>> structuredIndices;
 
@@ -80,7 +84,7 @@ public class ElasticsearchSettingsAdapter implements SettingsAdapter<Map<String,
 
     @Override
     public boolean checkFieldName(final String index, final String fieldName, final boolean acceptAsterisk) {
-        if (acceptAsterisk && "*".equals(fieldName))
+        if ((acceptAsterisk && "*".equals(fieldName)) || WHITE_LIST_METAFIELDS.contains(fieldName))
             return true;
 
         if (!structuredIndices.get(index).containsKey(fieldName))
