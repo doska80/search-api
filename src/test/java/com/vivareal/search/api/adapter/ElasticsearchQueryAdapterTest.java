@@ -763,7 +763,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     * Request: SearchApiRequest {
     *   index=my_index,
     *   mm=50%,
-    *   fields=[field1, field2.raw:2.0, field3:5.0],
+    *   fields=[field1, field2:2.0, field3:5.0],
     *   includeFields=[field1, field2],
     *   excludeFields=[field3, field4],
     *   sort=field1 ASC field2 DESC field3 ASC,
@@ -806,7 +806,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         String fieldName1 = "field1";
         float boostValue1 = 1.0f; // default boost value
 
-        String fieldName2 = "field2.raw";
+        String fieldName2 = "field2";
         float boostValue2 = 2.0f;
 
         String fieldName3 = "field3";

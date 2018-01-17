@@ -55,8 +55,7 @@ public class QueryStringAdapter {
 
         String fieldName = boostFieldValues[0];
 
-        if (settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_STRING) && !fieldName.contains(".raw"))
-            fieldName = fieldName.concat(".raw");
+        settingsAdapter.checkFieldName(indexName, fieldName, false);
 
         float boost = (boostFieldValues.length == 2 ? Float.parseFloat(boostFieldValues[1]) : 1.0f);
         multiMatchQueryBuilder.field(fieldName, boost)

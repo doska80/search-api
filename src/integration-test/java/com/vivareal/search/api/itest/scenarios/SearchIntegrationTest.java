@@ -791,7 +791,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_BAD_REQUEST)
         .when()
-            .get(format("%s?q=string with char&fields=object.numeric.raw", TEST_DATA_INDEX))
+            .get(format("%s?q=string with char&fields=object.numeric", TEST_DATA_INDEX))
         ;
     }
 
@@ -804,7 +804,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_BAD_REQUEST)
         .when()
-            .get(format("%s?q=string with char&fields=nested.numeric.raw", TEST_DATA_INDEX))
+            .get(format("%s?q=string with char&fields=nested.numeric", TEST_DATA_INDEX))
         ;
     }
 
@@ -921,7 +921,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?q=string with char a&fields=object.string.raw&mm=100%%", TEST_DATA_INDEX))
+            .get(format("%s?q=string with char a&fields=object.string_text&mm=100%%", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(1))
             .body("result.testdata", hasSize(1))
@@ -938,7 +938,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .expect()
             .statusCode(SC_OK)
         .when()
-            .get(format("%s?q=string with char a&fields=nested.string.raw&mm=100%%", TEST_DATA_INDEX))
+            .get(format("%s?q=string with char a&fields=nested.string_text&mm=100%%", TEST_DATA_INDEX))
         .then()
             .body("totalCount", equalTo(1))
             .body("result.testdata", hasSize(1))
@@ -965,7 +965,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
             .body("testdata['nested']", equalTo("nested"))
             .body("testdata['numeric']", equalTo("long"))
             .body("testdata['nested.number']", equalTo("long"))
-            .body("testdata['nested.object.field.raw']", equalTo("text"))
+            .body("testdata['nested.object.field']", equalTo("text"))
             .body("testdata['object.object.array_string']", equalTo("keyword"))
         ;
     }

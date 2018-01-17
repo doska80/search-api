@@ -139,7 +139,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
             assertEquals(q, multiMatchQueryBuilder.value());
 
             Map<String, Float> fieldsAndWeights = new HashMap<>(3);
-            fieldsAndWeights.put(fieldName1 + ".raw", boostValue1);
+            fieldsAndWeights.put(fieldName1, boostValue1);
             fieldsAndWeights.put(fieldName2, boostValue2);
             fieldsAndWeights.put(fieldName3, boostValue3);
 
