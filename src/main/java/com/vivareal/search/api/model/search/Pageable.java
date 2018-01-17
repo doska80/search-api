@@ -19,18 +19,16 @@ public interface Pageable extends Indexable {
         if (getFrom() < 0)
             throw new IllegalArgumentException("Parameter [from] must be a positive integer");
 
-
         if(getSize() != Integer.MAX_VALUE) {
-            if (getSize() < 0 || (getSize() > maxSize) && maxSizeValidation()) {
+            if (getSize() < 0 || ((getSize() > maxSize) && maxSizeValidation()))
                 throw new IllegalArgumentException(format("Parameter [size] must be a positive integer less than %d (default: %d)", maxSize, defaultSize));
-            }
 
             setSize(getSize());
         } else {
             setSize(defaultSize);
         }
 
-        if(getFrom() + getSize() > MAX_WINDOW)
+        if(getFrom() + getSize() > MAX_WINDOW && maxSizeValidation())
             throw new IllegalArgumentException(format("Result window is too large, from + size must be less than or equal to: [%d] but was [%d]", MAX_WINDOW, getFrom() + getSize()));
 
         setFrom(getFrom());
