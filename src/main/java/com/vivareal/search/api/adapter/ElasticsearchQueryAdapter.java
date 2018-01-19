@@ -1,17 +1,20 @@
 package com.vivareal.search.api.adapter;
 
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
+import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
+
 import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,118 +23,121 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static java.lang.Integer.parseInt;
-import static java.util.stream.Collectors.joining;
-import static org.apache.commons.lang3.math.NumberUtils.toInt;
-import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.SQRT;
-import static org.elasticsearch.index.query.QueryBuilders.*;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
-import static org.springframework.util.CollectionUtils.isEmpty;
-
 @Component
 @Scope(SCOPE_SINGLETON)
 @Qualifier("ElasticsearchQuery")
 @DependsOn("searchApiEnv")
-public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequestBuilder, SearchRequestBuilder> {
+public class ElasticsearchQueryAdapter
+    implements QueryAdapter<GetRequestBuilder, SearchRequestBuilder> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
 
-    private final ESClient esClient;
+  private final ESClient esClient;
 
-    private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
-    private final SourceFieldAdapter sourceFieldAdapter;
-    private final PageQueryAdapter pageQueryAdapter;
-    private final SearchAfterQueryAdapter searchAfterQueryAdapter;
-    private final SortQueryAdapter sortQueryAdapter;
-    private final QueryStringAdapter queryStringAdapter;
-    private final FunctionScoreAdapter functionScoreAdapter;
-    private final FilterQueryAdapter filterQueryAdapter;
-    private final FacetQueryAdapter facetQueryAdapter;
+  private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+  private final SourceFieldAdapter sourceFieldAdapter;
+  private final PageQueryAdapter pageQueryAdapter;
+  private final SearchAfterQueryAdapter searchAfterQueryAdapter;
+  private final SortQueryAdapter sortQueryAdapter;
+  private final QueryStringAdapter queryStringAdapter;
+  private final FunctionScoreAdapter functionScoreAdapter;
+  private final FilterQueryAdapter filterQueryAdapter;
+  private final FacetQueryAdapter facetQueryAdapter;
 
-    @Autowired
-    public ElasticsearchQueryAdapter(ESClient esClient,
-                                     @Qualifier("elasticsearchSettings") SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
-                                     SourceFieldAdapter sourceFieldAdapter,
-                                     PageQueryAdapter pageQueryAdapter,
-                                     SearchAfterQueryAdapter searchAfterQueryAdapter,
-                                     SortQueryAdapter sortQueryAdapter,
-                                     QueryStringAdapter queryStringAdapter,
-                                     FunctionScoreAdapter functionScoreAdapter,
-                                     FilterQueryAdapter filterQueryAdapter,
-                                     FacetQueryAdapter facetQueryAdapter) {
-        this.esClient = esClient;
-        this.settingsAdapter = settingsAdapter;
-        this.sourceFieldAdapter = sourceFieldAdapter;
-        this.pageQueryAdapter = pageQueryAdapter;
-        this.searchAfterQueryAdapter = searchAfterQueryAdapter;
-        this.sortQueryAdapter = sortQueryAdapter;
-        this.queryStringAdapter = queryStringAdapter;
-        this.functionScoreAdapter = functionScoreAdapter;
-        this.filterQueryAdapter = filterQueryAdapter;
-        this.facetQueryAdapter = facetQueryAdapter;
-    }
+  @Autowired
+  public ElasticsearchQueryAdapter(
+      ESClient esClient,
+      @Qualifier("elasticsearchSettings")
+          SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
+      SourceFieldAdapter sourceFieldAdapter,
+      PageQueryAdapter pageQueryAdapter,
+      SearchAfterQueryAdapter searchAfterQueryAdapter,
+      SortQueryAdapter sortQueryAdapter,
+      QueryStringAdapter queryStringAdapter,
+      FunctionScoreAdapter functionScoreAdapter,
+      FilterQueryAdapter filterQueryAdapter,
+      FacetQueryAdapter facetQueryAdapter) {
+    this.esClient = esClient;
+    this.settingsAdapter = settingsAdapter;
+    this.sourceFieldAdapter = sourceFieldAdapter;
+    this.pageQueryAdapter = pageQueryAdapter;
+    this.searchAfterQueryAdapter = searchAfterQueryAdapter;
+    this.sortQueryAdapter = sortQueryAdapter;
+    this.queryStringAdapter = queryStringAdapter;
+    this.functionScoreAdapter = functionScoreAdapter;
+    this.filterQueryAdapter = filterQueryAdapter;
+    this.facetQueryAdapter = facetQueryAdapter;
+  }
 
-    @Override
-    @Trace
-    public GetRequestBuilder getById(BaseApiRequest request, String id) {
-        settingsAdapter.checkIndex(request);
+  @Override
+  @Trace
+  public GetRequestBuilder getById(BaseApiRequest request, String id) {
+    settingsAdapter.checkIndex(request);
 
-        GetRequestBuilder requestBuilder = esClient.prepareGet(request, id)
-            .setRealtime(false)
-            .setOperationThreaded(false);
+    GetRequestBuilder requestBuilder =
+        esClient.prepareGet(request, id).setRealtime(false).setOperationThreaded(false);
 
-        sourceFieldAdapter.apply(requestBuilder, request);
+    sourceFieldAdapter.apply(requestBuilder, request);
 
-        LOG.debug("Query getById {}", requestBuilder.request());
+    LOG.debug("Query getById {}", requestBuilder.request());
 
-        return requestBuilder;
-    }
+    return requestBuilder;
+  }
 
-    @Override
-    @Trace
-    public SearchRequestBuilder query(FilterableApiRequest request) {
-        return prepareQuery(request, (searchBuilder, queryBuilder) -> buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder));
-    }
+  @Override
+  @Trace
+  public SearchRequestBuilder query(FilterableApiRequest request) {
+    return prepareQuery(
+        request,
+        (searchBuilder, queryBuilder) ->
+            buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder));
+  }
 
-    @Override
-    @Trace
-    public SearchRequestBuilder query(SearchApiRequest request) {
-        return prepareQuery(request, (searchBuilder, queryBuilder) -> buildQueryBySearchApiRequest(request, searchBuilder, queryBuilder));
-    }
+  @Override
+  @Trace
+  public SearchRequestBuilder query(SearchApiRequest request) {
+    return prepareQuery(
+        request,
+        (searchBuilder, queryBuilder) ->
+            buildQueryBySearchApiRequest(request, searchBuilder, queryBuilder));
+  }
 
-    private SearchRequestBuilder prepareQuery(BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
-        settingsAdapter.checkIndex(request);
-        SearchRequestBuilder searchBuilder = esClient.prepareSearch(request)
-            .setTimeout(new TimeValue(ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
-                        TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
+  private SearchRequestBuilder prepareQuery(
+      BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
+    settingsAdapter.checkIndex(request);
+    SearchRequestBuilder searchBuilder =
+        esClient
+            .prepareSearch(request)
+            .setTimeout(
+                new TimeValue(
+                    ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
+                    TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
 
-        BoolQueryBuilder queryBuilder = boolQuery();
-        builder.accept(searchBuilder, queryBuilder);
+    BoolQueryBuilder queryBuilder = boolQuery();
+    builder.accept(searchBuilder, queryBuilder);
 
-        if(searchBuilder.request().source().query() == null)
-            searchBuilder.setQuery(queryBuilder);
+    if (searchBuilder.request().source().query() == null) searchBuilder.setQuery(queryBuilder);
 
-        LOG.debug("Request: {} - Query: {}", request, searchBuilder);
-        return searchBuilder;
-    }
+    LOG.debug("Request: {} - Query: {}", request, searchBuilder);
+    return searchBuilder;
+  }
 
-    private void buildQueryByFilterableApiRequest(FilterableApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
-        pageQueryAdapter.apply(searchBuilder, request);
-        sourceFieldAdapter.apply(searchBuilder, request);
-        queryStringAdapter.apply(queryBuilder, request);
-        functionScoreAdapter.apply(searchBuilder, queryBuilder, request);
-        filterQueryAdapter.apply(queryBuilder, request);
-        sortQueryAdapter.apply(searchBuilder, request);
-        searchAfterQueryAdapter.apply(searchBuilder, request);
-    }
+  private void buildQueryByFilterableApiRequest(
+      FilterableApiRequest request,
+      SearchRequestBuilder searchBuilder,
+      BoolQueryBuilder queryBuilder) {
+    pageQueryAdapter.apply(searchBuilder, request);
+    sourceFieldAdapter.apply(searchBuilder, request);
+    queryStringAdapter.apply(queryBuilder, request);
+    functionScoreAdapter.apply(searchBuilder, queryBuilder, request);
+    filterQueryAdapter.apply(queryBuilder, request);
+    sortQueryAdapter.apply(searchBuilder, request);
+    searchAfterQueryAdapter.apply(searchBuilder, request);
+  }
 
-    private void buildQueryBySearchApiRequest(SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
-        buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
-        facetQueryAdapter.apply(searchBuilder, request);
-    }
+  private void buildQueryBySearchApiRequest(
+      SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
+    buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
+    facetQueryAdapter.apply(searchBuilder, request);
+  }
 }

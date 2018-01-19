@@ -1,5 +1,9 @@
 package com.vivareal.search.api;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.springframework.http.HttpStatus.*;
+import static springfox.documentation.builders.PathSelectors.regex;
+
 import com.vivareal.search.api.configuration.NewRelicTransactionFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,10 +28,6 @@ import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.springframework.http.HttpStatus.*;
-import static springfox.documentation.builders.PathSelectors.regex;
-
 @SpringBootApplication
 @Configuration
 @EnableAsync
@@ -38,46 +38,53 @@ import static springfox.documentation.builders.PathSelectors.regex;
 @EnableTurbine
 public class SearchAPI implements WebMvcConfigurer {
 
-    @Bean
-    public FilterRegistrationBean newRelicFilter() {
-        final FilterRegistrationBean registrationBean = new FilterRegistrationBean(new NewRelicTransactionFilter());
-        registrationBean.addUrlPatterns("/*");
+  @Bean
+  public FilterRegistrationBean newRelicFilter() {
+    final FilterRegistrationBean registrationBean =
+        new FilterRegistrationBean(new NewRelicTransactionFilter());
+    registrationBean.addUrlPatterns("/*");
 
-        return registrationBean;
-    }
+    return registrationBean;
+  }
 
-    @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
+  @Bean
+  public Docket api() {
+    return new Docket(DocumentationType.SWAGGER_2)
         .apiInfo(apiInfo())
         .select()
         .paths(regex("/v2.*"))
         .build()
         .ignoredParameterTypes(ApiIgnore.class)
-        .globalResponseMessage(RequestMethod.GET, newArrayList(statusCode(OK),
-                                                               statusCode(NOT_FOUND),
-                                                               statusCode(BAD_REQUEST),
-                                                               statusCode(INTERNAL_SERVER_ERROR)));
-    }
+        .globalResponseMessage(
+            RequestMethod.GET,
+            newArrayList(
+                statusCode(OK),
+                statusCode(NOT_FOUND),
+                statusCode(BAD_REQUEST),
+                statusCode(INTERNAL_SERVER_ERROR)));
+  }
 
-    private ResponseMessage statusCode(HttpStatus status) {
-        return new ResponseMessageBuilder().code(status.value()).message(status.getReasonPhrase()).build();
-    }
+  private ResponseMessage statusCode(HttpStatus status) {
+    return new ResponseMessageBuilder()
+        .code(status.value())
+        .message(status.getReasonPhrase())
+        .build();
+  }
 
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
+  private ApiInfo apiInfo() {
+    return new ApiInfoBuilder()
         .title("Search API")
         .termsOfServiceUrl("https://github.com/VivaReal/search-api")
         .version("2.0")
         .build();
-    }
+  }
 
-    @Override
-    public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/").setViewName("redirect:/swagger-ui.html");
-    }
+  @Override
+  public void addViewControllers(ViewControllerRegistry registry) {
+    registry.addViewController("/").setViewName("redirect:/swagger-ui.html");
+  }
 
-    public static void main(String[] args) {
-        SpringApplication.run(SearchAPI.class, args);
-    }
+  public static void main(String[] args) {
+    SpringApplication.run(SearchAPI.class, args);
+  }
 }

@@ -1,69 +1,68 @@
 package com.vivareal.search.api.model.query;
 
-import com.google.common.base.Objects;
-
-import java.util.List;
-
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.joining;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+import com.google.common.base.Objects;
+import java.util.List;
+
 public class Field {
 
-    private boolean not;
-    private final List<String> names;
+  private boolean not;
+  private final List<String> names;
 
-    public Field(final List<String> names) {
-        this(false, names);
+  public Field(final List<String> names) {
+    this(false, names);
+  }
+
+  public Field(boolean not, final List<String> names) {
+
+    if (isEmpty(names)) {
+      throw new IllegalArgumentException("The field name cannot be empty");
     }
 
-    public Field(boolean not, final List<String> names) {
+    this.not = not;
+    this.names = isEmpty(names) ? emptyList() : names;
+  }
 
-        if (isEmpty(names)) {
-            throw new IllegalArgumentException("The field name cannot be empty");
-        }
+  public Field(Boolean not, Field field) {
+    this(not, field.getNames());
+  }
 
-        this.not = not;
-        this.names = isEmpty(names) ? emptyList() : names;
-    }
+  public boolean isNot() {
+    return not;
+  }
 
-    public Field(Boolean not, Field field) {
-        this(not, field.getNames());
-    }
+  public String firstName() {
+    return this.names.get(0);
+  }
 
-    public boolean isNot() {
-        return not;
-    }
+  public String getName() {
+    return this.names.stream().collect(joining("."));
+  }
 
-    public String firstName() {
-        return this.names.get(0);
-    }
+  public List<String> getNames() {
+    return this.names;
+  }
 
-    public String getName() {
-        return this.names.stream().collect(joining("."));
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
 
-    public List<String> getNames() {
-        return this.names;
-    }
+    Field field = (Field) o;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    return Objects.equal(this.names, field.names);
+  }
 
-        Field field = (Field) o;
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(this.names);
+  }
 
-        return Objects.equal(this.names, field.names);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(this.names);
-    }
-
-    @Override
-    public String toString() {
-        return getName();
-    }
+  @Override
+  public String toString() {
+    return getName();
+  }
 }

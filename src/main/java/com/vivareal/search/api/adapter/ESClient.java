@@ -11,22 +11,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class ESClient {
 
-    private final TransportClient transportClient;
+  private final TransportClient transportClient;
 
-    @Autowired
-    public ESClient(TransportClient transportClient) {
-        this.transportClient = transportClient;
-    }
+  @Autowired
+  public ESClient(TransportClient transportClient) {
+    this.transportClient = transportClient;
+  }
 
-    public GetIndexResponse getIndexResponse() {
-        return transportClient.admin().indices().prepareGetIndex().get();
-    }
+  public GetIndexResponse getIndexResponse() {
+    return transportClient.admin().indices().prepareGetIndex().get();
+  }
 
-    public GetRequestBuilder prepareGet(BaseApiRequest request, String id) {
-        return transportClient.prepareGet(request.getIndex(), request.getIndex(), id);
-    }
+  public GetRequestBuilder prepareGet(BaseApiRequest request, String id) {
+    return transportClient.prepareGet(request.getIndex(), request.getIndex(), id);
+  }
 
-    public SearchRequestBuilder prepareSearch(BaseApiRequest request) {
-        return transportClient.prepareSearch(request.getIndex());
-    }
+  public SearchRequestBuilder prepareSearch(BaseApiRequest request) {
+    return transportClient.prepareSearch(request.getIndex());
+  }
 }

@@ -8,48 +8,51 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
 
+import com.vivareal.search.api.itest.SearchApiIntegrationTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.vivareal.search.api.itest.SearchApiIntegrationTest;
-
 @RunWith(SpringRunner.class)
 public class SearchByOperatorContainsAllIntegrationTest extends SearchApiIntegrationTest {
 
-    @Test
-    public void shouldExecuteContainsAllFilter() {
-        given()
-            .log().all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
+  @Test
+  public void shouldExecuteContainsAllFilter() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
         .expect()
-            .statusCode(SC_OK)
+        .statusCode(SC_OK)
         .when()
-            .get(TEST_DATA_INDEX + "?filter=array_integer CONTAINS_ALL [18,19,20]&facets=array_integer")
+        .get(TEST_DATA_INDEX + "?filter=array_integer CONTAINS_ALL [18,19,20]&facets=array_integer")
         .then()
-            .body("totalCount", equalTo(11))
-            .body("result.testdata", hasSize(11))
-            .body("result.facets.array_integer.18", equalTo(11))
-            .body("result.facets.array_integer.19", equalTo(11))
-            .body("result.facets.array_integer.20", equalTo(11));
-    }
+        .body("totalCount", equalTo(11))
+        .body("result.testdata", hasSize(11))
+        .body("result.facets.array_integer.18", equalTo(11))
+        .body("result.facets.array_integer.19", equalTo(11))
+        .body("result.facets.array_integer.20", equalTo(11));
+  }
 
-    @Test
-    public void shouldExecuteNotContainsAllFilter() {
-        given()
-            .log().all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
+  @Test
+  public void shouldExecuteNotContainsAllFilter() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
         .expect()
-            .statusCode(SC_OK)
+        .statusCode(SC_OK)
         .when()
-            .get(TEST_DATA_INDEX + "?filter=NOT array_integer CONTAINS_ALL [18,19,20]&facets=array_integer")
+        .get(
+            TEST_DATA_INDEX
+                + "?filter=NOT array_integer CONTAINS_ALL [18,19,20]&facets=array_integer")
         .then()
-            .body("totalCount", equalTo(17))
-            .body("result.testdata", hasSize(17))
-            .body("result.facets.array_integer.18", nullValue())
-            .body("result.facets.array_integer.19", nullValue())
-            .body("result.facets.array_integer.20", nullValue());
-    }    
+        .body("totalCount", equalTo(17))
+        .body("result.testdata", hasSize(17))
+        .body("result.facets.array_integer.18", nullValue())
+        .body("result.facets.array_integer.19", nullValue())
+        .body("result.facets.array_integer.20", nullValue());
+  }
 }
