@@ -12,6 +12,7 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
+        classpath 'com.diffplug.spotless:spotless-plugin-gradle:+'
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
         classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
@@ -22,6 +23,7 @@ buildscript {
     }
 }
 
+apply plugin: 'com.diffplug.gradle.spotless'
 apply plugin: 'com.gradle.build-scan'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot'
@@ -59,6 +61,12 @@ idea {
     module {
         downloadSources = true
         downloadJavadoc = false
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat('1.5')
     }
 }
 

@@ -50,6 +50,13 @@ To build this project, first time you try to build you need to run this:
 ./gradlew build
 ```
 
+This projects follow the [code-style](https://github.com/VivaReal/squad-search/blob/master/code-style/README.md) defined by the [search-squad](https://github.com/VivaReal/squad-search). Please check the documentation since the build cannot pass if the codebase does not follow this code-style.
+
+#### Code style
+
+We are using the [Google Java Format](https://github.com/google/google-java-format) project in the version `1.5`. We use it to be able to validate the code style of the codebase at build time. To ease this validation for our gradle projects, we are using the [Spotless Gradle plugin](https://github.com/diffplug/spotless/tree/master/plugin-gradle) which already has the validation.
+
+
 You can import the project in your favorite IDE:
 
 - Eclipse
