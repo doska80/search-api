@@ -4,6 +4,3 @@
 [submodule "make"]
 	path = make
 	url = https://github.com/VivaReal/make-snippets
-[submodule "code-style"]
-	path = code-style
-	url = https://github.com/VivaReal/code-style
