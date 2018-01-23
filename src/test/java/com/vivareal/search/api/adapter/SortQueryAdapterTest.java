@@ -1,7 +1,8 @@
 package com.vivareal.search.api.adapter;
 
-import static com.google.common.collect.Maps.newHashMap;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
@@ -11,9 +12,9 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
 import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.parser.*;
+import com.vivareal.search.api.model.parser.OperatorParser;
+import com.vivareal.search.api.model.parser.SortParser;
 import java.util.List;
-import java.util.Map;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -28,26 +29,9 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   private SortQueryAdapter sortQueryAdapter;
 
   public SortQueryAdapterTest() {
-    OperatorParser operatorParser = new OperatorParser();
-    NotParser notParser = new NotParser();
-    FieldParser fieldParser = new FieldParser(notParser);
-    FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
-    QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
-
-    SortParser sortParser = new SortParser(fieldParser, operatorParser, queryParser);
-
-    Map<String, Object> settingValues = newHashMap();
-    settingValues.put("id", "long");
-    settingValues.put("_score", "float");
-    settingValues.put("nested", "nested");
-    settingValues.put("nested.field", "text");
-
-    SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter =
-        new ElasticsearchSettingsAdapter(new ESClient(transportClient));
-    settingsAdapter.settings().put(INDEX_NAME, settingValues);
-
-    this.sortQueryAdapter =
-        new SortQueryAdapter(settingsAdapter, sortParser, mock(FilterQueryAdapter.class));
+    SortParser sortParser =
+        new SortParser(fieldParserFixture(), new OperatorParser(), queryParserFixture());
+    this.sortQueryAdapter = new SortQueryAdapter(sortParser, mock(FilterQueryAdapter.class));
   }
 
   @BeforeClass

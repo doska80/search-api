@@ -1,10 +1,8 @@
 package com.vivareal.search.api.model.query;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 
+import org.apache.commons.collections.map.LinkedMap;
 import org.junit.Test;
 
 public class FieldTest {
@@ -16,20 +14,34 @@ public class FieldTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testEmptyFieldName() {
-    new Field(emptyList());
+    new Field(new LinkedMap());
   }
 
   @Test
   public void testValidSimpleField() {
-    Field field = new Field(singletonList("a"));
+    LinkedMap names = new LinkedMap();
+    names.put("a", "_obj");
+
+    Field field = new Field(names);
+    assertEquals("a", field.firstName());
     assertEquals("a", field.getName());
+    assertEquals("_obj", field.getType());
+    assertEquals("_obj", field.getTypeFirstName());
     assertEquals("a", field.toString());
   }
 
   @Test
   public void testValidNestedField() {
-    Field field = new Field(asList("a", "b"));
-    assertEquals("a.b", field.getName());
-    assertEquals("a.b", field.toString());
+    LinkedMap names = new LinkedMap();
+    names.put("a", "_obj");
+    names.put("a.b", "nested");
+    names.put("a.b.c", "geo_point");
+
+    Field field = new Field(names);
+    assertEquals("a", field.firstName());
+    assertEquals("a.b.c", field.getName());
+    assertEquals("geo_point", field.getType());
+    assertEquals("_obj", field.getTypeFirstName());
+    assertEquals("a.b.c", field.toString());
   }
 }

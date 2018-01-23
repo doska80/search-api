@@ -18,6 +18,7 @@ import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
 import com.vivareal.search.api.service.SearchService;
+import com.vivareal.search.api.service.parser.IndexSettings;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -54,6 +55,8 @@ public class SearchController {
 
   @Autowired private SearchService searchService;
 
+  @Autowired private IndexSettings indexSettings;
+
   @Autowired private Environment environment;
 
   @Autowired private ExceptionHandler exceptionHandler;
@@ -89,6 +92,7 @@ public class SearchController {
   @Trace(dispatcher = true)
   public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id)
       throws InterruptedException, ExecutionException, TimeoutException {
+    indexSettings.validateIndex(request);
     GetResponse response = searchService.getById(request, id);
 
     if (!response.isExists()) return notFoundResponse;
@@ -125,6 +129,7 @@ public class SearchController {
   )
   @Trace(dispatcher = true)
   public ResponseEntity<Object> search(SearchApiRequest request) {
+    indexSettings.validateIndex(request);
     return builderOK.body(
         new SearchResponseEnvelope<>(request.getIndex(), searchService.search(request)));
   }
@@ -154,6 +159,7 @@ public class SearchController {
   @Trace(dispatcher = true)
   public StreamingResponseBody stream(
       FilterableApiRequest request, HttpServletResponse httpServletResponse) {
+    indexSettings.validateIndex(request);
     httpServletResponse.setContentType("application/x-ndjson;charset=UTF-8");
     return out -> searchService.stream(request, out);
   }

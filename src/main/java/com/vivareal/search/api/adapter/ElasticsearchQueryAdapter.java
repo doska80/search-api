@@ -9,7 +9,6 @@ import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -35,7 +34,6 @@ public class ElasticsearchQueryAdapter
 
   private final ESClient esClient;
 
-  private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
   private final SourceFieldAdapter sourceFieldAdapter;
   private final PageQueryAdapter pageQueryAdapter;
   private final SearchAfterQueryAdapter searchAfterQueryAdapter;
@@ -48,8 +46,6 @@ public class ElasticsearchQueryAdapter
   @Autowired
   public ElasticsearchQueryAdapter(
       ESClient esClient,
-      @Qualifier("elasticsearchSettings")
-          SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
       SourceFieldAdapter sourceFieldAdapter,
       PageQueryAdapter pageQueryAdapter,
       SearchAfterQueryAdapter searchAfterQueryAdapter,
@@ -59,7 +55,6 @@ public class ElasticsearchQueryAdapter
       FilterQueryAdapter filterQueryAdapter,
       FacetQueryAdapter facetQueryAdapter) {
     this.esClient = esClient;
-    this.settingsAdapter = settingsAdapter;
     this.sourceFieldAdapter = sourceFieldAdapter;
     this.pageQueryAdapter = pageQueryAdapter;
     this.searchAfterQueryAdapter = searchAfterQueryAdapter;
@@ -73,8 +68,6 @@ public class ElasticsearchQueryAdapter
   @Override
   @Trace
   public GetRequestBuilder getById(BaseApiRequest request, String id) {
-    settingsAdapter.checkIndex(request);
-
     GetRequestBuilder requestBuilder =
         esClient.prepareGet(request, id).setRealtime(false).setOperationThreaded(false);
 
@@ -105,7 +98,6 @@ public class ElasticsearchQueryAdapter
 
   private SearchRequestBuilder prepareQuery(
       BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
-    settingsAdapter.checkIndex(request);
     SearchRequestBuilder searchBuilder =
         esClient
             .prepareSearch(request)

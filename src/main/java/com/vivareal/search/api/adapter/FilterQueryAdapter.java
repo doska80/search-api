@@ -22,20 +22,14 @@ import java.util.stream.Stream;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FilterQueryAdapter {
 
-  private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
   private final QueryParser queryParser;
 
-  public FilterQueryAdapter(
-      @Qualifier("elasticsearchSettings")
-          SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
-      QueryParser queryParser) {
-    this.settingsAdapter = settingsAdapter;
+  public FilterQueryAdapter(QueryParser queryParser) {
     this.queryParser = queryParser;
   }
 
@@ -97,12 +91,12 @@ public class FilterQueryAdapter {
         QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
         Filter filter = queryFragmentItem.getFilter();
 
-        String fieldName = filter.getField().getName();
-        String fieldFirstName = filter.getField().firstName();
-        settingsAdapter.checkFieldName(indexName, fieldName, false);
+        Field field = filter.getField();
+        String fieldName = field.getName();
+        String fieldType = field.getType();
+        String fieldFirstName = field.firstName();
         boolean nested =
-            settingsAdapter.isTypeOf(indexName, fieldFirstName, FIELD_TYPE_NESTED)
-                && !ignoreNestedQueryBuilder;
+            FIELD_TYPE_NESTED.typeOf(field.getTypeFirstName()) && !ignoreNestedQueryBuilder;
 
         final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
         logicalOperator =
@@ -206,12 +200,9 @@ public class FilterQueryAdapter {
             break;
 
           case LIKE:
-            if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_KEYWORD))
+            if (!FIELD_TYPE_KEYWORD.typeOf(fieldType))
               throw new UnsupportedFieldException(
-                  fieldName,
-                  settingsAdapter.getFieldType(indexName, fieldName),
-                  FIELD_TYPE_KEYWORD.toString(),
-                  LIKE);
+                  fieldName, fieldType, FIELD_TYPE_KEYWORD.toString(), LIKE);
 
             addFilterQuery(
                 nestedMap,
@@ -254,12 +245,9 @@ public class FilterQueryAdapter {
             break;
 
           case POLYGON:
-            if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
+            if (!FIELD_TYPE_GEOPOINT.typeOf(fieldType))
               throw new UnsupportedFieldException(
-                  fieldName,
-                  settingsAdapter.getFieldType(indexName, fieldName),
-                  FIELD_TYPE_GEOPOINT.toString(),
-                  POLYGON);
+                  fieldName, fieldType, FIELD_TYPE_GEOPOINT.toString(), POLYGON);
 
             List<GeoPoint> points =
                 filterValue
@@ -281,12 +269,9 @@ public class FilterQueryAdapter {
             break;
 
           case VIEWPORT:
-            if (!settingsAdapter.isTypeOf(indexName, fieldName, FIELD_TYPE_GEOPOINT))
+            if (!FIELD_TYPE_GEOPOINT.typeOf(fieldType))
               throw new UnsupportedFieldException(
-                  fieldName,
-                  settingsAdapter.getFieldType(indexName, fieldName),
-                  FIELD_TYPE_GEOPOINT.toString(),
-                  VIEWPORT);
+                  fieldName, fieldType, FIELD_TYPE_GEOPOINT.toString(), VIEWPORT);
 
             GeoPoint topRight = new GeoPoint(filterValue.value(0, 1), filterValue.value(0, 0));
             GeoPoint bottomLeft = new GeoPoint(filterValue.value(1, 1), filterValue.value(1, 0));

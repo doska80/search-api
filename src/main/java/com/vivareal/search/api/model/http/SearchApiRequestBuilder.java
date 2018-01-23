@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.http;
 
+import static java.lang.Integer.MAX_VALUE;
 import static org.apache.commons.lang3.ObjectUtils.allNotNull;
 
 import java.util.Set;
@@ -162,7 +163,7 @@ public class SearchApiRequestBuilder {
 
     private int from;
     private int size;
-    private int facetSize;
+    private int facetSize = MAX_VALUE;
     private Set<String> facets;
     private String cursorId;
 

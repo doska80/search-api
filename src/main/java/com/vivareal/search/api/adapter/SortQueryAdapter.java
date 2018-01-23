@@ -15,14 +15,13 @@ import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.query.Sort.Item;
 import com.vivareal.search.api.model.search.Sortable;
 import java.util.HashMap;
-import java.util.Map;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.jparsec.error.ParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -35,38 +34,44 @@ public class SortQueryAdapter {
   private static final String NEW_RELIC_USE_DEFAULT_SORT_METRIC =
       "Custom/SearchAPI/v2/count/default/sort";
 
-  private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
   private final SortParser sortParser;
   private final FilterQueryAdapter filterQueryAdapter;
 
-  public SortQueryAdapter(
-      @Qualifier("elasticsearchSettings")
-          SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter,
-      SortParser sortParser,
-      FilterQueryAdapter filterQueryAdapter) {
-    this.settingsAdapter = settingsAdapter;
+  public SortQueryAdapter(SortParser sortParser, FilterQueryAdapter filterQueryAdapter) {
     this.sortParser = sortParser;
     this.filterQueryAdapter = filterQueryAdapter;
   }
 
   public void apply(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
     if (!isBlank(request.getSort())) {
-      try {
-        apply(
-            searchRequestBuilder,
-            request,
-            request.getIndex(),
-            ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex()));
-
-      } catch (InvalidFieldException e) {
-        LOG.warn(e.getMessage());
-        incrementCounter(NEW_RELIC_USE_DEFAULT_SORT_METRIC);
-        applyDefaultSort(searchRequestBuilder, request);
-      }
+      applySortFromRequest(searchRequestBuilder, request);
     } else {
       applyDefaultSort(searchRequestBuilder, request);
     }
     searchRequestBuilder.addSort(DEFAULT_TIEBREAKER);
+  }
+
+  private void applySortFromRequest(SearchRequestBuilder searchRequestBuilder, Sortable request) {
+    try {
+      apply(
+          searchRequestBuilder,
+          request,
+          request.getIndex(),
+          ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex()));
+    } catch (ParserException | InvalidFieldException e) {
+      if (isInvalidFieldException(e)) {
+        LOG.warn(e.getMessage());
+        incrementCounter(NEW_RELIC_USE_DEFAULT_SORT_METRIC);
+        applyDefaultSort(searchRequestBuilder, request);
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  private boolean isInvalidFieldException(Exception e) {
+    return e instanceof InvalidFieldException
+        || (e.getCause() != null && e.getCause() instanceof InvalidFieldException);
   }
 
   private void apply(
@@ -99,14 +104,11 @@ public class SortQueryAdapter {
 
     if (fieldName.equals("_score")) return scoreSort();
 
-    settingsAdapter.checkFieldName(index, fieldName, false);
-
     FieldSortBuilder fieldSortBuilder =
         fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
-    String parentField = fieldName.split("\\.")[0];
 
-    if (settingsAdapter.isTypeOf(index, parentField, FIELD_TYPE_NESTED)) {
-      fieldSortBuilder.setNestedPath(parentField);
+    if (FIELD_TYPE_NESTED.typeOf(item.getField().getTypeFirstName())) {
+      fieldSortBuilder.setNestedPath(item.getField().firstName());
 
       item.getQueryFragment()
           .ifPresent(

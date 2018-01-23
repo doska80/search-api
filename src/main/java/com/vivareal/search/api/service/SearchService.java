@@ -61,6 +61,7 @@ public class SearchService {
     SearchRequestBuilder searchRequestBuilder = null;
 
     try {
+
       searchRequestBuilder = this.queryAdapter.query(request);
       SearchResponse searchResponse =
           searchRequestBuilder.get(

@@ -11,6 +11,7 @@ import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.query.Filter;
 import com.vivareal.search.api.model.query.QueryFragmentItem;
 import com.vivareal.search.api.model.query.Value;
+import org.apache.commons.collections.map.LinkedMap;
 
 public class QueryTemplateLoader implements TemplateLoader {
 
@@ -21,7 +22,13 @@ public class QueryTemplateLoader implements TemplateLoader {
             "field",
             new Rule() {
               {
-                add("names", singletonList("field"));
+                add(
+                    "typesByName",
+                    new LinkedMap() {
+                      {
+                        put("field", "_obj");
+                      }
+                    });
               }
             });
 
@@ -30,7 +37,15 @@ public class QueryTemplateLoader implements TemplateLoader {
             "nested",
             new Rule() {
               {
-                add("names", asList("field1", "field2", "field3"));
+                add(
+                    "typesByName",
+                    new LinkedMap() {
+                      {
+                        put("field1", "_obj");
+                        put("field2", "int");
+                        put("field3", "int");
+                      }
+                    });
               }
             });
 

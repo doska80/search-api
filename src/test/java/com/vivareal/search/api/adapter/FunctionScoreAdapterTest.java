@@ -2,6 +2,9 @@ package com.vivareal.search.api.adapter;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.facetParserFixture;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.NONE;
 import static org.junit.Assert.assertEquals;
@@ -14,7 +17,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.vivareal.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.model.parser.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -59,21 +61,14 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
     when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
 
-    OperatorParser operatorParser = new OperatorParser();
-    NotParser notParser = new NotParser();
-    FieldParser fieldParser = new FieldParser(notParser);
-    FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
-    QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
-    FacetParser facetParser = new FacetParser(fieldParser);
     PageQueryAdapter pageQueryAdapter = new PageQueryAdapter();
-    QueryStringAdapter queryStringAdapter = new QueryStringAdapter(settingsAdapter);
-    FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(settingsAdapter);
-    FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(settingsAdapter, facetParser);
-    FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(settingsAdapter, queryParser);
+    QueryStringAdapter queryStringAdapter = new QueryStringAdapter(fieldParserFixture());
+    FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
+    FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
+    FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
             esClient,
-            settingsAdapter,
             sourceFieldAdapter,
             pageQueryAdapter,
             searchAfterQueryAdapter,

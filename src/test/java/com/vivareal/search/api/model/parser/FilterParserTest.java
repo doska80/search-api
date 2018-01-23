@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
 import static org.junit.Assert.*;
 
 import com.vivareal.search.api.model.query.Filter;
@@ -13,7 +14,7 @@ public class FilterParserTest {
 
   public FilterParserTest() {
     this.filterParser =
-        new FilterParser(new FieldParser(new NotParser()), new OperatorParser(), new ValueParser());
+        new FilterParser(fieldParserFixture(), new OperatorParser(), new ValueParser());
   }
 
   @Test

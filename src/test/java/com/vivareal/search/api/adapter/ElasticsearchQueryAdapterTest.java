@@ -4,9 +4,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.*;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_KEYWORD;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
@@ -27,8 +26,6 @@ import com.google.common.collect.Sets;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.model.parser.*;
-import com.vivareal.search.api.model.parser.QueryParser;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,7 +35,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.junit.After;
@@ -82,21 +78,14 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
     when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
 
-    OperatorParser operatorParser = new OperatorParser();
-    NotParser notParser = new NotParser();
-    FieldParser fieldParser = new FieldParser(notParser);
-    FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
-    QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
-    FacetParser facetParser = new FacetParser(fieldParser);
     this.pageQueryAdapter = new PageQueryAdapter();
-    this.queryStringAdapter = new QueryStringAdapter(settingsAdapter);
-    this.functionScoreAdapter = new FunctionScoreAdapter(settingsAdapter);
-    this.facetQueryAdapter = new FacetQueryAdapter(settingsAdapter, facetParser);
-    this.filterQueryAdapter = new FilterQueryAdapter(settingsAdapter, queryParser);
+    this.queryStringAdapter = new QueryStringAdapter(fieldParserFixture());
+    this.functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
+    this.facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
+    this.filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
             esClient,
-            settingsAdapter,
             sourceFieldAdapter,
             pageQueryAdapter,
             searchAfterQueryAdapter,
@@ -218,9 +207,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   public void shouldReturnSearchRequestBuilderWithSimpleNestedObject() {
     final String field = "nested.field";
     final Object value = "Lorem Ipsum";
-
-    when(settingsAdapter.isTypeOf(INDEX_NAME, field.split("\\.")[0], MappingType.FIELD_TYPE_NESTED))
-        .thenReturn(true);
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
@@ -513,16 +499,13 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestBuilderByViewport() {
 
-    String field = "field.location";
+    String field = "field.location.geo_point";
 
     // Google nomenclature
     double northEastLat = 42.0;
     double northEastLon = -74.0;
     double southWestLat = -40.0;
     double southWestLon = -72.0;
-
-    when(settingsAdapter.isTypeOf(INDEX_NAME, field, MappingType.FIELD_TYPE_GEOPOINT))
-        .thenReturn(true);
 
     VIEWPORT
         .getAlias()
@@ -573,11 +556,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestBuilderByPolygon() {
-
-    String query = "field.location POLYGON [[-1.1,2.2],[3.3,-4.4],[5.5,6.6]]";
-
-    when(settingsAdapter.isTypeOf(INDEX_NAME, "field.location", MappingType.FIELD_TYPE_GEOPOINT))
-        .thenReturn(true);
+    String query = "field.location.geo_point POLYGON [[-1.1,2.2],[3.3,-4.4],[5.5,6.6]]";
 
     POLYGON
         .getAlias()
@@ -599,7 +578,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
                           assertNotNull(polygon);
                           assertFalse(polygon.ignoreUnmapped());
-                          assertEquals("field.location", polygon.fieldName());
+                          assertEquals("field.location.geo_point", polygon.fieldName());
                           assertEquals(GeoValidationMethod.STRICT, polygon.getValidationMethod());
 
                           // if the last point is different of the first, ES add a copy of the first
@@ -616,11 +595,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestBuilderWithSingleFilterWithLike() {
-    final String field = "field1";
+    final String field = "field1.keyword";
     String value = "Break line\\nNew line with special chars: % \\% _ \\_ * ? \\a!";
     String expected = "Break line\nNew line with special chars: * % ? _ \\* \\? \\a!";
-
-    when(settingsAdapter.isTypeOf(INDEX_NAME, field, FIELD_TYPE_KEYWORD)).thenReturn(true);
 
     LIKE.getAlias()
         .parallelStream()
@@ -1004,33 +981,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldReturnSearchRequestBuilderByFacets() {
-    Set<String> facets =
-        newHashSet(
-            "field1", "field2", "field3", "nested1.field4", "nested1.field5", "nested2.field6");
-
-    when(settingsAdapter.isTypeOf(INDEX_NAME, "nested1", FIELD_TYPE_NESTED)).thenReturn(true);
-    when(settingsAdapter.isTypeOf(INDEX_NAME, "nested2", FIELD_TYPE_NESTED)).thenReturn(true);
-
-    SearchApiRequest searchApiRequest = fullRequest.facets(facets).facetSize(10).build();
-    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(searchApiRequest);
-    List<AggregationBuilder> aggregations =
-        searchRequestBuilder.request().source().aggregations().getAggregatorFactories();
-
-    assertNotNull(aggregations);
-    assertTrue(aggregations.size() == 5);
-
-    assertTrue(searchRequestBuilder.toString().contains("\"size\" : 10"));
-    assertTrue(searchRequestBuilder.toString().contains("\"shard_size\" : 8"));
-    assertTrue(
-        facets
-            .stream()
-            .map(s -> s.split("\\.")[0])
-            .collect(toSet())
-            .containsAll(aggregations.stream().map(AggregationBuilder::getName).collect(toSet())));
-  }
-
-  @Test
   public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() {
     Set<String> includeFields = newHashSet("field1", "field2", "field3");
     Set<String> excludeFields = newHashSet("field3", "field4");
@@ -1133,7 +1083,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     String field5RelationalOperator = IN.name();
     Object[] field5Value = new Object[] {1, "\"string\"", 1.2, true};
 
-    String field6Name = "field6.location";
+    String field6Name = "field6.location.geo_point";
     String field6RelationalOperator = VIEWPORT.name();
     double northEastLat = 42.0;
     double northEastLon = -74.0;

@@ -1,5 +1,7 @@
 package com.vivareal.search.api.model.parser;
 
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -18,13 +20,8 @@ public class SortParserTest {
   private SortParser sortParser;
 
   public SortParserTest() {
-    OperatorParser operatorParser = new OperatorParser();
-    NotParser notParser = new NotParser();
-    FieldParser fieldParser = new FieldParser(notParser);
-    FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
-    QueryParser queryParser = new QueryParser(operatorParser, filterParser, notParser);
-
-    this.sortParser = new SortParser(fieldParser, operatorParser, queryParser);
+    this.sortParser =
+        new SortParser(fieldParserFixture(), new OperatorParser(), queryParserFixture());
   }
 
   @Test

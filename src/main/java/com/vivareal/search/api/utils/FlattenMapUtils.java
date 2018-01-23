@@ -1,7 +1,5 @@
 package com.vivareal.search.api.utils;
 
-import static java.util.Arrays.asList;
-
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
@@ -42,9 +40,5 @@ public class FlattenMapUtils {
           .stream()
           .flatMap(e -> flatten(e, keyValue.apply(entry, key)));
     return Stream.of(new AbstractMap.SimpleEntry<>(keyValue.apply(entry, key), entry.getValue()));
-  }
-
-  public static void addInvalidElements(final String... element) {
-    invalidFields.addAll(asList(element));
   }
 }

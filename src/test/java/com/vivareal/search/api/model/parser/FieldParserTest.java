@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldFactoryFixture;
 import static org.junit.Assert.assertEquals;
 
 import com.vivareal.search.api.model.query.Field;
@@ -13,7 +14,7 @@ public class FieldParserTest {
   private FieldParser fieldParser;
 
   public FieldParserTest() {
-    this.fieldParser = new FieldParser(new NotParser());
+    this.fieldParser = new FieldParser(new NotParser(), fieldFactoryFixture());
   }
 
   @Test

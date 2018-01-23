@@ -1,49 +1,55 @@
 package com.vivareal.search.api.model.query;
 
-import static java.util.Collections.emptyList;
-import static java.util.stream.Collectors.joining;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.google.common.base.Objects;
-import java.util.List;
+import org.apache.commons.collections.map.LinkedMap;
 
 public class Field {
 
-  private final List<String> names;
   private boolean not;
+  private LinkedMap typesByName;
+  private boolean containsNestedType;
 
-  public Field(final List<String> names) {
-    this(false, names);
+  public Field(LinkedMap typesByName) {
+    this(false, typesByName);
   }
 
-  public Field(boolean not, final List<String> names) {
-
-    if (isEmpty(names)) {
+  public Field(boolean not, LinkedMap typesByName) {
+    if (isEmpty(typesByName)) {
       throw new IllegalArgumentException("The field name cannot be empty");
     }
 
     this.not = not;
-    this.names = isEmpty(names) ? emptyList() : names;
-  }
-
-  public Field(Boolean not, Field field) {
-    this(not, field.getNames());
+    this.typesByName = typesByName;
   }
 
   public boolean isNot() {
     return not;
   }
 
+  public LinkedMap getTypesByName() {
+    return typesByName;
+  }
+
   public String firstName() {
-    return this.names.get(0);
+    return typesByName.firstKey().toString();
   }
 
   public String getName() {
-    return this.names.stream().collect(joining("."));
+    return typesByName.lastKey().toString();
   }
 
-  public List<String> getNames() {
-    return this.names;
+  public String getTypeFirstName() {
+    return getType(firstName());
+  }
+
+  public String getType() {
+    return getType(getName());
+  }
+
+  public String getType(String field) {
+    return typesByName.get(field).toString();
   }
 
   @Override
@@ -53,12 +59,12 @@ public class Field {
 
     Field field = (Field) o;
 
-    return Objects.equal(this.names, field.names);
+    return Objects.equal(this.typesByName, field.typesByName);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(this.names);
+    return Objects.hashCode(this.typesByName);
   }
 
   @Override

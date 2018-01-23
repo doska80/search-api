@@ -4,27 +4,24 @@ import static com.vivareal.search.api.configuration.environment.RemoteProperties
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_MODIFIER;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.fromString;
 import static org.elasticsearch.index.query.QueryBuilders.functionScoreQuery;
+import static org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders.fieldValueFactorFunction;
 
+import com.vivareal.search.api.model.parser.FieldParser;
 import com.vivareal.search.api.model.search.Queryable;
-import java.util.Map;
 import org.elasticsearch.action.search.SearchRequestBuilder;
-import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
-import org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FunctionScoreAdapter {
 
-  private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+  private final FieldParser fieldParser;
 
-  public FunctionScoreAdapter(
-      @Qualifier("elasticsearchSettings")
-          SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter) {
-    this.settingsAdapter = settingsAdapter;
+  public FunctionScoreAdapter(FieldParser fieldParser) {
+    this.fieldParser = fieldParser;
   }
 
   public void apply(
@@ -32,23 +29,23 @@ public class FunctionScoreAdapter {
       QueryBuilder queryBuilder,
       final Queryable request) {
     final String indexName = request.getIndex();
-    final String factorField =
+    String factorField =
         isEmpty(request.getFactorField())
             ? SCORE_FACTOR_FIELD.getValue(indexName)
             : request.getFactorField();
     if (isEmpty(factorField)) return;
 
-    settingsAdapter.checkFieldName(indexName, factorField, false);
+    fieldParser.parse(request.getFactorField());
 
     FieldValueFactorFunctionBuilder fieldValueFactorFunctionBuilder =
-        ScoreFunctionBuilders.fieldValueFactorFunction(factorField).missing(0);
+        fieldValueFactorFunction(factorField).missing(0);
 
     final String factorModifier =
         isEmpty(request.getFactorModifier())
             ? SCORE_FACTOR_MODIFIER.getValue(indexName)
             : request.getFactorModifier();
     if (isNotEmpty(factorModifier))
-      fieldValueFactorFunctionBuilder.modifier(Modifier.fromString(factorModifier));
+      fieldValueFactorFunctionBuilder.modifier(fromString(factorModifier));
 
     searchRequestBuilder.setQuery(
         functionScoreQuery(queryBuilder, fieldValueFactorFunctionBuilder));
