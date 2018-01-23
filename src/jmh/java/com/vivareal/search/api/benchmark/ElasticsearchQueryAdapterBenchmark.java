@@ -15,6 +15,11 @@ import org.openjdk.jmh.annotations.State;
 
 public class ElasticsearchQueryAdapterBenchmark {
 
+  @Benchmark
+  public void applyFilterQuery(ElasticsearchQueryAdapterState state) {
+    state.adapter.apply(state.bqb, state.filterable);
+  }
+
   @State(Scope.Benchmark)
   public static class ElasticsearchQueryAdapterState {
     final FilterQueryAdapter adapter =
@@ -35,10 +40,5 @@ public class ElasticsearchQueryAdapterBenchmark {
     final BoolQueryBuilder bqb = boolQuery();
     final Filterable filterable =
         SearchApiRequestBuilder.create().index("tincas").filter("a = 1").build();
-  }
-
-  @Benchmark
-  public void applyFilterQuery(ElasticsearchQueryAdapterState state) {
-    state.adapter.apply(state.bqb, state.filterable);
   }
 }

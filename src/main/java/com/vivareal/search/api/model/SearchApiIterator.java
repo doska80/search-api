@@ -12,12 +12,10 @@ import org.elasticsearch.client.transport.TransportClient;
 
 public class SearchApiIterator<T> implements Iterator<T[]> {
 
+  private final int size;
   private TransportClient client;
   private SearchResponse response;
-
   private Function<SearchScrollRequestBuilder, SearchResponse> loop;
-
-  private final int size;
   private int count;
 
   public SearchApiIterator(

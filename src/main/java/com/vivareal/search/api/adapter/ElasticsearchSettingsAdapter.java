@@ -40,20 +40,15 @@ import org.springframework.stereotype.Component;
 public class ElasticsearchSettingsAdapter
     implements SettingsAdapter<Map<String, Map<String, Object>>, String> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
-
   public static final String SHARDS = "index.number_of_shards";
   public static final String REPLICAS = "index.number_of_replicas";
-
   public static final Set<String> WHITE_LIST_METAFIELDS =
       unmodifiableSet(newHashSet("_id", "_score"));
-
-  private Map<String, Map<String, Object>> structuredIndices;
-
+  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
   private final ESClient esClient;
-
   private final Map<String, String[]> defaultSourceIncludes;
   private final Map<String, String[]> defaultSourceExcludes;
+  private Map<String, Map<String, Object>> structuredIndices;
 
   @Autowired
   public ElasticsearchSettingsAdapter(ESClient esClient) {

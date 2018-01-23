@@ -10,6 +10,16 @@ import java.util.stream.Stream;
 public class FlattenMapUtils {
 
   private static List<String> invalidFields;
+  private static final BiFunction<Entry<String, Object>, String, String> keyValue =
+      (entry, key) ->
+          Optional.ofNullable(key)
+              .filter(s -> !invalidFields.contains(s))
+              .map(
+                  k -> {
+                    if (invalidFields.contains(entry.getKey())) return key;
+                    return String.join(".", key, entry.getKey());
+                  })
+              .orElse(entry.getKey());
 
   private FlattenMapUtils() {
     super();
@@ -33,17 +43,6 @@ public class FlattenMapUtils {
           .flatMap(e -> flatten(e, keyValue.apply(entry, key)));
     return Stream.of(new AbstractMap.SimpleEntry<>(keyValue.apply(entry, key), entry.getValue()));
   }
-
-  private static final BiFunction<Entry<String, Object>, String, String> keyValue =
-      (entry, key) ->
-          Optional.ofNullable(key)
-              .filter(s -> !invalidFields.contains(s))
-              .map(
-                  k -> {
-                    if (invalidFields.contains(entry.getKey())) return key;
-                    return String.join(".", key, entry.getKey());
-                  })
-              .orElse(entry.getKey());
 
   public static void addInvalidElements(final String... element) {
     invalidFields.addAll(asList(element));

@@ -9,8 +9,8 @@ import java.util.List;
 
 public class Field {
 
-  private boolean not;
   private final List<String> names;
+  private boolean not;
 
   public Field(final List<String> names) {
     this(false, names);

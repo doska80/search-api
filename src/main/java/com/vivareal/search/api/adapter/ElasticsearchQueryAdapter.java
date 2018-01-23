@@ -1,7 +1,8 @@
 package com.vivareal.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_UNIT;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 import com.newrelic.api.agent.Trace;

@@ -18,11 +18,11 @@ public enum MappingType {
   FIELD_TYPE_FLOAT(newHashSet("float")),
   FIELD_TYPE_NUMBER(newHashSet("long", "float"));
 
+  private final Set<String> types;
+
   MappingType(Set<String> types) {
     this.types = types;
   }
-
-  private final Set<String> types;
 
   public boolean typeOf(final String foundType) {
     return types.contains(foundType);

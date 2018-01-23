@@ -13,7 +13,8 @@
         <springProperty scope="context" name="gelf-host" source="gelf.hostname" defaultValue="udp:logs.vivareal.com"/>
     </springProfile>
     <springProfile name="!prod">
-        <springProperty scope="context" name="gelf-host" source="gelf.hostname" defaultValue="udp:qa-logs.vivareal.com"/>
+        <springProperty scope="context" name="gelf-host" source="gelf.hostname"
+                        defaultValue="udp:qa-logs.vivareal.com"/>
     </springProfile>
 
     <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">
@@ -32,7 +33,9 @@
         <port>12201</port>
         <version>1.1</version>
         <extractStackTrace>true</extractStackTrace>
-        <additionalFields>environment=${environment},application=${application},product=search,cluster=${es.cluster.name},server=${java.rmi.server.hostname}</additionalFields>
+        <additionalFields>
+            environment=${environment},application=${application},product=search,cluster=${es.cluster.name},server=${java.rmi.server.hostname}
+        </additionalFields>
         <additionalFieldTypes>environment=String,application=String,product=String</additionalFieldTypes>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
@@ -58,18 +61,18 @@
     </root>
 
     <logger name="org.springframework">
-        <level value="warn" />
+        <level value="warn"/>
     </logger>
 
     <logger name="com.netflix">
-        <level value="warn" />
+        <level value="warn"/>
     </logger>
 
     <logger name="com.getsentry">
-        <level value="warn" />
+        <level value="warn"/>
     </logger>
 
     <logger name="springfox">
-        <level value="warn" />
+        <level value="warn"/>
     </logger>
 </configuration>

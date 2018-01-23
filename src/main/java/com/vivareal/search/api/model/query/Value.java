@@ -13,9 +13,8 @@ import java.util.stream.Stream;
 
 public class Value {
 
-  List<Object> contents;
-
   public static final Value NULL_VALUE = new Value(null);
+  List<Object> contents;
 
   public Value() {
     this.contents = emptyList();

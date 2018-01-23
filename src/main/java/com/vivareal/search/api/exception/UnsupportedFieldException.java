@@ -2,6 +2,11 @@ package com.vivareal.search.api.exception;
 
 import com.vivareal.search.api.model.query.RelationalOperator;
 
+@FunctionalInterface
+interface InvalidMessageFunction {
+  String apply(String field, String invalidType, String validType, RelationalOperator operator);
+}
+
 public class UnsupportedFieldException extends IllegalArgumentException {
 
   private static final InvalidMessageFunction ERROR_MESSAGE =
@@ -30,9 +35,4 @@ public class UnsupportedFieldException extends IllegalArgumentException {
   public UnsupportedFieldException(Throwable cause) {
     super(cause);
   }
-}
-
-@FunctionalInterface
-interface InvalidMessageFunction {
-  String apply(String field, String invalidType, String validType, RelationalOperator operator);
 }

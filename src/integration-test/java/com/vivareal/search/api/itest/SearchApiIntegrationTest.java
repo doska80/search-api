@@ -31,6 +31,8 @@ import org.springframework.test.context.TestPropertySource;
 @ContextConfiguration(classes = SearchApiIntegrationTestContext.class)
 public class SearchApiIntegrationTest {
 
+  protected static final ObjectMapper mapper = new ObjectMapper();
+
   @Value("${itest.standard.dataset.size}")
   protected Integer standardDatasetSize;
 
@@ -44,10 +46,7 @@ public class SearchApiIntegrationTest {
   protected Integer defaultPageSize;
 
   @Autowired protected ESIndexHandler esIndexHandler;
-
   @Autowired protected StandardDatasetAsserts asserts;
-
-  protected static final ObjectMapper mapper = new ObjectMapper();
 
   @BeforeClass
   public static void setup() {

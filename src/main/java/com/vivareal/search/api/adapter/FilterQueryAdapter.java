@@ -366,13 +366,6 @@ public class FilterQueryAdapter {
     return nestedMap;
   }
 
-  enum QueryType {
-    FILTER,
-    MUST_NOT,
-    SHOULD,
-    SHOULD_NOT
-  }
-
   private QueryType getQueryType(final LogicalOperator logicalOperator, final boolean not) {
     if (logicalOperator.equals(AND)) return not ? MUST_NOT : FILTER;
 
@@ -425,5 +418,12 @@ public class FilterQueryAdapter {
       if (before instanceof QueryFragmentNot) return ((QueryFragmentNot) before).isNot();
     }
     return false;
+  }
+
+  enum QueryType {
+    FILTER,
+    MUST_NOT,
+    SHOULD,
+    SHOULD_NOT
   }
 }

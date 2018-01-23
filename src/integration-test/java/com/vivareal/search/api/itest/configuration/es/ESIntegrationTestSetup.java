@@ -41,8 +41,8 @@ public class ESIntegrationTestSetup {
   private static final String INDEXES_FILE = "/es/bootstrap.json";
 
   private final StrSubstitutor boostrapVariables;
-  private Map<String, Object> boostrapConfiguration;
   private final ESIndexHandler esIndexHandler;
+  private Map<String, Object> boostrapConfiguration;
 
   @Autowired
   public ESIntegrationTestSetup(

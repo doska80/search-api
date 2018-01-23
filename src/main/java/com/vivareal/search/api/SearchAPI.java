@@ -38,6 +38,10 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableTurbine
 public class SearchAPI implements WebMvcConfigurer {
 
+  public static void main(String[] args) {
+    SpringApplication.run(SearchAPI.class, args);
+  }
+
   @Bean
   public FilterRegistrationBean newRelicFilter() {
     final FilterRegistrationBean registrationBean =
@@ -82,9 +86,5 @@ public class SearchAPI implements WebMvcConfigurer {
   @Override
   public void addViewControllers(ViewControllerRegistry registry) {
     registry.addViewController("/").setViewName("redirect:/swagger-ui.html");
-  }
-
-  public static void main(String[] args) {
-    SpringApplication.run(SearchAPI.class, args);
   }
 }

@@ -1,8 +1,6 @@
 package com.vivareal.search.api.adapter;
 
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.REPLICAS;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.WHITE_LIST_METAFIELDS;
+import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.*;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.vivareal.search.api.model.mapping.MappingType.*;
 import static org.junit.Assert.assertEquals;
@@ -21,10 +19,18 @@ import org.junit.Test;
 
 public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock {
 
-  private ElasticsearchSettingsAdapter settingsAdapter;
-  private Map<String, Map<String, Object>> structuredIndices;
+  private static final String VALID_FIELD_TEXT = "valid.field.text";
+  private static final String VALID_FIELD_BOOLEAN = "valid.field.boolean";
+  private static final String VALID_FIELD_LONG = "valid.field.long";
+  private static final String VALID_FIELD_FLOAT = "valid.field.float";
+  private static final String VALID_FIELD_NESTED = "valid.field.nested";
+  private static final String VALID_FIELD_GEO_POINT = "valid.field.geo_point";
+  private static final String VALID_FIELD_KEYWORD = "valid.field.keyword";
+  private static final String VALID_FIELD_DATE = "valid.field.date";
   private final BaseApiRequest validIndexRequest = basicRequest.build();
   private final BaseApiRequest invalidIndexRequest = basicRequest.index("not-valid-index").build();
+  private ElasticsearchSettingsAdapter settingsAdapter;
+  private Map<String, Map<String, Object>> structuredIndices;
 
   @Before
   public void setup() {
@@ -196,15 +202,6 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
         settingsAdapter.isTypeOf(validIndexRequest.getIndex(), VALID_FIELD_DATE, FIELD_TYPE_DATE));
     verify(settingsAdapter, times(1)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_DATE);
   }
-
-  private static final String VALID_FIELD_TEXT = "valid.field.text";
-  private static final String VALID_FIELD_BOOLEAN = "valid.field.boolean";
-  private static final String VALID_FIELD_LONG = "valid.field.long";
-  private static final String VALID_FIELD_FLOAT = "valid.field.float";
-  private static final String VALID_FIELD_NESTED = "valid.field.nested";
-  private static final String VALID_FIELD_GEO_POINT = "valid.field.geo_point";
-  private static final String VALID_FIELD_KEYWORD = "valid.field.keyword";
-  private static final String VALID_FIELD_DATE = "valid.field.date";
 
   private Map<String, Map<String, Object>> structuredIndicesSettings() {
     Map<String, Map<String, Object>> structuredIndices = new HashMap<>();

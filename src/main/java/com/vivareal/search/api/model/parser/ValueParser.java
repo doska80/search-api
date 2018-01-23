@@ -46,18 +46,16 @@ public class ValueParser {
           .map(Value::new);
 
   private final Parser<Value> valueParser = or(inValueParser, singleValueParser);
+  private final Parser<Value> likeValueParser = stringParser.label("like").map(LikeValue::new);
+  private final Parser<Value> rangeValueParser = inValueParser.label("range").map(RangeValue::new);
 
   Parser<Value> get() {
     return valueParser;
   }
 
-  private final Parser<Value> likeValueParser = stringParser.label("like").map(LikeValue::new);
-
   Parser<Value> getLikeValue() {
     return likeValueParser;
   }
-
-  private final Parser<Value> rangeValueParser = inValueParser.label("range").map(RangeValue::new);
 
   Parser<Value> getRangeValue() {
     return rangeValueParser;
@@ -77,13 +75,13 @@ public class ValueParser {
       VIEWPORT(2, 2),
       POLYGON(3, 1000);
 
+      private final int minSize;
+      private final int maxSize;
+
       Type(int minSize, int maxSize) {
         this.minSize = minSize;
         this.maxSize = maxSize;
       }
-
-      private final int minSize;
-      private final int maxSize;
 
       public int getMinSize() {
         return minSize;
