@@ -80,10 +80,9 @@ public class ExceptionHandler {
 
     if (nonNull(additionalMessage)) {
       builder.append(additionalMessage);
-      LOG.error(builder.toString());
-    } else {
-      LOG.error(builder.toString(), e);
     }
+
+    LOG.error(builder.toString(), e);
   }
 
   private String additionalMessage(Throwable e) {
