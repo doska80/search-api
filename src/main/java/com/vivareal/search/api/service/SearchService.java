@@ -56,6 +56,11 @@ public class SearchService {
 
   @Trace
   public SearchResponse search(SearchApiRequest request) {
+    return search(request, 1);
+  }
+
+  @Trace
+  public SearchResponse search(SearchApiRequest request, final int retries) {
     SearchRequestBuilder searchRequestBuilder = null;
 
     try {
@@ -78,9 +83,11 @@ public class SearchService {
     } catch (Exception e) {
       if (getRootCause(e) instanceof IllegalArgumentException)
         throw new IllegalArgumentException(e);
-      if (e instanceof ElasticsearchException)
+      if (e instanceof ElasticsearchException) {
+        if (retries != 0) return search(request, retries - 1);
         throw new QueryPhaseExecutionException(
             ofNullable(searchRequestBuilder).map(SearchRequestBuilder::toString).orElse("{}"), e);
+      }
       throw e;
     }
   }
