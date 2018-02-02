@@ -98,44 +98,21 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   public void getFieldType() {
     assertEquals(
         "text", settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_TEXT));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_TEXT, false);
-
     assertEquals(
         "boolean", settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_BOOLEAN));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_BOOLEAN, false);
-
     assertEquals(
         "nested", settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_NESTED));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_NESTED, false);
-
     assertEquals(
         "geo_point",
         settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_GEO_POINT));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_GEO_POINT, false);
-
     assertEquals(
         "keyword", settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_KEYWORD));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_KEYWORD, false);
-
     assertEquals(
         "long", settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_LONG));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_LONG, false);
-
     assertEquals(
         "float", settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_FLOAT));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_FLOAT, false);
-
     assertEquals(
         "date", settingsAdapter.getFieldType(validIndexRequest.getIndex(), VALID_FIELD_DATE));
-    verify(settingsAdapter, times(1))
-        .checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_DATE, false);
   }
 
   @Test

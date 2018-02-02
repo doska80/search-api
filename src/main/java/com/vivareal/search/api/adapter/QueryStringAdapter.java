@@ -81,6 +81,7 @@ public class QueryStringAdapter {
             field -> {
               String[] boostFieldValues = field.split(":");
               String fieldName = boostFieldValues[0];
+              settingsAdapter.checkFieldName(indexName, fieldName, false);
 
               if (settingsAdapter.isTypeOf(
                   indexName, fieldName.split("\\.")[0], FIELD_TYPE_NESTED)) {

@@ -55,6 +55,8 @@ public class SortQueryAdapter {
 
     if (fieldName.equals("_score")) return scoreSort();
 
+    settingsAdapter.checkFieldName(index, fieldName, false);
+
     FieldSortBuilder fieldSortBuilder =
         fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
     String parentField = fieldName.split("\\.")[0];

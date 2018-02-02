@@ -92,7 +92,6 @@ public class ElasticsearchSettingsAdapter
 
   @Override
   public String getFieldType(final String index, final String fieldName) {
-    checkFieldName(index, fieldName, false);
     return valueOf(structuredIndices.get(index).get(fieldName));
   }
 
