@@ -3,6 +3,7 @@ package com.vivareal.search.api.itest.scenarios;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
@@ -40,11 +41,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         .body(
             "result.testdata.id",
             equalTo(
-                rangeClosed(1, defaultPageSize)
-                    .boxed()
-                    .map(String::valueOf)
-                    .map(String::valueOf)
-                    .collect(toList())));
+                rangeClosed(1, defaultPageSize).boxed().map(String::valueOf).collect(toList())));
   }
 
   @Test
@@ -224,5 +221,25 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
       assertTrue(lastId > currentId);
       lastId = currentId;
     }
+  }
+
+  @Test
+  public void mustApplyDefaultSortWhenRequestHaveFieldThatNotExists() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?sort=non.existing.field DESC", TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.id",
+            equalTo(
+                rangeClosed(1, defaultPageSize).boxed().map(String::valueOf).collect(toList())));
   }
 }

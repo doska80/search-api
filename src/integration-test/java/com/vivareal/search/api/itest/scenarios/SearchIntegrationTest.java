@@ -945,19 +945,6 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateSearchWithNonExistingSort() {
-    given()
-        .log()
-        .all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_BAD_REQUEST)
-        .when()
-        .get(format("%s?sort=non_existing_field", TEST_DATA_INDEX));
-  }
-
-  @Test
   public void validateSearchWithNonExistingFacet() {
     given()
         .log()

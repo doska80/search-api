@@ -76,6 +76,7 @@ public class ESIndexHandler {
 
   public void setDefaultProperties() {
     putStandardProperty("es.default.size", size);
+    putStandardProperty("es.default.sort", "numeric ASC");
     putStandardProperty("es.query.timeout.unit", queryTimeoutUnit);
     putStandardProperty("es.query.timeout.value", queryTimeoutValue);
   }
