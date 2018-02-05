@@ -34,6 +34,7 @@ asg:
   cooldown: 180
   termination_policies:
     - ClosestToNextInstanceHour
+  sns-notification-topic: arn:aws:sns:us-east-1:444914307613:prod-search-es-asg-notifications
 scaling_normal:
   up:
     adjustment: 2
