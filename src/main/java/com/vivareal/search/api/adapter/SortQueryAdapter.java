@@ -1,5 +1,6 @@
 package com.vivareal.search.api.adapter;
 
+import static com.newrelic.api.agent.NewRelic.incrementCounter;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static org.apache.logging.log4j.util.Strings.isBlank;
@@ -31,6 +32,9 @@ public class SortQueryAdapter {
 
   private static final FieldSortBuilder DEFAULT_TIEBREAKER = fieldSort("_uid").order(DESC);
 
+  private static final String NEW_RELIC_USE_DEFAULT_SORT_METRIC =
+      "Custom/SearchAPI/v2/count/default/sort";
+
   private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
   private final SortParser sortParser;
   private final FilterQueryAdapter filterQueryAdapter;
@@ -56,6 +60,7 @@ public class SortQueryAdapter {
 
       } catch (InvalidFieldException e) {
         LOG.warn(e.getMessage());
+        incrementCounter(NEW_RELIC_USE_DEFAULT_SORT_METRIC);
         applyDefaultSort(searchRequestBuilder, request);
       }
     } else {
