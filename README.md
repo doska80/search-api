@@ -1,4 +1,4 @@
-# Search API [![CircleCI](https://circleci.com/gh/VivaReal/search-api/tree/master.svg?&style=shield&circle-token=ba04762cae23d66aa73b715ef66562f0928dfafb)](https://circleci.com/gh/VivaReal/search-api/tree/master)
+# Search API [![CircleCI](https://circleci.com/gh/GrupoZapVivaReal/search-api/tree/master.svg?&style=shield&circle-token=ba04762cae23d66aa73b715ef66562f0928dfafb)](https://circleci.com/gh/GrupoZapVivaReal/search-api/tree/master)
 
 ![Search](src/main/resources/static/search.png "SearchAPI")
 
@@ -24,7 +24,7 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
 
 - [X] [API Docs](http://search-api-v2.vivareal.com/swagger-ui.html)
 - [X] [CD](http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_PROD/build?delay=0sec)
-- [x] [CircleCI](https://circleci.com/gh/VivaReal/search-api)
+- [x] [CircleCI](https://circleci.com/gh/GrupoZapVivaReal/search-api)
 - [X] [Code Quality](https://sonarqube.vivareal.io/dashboard/index/14469)
 - [X] [DockerHub](https://hub.docker.com/r/vivareal/search-api-v2/)
 - [X] Logs
@@ -50,7 +50,7 @@ To build this project, first time you try to build you need to run this:
 ./gradlew build
 ```
 
-This projects follow the [code-style](https://github.com/VivaReal/squad-search/blob/master/code-style/README.md) defined by the [search-squad](https://github.com/VivaReal/squad-search). Please check the documentation since the build cannot pass if the codebase does not follow this code-style.
+This projects follow the [code-style](https://github.com/GrupoZapVivaReal/squad-search-ranking/blob/master/code-style/README.md) defined by the [squad-search-ranking](https://github.com/GrupoZapVivaReal/squad-search-ranking). Please check the documentation since the build cannot pass if the codebase does not follow this code-style.
 
 #### Code style
 
@@ -94,7 +94,7 @@ When you run just `test` the integration tests **always** run together.
 ./gradlew integrationTest
 ```
 
-The `integration tests` are responsible to guarantees a SearchAPI fine integration to ElasticSearch. We are using [Docker Compose](https://github.com/VivaReal/search-api/blob/master/docker-compose.yml) to up Elasticsearch and SearchAPI Docker containers and run [SearchApiIntegrationTest](https://github.com/VivaReal/search-api/blob/master/src/integration-test/java/com/vivareal/search/api/itest/SearchApiIntegrationTest.java) class.
+The `integration tests` are responsible to guarantees a SearchAPI fine integration to ElasticSearch. We are using [Docker Compose](https://github.com/GrupoZapVivaReal/search-api/blob/master/docker-compose.yml) to up Elasticsearch and SearchAPI Docker containers and run [SearchApiIntegrationTest](https://github.com/VivaReal/search-api/blob/master/src/integration-test/java/com/vivareal/search/api/itest/SearchApiIntegrationTest.java) class.
 
 To skipping:
  - Integration tests just use `-x integrationTest` in your Gradle execution.
@@ -140,13 +140,13 @@ curl -X GET http://api/v2/listings<b>?filter=</b>field1 EQ 'value1' AND (field2 
 
 SearchAPI parses this query using different kind of parsers and generates an Abstract Syntax Tree with the query fragments. To explanation the query fragments, please see the image below:
 
-![QueryDSL](https://github.com/VivaReal/search-api/raw/master/src/main/resources/static/query-dsl.png "Query DSL")
+![QueryDSL](https://github.com/GrupoZapVivaReal/search-api/raw/master/src/main/resources/static/query-dsl.png "Query DSL")
 
-You can see more details in [wiki](https://github.com/VivaReal/search-api/wiki).
+You can see more details in [wiki](https://github.com/GrupoZapVivaReal/search-api/wiki).
 
 ## How to Deploy
 
-We are deploying SearchAPI with Amazon AWS using [El Asno Alado](https://github.com/VivaReal/el-asno-alado) project and the mainly file to configure deploy is a [Makefile](https://github.com/VivaReal/search-api/blob/master/Makefile) located in the project's root directory.
+We are deploying SearchAPI with Amazon AWS using [El Asno Alado](https://github.com/GrupoZapVivaReal/el-asno-alado) project and the mainly file to configure deploy is a [Makefile](https://github.com/GrupoZapVivaReal/search-api/blob/master/Makefile) located in the project's root directory.
 
 First of all, you need to setup your AWS Credentials and sync git submodules:
 
