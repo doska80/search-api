@@ -73,9 +73,12 @@ public class ExceptionHandler {
       Optional<String> rootCauseMessage) {
     StringBuilder builder =
         new StringBuilder("Path: [" + ofNullable(request.getServletPath()).orElse("None") + "]");
-    builder.append(" - Request Parameters: [" + getParametersFromRequest(request) + "]");
+    builder
+        .append(" - Request Parameters: [")
+        .append(getParametersFromRequest(request))
+        .append("]");
     rootCauseMessage.ifPresent(
-        rootCause -> builder.append(" - RootCauseMessage: [" + rootCause + "]"));
+        rootCause -> builder.append(" - RootCauseMessage: [").append(rootCause).append("]"));
     String additionalMessage = additionalMessage(e);
 
     if (nonNull(additionalMessage)) {
