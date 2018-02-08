@@ -80,10 +80,9 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(facets.size(), aggregations.size());
     assertEquals(0, nestedAggregations);
     assertEquals(aggregations.size(), aggregations.size() - nestedAggregations);
-    assertEquals(facets.size(), countMatches(facetAsJson, "\"shard_size\" : 8"));
+    assertEquals(facets.size(), countMatches(facetAsJson, "\"shard_size\":8"));
     assertEquals(
-        facets.size(),
-        countMatches(facetAsJson, "\"size\" : " + ES_FACET_SIZE.getValue(INDEX_NAME)));
+        facets.size(), countMatches(facetAsJson, "\"size\":" + ES_FACET_SIZE.getValue(INDEX_NAME)));
     assertTrue(
         getFieldFirstNames(facets)
             .containsAll(aggregations.stream().map(AggregationBuilder::getName).collect(toSet())));
@@ -107,10 +106,9 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(2, nestedAggregations);
     assertEquals(0, aggregations.size() - nestedAggregations);
 
-    assertEquals(facets.size(), countMatches(facetAsJson, "\"shard_size\" : 8"));
+    assertEquals(facets.size(), countMatches(facetAsJson, "\"shard_size\":8"));
     assertEquals(
-        facets.size(),
-        countMatches(facetAsJson, "\"size\" : " + ES_FACET_SIZE.getValue(INDEX_NAME)));
+        facets.size(), countMatches(facetAsJson, "\"size\":" + ES_FACET_SIZE.getValue(INDEX_NAME)));
     Set<String> fieldsFirstNames = getFieldFirstNames(facets);
     assertTrue(
         fieldsFirstNames.containsAll(
@@ -137,9 +135,8 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(2, nestedAggregations);
     assertEquals(2, aggregations.size() - nestedAggregations);
 
-    assertEquals(
-        facets.size(), countMatches(facetAsJson, "\"shard_size\" : " + DEFAULT_SHARD_SIZE));
-    assertEquals(facets.size(), countMatches(facetAsJson, "\"size\" : " + facetSize));
+    assertEquals(facets.size(), countMatches(facetAsJson, "\"shard_size\":" + DEFAULT_SHARD_SIZE));
+    assertEquals(facets.size(), countMatches(facetAsJson, "\"size\":" + facetSize));
     Set<String> fieldsFirstNames = getFieldFirstNames(facets);
     assertTrue(
         fieldsFirstNames.containsAll(

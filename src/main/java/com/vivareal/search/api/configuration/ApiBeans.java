@@ -11,7 +11,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.Transport;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.DisposableBean;
@@ -53,7 +53,7 @@ public class ApiBeans implements DisposableBean {
     this.esClient = new PreBuiltTransportClient(settings);
 
     for (InetAddress address : InetAddress.getAllByName(hostname))
-      this.esClient.addTransportAddress(new InetSocketTransportAddress(address, port));
+      this.esClient.addTransportAddress(new TransportAddress(address, port));
     return esClient;
   }
 

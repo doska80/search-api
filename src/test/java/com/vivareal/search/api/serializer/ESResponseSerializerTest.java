@@ -21,6 +21,7 @@ import java.util.Map;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.DocValueFormat;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
@@ -52,13 +53,13 @@ public class ESResponseSerializerTest {
   public void shouldValidateResponseFromEsResponseSerializerByResultsAndFacets()
       throws IOException {
     SearchResponse searchResponse = mock(SearchResponse.class);
-    when(searchResponse.getTookInMillis()).thenReturn(123L);
-
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchResponse.getHits()).thenReturn(searchHits);
-    when(searchHits.getTotalHits()).thenReturn(2L);
+    TimeValue took = mock(TimeValue.class);
+    when(searchResponse.getTook()).thenReturn(took);
+    when(took.getMillis()).thenReturn(123L);
 
     SearchHit[] hits = new SearchHit[2];
+    SearchHits searchHits = new SearchHits(hits, hits.length, 0);
+    when(searchResponse.getHits()).thenReturn(searchHits);
 
     Map<String, Object> values1 = new LinkedHashMap<>();
     BytesReference bytesReference1 = new BytesArray("{\"id\":\"1\",\"field\":\"string\"}");
@@ -69,8 +70,6 @@ public class ESResponseSerializerTest {
     BytesReference bytesReference2 = new BytesArray("{\"id\":\"2\",\"facet.field\":\"string\"}");
     values2.put("_source", bytesReference2);
     hits[1] = createFromMap(values2);
-
-    when(searchHits.getHits()).thenReturn(hits);
 
     // create aggregations
     Aggregations aggregations = mock(Aggregations.class);
@@ -127,13 +126,14 @@ public class ESResponseSerializerTest {
   @Test
   public void shouldValidateResponseFromEsResponseSerializerByResults() throws IOException {
     SearchResponse searchResponse = mock(SearchResponse.class);
-    when(searchResponse.getTookInMillis()).thenReturn(2L);
-
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchResponse.getHits()).thenReturn(searchHits);
-    when(searchHits.getTotalHits()).thenReturn(1L);
+    TimeValue took = mock(TimeValue.class);
+    when(searchResponse.getTook()).thenReturn(took);
+    when(took.getMillis()).thenReturn(2L);
 
     SearchHit[] hits = new SearchHit[1];
+    SearchHits searchHits = new SearchHits(hits, hits.length, 0);
+
+    when(searchResponse.getHits()).thenReturn(searchHits);
 
     Map<String, Object> values1 = new LinkedHashMap<>();
     BytesReference bytesReference1 =
@@ -141,8 +141,6 @@ public class ESResponseSerializerTest {
             "{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],\"object\":{\"child\":{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],}}}");
     values1.put("_source", bytesReference1);
     hits[0] = createFromMap(values1);
-
-    when(searchHits.getHits()).thenReturn(hits);
 
     String expected =
         "{\"time\":2,\"maxScore\":0.0,\"totalCount\":1,\"result\":{\""
@@ -157,15 +155,14 @@ public class ESResponseSerializerTest {
   @Test
   public void shouldReturnMaxScore() throws IOException {
     SearchResponse searchResponse = mock(SearchResponse.class);
-    when(searchResponse.getTookInMillis()).thenReturn(1L);
-
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchResponse.getHits()).thenReturn(searchHits);
-    when(searchHits.getTotalHits()).thenReturn(1L);
-    when(searchHits.getMaxScore()).thenReturn(Float.NaN);
+    TimeValue took = mock(TimeValue.class);
+    when(searchResponse.getTook()).thenReturn(took);
+    when(took.getMillis()).thenReturn(1L);
 
     SearchHit[] hits = new SearchHit[0];
-    when(searchHits.getHits()).thenReturn(hits);
+    SearchHits searchHits = new SearchHits(hits, 1, Float.NaN);
+
+    when(searchResponse.getHits()).thenReturn(searchHits);
 
     String expected = "{\"time\":1,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
     assertEquals(
@@ -176,15 +173,14 @@ public class ESResponseSerializerTest {
   @Test
   public void shouldNotReturnMaxScore() throws IOException {
     SearchResponse searchResponse = mock(SearchResponse.class);
-    when(searchResponse.getTookInMillis()).thenReturn(1L);
-
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchResponse.getHits()).thenReturn(searchHits);
-    when(searchHits.getTotalHits()).thenReturn(1L);
-    when(searchHits.getMaxScore()).thenReturn(1f);
+    TimeValue took = mock(TimeValue.class);
+    when(searchResponse.getTook()).thenReturn(took);
+    when(took.getMillis()).thenReturn(1L);
 
     SearchHit[] hits = new SearchHit[0];
-    when(searchHits.getHits()).thenReturn(hits);
+    SearchHits searchHits = new SearchHits(hits, 1, 1f);
+
+    when(searchResponse.getHits()).thenReturn(searchHits);
 
     String expected =
         "{\"time\":1,\"maxScore\":1.0,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
@@ -197,14 +193,14 @@ public class ESResponseSerializerTest {
   public void shouldValidateResponseFromEsResponseSerializerByFacetsWhenPropertySizeIsZero()
       throws IOException {
     SearchResponse searchResponse = mock(SearchResponse.class);
-    when(searchResponse.getTookInMillis()).thenReturn(123L);
-
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchResponse.getHits()).thenReturn(searchHits);
-    when(searchHits.getTotalHits()).thenReturn(56789L);
+    TimeValue took = mock(TimeValue.class);
+    when(searchResponse.getTook()).thenReturn(took);
+    when(took.getMillis()).thenReturn(123L);
 
     SearchHit[] hits = new SearchHit[0];
-    when(searchHits.getHits()).thenReturn(hits);
+    SearchHits searchHits = new SearchHits(hits, 56789L, 0);
+
+    when(searchResponse.getHits()).thenReturn(searchHits);
 
     // create aggregations
     Aggregations aggregations = mock(Aggregations.class);
@@ -262,14 +258,13 @@ public class ESResponseSerializerTest {
   public void shouldValidateResponseFromEsResponseSerializerWhenSearchReturnZeroResults()
       throws IOException {
     SearchResponse searchResponse = mock(SearchResponse.class);
-    when(searchResponse.getTookInMillis()).thenReturn(123L);
-
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchResponse.getHits()).thenReturn(searchHits);
-    when(searchHits.getTotalHits()).thenReturn(0L);
+    TimeValue took = mock(TimeValue.class);
+    when(searchResponse.getTook()).thenReturn(took);
+    when(took.getMillis()).thenReturn(123L);
 
     SearchHit[] hits = new SearchHit[0];
-    when(searchHits.getHits()).thenReturn(hits);
+    SearchHits searchHits = new SearchHits(hits, 0, 0);
+    when(searchResponse.getHits()).thenReturn(searchHits);
 
     // create aggregations
     Aggregations aggregations = mock(Aggregations.class);
@@ -314,13 +309,14 @@ public class ESResponseSerializerTest {
   @Test
   public void shouldReturnCursorIdOnResponse() throws IOException {
     SearchResponse searchResponse = mock(SearchResponse.class);
-    when(searchResponse.getTookInMillis()).thenReturn(2L);
-
-    SearchHits searchHits = mock(SearchHits.class);
-    when(searchResponse.getHits()).thenReturn(searchHits);
-    when(searchHits.getTotalHits()).thenReturn(1L);
+    TimeValue took = mock(TimeValue.class);
+    when(searchResponse.getTook()).thenReturn(took);
+    when(took.getMillis()).thenReturn(2L);
 
     SearchHit[] hits = new SearchHit[1];
+    SearchHits searchHits = new SearchHits(hits, hits.length, 0);
+
+    when(searchResponse.getHits()).thenReturn(searchHits);
 
     Map<String, Object> values = new LinkedHashMap<>();
     BytesReference source = new BytesArray("{\"id\":1}");
@@ -335,7 +331,6 @@ public class ESResponseSerializerTest {
             new DocValueFormat[] {DocValueFormat.RAW, DocValueFormat.RAW}));
     hits[0] = createFromMap(values);
 
-    when(searchHits.getHits()).thenReturn(hits);
     assertThat(
         mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)),
         containsString("\"cursorId\":\"0.23456_A%5fB_" + _uid + "\""));

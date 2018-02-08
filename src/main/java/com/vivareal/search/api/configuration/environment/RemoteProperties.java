@@ -40,9 +40,7 @@ public enum RemoteProperties {
   ES_STREAM_SIZE("es.stream.size", AS_INTEGER),
   ES_SCROLL_TIMEOUT("es.scroll.timeout", AS_LONG),
   SOURCE_INCLUDES("source.default.includes", AS_SET, NON_EMPTY_COLLECTION),
-  SOURCE_EXCLUDES("source.default.excludes", AS_SET, NON_EMPTY_COLLECTION),
-  APP_PROPERTIES_INDEX("application.properties.index"),
-  APP_PROPERTIES_TYPE("application.properties.type");
+  SOURCE_EXCLUDES("source.default.excludes", AS_SET, NON_EMPTY_COLLECTION);
 
   public static final String DEFAULT_INDEX = "default";
 

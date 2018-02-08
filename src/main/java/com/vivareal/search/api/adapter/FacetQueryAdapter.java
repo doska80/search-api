@@ -6,7 +6,7 @@ import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.nested;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
-import static org.elasticsearch.search.aggregations.bucket.terms.Terms.Order.count;
+import static org.elasticsearch.search.aggregations.BucketOrder.count;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.vivareal.search.api.model.parser.FacetParser;

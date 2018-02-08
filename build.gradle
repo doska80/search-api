@@ -110,6 +110,11 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
+    compile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
+    compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:' + ELASTICSEARCH_VERSION
+    compile 'org.elasticsearch.client:transport:' + ELASTICSEARCH_VERSION
+    compile 'org.elasticsearch.plugin:transport-netty4-client:' + ELASTICSEARCH_VERSION
+
     compile 'com.getsentry.raven:raven-logback:8.0.3'
     compile 'biz.paluch.logging:logstash-gelf:1.11.2'
 
@@ -126,8 +131,6 @@ dependencies {
 
     // elasticsearch/lucene unit tests
     testCompile 'org.elasticsearch.test:framework:' + ELASTICSEARCH_VERSION
-    testCompile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
-    testCompile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:' + ELASTICSEARCH_VERSION
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
     // Fixtures

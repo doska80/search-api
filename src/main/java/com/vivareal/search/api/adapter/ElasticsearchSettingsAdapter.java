@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
@@ -92,12 +93,12 @@ public class ElasticsearchSettingsAdapter
         .forEach(
             index -> {
               Map<String, Object> indexInfo = new ConcurrentSkipListMap<>();
-              indexInfo.putAll(
-                  getIndexResponse
-                      .getSettings()
-                      .get(index)
-                      .filter(newArrayList(SHARDS, REPLICAS)::contains)
-                      .getAsMap());
+              newArrayList(SHARDS, REPLICAS)
+                  .forEach(
+                      setting -> {
+                        String value = getIndexResponse.getSettings().get(index).get(setting);
+                        if (isNotEmpty(value)) indexInfo.put(setting, value);
+                      });
 
               ImmutableOpenMap<String, MappingMetaData> immutableIndexMapping =
                   getIndexResponse.getMappings().get(index);

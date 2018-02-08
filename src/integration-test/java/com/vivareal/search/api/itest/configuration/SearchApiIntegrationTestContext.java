@@ -4,6 +4,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SING
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,15 +22,19 @@ public class SearchApiIntegrationTestContext {
   @Value("${es.rest.port}")
   private Integer port;
 
+  private RestClientBuilder getRestClientBuilder() {
+    return RestClient.builder(new HttpHost(hostname, port, "http"));
+  }
+
   @Bean
   @Scope(SCOPE_SINGLETON)
   public RestClient restClient() {
-    return RestClient.builder(new HttpHost(hostname, port, "http")).build();
+    return getRestClientBuilder().build();
   }
 
   @Bean
   @Scope(SCOPE_SINGLETON)
   public RestHighLevelClient restHighLevelClient() {
-    return new RestHighLevelClient(restClient());
+    return new RestHighLevelClient(getRestClientBuilder());
   }
 }

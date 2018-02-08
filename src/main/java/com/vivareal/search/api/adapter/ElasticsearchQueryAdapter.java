@@ -63,8 +63,7 @@ public class ElasticsearchQueryAdapter
   @Override
   @Trace
   public GetRequestBuilder getById(BaseApiRequest request, String id) {
-    GetRequestBuilder requestBuilder =
-        esClient.prepareGet(request, id).setRealtime(false).setOperationThreaded(false);
+    GetRequestBuilder requestBuilder = esClient.prepareGet(request, id).setRealtime(false);
 
     sourceFieldAdapter.apply(requestBuilder, request);
 
