@@ -41,14 +41,19 @@ public class LikeValue extends Value {
 
       switch (current) {
         case SCAPE_ASCII_CODE:
-          if (next == PERCENT_ASCII_CODE || next == UNDERSCORE_ASCII_CODE) {
-            finalQuery.append(next);
-            i += 1;
-          } else if (next == CHAR_N_ASCII_CODE) {
-            finalQuery.append('\n');
-            i += 1;
-          } else {
-            finalQuery.append(current);
+          switch (next) {
+            case PERCENT_ASCII_CODE:
+            case UNDERSCORE_ASCII_CODE:
+              finalQuery.append(next);
+              i += 1;
+              break;
+            case CHAR_N_ASCII_CODE:
+              finalQuery.append('\n');
+              i += 1;
+              break;
+            default:
+              finalQuery.append(current);
+              break;
           }
           break;
 

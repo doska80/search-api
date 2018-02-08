@@ -16,8 +16,6 @@ import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import java.io.OutputStream;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.get.GetResponse;
@@ -40,8 +38,7 @@ public class SearchService {
   @Autowired private ElasticSearchStream elasticSearch;
 
   @Trace
-  public GetResponse getById(BaseApiRequest request, String id)
-      throws InterruptedException, ExecutionException, TimeoutException {
+  public GetResponse getById(BaseApiRequest request, String id) {
     try {
       return this.queryAdapter
           .getById(request, id)

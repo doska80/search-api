@@ -39,45 +39,44 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
     rangeClosed(1, standardDatasetSize)
         .boxed()
         .forEach(
-            id -> {
-              given()
-                  .log()
-                  .all()
-                  .baseUri(baseUrl)
-                  .contentType(JSON)
-                  .expect()
-                  .statusCode(SC_OK)
-                  .when()
-                  .get(TEST_DATA_INDEX + "/" + id)
-                  .then()
-                  .body("id", equalTo(String.valueOf(id)))
-                  .body("$", not(hasKey("nonExistingKey")))
-                  .body("numeric", equalTo(id))
-                  .body("array_integer", hasSize(id))
-                  .body("array_integer", equalTo(asserts.allIdsUntil(id)))
-                  .body("field" + id, equalTo("value" + id))
-                  .body("isEven", equalTo(isEven(id)))
-                  .body("geo.lat", equalTo(latitude(id)))
-                  .body("geo.lon", equalTo(longitude(id)))
-                  .body("object.boolean", equalTo(isOdd(id)))
-                  .body("object.number", equalTo(numberForId(id)))
-                  .body("object.float", equalTo(floatForId(id)))
-                  .body("object.string", equalTo(normalTextForId(id)))
-                  .body("object.object.field", equalTo("common"))
-                  .body("object.object.array_string", hasSize(id))
-                  .body(
-                      "object.object.array_string",
-                      equalTo(asserts.allIdsUntil(id, String::valueOf)))
-                  .body("nested.boolean", equalTo(isOdd(id)))
-                  .body("nested.number", equalTo(numberForId(id)))
-                  .body("nested.float", equalTo(floatForId(id)))
-                  .body("nested.string", equalTo(normalTextForId(id)))
-                  .body("nested.object.field", equalTo("common"))
-                  .body("nested.object.array_string", hasSize(id))
-                  .body(
-                      "nested.object.array_string",
-                      equalTo(asserts.allIdsUntil(id, String::valueOf)));
-            });
+            id ->
+                given()
+                    .log()
+                    .all()
+                    .baseUri(baseUrl)
+                    .contentType(JSON)
+                    .expect()
+                    .statusCode(SC_OK)
+                    .when()
+                    .get(TEST_DATA_INDEX + "/" + id)
+                    .then()
+                    .body("id", equalTo(String.valueOf(id)))
+                    .body("$", not(hasKey("nonExistingKey")))
+                    .body("numeric", equalTo(id))
+                    .body("array_integer", hasSize(id))
+                    .body("array_integer", equalTo(asserts.allIdsUntil(id)))
+                    .body("field" + id, equalTo("value" + id))
+                    .body("isEven", equalTo(isEven(id)))
+                    .body("geo.lat", equalTo(latitude(id)))
+                    .body("geo.lon", equalTo(longitude(id)))
+                    .body("object.boolean", equalTo(isOdd(id)))
+                    .body("object.number", equalTo(numberForId(id)))
+                    .body("object.float", equalTo(floatForId(id)))
+                    .body("object.string", equalTo(normalTextForId(id)))
+                    .body("object.object.field", equalTo("common"))
+                    .body("object.object.array_string", hasSize(id))
+                    .body(
+                        "object.object.array_string",
+                        equalTo(asserts.allIdsUntil(id, String::valueOf)))
+                    .body("nested.boolean", equalTo(isOdd(id)))
+                    .body("nested.number", equalTo(numberForId(id)))
+                    .body("nested.float", equalTo(floatForId(id)))
+                    .body("nested.string", equalTo(normalTextForId(id)))
+                    .body("nested.object.field", equalTo("common"))
+                    .body("nested.object.array_string", hasSize(id))
+                    .body(
+                        "nested.object.array_string",
+                        equalTo(asserts.allIdsUntil(id, String::valueOf))));
   }
 
   @Test

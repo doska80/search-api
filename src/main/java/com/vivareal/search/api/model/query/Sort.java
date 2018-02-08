@@ -38,7 +38,7 @@ public final class Sort extends AbstractSet<Sort.Item> {
   public static class Item {
     private final Field field;
     private final OrderOperator orderOperator;
-    private Optional<QueryFragment> queryFragment;
+    private final Optional<QueryFragment> queryFragment;
 
     private Item(Field field, OrderOperator orderOperator, Optional<QueryFragment> queryFragment) {
       this.field = field;

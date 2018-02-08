@@ -27,7 +27,7 @@ public class TestData {
                     new SimpleEntry<>("string", "a"),
                     new SimpleEntry<>("id", id),
                     new SimpleEntry<>("number", id > 15 ? 100 * id : 100 / id))
-                .collect(toMap(SimpleEntry::getKey, e -> e.getValue())));
+                .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
 
     Map<String, Object> b =
         unmodifiableMap(
@@ -35,7 +35,7 @@ public class TestData {
                     new SimpleEntry<>("string", "b"),
                     new SimpleEntry<>("id", id),
                     new SimpleEntry<>("number", id < 15 ? 1000 * id : 1000 / id))
-                .collect(toMap(SimpleEntry::getKey, e -> e.getValue())));
+                .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
 
     ArrayList<Map<String, Object>> nested = newArrayList();
 
@@ -57,7 +57,7 @@ public class TestData {
             Stream.of(
                     new SimpleEntry<>("field", "common"),
                     new SimpleEntry<>("array_string", idsBetween(1, id)))
-                .collect(toMap(SimpleEntry::getKey, e -> e.getValue())));
+                .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
 
     Map<String, Object> nestedObject =
         unmodifiableMap(

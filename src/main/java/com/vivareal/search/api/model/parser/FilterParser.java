@@ -13,17 +13,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class FilterParser {
 
-  private final Parser<Filter> normalParser;
-  private final Parser<Filter> likeParser;
-  private final Parser<Filter> rangeParser;
-  private final Parser<Filter> viewportParser;
-  private final Parser<Filter> polygonParser;
   private final Parser<Filter> filterParser;
 
   @Autowired
   public FilterParser(
       FieldParser fieldParser, OperatorParser operatorParser, ValueParser valueParser) {
-    normalParser =
+    Parser<Filter> normalParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(
@@ -31,28 +26,28 @@ public class FilterParser {
                 valueParser.get(),
                 Filter::new)
             .label("filter");
-    likeParser =
+    Parser<Filter> likeParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(LIKE),
                 valueParser.getLikeValue(),
                 Filter::new)
             .label("LIKE filter");
-    rangeParser =
+    Parser<Filter> rangeParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(RANGE),
                 valueParser.getRangeValue(),
                 Filter::new)
             .label("RANGE filter");
-    viewportParser =
+    Parser<Filter> viewportParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(VIEWPORT),
                 valueParser.getGeoPointValue(Type.VIEWPORT),
                 Filter::new)
             .label("VIEWPORT filter");
-    polygonParser =
+    Parser<Filter> polygonParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(POLYGON),

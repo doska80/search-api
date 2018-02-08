@@ -79,9 +79,8 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   @Test
   public void checkWhiteListFieldName() {
     WHITE_LIST_METAFIELDS.forEach(
-        field -> {
-          assertTrue(settingsAdapter.checkFieldName(validIndexRequest.getIndex(), field, false));
-        });
+        field ->
+            assertTrue(settingsAdapter.checkFieldName(validIndexRequest.getIndex(), field, false)));
   }
 
   @Test(expected = InvalidFieldException.class)
