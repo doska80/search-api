@@ -16,7 +16,7 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
     - [How to Test](#how-to-test)
 - [API Reference](#api-reference)
     - [Query DSL](#query-language-syntax)
-- [Deploy](#deploy)
+- [Deploy](#how-to-deploy)
     - [Deploying from Jenkins](#deploying-from-jenkins)
 - [Load Tests](#load-tests)
 
@@ -190,7 +190,7 @@ make ENV=${ENV} \
 
 There is a `load-test` sub-project that responsible to execute load tests for **SearchAPI**.
 
-See [Load Test](load-test/)
+See [Load Test](https://github.com/GrupoZapVivaReal/load-test)
 
 ## Code Benchmark test
 
