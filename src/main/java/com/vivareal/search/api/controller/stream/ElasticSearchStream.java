@@ -31,12 +31,6 @@ public class ElasticSearchStream {
     int scrollTimeout = ES_SCROLL_TIMEOUT.getValue(index);
     TimeValue keepAlive = new TimeValue(scrollTimeout);
 
-    // Default value for stream size: return all results
-    if (request.getSize() == Integer.MAX_VALUE) request.setSize(0);
-
-    // Default value for stream sort: no sorting (empty)
-    if (request.getSort() == null) request.setSort("");
-
     SearchRequestBuilder requestBuilder = this.queryAdapter.query(request);
     requestBuilder.setScroll(keepAlive).setSize(ES_STREAM_SIZE.getValue(index));
 

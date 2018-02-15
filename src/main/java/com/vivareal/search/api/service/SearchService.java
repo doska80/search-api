@@ -93,6 +93,12 @@ public class SearchService {
   public void stream(FilterableApiRequest request, OutputStream stream) {
     final long startTime = nanoTime();
 
+    // Default value for stream size: return all results
+    if (request.getSize() == Integer.MAX_VALUE) request.setSize(0);
+
+    // Default value for stream sort: no sorting
+    if (request.getSort() == null) request.setDisableSort(true);
+
     elasticSearch.stream(request, stream);
 
     if ((nanoTime() - startTime) > FILTER_THRESHOLD) NewRelic.ignoreTransaction();

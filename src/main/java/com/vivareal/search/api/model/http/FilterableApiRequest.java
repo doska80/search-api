@@ -45,6 +45,9 @@ public class FilterableApiRequest extends BaseApiRequest
   )
   private String sort;
 
+  @ApiModelProperty("Disable sorting. If true, the \"sort\" is ignored")
+  private boolean disableSort;
+
   @ApiModelProperty("From index to start the search from")
   private int from = 0;
 
@@ -108,6 +111,14 @@ public class FilterableApiRequest extends BaseApiRequest
 
   public void setSort(String sort) {
     this.sort = sort;
+  }
+
+  public boolean isDisableSort() {
+    return disableSort;
+  }
+
+  public void setDisableSort(boolean disableSort) {
+    this.disableSort = disableSort;
   }
 
   public int getFrom() {

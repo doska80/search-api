@@ -164,6 +164,16 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
+  public void mustNotApplySortWhenClientDisablesSortOnRequest() {
+    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchApiRequest request = fullRequest.build();
+    request.setDisableSort(true);
+
+    sortQueryAdapter.apply(requestBuilder, request);
+    assertNull(requestBuilder.request().source());
+  }
+
+  @Test
   public void mustApplyDefaultSortWhenClientInputAnInvalidFieldSortOnRequest() {
     SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
     SearchApiRequest request = fullRequest.build();

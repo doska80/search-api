@@ -43,6 +43,8 @@ public class SortQueryAdapter {
   }
 
   public void apply(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
+    if (request.isDisableSort()) return;
+
     if (!isBlank(request.getSort())) {
       applySortFromRequest(searchRequestBuilder, request);
     } else {
