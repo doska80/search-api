@@ -35,7 +35,7 @@ public class FunctionScoreAdapter {
             : request.getFactorField();
     if (isEmpty(factorField)) return;
 
-    fieldParser.parse(request.getFactorField());
+    fieldParser.parse(factorField);
 
     FieldValueFactorFunctionBuilder fieldValueFactorFunctionBuilder =
         fieldValueFactorFunction(factorField).missing(0);

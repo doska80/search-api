@@ -32,6 +32,8 @@ import org.mockito.Mock;
 
 public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
+  private static final String DEFAULT_SCORE_FACTOR_FIELD = "factorField";
+
   private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
 
   @Mock private ElasticsearchSettingsAdapter settingsAdapter;
@@ -54,6 +56,7 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     ES_MAX_SIZE.setValue(INDEX_NAME, "200");
     ES_FACET_SIZE.setValue(INDEX_NAME, "20");
     ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
+    SCORE_FACTOR_FIELD.setValue(INDEX_NAME, DEFAULT_SCORE_FACTOR_FIELD);
 
     ESClient esClient = new ESClient(transportClient);
     SourceFieldAdapter sourceFieldAdapter = new SourceFieldAdapter(settingsAdapter);
@@ -99,6 +102,30 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
+  public void shouldReturnSearchRequestBuilderByQueryStringWithDefaultFactorField() {
+    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(fullRequest.build());
+
+    assertEquals(
+        FunctionScoreQueryBuilder.class,
+        searchRequestBuilder.request().source().query().getClass());
+
+    FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders =
+        ((FunctionScoreQueryBuilder) searchRequestBuilder.request().source().query())
+            .filterFunctionBuilders();
+
+    assertTrue(filterFunctionBuilders.length == 1);
+
+    assertEquals(
+        DEFAULT_SCORE_FACTOR_FIELD,
+        ((FieldValueFactorFunctionBuilder) filterFunctionBuilders[0].getScoreFunction())
+            .fieldName());
+    assertEquals(
+        NONE,
+        ((FieldValueFactorFunctionBuilder) filterFunctionBuilders[0].getScoreFunction())
+            .modifier());
+  }
+
+  @Test
   public void shouldReturnSearchRequestBuilderByQueryStringWithFactorField() {
     String field = "myFactorField";
     SearchRequestBuilder searchRequestBuilder =
@@ -118,10 +145,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
         field,
         ((FieldValueFactorFunctionBuilder) filterFunctionBuilders[0].getScoreFunction())
             .fieldName());
-    assertEquals(
-        NONE,
-        ((FieldValueFactorFunctionBuilder) filterFunctionBuilders[0].getScoreFunction())
-            .modifier());
   }
 
   @Test

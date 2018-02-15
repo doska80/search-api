@@ -6,6 +6,7 @@ import static java.util.stream.IntStream.rangeClosed;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.service.parser.IndexSettings;
 import java.util.List;
+import org.apache.commons.collections.map.AbstractHashedMap;
 import org.apache.commons.collections.map.LinkedMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,7 @@ public class FieldFactory {
         .collect(
             LinkedMap::new,
             (map, field) -> map.put(field, indexSettings.getFieldType(field)),
-            (accumulatedMap, map) -> accumulatedMap.putAll(map));
+            AbstractHashedMap::putAll);
   }
 
   public Field createField(Boolean not, Field field) {
