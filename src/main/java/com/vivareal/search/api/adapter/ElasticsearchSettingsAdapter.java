@@ -3,13 +3,10 @@ package com.vivareal.search.api.adapter;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newConcurrentMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
 import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
 import static java.util.Collections.unmodifiableSet;
-import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
@@ -17,8 +14,8 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.vivareal.search.api.exception.IndexNotFoundException;
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.exception.PropertyNotFoundException;
+import com.vivareal.search.api.model.event.ClusterSettingsUpdatedEvent;
 import com.vivareal.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.model.search.Fetchable;
 import com.vivareal.search.api.model.search.Indexable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +28,7 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -45,18 +43,18 @@ public class ElasticsearchSettingsAdapter
   public static final Set<String> WHITE_LIST_METAFIELDS =
       unmodifiableSet(newHashSet("_id", "_score"));
   private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
+
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final ESClient esClient;
-  private final Map<String, String[]> defaultSourceIncludes;
-  private final Map<String, String[]> defaultSourceExcludes;
+
   private Map<String, Map<String, Object>> structuredIndices;
 
   @Autowired
-  public ElasticsearchSettingsAdapter(ESClient esClient) {
+  public ElasticsearchSettingsAdapter(
+      ApplicationEventPublisher applicationEventPublisher, ESClient esClient) {
+    this.applicationEventPublisher = applicationEventPublisher;
     this.esClient = esClient;
     this.structuredIndices = new HashMap<>();
-
-    defaultSourceIncludes = new HashMap<>();
-    defaultSourceExcludes = new HashMap<>();
   }
 
   @Override
@@ -136,8 +134,8 @@ public class ElasticsearchSettingsAdapter
     }
 
     LOG.debug("Refresh getting information from cluster settings executed with success");
-
-    refreshDefaultSourceFields();
+    applicationEventPublisher.publishEvent(
+        new ClusterSettingsUpdatedEvent(this, structuredIndicesAux));
   }
 
   private void getMappingFromType(
@@ -172,47 +170,5 @@ public class ElasticsearchSettingsAdapter
     } catch (Exception e) {
       LOG.error("Error on get mapping from index {} and type {}", index, type, e);
     }
-  }
-
-  // TODO: include this behavior into SourceFieldAdapter
-  public String[] getFetchSourceIncludeFields(final Fetchable request) {
-    return request.getIncludeFields() == null
-        ? defaultSourceIncludes.get(request.getIndex())
-        : getFetchSourceIncludeFields(request.getIncludeFields(), request.getIndex());
-  }
-
-  private String[] getFetchSourceIncludeFields(Set<String> fields, String indexName) {
-    return SOURCE_INCLUDES
-        .getValue(fields, indexName)
-        .stream()
-        .filter(field -> checkFieldName(indexName, field, true))
-        .toArray(String[]::new);
-  }
-
-  public String[] getFetchSourceExcludeFields(final Fetchable request, String[] includeFields) {
-    return request.getExcludeFields() == null && includeFields.length == 0
-        ? defaultSourceExcludes.get(request.getIndex())
-        : getFetchSourceExcludeFields(
-            request.getExcludeFields(), includeFields, request.getIndex());
-  }
-
-  private String[] getFetchSourceExcludeFields(
-      Set<String> fields, String[] includeFields, String indexName) {
-    return SOURCE_EXCLUDES
-        .getValue(fields, indexName)
-        .stream()
-        .filter(field -> !contains(includeFields, field) && checkFieldName(indexName, field, true))
-        .toArray(String[]::new);
-  }
-
-  public void refreshDefaultSourceFields() {
-    stream(esClient.getIndexResponse().getIndices())
-        .filter(index -> !startsWith(index, "."))
-        .forEach(
-            index -> {
-              String[] includes = getFetchSourceIncludeFields(null, index);
-              defaultSourceIncludes.put(index, includes);
-              defaultSourceExcludes.put(index, getFetchSourceExcludeFields(null, includes, index));
-            });
   }
 }

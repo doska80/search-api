@@ -29,7 +29,7 @@ public class RemotePropertiesTest {
   private static final String CUSTOM_INDEX = "customIndex";
 
   private static final Set<RemoteProperties> PROPERTIES_AS_SET =
-      newLinkedHashSet(QS_DEFAULT_FIELDS, SOURCE_INCLUDES, SOURCE_EXCLUDES);
+      newLinkedHashSet(QS_DEFAULT_FIELDS, FILTER_DEFAULT_CLAUSES, SOURCE_INCLUDES, SOURCE_EXCLUDES);
   private static final Set<RemoteProperties> NUMERIC_PROPERTIES =
       newLinkedHashSet(
           ES_DEFAULT_SIZE,

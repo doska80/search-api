@@ -2,12 +2,12 @@ package com.vivareal.search.api.configuration.environment;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
 import static java.util.Arrays.stream;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +21,7 @@ import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
@@ -29,7 +29,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
-@Scope(SCOPE_SINGLETON)
 public class SearchApiEnv {
 
   private static final Logger LOG = LoggerFactory.getLogger(SearchApiEnv.class);
@@ -39,6 +38,7 @@ public class SearchApiEnv {
   private static final Header SEARCH_API_HEADERS =
       new BasicHeader("Content-Type", "application/json; charset=UTF-8");
 
+  private final ApplicationEventPublisher applicationEventPublisher;
   private final RestClient restClient;
 
   private final ObjectMapper mapper = new ObjectMapper();
@@ -46,7 +46,9 @@ public class SearchApiEnv {
   private final Map<String, Object> localProperties = new HashMap<>();
   private final Map<String, Object> remoteProperties = new HashMap<>();
 
-  public SearchApiEnv(final Environment env, final RestClient restClient) {
+  public SearchApiEnv(
+      Environment env, ApplicationEventPublisher applicationEventPublisher, RestClient restClient) {
+    this.applicationEventPublisher = applicationEventPublisher;
     this.restClient = restClient;
 
     loadLocalProperties((AbstractEnvironment) env);
@@ -119,6 +121,9 @@ public class SearchApiEnv {
         .filter(remoteProperty -> properties.containsKey(remoteProperty.getProperty()))
         .forEach(env -> env.setValue(index, String.valueOf(properties.get(env.getProperty()))));
     LOG.debug("Environment Properties loaded with success");
+
+    applicationEventPublisher.publishEvent(new RemotePropertiesUpdatedEvent(this, index));
+    LOG.debug("Environment properties refresh triggered");
   }
 
   public Map<String, Object> getLocalProperties() {

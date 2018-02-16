@@ -25,9 +25,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class FacetQueryAdapter {
 
-  private IndexSettings indexSettings; // Request scoped
-
   private final FacetParser facetParser;
+  private IndexSettings indexSettings; // Request scoped
 
   public FacetQueryAdapter(FacetParser facetParser) {
     this.facetParser = facetParser;

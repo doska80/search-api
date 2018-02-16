@@ -9,7 +9,6 @@ public class Field {
 
   private boolean not;
   private LinkedMap typesByName;
-  private boolean containsNestedType;
 
   public Field(LinkedMap typesByName) {
     this(false, typesByName);

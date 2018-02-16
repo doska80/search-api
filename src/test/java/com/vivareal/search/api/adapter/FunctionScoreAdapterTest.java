@@ -2,19 +2,15 @@ package com.vivareal.search.api.adapter;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.facetParserFixture;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.*;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.NONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.vivareal.search.api.model.mapping.MappingType;
 import java.util.HashMap;
@@ -59,10 +55,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     SCORE_FACTOR_FIELD.setValue(INDEX_NAME, DEFAULT_SCORE_FACTOR_FIELD);
 
     ESClient esClient = new ESClient(transportClient);
-    SourceFieldAdapter sourceFieldAdapter = new SourceFieldAdapter(settingsAdapter);
-
-    when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
-    when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
 
     PageQueryAdapter pageQueryAdapter = new PageQueryAdapter();
     QueryStringAdapter queryStringAdapter = new QueryStringAdapter(fieldParserFixture());
@@ -72,7 +64,7 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
             esClient,
-            sourceFieldAdapter,
+            mock(SourceFieldAdapter.class),
             pageQueryAdapter,
             searchAfterQueryAdapter,
             sortQueryAdapter,
@@ -83,9 +75,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
     Map<String, String[]> defaultSourceFields = new HashMap<>();
     defaultSourceFields.put(INDEX_NAME, new String[0]);
-
-    setField(settingsAdapter, "defaultSourceIncludes", defaultSourceFields);
-    setField(settingsAdapter, "defaultSourceExcludes", defaultSourceFields);
 
     doNothing().when(settingsAdapter).checkIndex(any());
     doNothing().when(searchAfterQueryAdapter).apply(any(), any());

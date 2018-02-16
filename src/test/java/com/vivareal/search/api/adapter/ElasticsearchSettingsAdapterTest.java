@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.ApplicationEventPublisher;
 
 public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock {
 
@@ -34,7 +35,13 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
 
   @Before
   public void setup() {
-    this.settingsAdapter = spy(new ElasticsearchSettingsAdapter(new ESClient(transportClient)));
+    ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
+    doNothing().when(applicationEventPublisher).publishEvent(any());
+
+    this.settingsAdapter =
+        spy(
+            new ElasticsearchSettingsAdapter(
+                applicationEventPublisher, new ESClient(transportClient)));
     this.structuredIndices = spy(structuredIndicesSettings());
 
     setField(this.settingsAdapter, "structuredIndices", structuredIndices);

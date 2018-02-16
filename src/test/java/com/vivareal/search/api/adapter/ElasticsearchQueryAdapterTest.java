@@ -10,17 +10,13 @@ import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Stream.concat;
-import static java.util.stream.Stream.of;
 import static org.elasticsearch.index.query.Operator.OR;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.google.common.collect.Sets;
 import com.vivareal.search.api.model.http.BaseApiRequest;
@@ -36,7 +32,6 @@ import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,8 +58,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     QS_MM.setValue(INDEX_NAME, "75%");
     QS_DEFAULT_FIELDS.setValue(INDEX_NAME, "field,field1");
-    SOURCE_INCLUDES.setValue(INDEX_NAME, "");
-    SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
     ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, "100");
     ES_QUERY_TIMEOUT_UNIT.setValue(INDEX_NAME, "MILLISECONDS");
     ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
@@ -73,10 +66,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
 
     ESClient esClient = new ESClient(transportClient);
-    SourceFieldAdapter sourceFieldAdapter = new SourceFieldAdapter(settingsAdapter);
-
-    when(settingsAdapter.getFetchSourceIncludeFields(any())).thenCallRealMethod();
-    when(settingsAdapter.getFetchSourceExcludeFields(any(), any())).thenCallRealMethod();
+    SourceFieldAdapter sourceFieldAdapter = mock(SourceFieldAdapter.class);
 
     this.pageQueryAdapter = new PageQueryAdapter();
     this.queryStringAdapter = new QueryStringAdapter(fieldParserFixture());
@@ -98,9 +88,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     Map<String, String[]> defaultSourceFields = new HashMap<>();
     defaultSourceFields.put(INDEX_NAME, new String[0]);
 
-    setField(settingsAdapter, "defaultSourceIncludes", defaultSourceFields);
-    setField(settingsAdapter, "defaultSourceExcludes", defaultSourceFields);
-
+    doNothing().when(sourceFieldAdapter).apply(any(SearchRequestBuilder.class), any());
+    doNothing().when(sourceFieldAdapter).apply(any(GetRequestBuilder.class), any());
     doNothing().when(settingsAdapter).checkIndex(any());
     doNothing().when(searchAfterQueryAdapter).apply(any(), any());
     doNothing().when(sortQueryAdapter).apply(any(), any());
@@ -129,57 +118,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
               assertEquals(id, requestBuilder.request().id());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
-            });
-  }
-
-  private void validateFetchSources(
-      Set<String> includeFields, Set<String> excludeFields, FetchSourceContext fetchSourceContext) {
-    assertNotNull(fetchSourceContext);
-
-    // Check include fields
-    assertEquals(includeFields.size(), fetchSourceContext.includes().length);
-    assertTrue(includeFields.containsAll(asList(fetchSourceContext.includes())));
-
-    // Check exclude fields
-    List<String> intersection = newArrayList(excludeFields);
-    intersection.retainAll(includeFields);
-    List<String> excludedAfterValidation =
-        excludeFields
-            .stream()
-            .filter(field -> !intersection.contains(field))
-            .sorted()
-            .collect(toList());
-    assertEquals(excludeFields.size() - intersection.size(), fetchSourceContext.excludes().length);
-    assertEquals(
-        of(fetchSourceContext.excludes()).sorted().collect(toList()), excludedAfterValidation);
-  }
-
-  @Test
-  public void shouldReturnGetRequestBuilderByGetIdWithIncludeAndExcludeFields() {
-    String id = "123456";
-
-    Set<String> includeFields = newHashSet("field1", "field2", "field3");
-    Set<String> excludeFields = newHashSet("field3", "field4");
-
-    concat(includeFields.stream(), excludeFields.stream())
-        .forEach(
-            field ->
-                when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
-
-    newArrayList(basicRequest, filterableRequest, fullRequest)
-        .parallelStream()
-        .forEach(
-            request -> {
-              BaseApiRequest searchApiRequest =
-                  request.includeFields(includeFields).excludeFields(excludeFields).build();
-              GetRequestBuilder requestBuilder = queryAdapter.getById(searchApiRequest, id);
-              FetchSourceContext fetchSourceContext = requestBuilder.request().fetchSourceContext();
-
-              assertEquals(id, requestBuilder.request().id());
-              assertEquals(searchApiRequest.getIndex(), requestBuilder.request().index());
-              assertEquals(searchApiRequest.getIndex(), requestBuilder.request().type());
-
-              validateFetchSources(includeFields, excludeFields, fetchSourceContext);
             });
   }
 
@@ -981,30 +919,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldReturnSearchRequestBuilderWithSpecifiedFieldSources() {
-    Set<String> includeFields = newHashSet("field1", "field2", "field3");
-    Set<String> excludeFields = newHashSet("field3", "field4");
-
-    concat(includeFields.stream(), excludeFields.stream())
-        .forEach(
-            field ->
-                when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
-
-    newArrayList(filterableRequest, fullRequest)
-        .parallelStream()
-        .forEach(
-            request -> {
-              SearchRequestBuilder searchRequestBuilder =
-                  queryAdapter.query(
-                      request.includeFields(includeFields).excludeFields(excludeFields).build());
-              FetchSourceContext fetchSourceContext =
-                  searchRequestBuilder.request().source().fetchSource();
-
-              validateFetchSources(includeFields, excludeFields, fetchSourceContext);
-            });
-  }
-
-  @Test
   public void shouldThrowExceptionWhenMinimalShouldMatchIsInvalid() {
     String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
     List<String> invalidMMs =
@@ -1224,111 +1138,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(southWestLon, filterViewportFouthLevelField6.topLeft().getLon(), delta);
     assertEquals(southWestLat, filterViewportFouthLevelField6.bottomRight().getLat(), delta);
     assertEquals(northEastLon, filterViewportFouthLevelField6.bottomRight().getLon(), delta);
-  }
-
-  @Test
-  public void testFetchSourceFields() {
-    String[] includes = {"field1", "field2"}, excludes = {"field3", "field4"};
-
-    concat(stream(includes), stream(excludes))
-        .forEach(
-            field ->
-                when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
-
-    newArrayList(filterableRequest, fullRequest)
-        .parallelStream()
-        .forEach(
-            request -> {
-              SearchRequestBuilder requestBuilder =
-                  queryAdapter.query(
-                      request
-                          .index(INDEX_NAME)
-                          .includeFields(newHashSet(includes))
-                          .excludeFields(newHashSet(excludes))
-                          .build());
-              FetchSourceContext fetchSourceContext =
-                  requestBuilder.request().source().fetchSource();
-
-              assertNotNull(fetchSourceContext);
-              assertThat(fetchSourceContext.includes(), arrayWithSize(2));
-              assertThat(fetchSourceContext.includes(), arrayContainingInAnyOrder(includes));
-
-              assertThat(fetchSourceContext.excludes(), arrayWithSize(2));
-              assertThat(fetchSourceContext.excludes(), arrayContainingInAnyOrder(excludes));
-            });
-  }
-
-  @Test
-  public void testFetchSourceEmptyFields() {
-    newArrayList(filterableRequest, fullRequest)
-        .parallelStream()
-        .forEach(
-            request -> {
-              SearchRequestBuilder requestBuilder =
-                  queryAdapter.query(request.index(INDEX_NAME).build());
-
-              FetchSourceContext fetchSourceContext =
-                  requestBuilder.request().source().fetchSource();
-              assertNotNull(fetchSourceContext);
-              assertThat(fetchSourceContext.includes(), emptyArray());
-              assertThat(fetchSourceContext.excludes(), emptyArray());
-            });
-  }
-
-  @Test
-  public void testFetchSourceIncludesEmptyFields() {
-    String[] excludes = {"field3", "field4"};
-
-    stream(excludes)
-        .forEach(
-            field ->
-                when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
-
-    newArrayList(filterableRequest, fullRequest)
-        .parallelStream()
-        .forEach(
-            request -> {
-              SearchRequestBuilder requestBuilder =
-                  queryAdapter.query(
-                      request.index(INDEX_NAME).excludeFields(newHashSet(excludes)).build());
-
-              FetchSourceContext fetchSourceContext =
-                  requestBuilder.request().source().fetchSource();
-              assertNotNull(fetchSourceContext);
-              assertThat(fetchSourceContext.includes(), emptyArray());
-              assertThat(fetchSourceContext.excludes(), arrayContainingInAnyOrder(excludes));
-            });
-  }
-
-  @Test
-  public void testFetchSourceFilterExcludeFields() {
-    String[] includes = {"field1", "field2"}, excludes = {"field1", "field3"};
-
-    concat(stream(includes), stream(excludes))
-        .forEach(
-            field ->
-                when(settingsAdapter.checkFieldName(INDEX_NAME, field, true)).thenReturn(true));
-
-    newArrayList(filterableRequest, fullRequest)
-        .parallelStream()
-        .forEach(
-            request -> {
-              SearchRequestBuilder requestBuilder =
-                  queryAdapter.query(
-                      request
-                          .index(INDEX_NAME)
-                          .includeFields(newHashSet(includes))
-                          .excludeFields(newHashSet(excludes))
-                          .build());
-              FetchSourceContext fetchSourceContext =
-                  requestBuilder.request().source().fetchSource();
-              assertNotNull(fetchSourceContext);
-              assertThat(fetchSourceContext.includes(), arrayWithSize(2));
-              assertThat(fetchSourceContext.includes(), arrayContainingInAnyOrder(includes));
-
-              assertThat(fetchSourceContext.excludes(), arrayWithSize(1));
-              assertThat(fetchSourceContext.excludes(), hasItemInArray("field3"));
-            });
   }
 
   @Test
