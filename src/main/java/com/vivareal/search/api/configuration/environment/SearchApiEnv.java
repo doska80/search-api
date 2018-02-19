@@ -22,13 +22,15 @@ import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("searchApiEnv")
+@DependsOn("elasticsearchSettings")
 public class SearchApiEnv {
 
   private static final Logger LOG = LoggerFactory.getLogger(SearchApiEnv.class);
@@ -69,7 +71,7 @@ public class SearchApiEnv {
     loadEnvironmentProperties(DEFAULT_INDEX, this.localProperties);
   }
 
-  @Scheduled(cron = "${application.properties.refresh.cron}")
+  @Scheduled(fixedRateString = "${application.properties.refresh.rate.ms}")
   private void loadRemoteProperties() {
     try {
       HttpEntity entity =

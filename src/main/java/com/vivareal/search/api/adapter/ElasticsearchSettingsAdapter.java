@@ -8,7 +8,6 @@ import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
 import static java.util.Collections.unmodifiableSet;
 import static org.apache.commons.lang3.StringUtils.startsWith;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.vivareal.search.api.exception.IndexNotFoundException;
@@ -29,12 +28,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-@Scope(SCOPE_SINGLETON)
 @Component("elasticsearchSettings")
+@DependsOn("fieldFactory")
 public class ElasticsearchSettingsAdapter
     implements SettingsAdapter<Map<String, Map<String, Object>>, String> {
 
@@ -55,6 +54,8 @@ public class ElasticsearchSettingsAdapter
     this.applicationEventPublisher = applicationEventPublisher;
     this.esClient = esClient;
     this.structuredIndices = new HashMap<>();
+
+    loadSettingsInformationFromCluster();
   }
 
   @Override
@@ -98,11 +99,8 @@ public class ElasticsearchSettingsAdapter
     return type.typeOf(getFieldType(index, fieldName));
   }
 
-  @Scheduled(
-    fixedRateString = "${es.settings.refresh.rate.ms}",
-    initialDelayString = "${es.settings.refresh.initial.ms}"
-  )
-  private void getSettingsInformationFromCluster() {
+  @Scheduled(fixedRateString = "${es.settings.refresh.rate.ms}")
+  private void loadSettingsInformationFromCluster() {
     GetIndexResponse getIndexResponse = esClient.getIndexResponse();
     Map<String, Map<String, Object>> structuredIndicesAux = new HashMap<>();
 

@@ -3,7 +3,6 @@ package com.vivareal.search.api.adapter;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_UNIT;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.http.BaseApiRequest;
@@ -18,14 +17,10 @@ import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
-@Scope(SCOPE_SINGLETON)
-@Qualifier("ElasticsearchQuery")
 @DependsOn("searchApiEnv")
 public class ElasticsearchQueryAdapter
     implements QueryAdapter<GetRequestBuilder, SearchRequestBuilder> {

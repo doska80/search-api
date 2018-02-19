@@ -14,7 +14,6 @@ import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,9 +21,7 @@ public class ElasticSearchStream {
 
   @Autowired private TransportClient client;
 
-  @Autowired
-  @Qualifier("ElasticsearchQuery")
-  private QueryAdapter<?, SearchRequestBuilder> queryAdapter;
+  @Autowired private QueryAdapter<?, SearchRequestBuilder> queryAdapter;
 
   public void stream(FilterableApiRequest request, OutputStream stream) {
     String index = request.getIndex();

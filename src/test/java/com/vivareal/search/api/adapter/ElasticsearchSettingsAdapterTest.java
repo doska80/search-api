@@ -14,6 +14,7 @@ import com.vivareal.search.api.exception.PropertyNotFoundException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import java.util.HashMap;
 import java.util.Map;
+import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationEventPublisher;
@@ -30,7 +31,10 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   private static final String VALID_FIELD_DATE = "valid.field.date";
   private final BaseApiRequest validIndexRequest = basicRequest.build();
   private final BaseApiRequest invalidIndexRequest = basicRequest.index("not-valid-index").build();
+
   private ElasticsearchSettingsAdapter settingsAdapter;
+  private ESClient esClient;
+
   private Map<String, Map<String, Object>> structuredIndices;
 
   @Before
@@ -38,10 +42,14 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
     ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
     doNothing().when(applicationEventPublisher).publishEvent(any());
 
+    esClient = mock(ESClient.class);
+    GetIndexResponse getIndexResponse = mock(GetIndexResponse.class);
+
+    when(esClient.getIndexResponse()).thenReturn(getIndexResponse);
+    when(getIndexResponse.getIndices()).thenReturn(new String[] {});
+
     this.settingsAdapter =
-        spy(
-            new ElasticsearchSettingsAdapter(
-                applicationEventPublisher, new ESClient(transportClient)));
+        spy(new ElasticsearchSettingsAdapter(applicationEventPublisher, esClient));
     this.structuredIndices = spy(structuredIndicesSettings());
 
     setField(this.settingsAdapter, "structuredIndices", structuredIndices);

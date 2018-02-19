@@ -16,6 +16,7 @@ public enum MappingType {
   FIELD_TYPE_KEYWORD("keyword"),
   FIELD_TYPE_STRING("text", "keyword"),
 
+  FIELD_TYPE_INTEGER("integer"),
   FIELD_TYPE_LONG("long"),
   FIELD_TYPE_FLOAT("float"),
   FIELD_TYPE_NUMBER("long", "float"),

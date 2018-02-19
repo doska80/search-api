@@ -53,7 +53,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
 
   private String[] getFetchSourceIncludeFields(final Fetchable request) {
     return request.getIncludeFields() == null
-        ? defaultSourceIncludes.get(request.getIndex())
+        ? defaultSourceIncludes.getOrDefault(request.getIndex(), new String[] {FETCH_ALL_FIELD})
         : getFetchSourceIncludeFields(request.getIncludeFields(), request.getIndex());
   }
 
@@ -72,7 +72,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
 
   private String[] getFetchSourceExcludeFields(final Fetchable request, String[] includeFields) {
     return request.getExcludeFields() == null && includeFields.length == 0
-        ? defaultSourceExcludes.get(request.getIndex())
+        ? defaultSourceExcludes.getOrDefault(request.getIndex(), new String[] {})
         : getFetchSourceExcludeFields(
             request.getExcludeFields(), includeFields, request.getIndex());
   }
@@ -100,12 +100,15 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
 
   @Override
   public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
-    String[] defaultIncludes = getDefaultFetchSourceIncludeFieldsForIndex(event.getIndex());
-    defaultSourceIncludes.put(event.getIndex(), defaultIncludes);
-    defaultSourceExcludes.put(
-        event.getIndex(),
-        getDefaultFetchSourceExcludeFieldsForIndex(event.getIndex(), defaultIncludes));
-
-    LOG.debug("Refreshed default source fields for index: " + event.getIndex());
+    try {
+      String[] defaultIncludes = getDefaultFetchSourceIncludeFieldsForIndex(event.getIndex());
+      defaultSourceIncludes.put(event.getIndex(), defaultIncludes);
+      defaultSourceExcludes.put(
+          event.getIndex(),
+          getDefaultFetchSourceExcludeFieldsForIndex(event.getIndex(), defaultIncludes));
+      LOG.debug("Refreshed default source fields for index: " + event.getIndex());
+    } catch (InvalidFieldException e) {
+      LOG.error("Cannot refresh properties for index: " + event.getIndex(), e);
+    }
   }
 }

@@ -23,7 +23,6 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.unit.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,9 +30,7 @@ public class SearchService {
 
   private static final long FILTER_THRESHOLD = 5000000000L; // 5 seconds
 
-  @Autowired
-  @Qualifier("ElasticsearchQuery")
-  private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
+  @Autowired private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
 
   @Autowired private ElasticSearchStream elasticSearch;
 
