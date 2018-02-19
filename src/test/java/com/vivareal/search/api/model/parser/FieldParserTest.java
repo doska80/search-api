@@ -32,7 +32,7 @@ public class FieldParserTest {
         .forEach(
             fieldName -> {
               Field parsedField = parser.parse(fieldName);
-              assertEquals(parsedField.getName(), fieldName);
+              assertEquals(fieldName, parsedField.getName());
             });
   }
 

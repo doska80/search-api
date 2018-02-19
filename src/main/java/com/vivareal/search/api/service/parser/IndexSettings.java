@@ -4,7 +4,6 @@ import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARD
 import static java.lang.Integer.parseInt;
 
 import com.vivareal.search.api.adapter.SettingsAdapter;
-import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.search.Indexable;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,20 +22,13 @@ public class IndexSettings {
     this.settingsAdapter = settingsAdapter;
   }
 
+  public String getIndex() {
+    return index;
+  }
+
   public void validateIndex(Indexable indexable) {
     settingsAdapter.checkIndex(indexable);
     this.index = indexable.getIndex();
-  }
-
-  public void validateField(Field field) {
-    // TODO - Remove this issue when fix the parser :'(
-    if (!"NOT".equalsIgnoreCase(field.getName())) {
-      settingsAdapter.checkFieldName(index, field.getName(), false);
-    }
-  }
-
-  public String getFieldType(String field) {
-    return settingsAdapter.getFieldType(index, field);
   }
 
   public int getShards() {

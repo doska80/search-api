@@ -1,7 +1,6 @@
 package com.vivareal.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newConcurrentMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
@@ -20,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Stream;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -108,7 +108,7 @@ public class ElasticsearchSettingsAdapter
         .filter(index -> !startsWith(index, "."))
         .forEach(
             index -> {
-              Map<String, Object> indexInfo = newConcurrentMap();
+              Map<String, Object> indexInfo = new ConcurrentSkipListMap<>();
               indexInfo.putAll(
                   getIndexResponse
                       .getSettings()
@@ -133,7 +133,7 @@ public class ElasticsearchSettingsAdapter
 
     LOG.debug("Refresh getting information from cluster settings executed with success");
     applicationEventPublisher.publishEvent(
-        new ClusterSettingsUpdatedEvent(this, structuredIndicesAux));
+        new ClusterSettingsUpdatedEvent(this, structuredIndices));
   }
 
   private void getMappingFromType(

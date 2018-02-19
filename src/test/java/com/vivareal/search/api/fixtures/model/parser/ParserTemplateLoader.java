@@ -1,17 +1,20 @@
 package com.vivareal.search.api.fixtures.model.parser;
 
+import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static java.util.Arrays.asList;
-import static org.mockito.Matchers.contains;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.IntStream.rangeClosed;
 import static org.mockito.Mockito.*;
+import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
-import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.model.parser.*;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.service.parser.IndexSettings;
 import com.vivareal.search.api.service.parser.factory.FieldFactory;
-import java.util.HashSet;
-import java.util.Set;
-import org.mockito.ArgumentMatcher;
+import java.util.List;
+import java.util.Map;
+import org.apache.commons.collections.map.LinkedMap;
+import org.mockito.stubbing.Answer;
 
 public class ParserTemplateLoader {
 
@@ -26,70 +29,51 @@ public class ParserTemplateLoader {
     return new FacetParser(fieldParserFixture());
   }
 
-  public static SortParser sortParserFixture() {
-    return new SortParser(fieldParserFixture(), new OperatorParser(), queryParserFixture());
-  }
-
   public static FilterParser filterParserFixture() {
     return new FilterParser(fieldParserFixture(), new OperatorParser(), new ValueParser());
   }
 
   public static FieldFactory fieldFactoryFixture() {
-    ArgumentMatcher<String> notContainsSpecialTypes = notContainsSpecialTypes();
-
     IndexSettings indexSettings = mock(IndexSettings.class);
-    doNothing().when(indexSettings).validateField(argThat(notContainsInvalidType()));
-    doThrow(new InvalidFieldException("field", "Expected exception"))
-        .when(indexSettings)
-        .validateField(argThat(containsInvalidType()));
-    when(indexSettings.getFieldType(contains("nested"))).thenReturn("nested");
-    when(indexSettings.getFieldType(contains("keyword"))).thenReturn("keyword");
-    when(indexSettings.getFieldType(contains("geo_point"))).thenReturn("geo_point");
-    when(indexSettings.getFieldType(argThat(notContainsSpecialTypes))).thenReturn("_obj");
+    when(indexSettings.getIndex()).thenReturn(INDEX_NAME);
+
+    Map<String, Field> mockPreprocessedFields = mock(Map.class);
+    when(mockPreprocessedFields.get(anyString()))
+        .thenAnswer(
+            (Answer<Field>)
+                invocationOnMock -> {
+                  String fieldName = invocationOnMock.getArguments()[0].toString();
+                  if (fieldName.contains("invalid")) return null;
+
+                  String[] split = fieldName.split("\\.");
+                  List<String> names = asList(split).subList(1, split.length); // Ignore index name
+                  return new Field(mockLinkedMapForField(names));
+                });
 
     FieldFactory fieldFactory = new FieldFactory();
-    fieldFactory.setIndexSettings(indexSettings);
+    setInternalState(fieldFactory, "validFields", mockPreprocessedFields);
+    setInternalState(fieldFactory, "indexSettings", indexSettings);
     return fieldFactory;
+  }
+
+  private static LinkedMap mockLinkedMapForField(List<String> names) {
+    return rangeClosed(1, names.size())
+        .boxed()
+        .map(i -> names.stream().limit(i).collect(joining(".")))
+        .collect(
+            LinkedMap::new,
+            (map, field) -> map.put(field, getTypeForField(field)),
+            LinkedMap::putAll);
+  }
+
+  private static String getTypeForField(String fieldName) {
+    if (fieldName.contains("nested")) return "nested";
+    if (fieldName.contains("keyword")) return "keyword";
+    if (fieldName.contains("geo_point")) return "geo_point";
+    return "_obj";
   }
 
   public static FieldParser fieldParserFixture() {
     return new FieldParser(new NotParser(), fieldFactoryFixture());
-  }
-
-  private static ArgumentMatcher<String> notContainsSpecialTypes() {
-    return new ArgumentMatcher<String>() {
-      Set<String> specialTypes = new HashSet<>(asList("nested", "keyword", "geo_point"));
-
-      @Override
-      public boolean matches(Object o) {
-        return !specialTypes.stream().anyMatch(str -> o.toString().contains(str));
-      }
-    };
-  }
-
-  private static ArgumentMatcher<Field> containsInvalidType() {
-    return new ArgumentMatcher<Field>() {
-      Set<String> invalidFields = new HashSet<>(asList("invalid"));
-
-      @Override
-      public boolean matches(Object o) {
-        return invalidFields
-            .stream()
-            .anyMatch(invalidField -> ((Field) o).getName().toString().contains(invalidField));
-      }
-    };
-  }
-
-  private static ArgumentMatcher<Field> notContainsInvalidType() {
-    return new ArgumentMatcher<Field>() {
-      Set<String> invalidFields = new HashSet<>(asList("invalid"));
-
-      @Override
-      public boolean matches(Object o) {
-        return !invalidFields
-            .stream()
-            .anyMatch(invalidField -> ((Field) o).getName().toString().contains(invalidField));
-      }
-    };
   }
 }

@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.parser;
 
+import static java.lang.String.join;
 import static org.jparsec.Parsers.sequence;
 import static org.jparsec.Scanners.IDENTIFIER;
 import static org.jparsec.Scanners.isChar;
@@ -18,7 +19,12 @@ public class FieldParser {
 
   @Autowired
   public FieldParser(NotParser notParser, FieldFactory fieldFactory) {
-    fieldParser = IDENTIFIER.sepBy1(isChar('.')).label("field").map(fieldFactory::createField);
+    fieldParser =
+        IDENTIFIER
+            .sepBy1(isChar('.'))
+            .label("field")
+            .map(field -> join(".", field))
+            .map(fieldFactory::createField);
     fieldParserWithNot = sequence(notParser.get(), fieldParser, fieldFactory::createField);
   }
 
