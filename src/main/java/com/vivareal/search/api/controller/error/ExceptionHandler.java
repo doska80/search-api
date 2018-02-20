@@ -95,11 +95,15 @@ public class ExceptionHandler {
     return null;
   }
 
-  private HttpStatus getStatusCode(Throwable e, HttpServletRequest request) {
-    if (e instanceof IllegalArgumentException
+  public static boolean isBadRequestException(Throwable e) {
+    return (e instanceof IllegalArgumentException
         || getRootCause(e) instanceof IllegalArgumentException
         || e instanceof InvalidPropertyException
-        || e instanceof ParserException) return BAD_REQUEST;
+        || e instanceof ParserException);
+  }
+
+  private HttpStatus getStatusCode(Throwable e, HttpServletRequest request) {
+    if (isBadRequestException(e)) return BAD_REQUEST;
 
     if (e instanceof QueryTimeoutException || getRootCause(e) instanceof TimeoutException)
       return GATEWAY_TIMEOUT;

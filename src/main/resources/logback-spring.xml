@@ -28,10 +28,7 @@
         </filter>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.JaninoEventEvaluator">
-                <expression>throwable instanceof IllegalArgumentException
-                    || org.apache.commons.lang3.exception.ExceptionUtils.getRootCause(throwable) instanceof IllegalArgumentException
-                    || throwable instanceof org.springframework.beans.InvalidPropertyException
-                    || throwable instanceof org.jparsec.error.ParserException</expression>
+                <expression>com.vivareal.search.api.controller.error.ExceptionHandler.isBadRequestException(throwable)</expression>
             </evaluator>
             <onMatch>DENY</onMatch>
         </filter>
