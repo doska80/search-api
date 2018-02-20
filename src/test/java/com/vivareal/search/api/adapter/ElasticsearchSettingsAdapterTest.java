@@ -9,7 +9,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.vivareal.search.api.exception.IndexNotFoundException;
-import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.exception.PropertyNotFoundException;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import java.util.HashMap;
@@ -78,34 +77,6 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   @Test(expected = IndexNotFoundException.class)
   public void checkInvalidIndex() {
     settingsAdapter.checkIndex(invalidIndexRequest);
-  }
-
-  @Test
-  public void checkValidFieldName() {
-    assertTrue(
-        settingsAdapter.checkFieldName(validIndexRequest.getIndex(), VALID_FIELD_TEXT, false));
-  }
-
-  @Test
-  public void checkAsteriskFieldName() {
-    assertTrue(settingsAdapter.checkFieldName(validIndexRequest.getIndex(), "*", true));
-  }
-
-  @Test
-  public void checkWhiteListFieldName() {
-    WHITE_LIST_METAFIELDS.forEach(
-        field ->
-            assertTrue(settingsAdapter.checkFieldName(validIndexRequest.getIndex(), field, false)));
-  }
-
-  @Test(expected = InvalidFieldException.class)
-  public void checkInvalidFieldName() {
-    settingsAdapter.checkFieldName(validIndexRequest.getIndex(), "invalid.field.text", false);
-  }
-
-  @Test(expected = InvalidFieldException.class)
-  public void checkFieldNameWithAsteriskWhenAcceptAsteriskIsFalse() {
-    settingsAdapter.checkFieldName(validIndexRequest.getIndex(), "*", false);
   }
 
   @Test

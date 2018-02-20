@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.IntStream.rangeClosed;
 
+import com.google.common.collect.ImmutableMap;
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.model.event.ClusterSettingsUpdatedEvent;
 import com.vivareal.search.api.model.query.Field;
@@ -25,6 +26,9 @@ import org.springframework.stereotype.Component;
 public class FieldFactory implements ApplicationListener<ClusterSettingsUpdatedEvent> {
 
   private static final Logger LOG = LoggerFactory.getLogger(FieldFactory.class);
+  public static final Map<String, String> WHITE_LIST_METAFIELDS =
+      ImmutableMap.<String, String>builder().put("_id", "string").put("_score", "float").build();
+
   private Map<String, Field> validFields = new HashMap<>();
 
   @Autowired private IndexSettings indexSettings; // Request scoped
@@ -50,10 +54,18 @@ public class FieldFactory implements ApplicationListener<ClusterSettingsUpdatedE
   private Map<String, Field> preprocessFieldsForIndexes(
       Map<String, Map<String, Object>> settingsByIndex) {
     Map<String, Field> fields = new HashMap<>();
+    // Add fields from mapping
     settingsByIndex
         .entrySet()
         .stream()
         .map(entry -> processFieldsForIndex(entry.getKey(), entry.getValue()))
+        .forEach(fields::putAll);
+
+    // Add whitelist fields
+    settingsByIndex
+        .keySet()
+        .stream()
+        .map(index -> getWhiteListFieldsForIndex(index))
         .forEach(fields::putAll);
     return fields;
   }
@@ -78,6 +90,20 @@ public class FieldFactory implements ApplicationListener<ClusterSettingsUpdatedE
                 (map, field) -> map.put(field, indexSettings.get(field)),
                 LinkedMap::putAll);
     return new Field(fieldTypes);
+  }
+
+  private Map<String, Field> getWhiteListFieldsForIndex(String indexName) {
+    return WHITE_LIST_METAFIELDS
+        .entrySet()
+        .stream()
+        .map(
+            entry -> {
+              LinkedMap linkedMap = new LinkedMap();
+              linkedMap.put(entry.getKey(), entry.getValue());
+              return linkedMap;
+            })
+        .map(Field::new)
+        .collect(toMap(field -> keyForField(indexName, field.getName()), identity()));
   }
 
   public boolean isIndexHasField(String index, String fieldName) {

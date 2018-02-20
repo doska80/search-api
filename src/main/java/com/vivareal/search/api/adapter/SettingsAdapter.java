@@ -11,8 +11,6 @@ public interface SettingsAdapter<T, U> {
 
   void checkIndex(Indexable request);
 
-  boolean checkFieldName(String index, String fieldName, boolean acceptAsterisk);
-
   String getFieldType(String index, String fieldName);
 
   boolean isTypeOf(final String index, final String fieldName, final MappingType type);

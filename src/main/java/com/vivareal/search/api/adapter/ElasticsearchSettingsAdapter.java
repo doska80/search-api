@@ -1,16 +1,13 @@
 package com.vivareal.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
-import static java.util.Collections.unmodifiableSet;
 import static org.apache.commons.lang3.StringUtils.startsWith;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.vivareal.search.api.exception.IndexNotFoundException;
-import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.exception.PropertyNotFoundException;
 import com.vivareal.search.api.model.event.ClusterSettingsUpdatedEvent;
 import com.vivareal.search.api.model.mapping.MappingType;
@@ -39,8 +36,6 @@ public class ElasticsearchSettingsAdapter
 
   public static final String SHARDS = "index.number_of_shards";
   public static final String REPLICAS = "index.number_of_replicas";
-  public static final Set<String> WHITE_LIST_METAFIELDS =
-      unmodifiableSet(newHashSet("_id", "_score"));
   private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
 
   private final ApplicationEventPublisher applicationEventPublisher;
@@ -75,18 +70,6 @@ public class ElasticsearchSettingsAdapter
   public void checkIndex(final Indexable request) {
     if (!structuredIndices.containsKey(request.getIndex()))
       throw new IndexNotFoundException(request.getIndex());
-  }
-
-  @Override
-  public boolean checkFieldName(
-      final String index, final String fieldName, final boolean acceptAsterisk) {
-    if ((acceptAsterisk && "*".equals(fieldName)) || WHITE_LIST_METAFIELDS.contains(fieldName))
-      return true;
-
-    if (!structuredIndices.get(index).containsKey(fieldName))
-      throw new InvalidFieldException(fieldName, index);
-
-    return true;
   }
 
   @Override
