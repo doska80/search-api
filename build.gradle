@@ -15,9 +15,9 @@ buildscript {
         classpath 'com.diffplug.spotless:spotless-plugin-gradle:+'
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
         classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.1'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
-        classpath 'com.gradle:build-scan-plugin:1.11'
+        classpath 'com.gradle:build-scan-plugin:1.12.1'
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE'
         classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.5'
     }
@@ -120,7 +120,7 @@ dependencies {
 
     compile 'org.jparsec:jparsec:3.0'
 
-    compile 'org.glowroot:glowroot-agent-api:0.10.1'
+    compile 'org.glowroot:glowroot-agent-api:0.10.3'
     compile 'com.newrelic.agent.java:newrelic-api:' + NEW_RELIC_VERSION
     newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
 
