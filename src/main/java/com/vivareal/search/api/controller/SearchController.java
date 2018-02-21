@@ -25,8 +25,6 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
 import javax.servlet.http.HttpServletResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,8 +88,7 @@ public class SearchController {
     }
   )
   @Trace(dispatcher = true)
-  public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id)
-      throws InterruptedException, ExecutionException, TimeoutException {
+  public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) {
     indexSettings.validateIndex(request);
     GetResponse response = searchService.getById(request, id);
 

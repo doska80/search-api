@@ -85,9 +85,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             filterQueryAdapter,
             facetQueryAdapter);
 
-    Map<String, String[]> defaultSourceFields = new HashMap<>();
-    defaultSourceFields.put(INDEX_NAME, new String[0]);
-
     doNothing().when(sourceFieldAdapter).apply(any(SearchRequestBuilder.class), any());
     doNothing().when(sourceFieldAdapter).apply(any(GetRequestBuilder.class), any());
     doNothing().when(settingsAdapter).checkIndex(any());

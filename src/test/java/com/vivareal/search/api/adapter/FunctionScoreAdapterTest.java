@@ -13,8 +13,6 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.vivareal.search.api.model.mapping.MappingType;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Stream;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -72,9 +70,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
             functionScoreAdapter,
             filterQueryAdapter,
             facetQueryAdapter);
-
-    Map<String, String[]> defaultSourceFields = new HashMap<>();
-    defaultSourceFields.put(INDEX_NAME, new String[0]);
 
     doNothing().when(settingsAdapter).checkIndex(any());
     doNothing().when(searchAfterQueryAdapter).apply(any(), any());

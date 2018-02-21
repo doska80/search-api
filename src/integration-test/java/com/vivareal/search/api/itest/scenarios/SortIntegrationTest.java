@@ -162,7 +162,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   @Test
   public void validateSortNestedArrayRespectingRange() {
     LinkedList<ArrayList<HashMap>> nestedArray =
-        new LinkedList(
+        new LinkedList<>(
             given()
                 .log()
                 .all()

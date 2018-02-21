@@ -62,11 +62,7 @@ public class FieldFactory implements ApplicationListener<ClusterSettingsUpdatedE
         .forEach(fields::putAll);
 
     // Add whitelist fields
-    settingsByIndex
-        .keySet()
-        .stream()
-        .map(index -> getWhiteListFieldsForIndex(index))
-        .forEach(fields::putAll);
+    settingsByIndex.keySet().stream().map(this::getWhiteListFieldsForIndex).forEach(fields::putAll);
     return fields;
   }
 
