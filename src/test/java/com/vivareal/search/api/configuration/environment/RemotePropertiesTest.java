@@ -37,9 +37,10 @@ public class RemotePropertiesTest {
           ES_FACET_SIZE,
           ES_QUERY_TIMEOUT_VALUE,
           ES_STREAM_SIZE,
-          ES_SCROLL_TIMEOUT);
+          ES_SCROLL_TIMEOUT,
+          ES_CONTROLLER_STREAM_TIMEOUT);
   private static final Set<RemoteProperties> TIME_AS_SET =
-      newLinkedHashSet(ES_CONTROLLER_SEARCH_TIMEOUT, ES_CONTROLLER_STREAM_TIMEOUT);
+      newLinkedHashSet(ES_CONTROLLER_SEARCH_TIMEOUT);
   private static final Set<RemoteProperties> TEXT_PROPERTIES =
       of(values())
           .filter(
