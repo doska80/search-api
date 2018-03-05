@@ -2,7 +2,9 @@ package com.vivareal.search.api.adapter;
 
 import static com.newrelic.api.agent.NewRelic.incrementCounter;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static java.lang.Boolean.TRUE;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
@@ -43,7 +45,7 @@ public class SortQueryAdapter {
   }
 
   public void apply(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
-    if (request.isDisableSort()) return;
+    if (TRUE.equals(ES_SORT_DISABLE.getValue(request.isDisableSort(), request.getIndex()))) return;
 
     if (!isBlank(request.getSort())) {
       applySortFromRequest(searchRequestBuilder, request);

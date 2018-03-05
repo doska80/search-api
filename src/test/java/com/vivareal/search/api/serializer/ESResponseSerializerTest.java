@@ -115,7 +115,7 @@ public class ESResponseSerializerTest {
     setField(aggregations, "aggregations", aggregationList);
 
     String expected =
-        "{\"time\":123,\"totalCount\":2,\"result\":{\""
+        "{\"time\":123,\"maxScore\":0.0,\"totalCount\":2,\"result\":{\""
             + INDEX_NAME
             + "\":[{\"id\":\"1\",\"field\":\"string\"},{\"id\":\"2\",\"facet.field\":\"string\"}],\"facets\":{\"field\":{\"string\":1},\"facet.field\":{\"string\":1}}}}";
 
@@ -145,10 +145,49 @@ public class ESResponseSerializerTest {
     when(searchHits.getHits()).thenReturn(hits);
 
     String expected =
-        "{\"time\":2,\"totalCount\":1,\"result\":{\""
+        "{\"time\":2,\"maxScore\":0.0,\"totalCount\":1,\"result\":{\""
             + INDEX_NAME
             + "\":[{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],\"object\":{\"child\":{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],}}}]}}";
 
+    assertEquals(
+        expected,
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
+  }
+
+  @Test
+  public void shouldReturnMaxScore() throws IOException {
+    SearchResponse searchResponse = mock(SearchResponse.class);
+    when(searchResponse.getTookInMillis()).thenReturn(1L);
+
+    SearchHits searchHits = mock(SearchHits.class);
+    when(searchResponse.getHits()).thenReturn(searchHits);
+    when(searchHits.getTotalHits()).thenReturn(1L);
+    when(searchHits.getMaxScore()).thenReturn(Float.NaN);
+
+    SearchHit[] hits = new SearchHit[0];
+    when(searchHits.getHits()).thenReturn(hits);
+
+    String expected = "{\"time\":1,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
+    assertEquals(
+        expected,
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
+  }
+
+  @Test
+  public void shouldNotReturnMaxScore() throws IOException {
+    SearchResponse searchResponse = mock(SearchResponse.class);
+    when(searchResponse.getTookInMillis()).thenReturn(1L);
+
+    SearchHits searchHits = mock(SearchHits.class);
+    when(searchResponse.getHits()).thenReturn(searchHits);
+    when(searchHits.getTotalHits()).thenReturn(1L);
+    when(searchHits.getMaxScore()).thenReturn(1f);
+
+    SearchHit[] hits = new SearchHit[0];
+    when(searchHits.getHits()).thenReturn(hits);
+
+    String expected =
+        "{\"time\":1,\"maxScore\":1.0,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
     assertEquals(
         expected,
         mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
@@ -210,7 +249,7 @@ public class ESResponseSerializerTest {
     setField(aggregations, "aggregations", aggregationList);
 
     String expected =
-        "{\"time\":123,\"totalCount\":56789,\"result\":{\""
+        "{\"time\":123,\"maxScore\":0.0,\"totalCount\":56789,\"result\":{\""
             + INDEX_NAME
             + "\":[],\"facets\":{\"field\":{\"value\":10},\"facet.field\":{\"value\":10}}}}";
 
@@ -263,7 +302,7 @@ public class ESResponseSerializerTest {
     setField(aggregations, "aggregations", aggregationList);
 
     String expected =
-        "{\"time\":123,\"totalCount\":0,\"result\":{\""
+        "{\"time\":123,\"maxScore\":0.0,\"totalCount\":0,\"result\":{\""
             + INDEX_NAME
             + "\":[],\"facets\":{\"field\":{},\"facet.field\":{}}}}";
 

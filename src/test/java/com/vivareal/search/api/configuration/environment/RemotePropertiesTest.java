@@ -41,13 +41,15 @@ public class RemotePropertiesTest {
           ES_CONTROLLER_STREAM_TIMEOUT);
   private static final Set<RemoteProperties> TIME_AS_SET =
       newLinkedHashSet(ES_CONTROLLER_SEARCH_TIMEOUT);
+  private static final Set<RemoteProperties> BOOLEAN_AS_SET = newLinkedHashSet(ES_SORT_DISABLE);
   private static final Set<RemoteProperties> TEXT_PROPERTIES =
       of(values())
           .filter(
               p ->
                   !PROPERTIES_AS_SET.contains(p)
                       && !NUMERIC_PROPERTIES.contains(p)
-                      && !TIME_AS_SET.contains(p))
+                      && !TIME_AS_SET.contains(p)
+                      && !BOOLEAN_AS_SET.contains(p))
           .collect(toSet());
 
   @Before

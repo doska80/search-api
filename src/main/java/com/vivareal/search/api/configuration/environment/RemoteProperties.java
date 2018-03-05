@@ -29,6 +29,7 @@ public enum RemoteProperties {
   ES_CLUSTER_NAME("es.cluster.name"),
   ES_DEFAULT_SIZE("es.default.size", AS_INTEGER),
   ES_DEFAULT_SORT("es.default.sort"),
+  ES_SORT_DISABLE("es.sort.disable", AS_BOOLEAN),
   ES_MAPPING_META_FIELDS_ID("es.mapping.meta.fields._id"),
   ES_MAX_SIZE("es.max.size", AS_INTEGER),
   ES_FACET_SIZE("es.facet.size", AS_INTEGER),
@@ -103,6 +104,8 @@ public enum RemoteProperties {
                 .map(value -> value.split(","))
                 .map(stringArray -> Stream.of(stringArray).collect(toSet()))
                 .orElse(emptySet());
+
+    static final Function<String, Boolean> AS_BOOLEAN = Boolean::parseBoolean;
 
     static final Function<String, Integer> AS_INTEGER = Integer::parseInt;
 

@@ -1,6 +1,7 @@
 package com.vivareal.search.api.adapter;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
 import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
 import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
@@ -21,7 +22,7 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.ScoreSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
@@ -34,9 +35,10 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     this.sortQueryAdapter = new SortQueryAdapter(sortParser, mock(FilterQueryAdapter.class));
   }
 
-  @BeforeClass
-  public static void setup() {
+  @Before
+  public void setup() {
     ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
+    ES_SORT_DISABLE.setValue(INDEX_NAME, "false");
   }
 
   @Test
@@ -168,6 +170,16 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
     SearchApiRequest request = fullRequest.build();
     request.setDisableSort(true);
+
+    sortQueryAdapter.apply(requestBuilder, request);
+    assertNull(requestBuilder.request().source());
+  }
+
+  @Test
+  public void mustNotApplySortWhenSortDisabledOnProperty() {
+    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchApiRequest request = fullRequest.build();
+    ES_SORT_DISABLE.setValue(INDEX_NAME, "true");
 
     sortQueryAdapter.apply(requestBuilder, request);
     assertNull(requestBuilder.request().source());

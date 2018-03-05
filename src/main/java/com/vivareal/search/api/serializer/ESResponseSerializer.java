@@ -1,6 +1,7 @@
 package com.vivareal.search.api.serializer;
 
 import static com.vivareal.search.api.adapter.SearchAfterQueryAdapter.SORT_SEPARATOR;
+import static java.lang.Float.isNaN;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.of;
 import static org.elasticsearch.common.bytes.BytesReference.toBytes;
@@ -43,6 +44,8 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
     jgen.writeStartObject();
 
     jgen.writeNumberField("time", searchResponse.getTookInMillis());
+    if (!isNaN(searchResponse.getHits().getMaxScore()))
+      jgen.writeNumberField("maxScore", searchResponse.getHits().getMaxScore());
     jgen.writeNumberField("totalCount", searchResponse.getHits().getTotalHits());
 
     SearchHit[] hits = searchResponse.getHits().getHits();
