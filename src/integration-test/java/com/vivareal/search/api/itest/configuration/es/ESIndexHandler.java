@@ -28,7 +28,7 @@ public class ESIndexHandler {
   public static final String TEST_DATA_INDEX = "/testdata";
   public static final String TEST_DATA_TYPE = "testdata";
   public static final String SEARCH_API_PROPERTIES_INDEX = "/search-api-properties";
-  public static final String SEARCH_API_PROPERTIES_TYPE = "search-api-properties";
+  public static final String SEARCH_API_PROPERTIES_TYPE = "properties";
   private static final Logger LOG = LoggerFactory.getLogger(ESIndexHandler.class);
   private final RestClient restClient;
 
