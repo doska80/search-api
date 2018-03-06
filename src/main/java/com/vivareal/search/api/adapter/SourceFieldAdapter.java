@@ -7,7 +7,7 @@ import static org.apache.commons.lang3.ArrayUtils.contains;
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.vivareal.search.api.model.search.Fetchable;
-import com.vivareal.search.api.service.parser.factory.FieldFactory;
+import com.vivareal.search.api.service.parser.factory.FieldCache;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,14 +26,14 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
 
   private static final String FETCH_ALL_FIELD = "*";
 
-  private final FieldFactory fieldFactory;
+  private final FieldCache fieldCache;
 
   private final Map<String, String[]> defaultSourceIncludes;
   private final Map<String, String[]> defaultSourceExcludes;
 
   @Autowired
-  public SourceFieldAdapter(FieldFactory fieldFactory) {
-    this.fieldFactory = fieldFactory;
+  public SourceFieldAdapter(FieldCache fieldCache) {
+    this.fieldCache = fieldCache;
 
     defaultSourceIncludes = new ConcurrentHashMap<>();
     defaultSourceExcludes = new ConcurrentHashMap<>();
@@ -92,7 +92,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
   }
 
   private boolean isValidFetchSourceField(String index, String fieldName) {
-    if (FETCH_ALL_FIELD.equals(fieldName) || fieldFactory.isIndexHasField(index, fieldName)) {
+    if (FETCH_ALL_FIELD.equals(fieldName) || fieldCache.isIndexHasField(index, fieldName)) {
       return true;
     }
     throw new InvalidFieldException(fieldName, index);

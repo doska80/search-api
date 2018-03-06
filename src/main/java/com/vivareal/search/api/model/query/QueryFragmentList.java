@@ -6,7 +6,9 @@ import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import com.google.common.base.Objects;
 import java.util.AbstractList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class QueryFragmentList extends AbstractList<QueryFragment> implements QueryFragment {
 
@@ -57,6 +59,13 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
   @Override
   public String toString() {
     return format("(%s)", fragments.stream().map(QueryFragment::toString).collect(joining(" ")));
+  }
+
+  @Override
+  public Set<String> getFieldNames(boolean includeRootFields) {
+    Set<String> fields = new HashSet<>();
+    fragments.forEach(qf -> fields.addAll(qf.getFieldNames(includeRootFields)));
+    return fields;
   }
 
   @Override

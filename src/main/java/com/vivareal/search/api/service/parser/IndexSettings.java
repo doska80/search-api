@@ -1,6 +1,7 @@
 package com.vivareal.search.api.service.parser;
 
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
 import static java.lang.Integer.parseInt;
 
 import com.vivareal.search.api.adapter.SettingsAdapter;
@@ -27,7 +28,9 @@ public class IndexSettings {
   }
 
   public void validateIndex(Indexable indexable) {
-    settingsAdapter.checkIndex(indexable);
+    if (!DEFAULT_INDEX.equals(indexable.getIndex())) {
+      settingsAdapter.checkIndex(indexable);
+    }
     this.index = indexable.getIndex();
   }
 

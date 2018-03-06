@@ -1,9 +1,11 @@
 package com.vivareal.search.api.model.query;
 
+import static java.util.Collections.singleton;
 import static java.util.Optional.ofNullable;
 
 import com.google.common.base.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 
 public class QueryFragmentItem implements QueryFragment {
@@ -48,5 +50,12 @@ public class QueryFragmentItem implements QueryFragment {
     ofNullable(logicalOperator).map(LogicalOperator::toString).ifPresent(sj::add);
     sj.add(filter.toString());
     return sj.toString();
+  }
+
+  @Override
+  public Set<String> getFieldNames(boolean includeRootFields) {
+    return includeRootFields
+        ? filter.getField().getNames()
+        : singleton(filter.getField().getName());
   }
 }

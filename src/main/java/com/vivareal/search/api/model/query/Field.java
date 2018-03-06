@@ -3,6 +3,7 @@ package com.vivareal.search.api.model.query;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.google.common.base.Objects;
+import java.util.Set;
 import org.apache.commons.collections.map.LinkedMap;
 
 public class Field {
@@ -37,6 +38,10 @@ public class Field {
 
   public String getName() {
     return typesByName.lastKey().toString();
+  }
+
+  public Set<String> getNames() {
+    return typesByName.keySet();
   }
 
   public String getTypeFirstName() {

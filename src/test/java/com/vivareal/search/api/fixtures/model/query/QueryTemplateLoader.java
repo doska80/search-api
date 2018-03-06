@@ -7,10 +7,7 @@ import static java.util.Collections.singletonList;
 import br.com.six2six.fixturefactory.Fixture;
 import br.com.six2six.fixturefactory.Rule;
 import br.com.six2six.fixturefactory.loader.TemplateLoader;
-import com.vivareal.search.api.model.query.Field;
-import com.vivareal.search.api.model.query.Filter;
-import com.vivareal.search.api.model.query.QueryFragmentItem;
-import com.vivareal.search.api.model.query.Value;
+import com.vivareal.search.api.model.query.*;
 import org.apache.commons.collections.map.LinkedMap;
 
 public class QueryTemplateLoader implements TemplateLoader {
@@ -34,6 +31,21 @@ public class QueryTemplateLoader implements TemplateLoader {
 
     Fixture.of(Field.class)
         .addTemplate(
+            "multiple",
+            new Rule() {
+              {
+                add(
+                    "typesByName",
+                    new LinkedMap() {
+                      {
+                        put("multiple", "keyword");
+                      }
+                    });
+              }
+            });
+
+    Fixture.of(Field.class)
+        .addTemplate(
             "nested",
             new Rule() {
               {
@@ -42,8 +54,8 @@ public class QueryTemplateLoader implements TemplateLoader {
                     new LinkedMap() {
                       {
                         put("field1", "_obj");
-                        put("field2", "int");
-                        put("field3", "int");
+                        put("field1.field2", "int");
+                        put("field1.field2.field3", "int");
                       }
                     });
               }
@@ -72,7 +84,7 @@ public class QueryTemplateLoader implements TemplateLoader {
             "multiple",
             new Rule() {
               {
-                add("names", asList("value1", "value2", "value3"));
+                add("contents", asList("value1", "value2", "value3"));
               }
             });
 
@@ -87,12 +99,53 @@ public class QueryTemplateLoader implements TemplateLoader {
               }
             });
 
+    Fixture.of(Filter.class)
+        .addTemplate(
+            "multiple",
+            new Rule() {
+              {
+                add("field", one(Field.class, "multiple"));
+                add("relationalOperator", EQUAL);
+                add("value", one(Value.class, "multiple"));
+              }
+            });
+
+    Fixture.of(Filter.class)
+        .addTemplate(
+            "nested",
+            new Rule() {
+              {
+                add("field", one(Field.class, "nested"));
+                add("relationalOperator", EQUAL);
+                add("value", one(Value.class, "value"));
+              }
+            });
+
     Fixture.of(QueryFragmentItem.class)
         .addTemplate(
             "qfi",
             new Rule() {
               {
                 add("filter", one(Filter.class, "filter"));
+              }
+            });
+
+    Fixture.of(QueryFragmentItem.class)
+        .addTemplate(
+            "qfiMultiple",
+            new Rule() {
+              {
+                add("filter", one(Filter.class, "multiple"));
+              }
+            });
+
+    Fixture.of(QueryFragmentItem.class)
+        .addTemplate(
+            "qfiNested",
+            new Rule() {
+              {
+                add("logicalOperator", LogicalOperator.AND);
+                add("filter", one(Filter.class, "nested"));
               }
             });
   }

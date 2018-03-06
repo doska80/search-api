@@ -8,16 +8,12 @@ import static org.jparsec.Scanners.isChar;
 import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.query.*;
 import org.jparsec.Parser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
 public class QueryParser {
 
   private final Parser<QueryFragment> queryParser;
   private final Parser<QueryFragment> recursiveQueryParser;
 
-  @Autowired
   public QueryParser(
       OperatorParser operatorParser, FilterParser filterParser, NotParser notParser) {
     queryParser =

@@ -2,14 +2,24 @@ package com.vivareal.search.api.adapter;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_UNIT;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
+import static com.vivareal.search.api.model.http.DefaultFilterMode.ENABLED;
+import static java.util.Optional.ofNullable;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 
 import com.newrelic.api.agent.Trace;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.vivareal.search.api.model.parser.QueryParser;
+import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.unit.TimeValue;
@@ -35,7 +45,10 @@ public class ElasticsearchQueryAdapter
   private final SortQueryAdapter sortQueryAdapter;
   private final QueryStringAdapter queryStringAdapter;
   private final FunctionScoreAdapter functionScoreAdapter;
+
+  private final QueryParser queryParser;
   private final FilterQueryAdapter filterQueryAdapter;
+  private final DefaultFilterFactory defaultFilterFactory;
   private final FacetQueryAdapter facetQueryAdapter;
 
   @Autowired
@@ -47,7 +60,9 @@ public class ElasticsearchQueryAdapter
       SortQueryAdapter sortQueryAdapter,
       QueryStringAdapter queryStringAdapter,
       FunctionScoreAdapter functionScoreAdapter,
+      QueryParser queryParser,
       FilterQueryAdapter filterQueryAdapter,
+      DefaultFilterFactory defaultFilterFactory,
       FacetQueryAdapter facetQueryAdapter) {
     this.esClient = esClient;
     this.sourceFieldAdapter = sourceFieldAdapter;
@@ -56,7 +71,9 @@ public class ElasticsearchQueryAdapter
     this.sortQueryAdapter = sortQueryAdapter;
     this.queryStringAdapter = queryStringAdapter;
     this.functionScoreAdapter = functionScoreAdapter;
+    this.queryParser = queryParser;
     this.filterQueryAdapter = filterQueryAdapter;
+    this.defaultFilterFactory = defaultFilterFactory;
     this.facetQueryAdapter = facetQueryAdapter;
   }
 
@@ -117,9 +134,33 @@ public class ElasticsearchQueryAdapter
     sourceFieldAdapter.apply(searchBuilder, request);
     queryStringAdapter.apply(queryBuilder, request);
     functionScoreAdapter.apply(searchBuilder, queryBuilder, request);
-    filterQueryAdapter.apply(queryBuilder, request);
+    applyFilter(request, queryBuilder);
     sortQueryAdapter.apply(searchBuilder, request);
     searchAfterQueryAdapter.apply(searchBuilder, request);
+  }
+
+  private void applyFilter(FilterableApiRequest filterable, BoolQueryBuilder queryBuilder) {
+    Optional<QueryFragment> requestFilter =
+        ofNullable(filterable.getFilter()).filter(StringUtils::isNotEmpty).map(queryParser::parse);
+    requestFilter.ifPresent(
+        filter -> filterQueryAdapter.apply(queryBuilder, filter, filterable.getIndex()));
+
+    if (ENABLED.equals(filterable.getDefaultFilterMode())) {
+      Set<String> requestFields =
+          requestFilter.map(qf -> qf.getFieldNames(false)).orElseGet(() -> new HashSet<>());
+      defaultFilterFactory
+          .getDefaultFilters(filterable.getIndex(), requestFields)
+          .forEach(applyDefaultFilter(queryBuilder));
+    }
+  }
+
+  private Consumer<BoolQueryBuilder> applyDefaultFilter(BoolQueryBuilder queryBuilder) {
+    return defaultFilter -> {
+      queryBuilder.filter().addAll(defaultFilter.filter());
+      queryBuilder.mustNot().addAll(defaultFilter.mustNot());
+      queryBuilder.must().addAll(defaultFilter.must());
+      queryBuilder.should().addAll(defaultFilter.should());
+    };
   }
 
   private void buildQueryBySearchApiRequest(

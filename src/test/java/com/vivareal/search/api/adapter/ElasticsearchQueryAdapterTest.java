@@ -22,6 +22,7 @@ import com.google.common.collect.Sets;
 import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.mapping.MappingType;
+import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,6 +42,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
   private FilterQueryAdapter filterQueryAdapter;
+  private DefaultFilterFactory defaultFilterFactory;
   private PageQueryAdapter pageQueryAdapter;
   private QueryStringAdapter queryStringAdapter;
   private FunctionScoreAdapter functionScoreAdapter;
@@ -73,6 +75,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     this.functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
     this.facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
     this.filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
+    this.defaultFilterFactory =
+        new DefaultFilterFactory(queryParserWithOutValidationFixture(), filterQueryAdapter);
+
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
             esClient,
@@ -82,7 +87,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             sortQueryAdapter,
             queryStringAdapter,
             functionScoreAdapter,
+            queryParserFixture(),
             filterQueryAdapter,
+            defaultFilterFactory,
             facetQueryAdapter);
 
     doNothing().when(sourceFieldAdapter).apply(any(SearchRequestBuilder.class), any());

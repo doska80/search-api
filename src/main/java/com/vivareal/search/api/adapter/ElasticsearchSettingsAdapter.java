@@ -31,7 +31,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component("elasticsearchSettings")
-@DependsOn("fieldFactory")
+@DependsOn("fieldCache")
 public class ElasticsearchSettingsAdapter
     implements SettingsAdapter<Map<String, Map<String, Object>>, String> {
 

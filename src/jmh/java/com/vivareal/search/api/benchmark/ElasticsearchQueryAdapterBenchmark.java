@@ -5,6 +5,8 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 
 import com.vivareal.search.api.adapter.FilterQueryAdapter;
 import com.vivareal.search.api.model.http.SearchApiRequestBuilder;
+import com.vivareal.search.api.model.parser.QueryParser;
+import com.vivareal.search.api.model.query.QueryFragment;
 import com.vivareal.search.api.model.search.Filterable;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -15,7 +17,9 @@ public class ElasticsearchQueryAdapterBenchmark {
 
   @Benchmark
   public void applyFilterQuery(ElasticsearchQueryAdapterState state) {
-    state.adapter.apply(state.bqb, state.filterable);
+    QueryParser queryParser = queryParserFixture();
+    QueryFragment queryFragment = queryParser.parse(state.filterable.getFilter());
+    state.adapter.apply(state.bqb, queryFragment, state.filterable.getIndex());
   }
 
   @State(Scope.Benchmark)

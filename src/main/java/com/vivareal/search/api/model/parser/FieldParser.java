@@ -6,26 +6,36 @@ import static org.jparsec.Scanners.IDENTIFIER;
 import static org.jparsec.Scanners.isChar;
 
 import com.vivareal.search.api.model.query.Field;
+import com.vivareal.search.api.service.parser.factory.FieldCache;
 import com.vivareal.search.api.service.parser.factory.FieldFactory;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.jparsec.Parser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
 public class FieldParser {
 
-  private final Parser<Field> fieldParser;
-  private final Parser<Field> fieldParserWithNot;
+  private Parser<Field> fieldParser;
+  private Parser<Field> fieldParserWithNot;
 
-  @Autowired
   public FieldParser(NotParser notParser, FieldFactory fieldFactory) {
+    this(notParser, fieldFactory::createField, fieldFactory::createField);
+  }
+
+  public FieldParser(NotParser notParser, FieldFactory fieldFactory, FieldCache fieldCache) {
+    this(notParser, fieldCache::getField, fieldFactory::createField);
+  }
+
+  private FieldParser(
+      NotParser notParser,
+      Function<String, Field> createField,
+      BiFunction<Boolean, Field, Field> createFieldWithNot) {
     fieldParser =
         IDENTIFIER
             .sepBy1(isChar('.'))
             .label("field")
             .map(field -> join(".", field))
-            .map(fieldFactory::createField);
-    fieldParserWithNot = sequence(notParser.get(), fieldParser, fieldFactory::createField);
+            .map(createField);
+    fieldParserWithNot = sequence(notParser.get(), fieldParser, createFieldWithNot);
   }
 
   Parser<Field> get() {

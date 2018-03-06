@@ -10,6 +10,7 @@ import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 import com.vivareal.search.api.model.parser.*;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.service.parser.IndexSettings;
+import com.vivareal.search.api.service.parser.factory.FieldCache;
 import com.vivareal.search.api.service.parser.factory.FieldFactory;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,13 @@ public class ParserTemplateLoader {
     return new QueryParser(operatorParser, filterParser, new NotParser());
   }
 
+  public static QueryParser queryParserWithOutValidationFixture() {
+    OperatorParser operatorParser = new OperatorParser();
+    FieldParser fieldParser = fieldParserWithoutValidationFixture();
+    FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
+    return new QueryParser(operatorParser, filterParser, new NotParser());
+  }
+
   public static FacetParser facetParserFixture() {
     return new FacetParser(fieldParserFixture());
   }
@@ -33,7 +41,7 @@ public class ParserTemplateLoader {
     return new FilterParser(fieldParserFixture(), new OperatorParser(), new ValueParser());
   }
 
-  public static FieldFactory fieldFactoryFixture() {
+  public static FieldCache fieldCacheFixture() {
     IndexSettings indexSettings = mock(IndexSettings.class);
     when(indexSettings.getIndex()).thenReturn(INDEX_NAME);
 
@@ -50,10 +58,10 @@ public class ParserTemplateLoader {
                   return new Field(mockLinkedMapForField(names));
                 });
 
-    FieldFactory fieldFactory = new FieldFactory();
-    setInternalState(fieldFactory, "validFields", mockPreprocessedFields);
-    setInternalState(fieldFactory, "indexSettings", indexSettings);
-    return fieldFactory;
+    FieldCache fieldCache = new FieldCache(new FieldFactory());
+    setInternalState(fieldCache, "validFields", mockPreprocessedFields);
+    setInternalState(fieldCache, "indexSettings", indexSettings);
+    return fieldCache;
   }
 
   private static LinkedMap mockLinkedMapForField(List<String> names) {
@@ -74,6 +82,10 @@ public class ParserTemplateLoader {
   }
 
   public static FieldParser fieldParserFixture() {
-    return new FieldParser(new NotParser(), fieldFactoryFixture());
+    return new FieldParser(new NotParser(), new FieldFactory(), fieldCacheFixture());
+  }
+
+  private static FieldParser fieldParserWithoutValidationFixture() {
+    return new FieldParser(new NotParser(), new FieldFactory());
   }
 }

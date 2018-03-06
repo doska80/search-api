@@ -5,7 +5,8 @@ import static com.vivareal.search.api.configuration.environment.RemoteProperties
 import static com.vivareal.search.api.model.mapping.MappingType.*;
 import static com.vivareal.search.api.model.query.LogicalOperator.AND;
 import static com.vivareal.search.api.model.query.RelationalOperator.*;
-import static java.util.Optional.*;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.*;
@@ -13,7 +14,6 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 import com.vivareal.search.api.exception.UnsupportedFieldException;
 import com.vivareal.search.api.model.parser.QueryParser;
 import com.vivareal.search.api.model.query.*;
-import com.vivareal.search.api.model.search.Filterable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,12 +45,14 @@ public class FilterQueryAdapter {
     return logicalOperator;
   }
 
-  public void apply(BoolQueryBuilder queryBuilder, final Filterable filter) {
-    ofNullable(filter.getFilter())
-        .ifPresent(
-            f ->
-                apply(
-                    queryBuilder, queryParser.parse(f), filter.getIndex(), new HashMap<>(), false));
+  public QueryBuilder fromQueryFragment(String index, QueryFragment queryFragment) {
+    BoolQueryBuilder queryBuilder = boolQuery();
+    apply(queryBuilder, queryFragment, index);
+    return queryBuilder;
+  }
+
+  public void apply(BoolQueryBuilder queryBuilder, QueryFragment queryFragment, String index) {
+    apply(queryBuilder, queryFragment, index, new HashMap<>(), false);
   }
 
   public void apply(

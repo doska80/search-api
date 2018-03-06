@@ -13,6 +13,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.vivareal.search.api.model.mapping.MappingType;
+import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.stream.Stream;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -59,6 +60,9 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
     FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
     FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
+    DefaultFilterFactory defaultFilterFactory =
+        new DefaultFilterFactory(queryParserWithOutValidationFixture(), filterQueryAdapter);
+
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
             esClient,
@@ -68,7 +72,9 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
             sortQueryAdapter,
             queryStringAdapter,
             functionScoreAdapter,
+            queryParserFixture(),
             filterQueryAdapter,
+            defaultFilterFactory,
             facetQueryAdapter);
 
     doNothing().when(settingsAdapter).checkIndex(any());

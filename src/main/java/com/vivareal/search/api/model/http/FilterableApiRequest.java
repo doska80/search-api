@@ -1,5 +1,7 @@
 package com.vivareal.search.api.model.http;
 
+import static com.vivareal.search.api.model.http.DefaultFilterMode.ENABLED;
+
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.vivareal.search.api.model.search.Filterable;
 import com.vivareal.search.api.model.search.Pageable;
@@ -31,6 +33,12 @@ public class FilterableApiRequest extends BaseApiRequest
     example = "field1:3 AND field2:2 AND(field3=1 OR (field4 IN [1,\"abc\"] AND field5 <> 3))"
   )
   private String filter;
+
+  @ApiModelProperty(
+    value = "Determine if the default filter for the index should be applied",
+    example = "ENABLED,DISABLED"
+  )
+  private DefaultFilterMode defaultFilterMode = ENABLED;
 
   @ApiModelProperty(
     value = "Field list that will be filtered for query string",
@@ -95,6 +103,14 @@ public class FilterableApiRequest extends BaseApiRequest
 
   public void setFilter(String filter) {
     this.filter = filter;
+  }
+
+  public DefaultFilterMode getDefaultFilterMode() {
+    return defaultFilterMode;
+  }
+
+  public void setDefaultFilterMode(DefaultFilterMode defaultFilterMode) {
+    this.defaultFilterMode = defaultFilterMode;
   }
 
   public Set<String> getFields() {

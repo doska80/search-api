@@ -7,15 +7,11 @@ import static org.jparsec.Parsers.sequence;
 import com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type;
 import com.vivareal.search.api.model.query.Filter;
 import org.jparsec.Parser;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-@Component
 public class FilterParser {
 
   private final Parser<Filter> filterParser;
 
-  @Autowired
   public FilterParser(
       FieldParser fieldParser, OperatorParser operatorParser, ValueParser valueParser) {
     Parser<Filter> normalParser =

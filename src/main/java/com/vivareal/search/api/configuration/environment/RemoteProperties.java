@@ -4,9 +4,8 @@ import static com.vivareal.search.api.configuration.environment.RemoteProperties
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
 import static java.lang.Long.parseLong;
-import static java.util.Collections.emptySet;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toCollection;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 
 import java.util.*;
@@ -100,8 +99,11 @@ public enum RemoteProperties {
             ofNullable(property)
                 .filter(StringUtils::isNotBlank)
                 .map(value -> value.split(","))
-                .map(stringArray -> Stream.of(stringArray).collect(toSet()))
-                .orElse(emptySet());
+                .map(
+                    stringArray ->
+                        Stream.of(stringArray)
+                            .collect(toCollection(() -> new LinkedHashSet<>(stringArray.length))))
+                .orElseGet(LinkedHashSet::new);
 
     static final Function<String, Boolean> AS_BOOLEAN = Boolean::parseBoolean;
 

@@ -16,7 +16,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.vivareal.search.api.model.search.Fetchable;
-import com.vivareal.search.api.service.parser.factory.FieldFactory;
+import com.vivareal.search.api.service.parser.factory.FieldCache;
 import java.util.HashSet;
 import java.util.Set;
 import org.elasticsearch.action.get.GetRequestBuilder;
@@ -33,14 +33,14 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
 
   @InjectMocks private SourceFieldAdapter sourceFieldAdapter;
 
-  @Mock private FieldFactory fieldFactory;
+  @Mock private FieldCache fieldCache;
 
   @Before
   public void setup() {
     initMocks(this);
 
-    when(fieldFactory.isIndexHasField(anyString(), contains("field"))).thenReturn(true);
-    when(fieldFactory.isIndexHasField(anyString(), contains("invalid")))
+    when(fieldCache.isIndexHasField(anyString(), contains("field"))).thenReturn(true);
+    when(fieldCache.isIndexHasField(anyString(), contains("invalid")))
         .thenThrow(new InvalidFieldException("invalid", INDEX_NAME));
 
     SOURCE_INCLUDES.setValue(INDEX_NAME, "");
