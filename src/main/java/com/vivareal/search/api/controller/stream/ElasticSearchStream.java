@@ -39,7 +39,7 @@ public class ElasticSearchStream {
     String index = request.getIndex();
     final long requestStreamTimeout = ES_CONTROLLER_STREAM_TIMEOUT.getValue(index);
 
-    final Scroll scroll = new Scroll(timeValueMillis(ES_SCROLL_TIMEOUT.getValue(index)));
+    final Scroll scroll = new Scroll(timeValueMillis(ES_SCROLL_KEEP_ALIVE.getValue(index)));
     SearchRequest searchRequest = new SearchRequest(index);
     searchRequest.scroll(scroll);
 

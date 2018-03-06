@@ -38,7 +38,7 @@ public enum RemoteProperties {
   ES_CONTROLLER_SEARCH_TIMEOUT("es.controller.search.timeout", AS_TIME_VALUE_MILLIS),
   ES_CONTROLLER_STREAM_TIMEOUT("es.controller.stream.timeout", AS_LONG),
   ES_STREAM_SIZE("es.stream.size", AS_INTEGER),
-  ES_SCROLL_TIMEOUT("es.scroll.timeout", AS_LONG),
+  ES_SCROLL_KEEP_ALIVE("es.scroll.keep.alive", AS_LONG),
   SOURCE_INCLUDES("source.default.includes", AS_SET, NON_EMPTY_COLLECTION),
   SOURCE_EXCLUDES("source.default.excludes", AS_SET, NON_EMPTY_COLLECTION);
 
