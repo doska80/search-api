@@ -3,6 +3,7 @@ package com.vivareal.search.api.itest.scenarios;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static java.lang.Thread.sleep;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -25,6 +26,29 @@ public class QueryStringIntegrationTest extends SearchApiIntegrationTest {
         .statusCode(SC_OK)
         .when()
         .get(TEST_DATA_INDEX + "?q='string with char a'&fields=object.string_text&mm=100%")
+        .then()
+        .body("totalCount", equalTo(1))
+        .body("result.testdata.id.get(0)", equalTo("1"));
+  }
+
+  @Test
+  public void shouldReturnOneResultWhenUsingQParameterUsingAlias() throws InterruptedException {
+    esIndexHandler.putStandardProperty(
+        "querystring.alias.fields",
+        "qs_alias|object.string_text:2#another_qs_alias|object.string_text,object.special_string");
+    esIndexHandler.addStandardProperties();
+
+    sleep(1500);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?q='string with char a'&fields=qs_alias&mm=100%")
         .then()
         .body("totalCount", equalTo(1))
         .body("result.testdata.id.get(0)", equalTo("1"));

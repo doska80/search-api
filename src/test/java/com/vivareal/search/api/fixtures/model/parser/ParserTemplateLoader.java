@@ -57,6 +57,9 @@ public class ParserTemplateLoader {
                   List<String> names = asList(split).subList(1, split.length); // Ignore index name
                   return new Field(mockLinkedMapForField(names));
                 });
+    when(mockPreprocessedFields.containsKey(anyString()))
+        .thenAnswer(
+            invocationOnMock -> !invocationOnMock.getArguments()[0].toString().contains("invalid"));
 
     FieldCache fieldCache = new FieldCache(new FieldFactory());
     setInternalState(fieldCache, "validFields", mockPreprocessedFields);

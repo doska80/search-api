@@ -1,14 +1,19 @@
 package com.vivareal.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
+import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.create;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.junit.Assert.*;
 
 import com.google.common.collect.Sets;
+import com.vivareal.search.api.exception.InvalidFieldException;
+import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
+import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.search.Queryable;
 import java.util.HashMap;
 import java.util.List;
@@ -28,8 +33,9 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   public void setup() {
     QS_MM.setValue(DEFAULT_INDEX, "75%");
     QS_DEFAULT_FIELDS.setValue(INDEX_NAME, "field,field1");
+    QS_ALIAS_FIELDS.setValue(INDEX_NAME, null);
 
-    queryStringAdapter = new QueryStringAdapter(fieldParserFixture());
+    queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
   }
 
   @Test
@@ -115,5 +121,57 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
                       assertEquals(mm, multiMatchQueryBuilder.minimumShouldMatch());
                       assertEquals(OR, multiMatchQueryBuilder.operator());
                     }));
+  }
+
+  @Test
+  public void shouldApplyDefaultIndexFieldsForQuery() {
+    SearchApiRequest build = create().index(INDEX_NAME).q("any text to search").build();
+
+    BoolQueryBuilder boolQueryBuilder = boolQuery();
+    queryStringAdapter.apply(boolQueryBuilder, build);
+
+    Map<String, Float> expectedFields = new HashMap<>();
+    expectedFields.put("field", 1f);
+    expectedFields.put("field1", 1f);
+
+    MultiMatchQueryBuilder multiMatchQueryBuilder =
+        (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
+    assertEquals(expectedFields, multiMatchQueryBuilder.fields());
+  }
+
+  @Test(expected = InvalidFieldException.class)
+  public void shouldThrowExceptionWhenTryQueryOverInvalidField() {
+    SearchApiRequest build =
+        create()
+            .index(INDEX_NAME)
+            .q("search")
+            .fields(newHashSet("thisOneIsValid", "invalidField"))
+            .build();
+    queryStringAdapter.apply(boolQuery(), build);
+  }
+
+  @Test
+  public void shouldUseIndexFieldsAliasForQuery() {
+    QS_ALIAS_FIELDS.setValue(INDEX_NAME, "someFieldAlias|field1:8,field2");
+    queryStringAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
+
+    SearchApiRequest build =
+        create()
+            .index(INDEX_NAME)
+            .q("search")
+            .fields(newHashSet("someFieldAlias", "existingValidField"))
+            .build();
+
+    BoolQueryBuilder boolQueryBuilder = boolQuery();
+    queryStringAdapter.apply(boolQueryBuilder, build);
+
+    Map<String, Float> expectedFields = new HashMap<>();
+    expectedFields.put("field1", 8f);
+    expectedFields.put("field2", 1f);
+    expectedFields.put("existingValidField", 1f);
+
+    MultiMatchQueryBuilder multiMatchQueryBuilder =
+        (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
+    assertEquals(expectedFields, multiMatchQueryBuilder.fields());
   }
 }

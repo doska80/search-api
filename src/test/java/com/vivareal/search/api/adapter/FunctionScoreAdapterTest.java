@@ -56,7 +56,7 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     ESClient esClient = new ESClient(transportClient);
 
     PageQueryAdapter pageQueryAdapter = new PageQueryAdapter();
-    QueryStringAdapter queryStringAdapter = new QueryStringAdapter(fieldParserFixture());
+    QueryStringAdapter queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
     FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
     FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
     FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());

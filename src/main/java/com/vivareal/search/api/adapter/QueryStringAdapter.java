@@ -1,9 +1,10 @@
 package com.vivareal.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.QS_DEFAULT_FIELDS;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.QS_MM;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static java.lang.Float.parseFloat;
+import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.commons.lang3.math.NumberUtils.toInt;
@@ -11,29 +12,40 @@ import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.multiMatchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 
-import com.vivareal.search.api.model.parser.FieldParser;
+import com.vivareal.search.api.exception.InvalidFieldException;
+import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.vivareal.search.api.model.query.Field;
 import com.vivareal.search.api.model.search.Queryable;
+import com.vivareal.search.api.service.parser.factory.FieldCache;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.NestedQueryBuilder;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 @Component
-public class QueryStringAdapter {
+public class QueryStringAdapter implements ApplicationListener<RemotePropertiesUpdatedEvent> {
 
   private static final String NOT_NESTED = "not_nested";
   private static final String MM_ERROR_MESSAGE =
       "Minimum Should Match (mm) should be a valid integer number (-100 <> +100)";
   private static final float DEFAULT_BOOST_VALUE = 1.0f;
 
-  private FieldParser fieldParser;
+  private FieldCache fieldCache;
 
-  public QueryStringAdapter(FieldParser fieldParser) {
-    this.fieldParser = fieldParser;
+  private final Map<String, Map<String, List<QueryStringField>>> qsFieldsMappingPerIndex;
+
+  public QueryStringAdapter(FieldCache fieldCache) {
+    this.fieldCache = fieldCache;
+
+    this.qsFieldsMappingPerIndex = new ConcurrentHashMap<>();
   }
 
   public void apply(BoolQueryBuilder queryBuilder, final Queryable request) {
@@ -45,18 +57,11 @@ public class QueryStringAdapter {
     checkMM(mm);
 
     Map<String, AbstractQueryBuilder> queryStringQueries = new HashMap<>();
-
-    QS_DEFAULT_FIELDS
-        .getValue(request.getFields(), indexName)
+    getQueryStringFields(request, indexName)
         .forEach(
             qsField -> {
-              String[] boostFieldValues = qsField.split(":");
-              Field field = fieldParser.parse(boostFieldValues[0]);
-              float boost =
-                  boostFieldValues.length == 2
-                      ? parseFloat(boostFieldValues[1])
-                      : DEFAULT_BOOST_VALUE;
-
+              Field field = fieldCache.getField(qsField.getFieldName());
+              float boost = qsField.getBoost();
               if (FIELD_TYPE_NESTED.typeOf(field.getTypeFirstName())) {
                 String nestedField = field.firstName();
 
@@ -91,6 +96,37 @@ public class QueryStringAdapter {
     queryStringQueries.forEach((nestedPath, nestedQuery) -> queryBuilder.must().add(nestedQuery));
   }
 
+  private List<QueryStringField> getQueryStringFields(Queryable request, String indexName) {
+    List<QueryStringField> qsFields = new ArrayList<>();
+    QS_DEFAULT_FIELDS
+        .getValue(request.getFields(), indexName)
+        .forEach(
+            qsField -> {
+              String[] qsRaw = qsField.split(":");
+              List<QueryStringField> aliasFields =
+                  ofNullable(
+                          qsFieldsMappingPerIndex
+                              .getOrDefault(request.getIndex(), new HashMap<>())
+                              .get(qsRaw[0]))
+                      .orElseGet(ArrayList::new);
+              if (!aliasFields.isEmpty()) {
+                qsFields.addAll(aliasFields);
+              } else if (!fieldCache.isIndexHasField(indexName, qsRaw[0])) {
+                throw new InvalidFieldException(qsRaw[0], indexName);
+              } else {
+                qsFields.add(createQueryStringField(qsRaw));
+              }
+            });
+    return qsFields;
+  }
+
+  private QueryStringField createQueryStringField(String[] boostFieldValues) {
+    String fieldName = boostFieldValues[0];
+    float boost =
+        boostFieldValues.length == 2 ? parseFloat(boostFieldValues[1]) : DEFAULT_BOOST_VALUE;
+    return new QueryStringField(fieldName, boost);
+  }
+
   private void checkMM(final String mm) {
     if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf('%')))
       throw new NumberFormatException(MM_ERROR_MESSAGE);
@@ -113,5 +149,42 @@ public class QueryStringAdapter {
     if (multiMatchQueryBuilder == null) multiMatchQueryBuilder = multiMatchQuery(q);
     multiMatchQueryBuilder.field(field.getName(), boost).minimumShouldMatch(mm).tieBreaker(0.2f);
     return multiMatchQueryBuilder;
+  }
+
+  @Override
+  public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
+    Map<String, String> rawAliases =
+        (Map<String, String>)
+            ofNullable(QS_ALIAS_FIELDS.getValue(event.getIndex())).orElseGet(HashMap::new);
+
+    Map<String, List<QueryStringField>> qsFields = new HashMap<>();
+    rawAliases.forEach(
+        (alias, rawValue) ->
+            qsFields.put(
+                alias,
+                Stream.of(rawValue.split(","))
+                    .map(qs -> qs.split(":"))
+                    .map(this::createQueryStringField)
+                    .collect(toList())));
+
+    qsFieldsMappingPerIndex.put(event.getIndex(), qsFields);
+  }
+
+  private static class QueryStringField {
+    private String fieldName;
+    private float boost;
+
+    public QueryStringField(String fieldName, float boost) {
+      this.fieldName = fieldName;
+      this.boost = boost;
+    }
+
+    public String getFieldName() {
+      return fieldName;
+    }
+
+    public float getBoost() {
+      return boost;
+    }
   }
 }

@@ -71,7 +71,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     SourceFieldAdapter sourceFieldAdapter = mock(SourceFieldAdapter.class);
 
     this.pageQueryAdapter = new PageQueryAdapter();
-    this.queryStringAdapter = new QueryStringAdapter(fieldParserFixture());
+    this.queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
     this.functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
     this.facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
     this.filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());

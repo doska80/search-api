@@ -1,11 +1,11 @@
 package com.vivareal.search.api.configuration.environment;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
+import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.*;
 import static java.lang.Long.parseLong;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toMap;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 
 import java.util.*;
@@ -19,6 +19,7 @@ public enum RemoteProperties {
   PROFILE("spring.profiles.active"),
   QS_MM("querystring.default.mm"),
   QS_DEFAULT_FIELDS("querystring.default.fields", AS_SET, NON_EMPTY_COLLECTION),
+  QS_ALIAS_FIELDS("querystring.alias.fields", AS_MAP, NON_EMPTY_MAP),
   FILTER_DEFAULT_CLAUSES("filter.default.clauses", AS_SET, NON_EMPTY_COLLECTION),
   SCORE_FACTOR_FIELD("score.factor.field"),
   SCORE_FACTOR_MODIFIER("score.factor.modifier"),
@@ -113,6 +114,18 @@ public enum RemoteProperties {
 
     static final Function<String, TimeValue> AS_TIME_VALUE_MILLIS =
         s -> timeValueMillis(parseLong(s));
+
+    static final Function<String, Map<String, String>> AS_MAP =
+        property ->
+            ofNullable(property)
+                .filter(StringUtils::isNotBlank)
+                .map(value -> value.split("#"))
+                .map(
+                    keyPairArray ->
+                        Stream.of(keyPairArray)
+                            .map(pair -> pair.split("\\|"))
+                            .collect(toMap(pair -> pair[0], pair -> pair[1])))
+                .orElseGet(HashMap::new);
   }
 
   static class IsRequestValidFunction {
@@ -121,5 +134,8 @@ public enum RemoteProperties {
 
     static final Function<Object, Boolean> NON_EMPTY_COLLECTION =
         collection -> !CollectionUtils.isEmpty((Collection<?>) collection);
+
+    static final Function<Object, Boolean> NON_EMPTY_MAP =
+        collection -> !CollectionUtils.isEmpty((Map<?, ?>) collection);
   }
 }
