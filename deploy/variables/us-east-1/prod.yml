@@ -12,12 +12,12 @@ elb:
   access_logging_policy:
     s3_bucket_name: search-us-east-1
   subnets:
-    - subnet-550af169
-    - subnet-9023a6d9
-    - subnet-e6564a83
-    - subnet-e0569fbb
-    - subnet-04ba6f29
-    - subnet-2cda4120
+    - subnet-4e0af172
+    - subnet-9523a6dc
+    - subnet-a8a0bdcd
+    - subnet-9b569fc0
+    - subnet-03ba6f2e
+    - subnet-1226be1e
 asg:
   subnets:
     - subnet-4e0af172
