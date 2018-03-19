@@ -39,8 +39,4 @@ scaling:
     wait: 300
 termination_policies:
   - OldestInstance
-tags:
-  Product: search
-  App: searchapi-v2
-  Process: api
 user_data: /project/deploy/variables/user-data.sh
