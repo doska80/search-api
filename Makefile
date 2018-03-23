@@ -23,8 +23,8 @@ ARTIFACT:=build/libs/$(ARTIFACT_NAME)
 include make/doc/Makefile
 DOCKER_NET_CONFIG?=$(if $(filter prod,$(ENV)),--net host,-p 8482:8482 -p 4000:4000)
 
-LOG:=logs
-CONTAINER_LOG:=/var/log/$(CONTAINER_NAME)
+LOG:=/var/log/$(CONTAINER_NAME)
+CONTAINER_LOG:=/logs
 include make/log/Makefile
 
 RUN_MEMORY:=$(if $(filter prod,$(ENV)),3500,900)
@@ -53,6 +53,21 @@ RUN_CMD= docker run \
 
 run: log es_cluster_name aws_default_region image
 	$(shell echo $(RUN_CMD))
+
+EXTRA_USER_DATA=
+
+ifeq ($(ENV),prod)
+	override EXTRA_USER_DATA+=docker run -d --name=filebeat \
+		-e APPLICATION="$(PROJECT_NAME)" \
+		-e ENV="$(ENV)" \
+		-e INSTANCEID='$$(/usr/bin/curl -s --connect-timeout 2 curl http://169.254.169.254/latest/meta-data/local-ipv4)' \
+		-e LOGSTASH_HOST="logs.vivareal.com" \
+		-e LOGSTASH_PORT="5044" \
+		-e PROCESS="$(PROCESS)" \
+		-e PRODUCT="$(PRODUCT)" \
+		-v /var/lib/docker/containers:/var/lib/docker/containers \
+		vivareal/docker-filebeat:v1.3.1
+endif
 
 user-data-setup:
 include make/usr/Makefile
