@@ -116,7 +116,7 @@ dependencies {
     compile 'org.elasticsearch.plugin:transport-netty4-client:' + ELASTICSEARCH_VERSION
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
-    compile 'biz.paluch.logging:logstash-gelf:1.11.2'
+    compile 'net.logstash.logback:logstash-logback-encoder:5.0'
 
     compile 'io.springfox:springfox-swagger2:' + SWAGGER
     compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
@@ -136,7 +136,6 @@ dependencies {
     // Fixtures
     testCompile 'br.com.six2six:fixture-factory:3.1.0'
     testCompile 'com.jayway.restassured:rest-assured:2.9.0'
-
 }
 
 task wrapper(type: Wrapper) {

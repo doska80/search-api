@@ -5,23 +5,14 @@
 
     <springProperty scope="context" name="environment" source="spring.profiles.active"/>
 
-    <springProperty scope="context" name="application" source="application.title"/>
+    <springProperty scope="context" name="application" source="application.title" defaultValue="search-api-v2"/>
     <springProperty scope="context" name="version" source="application.version"/>
-    <springProperty scope="context" name="codename" source="application.codename"/>
-
-    <springProfile name="prod">
-        <springProperty scope="context" name="gelf-host" source="gelf.hostname" defaultValue="udp:logs.vivareal.com"/>
-    </springProfile>
-    <springProfile name="!prod">
-        <springProperty scope="context" name="gelf-host" source="gelf.hostname"
-                        defaultValue="udp:qa-logs.vivareal.com"/>
-    </springProfile>
 
     <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">
         <dsn>
             http://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry-logs.vivareal.com/64?options
         </dsn>
-        <tags>environment:${environment},version:${version},codename:${codename},cluster:${es.cluster.name}</tags>
+        <tags>environment:${environment},version:${version},cluster:${es.cluster.name},server:${java.rmi.server.hostname}</tags>
         <ravenFactory>com.getsentry.raven.DefaultRavenFactory</ravenFactory>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -34,15 +25,21 @@
         </filter>
     </appender>
 
-    <appender name="GELF" class="biz.paluch.logging.gelf.logback.GelfLogbackAppender">
-        <host>${gelf-host}</host>
-        <port>12201</port>
-        <version>1.1</version>
-        <extractStackTrace>true</extractStackTrace>
-        <additionalFields>
-            environment=${environment},application=${application},product=search,cluster=${es.cluster.name},server=${java.rmi.server.hostname}
-        </additionalFields>
-        <additionalFieldTypes>environment=String,application=String,product=String</additionalFieldTypes>
+    <appender name="GELF" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/${application}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${application}.%d{yyyy-MM-dd}-%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+            <fieldNames>
+                <levelValue>level</levelValue>
+                <level>Severity</level>
+            </fieldNames>
+            <customFields>{"product":"search","cluster":"${es.cluster.name}","server":"${java.rmi.server.hostname}","log_type":"application"}"</customFields>
+        </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
