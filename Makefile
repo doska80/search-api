@@ -66,7 +66,7 @@ ifeq ($(ENV),prod)
 		-e PROCESS="$(PROCESS)" \
 		-e PRODUCT="$(PRODUCT)" \
 		-v /var/lib/docker/containers:/var/lib/docker/containers \
-		vivareal/docker-filebeat:v1.3.1
+		vivareal/docker-filebeat:v1.4.0
 endif
 
 user-data-setup:
