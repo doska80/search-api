@@ -51,14 +51,11 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
     assertEquals("id", sorts.get(0).getFieldName());
     assertEquals(ASC, sorts.get(0).order());
-    assertNull(sorts.get(0).getNestedPath());
-    assertNull(sorts.get(0).getNestedPath());
+    assertNull(sorts.get(0).getNestedSort());
 
-    assertEquals("_uid", sorts.get(1).getFieldName());
+    assertEquals("_id", sorts.get(1).getFieldName());
     assertEquals(DESC, sorts.get(1).order());
-    assertNull(sorts.get(1).getNestedPath());
-    assertNull(sorts.get(1).getNestedFilter());
-    assertNull(sorts.get(1).getNestedPath());
+    assertNull(sorts.get(1).getNestedSort());
   }
 
   @Test
@@ -79,16 +76,16 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
     assertEquals(fieldName1, sorts.get(0).getFieldName());
     assertEquals(sortOrder1, sorts.get(0).order());
-    assertNull(sorts.get(0).getNestedPath());
+    assertNull(sorts.get(0).getNestedSort());
 
     assertEquals(fieldName2, sorts.get(1).getFieldName());
     assertEquals(sortOrder2, sorts.get(1).order());
-    assertEquals("nested", sorts.get(1).getNestedPath());
-    assertNull(sorts.get(1).getNestedFilter());
+    assertEquals("nested", sorts.get(1).getNestedSort().getPath());
+    assertNull(sorts.get(1).getNestedSort().getFilter());
 
-    assertEquals("_uid", sorts.get(2).getFieldName());
+    assertEquals("_id", sorts.get(2).getFieldName());
     assertEquals(DESC, sorts.get(2).order());
-    assertNull(sorts.get(2).getNestedPath());
+    assertNull(sorts.get(2).getNestedSort());
   }
 
   @Test
@@ -135,16 +132,16 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
     assertEquals(fieldName1, sorts.get(0).getFieldName());
     assertEquals(sortOrder1, sorts.get(0).order());
-    assertNull(sorts.get(0).getNestedPath());
+    assertNull(sorts.get(0).getNestedSort());
 
     assertEquals(fieldName2, sorts.get(1).getFieldName());
     assertEquals(sortOrder2, sorts.get(1).order());
-    assertEquals("nested", sorts.get(1).getNestedPath());
-    assertEquals(boolQueryBuilder, sorts.get(1).getNestedFilter());
+    assertEquals("nested", sorts.get(1).getNestedSort().getPath());
+    assertEquals(boolQueryBuilder, sorts.get(1).getNestedSort().getFilter());
 
-    assertEquals("_uid", sorts.get(2).getFieldName());
+    assertEquals("_id", sorts.get(2).getFieldName());
     assertEquals(DESC, sorts.get(2).order());
-    assertNull(sorts.get(2).getNestedPath());
+    assertNull(sorts.get(2).getNestedSort());
   }
 
   @Test
@@ -161,7 +158,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     assertEquals("id", sortFields.get(0).getFieldName());
     assertEquals(ASC, sortFields.get(0).order());
 
-    assertEquals("_uid", sortFields.get(1).getFieldName());
+    assertEquals("_id", sortFields.get(1).getFieldName());
     assertEquals(DESC, sortFields.get(1).order());
   }
 
@@ -199,7 +196,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     assertEquals("id", sortFields.get(0).getFieldName());
     assertEquals(ASC, sortFields.get(0).order());
 
-    assertEquals("_uid", sortFields.get(1).getFieldName());
+    assertEquals("_id", sortFields.get(1).getFieldName());
     assertEquals(DESC, sortFields.get(1).order());
   }
 }

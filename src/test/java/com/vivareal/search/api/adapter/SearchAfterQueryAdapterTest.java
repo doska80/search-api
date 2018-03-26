@@ -19,14 +19,14 @@ public class SearchAfterQueryAdapterTest extends SearchTransportClientMock {
     requestBuilder.setFrom(20);
 
     SearchApiRequest request = fullRequest.build();
-    String _uid = INDEX_NAME + "#1028071465";
-    request.setCursorId("2.765432" + SORT_SEPARATOR + "A%5fB" + SORT_SEPARATOR + _uid);
+    String _id = INDEX_NAME + "#1028071465";
+    request.setCursorId("2.765432" + SORT_SEPARATOR + "A%5fB" + SORT_SEPARATOR + _id);
 
     searchAfterQueryAdapter.apply(requestBuilder, request);
     assertNotNull(requestBuilder.request().source().searchAfter());
     assertEquals(0, requestBuilder.request().source().from());
     assertEquals("2.765432", requestBuilder.request().source().searchAfter()[0]);
     assertEquals("A_B", requestBuilder.request().source().searchAfter()[1]);
-    assertEquals(_uid, requestBuilder.request().source().searchAfter()[2]);
+    assertEquals(_id, requestBuilder.request().source().searchAfter()[2]);
   }
 }

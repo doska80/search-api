@@ -322,17 +322,17 @@ public class ESResponseSerializerTest {
     BytesReference source = new BytesArray("{\"id\":1}");
     values.put("_source", source);
 
-    String _uid = INDEX_NAME + "#1028071465";
+    String _id = INDEX_NAME + "#1028071465";
 
     values.put(
         "sort",
         new SearchSortValues(
-            new Object[] {0.23456, "A_B", _uid},
+            new Object[] {0.23456, "A_B", _id},
             new DocValueFormat[] {DocValueFormat.RAW, DocValueFormat.RAW}));
     hits[0] = createFromMap(values);
 
     assertThat(
         mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)),
-        containsString("\"cursorId\":\"0.23456_A%5fB_" + _uid + "\""));
+        containsString("\"cursorId\":\"0.23456_A%5fB_" + _id + "\""));
   }
 }

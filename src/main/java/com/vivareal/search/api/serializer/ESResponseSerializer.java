@@ -109,14 +109,14 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
   }
 
   private void writeCursorId(final SearchHit[] hits, JsonGenerator jgen) throws IOException {
-    if (hits.length > 0) {
-      Object[] sortValues = hits[hits.length - 1].getSortValues();
-      if (!ArrayUtils.isEmpty(sortValues))
-        jgen.writeStringField(
-            "cursorId",
-            of(sortValues)
-                .map(value -> String.valueOf(value).replaceAll("_", "%5f"))
-                .collect(joining(SORT_SEPARATOR)));
-    }
+    if (hits.length == 0) return;
+
+    Object[] sortValues = hits[hits.length - 1].getSortValues();
+    if (!ArrayUtils.isEmpty(sortValues))
+      jgen.writeStringField(
+          "cursorId",
+          of(sortValues)
+              .map(value -> String.valueOf(value).replaceAll("_", "%5f"))
+              .collect(joining(SORT_SEPARATOR)));
   }
 }

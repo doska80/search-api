@@ -81,7 +81,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"template\":\"search-api-properties*\",\"order\":1,\"settings\":{\"number_of_shards\":1,\"number_of_replicas\":1,\"refresh_interval\":\"10s\"},\"mappings\":{\"search-api-properties\":{\"dynamic_templates\":[{\"strings\":{\"match_mapping_type\":\"string\",\"mapping\":{\"type\":\"keyword\",\"fields\":{\"raw\":{\"type\":\"text\"}}}}}]}}}"
+          "raw": "{\"template\":\"search-api-properties*\",\"order\":1,\"settings\":{\"number_of_shards\":1,\"number_of_replicas\":1,\"refresh_interval\":\"10s\"},\"mappings\":{\"properties\":{\"dynamic_templates\":[{\"strings\":{\"match_mapping_type\":\"string\",\"mapping\":{\"type\":\"keyword\",\"fields\":{\"raw\":{\"type\":\"text\"}}}}}]}}}"
         },
         "description": "Template for \"SearchAPI Properties\" index"
       },
@@ -112,10 +112,16 @@
       "request": {
         "url": "http://${es_host}:${es_port}/_bulk",
         "method": "POST",
-        "header": [],
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": ""
+          }
+        ],
         "body": {
           "mode": "raw",
-          "raw": "{ \"create\": { \"_index\": \".kibana\", \"_type\": \"index-pattern\", \"_id\": \"testdata*\" } }\n{ \"title\": \"testdata\" }\n"
+          "raw": "{ \"create\": { \"_index\": \".kibana\", \"_type\": \"doc\", \"_id\": \"index-pattern:testdata*\" } }\n{ \"type\": \"index-pattern\", \"index-pattern\": { \"title\": \"testdata\" } }\n"
         },
         "description": "Create index patterns to be used with Discover view"
       },

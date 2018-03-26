@@ -30,7 +30,7 @@ public class SearchAfterIntegrationTest extends SearchApiIntegrationTest {
         .get(TEST_DATA_INDEX + "?size=5&includeFields=numeric&sort=numeric ASC")
         .then()
         .body("result.testdata.numeric", equalTo(rangeClosed(1, 5).boxed().collect(toList())))
-        .body("cursorId", equalTo("5_testdata#5"));
+        .body("cursorId", equalTo("5_5"));
 
     given()
         .log()
@@ -40,12 +40,10 @@ public class SearchAfterIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(
-            TEST_DATA_INDEX
-                + "?size=5&includeFields=numeric&sort=numeric ASC&cursorId=5_testdata#5")
+        .get(TEST_DATA_INDEX + "?size=5&includeFields=numeric&sort=numeric ASC&cursorId=5_5")
         .then()
         .body("result.testdata.numeric", equalTo(rangeClosed(6, 10).boxed().collect(toList())))
-        .body("cursorId", equalTo("10_testdata#10"));
+        .body("cursorId", equalTo("10_10"));
   }
 
   @Test

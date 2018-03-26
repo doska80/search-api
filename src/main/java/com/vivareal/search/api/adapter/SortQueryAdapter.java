@@ -20,6 +20,7 @@ import java.util.HashMap;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.NestedSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.jparsec.error.ParserException;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ public class SortQueryAdapter {
 
   private static final Logger LOG = LoggerFactory.getLogger(SortQueryAdapter.class);
 
-  private static final FieldSortBuilder DEFAULT_TIEBREAKER = fieldSort("_uid").order(DESC);
+  private static final FieldSortBuilder DEFAULT_TIEBREAKER = fieldSort("_id").order(DESC);
 
   private static final String NEW_RELIC_USE_DEFAULT_SORT_METRIC =
       "Custom/SearchAPI/v2/count/default/sort";
@@ -112,7 +113,7 @@ public class SortQueryAdapter {
         fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
 
     if (FIELD_TYPE_NESTED.typeOf(item.getField().getTypeFirstName())) {
-      fieldSortBuilder.setNestedPath(item.getField().firstName());
+      NestedSortBuilder nestedSortBuilder = new NestedSortBuilder(item.getField().firstName());
 
       item.getQueryFragment()
           .ifPresent(
@@ -120,8 +121,10 @@ public class SortQueryAdapter {
                 BoolQueryBuilder queryBuilder = boolQuery();
                 filterQueryAdapter.apply(
                     queryBuilder, qf, request.getIndex(), new HashMap<>(), true);
-                fieldSortBuilder.setNestedFilter(queryBuilder);
+                nestedSortBuilder.setFilter(queryBuilder);
               });
+
+      fieldSortBuilder.setNestedSort(nestedSortBuilder);
     }
     return fieldSortBuilder;
   }
