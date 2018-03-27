@@ -66,6 +66,7 @@ ifeq ($(ENV),prod)
 		-e PROCESS="$(PROCESS)" \
 		-e PRODUCT="$(PRODUCT)" \
 		-v /var/lib/docker/containers:/var/lib/docker/containers \
+		--log-opt max-size=200m \
 		vivareal/docker-filebeat:v1.4.2
 endif
 
