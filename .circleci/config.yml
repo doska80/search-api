@@ -1,0 +1,68 @@
+version: 2
+jobs:
+  run_tests:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Syncing and updating Git Submodules
+          command: git submodule sync --recursive && git submodule update --init --recursive
+
+      - restore_cache:
+          key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
+
+      - run:
+          name: Docker Login
+          command: docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+
+      - run:
+          name: Building image and running tests
+          command: make GRADLE_EXTRA_ARGS="-PcircleCi -PnewRelicKey=$NEW_RELIC_KEY" build
+
+      - save_cache:
+          key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
+          paths:
+            - ~/.m2
+            - ~/.gradle
+
+  build_image:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - checkout
+      - run:
+          name: Syncing and updating Git Submodules
+          command: git submodule sync --recursive && git submodule update --init --recursive
+
+      - restore_cache:
+          key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
+
+      - run:
+          name: Docker Login
+          command: docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+
+      - run:
+          name: Updating apt-get
+          command: sudo apt-get update
+
+      - run:
+          name: Openning CircleCI Tunnel
+          command: aws s3 cp s3://develop-br/scripts/circleci/circleci-tunnel.sh ~/ && chmod +x ~/circleci-tunnel.sh && nohup ~/circleci-tunnel.sh start > /dev/null
+
+      - run:
+          name: Pushing image and sending notification to Slack
+          command: make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test -PnewRelicKey=$NEW_RELIC_KEY" analise-code push-with-notification
+
+workflows:
+  version: 2
+  test-build:
+    jobs:
+      - run_tests:
+          filters:
+            branches:
+              ignore: master
+      - build_image:
+          filters:
+            branches:
+              only: master

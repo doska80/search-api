@@ -89,6 +89,7 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
   @After
   public void closeClient() {
     this.transportClient.close();
+    SCORE_FACTOR_FIELD.setValue(INDEX_NAME, null);
   }
 
   @Test
