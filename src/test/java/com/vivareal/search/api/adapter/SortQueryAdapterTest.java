@@ -38,7 +38,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   @Before
   public void setup() {
     ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
-    ES_SORT_DISABLE.setValue(INDEX_NAME, "false");
+    ES_SORT_DISABLE.setValue(INDEX_NAME, false);
   }
 
   @Test
@@ -176,7 +176,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   public void mustNotApplySortWhenSortDisabledOnProperty() {
     SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
     SearchApiRequest request = fullRequest.build();
-    ES_SORT_DISABLE.setValue(INDEX_NAME, "true");
+    ES_SORT_DISABLE.setValue(INDEX_NAME, true);
 
     sortQueryAdapter.apply(requestBuilder, request);
     assertNull(requestBuilder.request().source());

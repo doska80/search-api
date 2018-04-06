@@ -1,13 +1,11 @@
 package com.vivareal.search.api.configuration.environment;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.MIN_VALUE;
-import static java.lang.String.valueOf;
-import static java.util.Collections.EMPTY_MAP;
 import static java.util.Collections.EMPTY_SET;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.of;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -16,7 +14,10 @@ import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 import static org.junit.Assert.*;
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,19 +28,18 @@ public class RemotePropertiesTest {
   private static final String CUSTOM_INDEX = "customIndex";
 
   private static final Set<RemoteProperties> PROPERTIES_AS_SET =
-      newLinkedHashSet(QS_DEFAULT_FIELDS, FILTER_DEFAULT_CLAUSES, SOURCE_INCLUDES, SOURCE_EXCLUDES);
-
-  private static final Set<RemoteProperties> PROPERTIES_AS_MAP = newLinkedHashSet(QS_ALIAS_FIELDS);
-
-  private static final Set<RemoteProperties> NUMERIC_PROPERTIES =
       newLinkedHashSet(
-          ES_DEFAULT_SIZE,
-          ES_MAX_SIZE,
-          ES_FACET_SIZE,
-          ES_QUERY_TIMEOUT_VALUE,
-          ES_STREAM_SIZE,
-          ES_SCROLL_KEEP_ALIVE,
-          ES_CONTROLLER_STREAM_TIMEOUT);
+          QS_DEFAULT_FIELDS,
+          FILTER_DEFAULT_CLAUSES,
+          SOURCE_INCLUDES,
+          SOURCE_EXCLUDES,
+          QS_TEMPLATES);
+
+  private static final Set<RemoteProperties> INTEGER_PROPERTIES =
+      newLinkedHashSet(ES_MAX_SIZE, ES_DEFAULT_SIZE, ES_FACET_SIZE, ES_STREAM_SIZE);
+
+  private static final Set<RemoteProperties> LONG_PROPERTIES =
+      newLinkedHashSet(ES_QUERY_TIMEOUT_VALUE, ES_CONTROLLER_STREAM_TIMEOUT, ES_SCROLL_KEEP_ALIVE);
 
   private static final Set<RemoteProperties> TIME_PROPERTIES =
       newLinkedHashSet(ES_CONTROLLER_SEARCH_TIMEOUT);
@@ -51,8 +51,8 @@ public class RemotePropertiesTest {
           .filter(
               p ->
                   !PROPERTIES_AS_SET.contains(p)
-                      && !PROPERTIES_AS_MAP.contains(p)
-                      && !NUMERIC_PROPERTIES.contains(p)
+                      && !INTEGER_PROPERTIES.contains(p)
+                      && !LONG_PROPERTIES.contains(p)
                       && !TIME_PROPERTIES.contains(p)
                       && !BOOLEAN_PROPERTIES.contains(p))
           .collect(toSet());
@@ -81,13 +81,10 @@ public class RemotePropertiesTest {
 
   @Test
   public void validateGetValueForNumericProperties() {
-    NUMERIC_PROPERTIES.forEach(
+    LONG_PROPERTIES.forEach(
         property -> {
-          String minValue = valueOf(MIN_VALUE);
-          String maxValue = valueOf(MAX_VALUE);
-
-          property.setValue(CUSTOM_INDEX, maxValue);
-          property.setValue(DEFAULT_INDEX, minValue);
+          property.setValue(CUSTOM_INDEX, MAX_VALUE);
+          property.setValue(DEFAULT_INDEX, MIN_VALUE);
 
           assertEquals(
               property.name(),
@@ -108,8 +105,8 @@ public class RemotePropertiesTest {
   public void validateGetValueForTimeValueProperties() {
     TIME_PROPERTIES.forEach(
         property -> {
-          property.setValue(CUSTOM_INDEX, "0");
-          property.setValue(DEFAULT_INDEX, "10");
+          property.setValue(CUSTOM_INDEX, 0);
+          property.setValue(DEFAULT_INDEX, 10);
 
           assertEquals(property.name(), timeValueMillis(0), property.getValue(CUSTOM_INDEX));
           assertEquals(property.name(), timeValueMillis(10), property.getValue(DEFAULT_INDEX));
@@ -126,10 +123,10 @@ public class RemotePropertiesTest {
     PROPERTIES_AS_SET.forEach(
         property -> {
           List<String> customIndex = newArrayList(CUSTOM_INDEX, CUSTOM_INDEX, CUSTOM_INDEX);
-          property.setValue(CUSTOM_INDEX, customIndex.stream().collect(joining(",")));
+          property.setValue(CUSTOM_INDEX, customIndex);
 
           List<String> defaultIndex = newArrayList(DEFAULT_INDEX, DEFAULT_INDEX, DEFAULT_INDEX);
-          property.setValue(DEFAULT_INDEX, defaultIndex.stream().collect(joining(",")));
+          property.setValue(DEFAULT_INDEX, defaultIndex);
 
           assertEquals(
               property.name(), new HashSet<>(customIndex), property.getValue(CUSTOM_INDEX));
@@ -137,31 +134,6 @@ public class RemotePropertiesTest {
               property.name(), new HashSet<>(defaultIndex), property.getValue(DEFAULT_INDEX));
           assertEquals(
               property.name(), new HashSet<>(defaultIndex), property.getValue(NON_EXISTING_INDEX));
-        });
-  }
-
-  @Test
-  public void validateGetValueForPropertiesAsMap() {
-    PROPERTIES_AS_MAP.forEach(
-        property -> {
-          Map<String, String> expectedMapForCustomIndex = new HashMap<>();
-          expectedMapForCustomIndex.put("customIndexKey1", "value1");
-          expectedMapForCustomIndex.put("customIndexKey2", "value2");
-          property.setValue(CUSTOM_INDEX, "customIndexKey1|value1#customIndexKey2|value2");
-
-          Map<String, String> expectedMapForDefaultIndex = new HashMap<>();
-          expectedMapForDefaultIndex.put("defaultIndexKey1", "value1");
-          expectedMapForDefaultIndex.put("defaultIndexKey2", "value2");
-          expectedMapForDefaultIndex.put("defaultIndexKey3", "value3");
-          property.setValue(
-              DEFAULT_INDEX,
-              "defaultIndexKey1|value1#defaultIndexKey2|value2#defaultIndexKey3|value3");
-
-          assertEquals(property.name(), expectedMapForCustomIndex, property.getValue(CUSTOM_INDEX));
-          assertEquals(
-              property.name(), expectedMapForDefaultIndex, property.getValue(DEFAULT_INDEX));
-          assertEquals(
-              property.name(), expectedMapForDefaultIndex, property.getValue(NON_EXISTING_INDEX));
         });
   }
 
@@ -181,8 +153,24 @@ public class RemotePropertiesTest {
   }
 
   @Test
-  public void setEmptyValuesForNumericProperties() {
-    Stream.concat(TIME_PROPERTIES.stream(), NUMERIC_PROPERTIES.stream())
+  public void setEmptyValuesForTimeProperties() {
+    TIME_PROPERTIES.forEach(
+        property -> {
+          try {
+            property.setValue(DEFAULT_INDEX, EMPTY);
+            assertFalse(property.name() + ": Exception should be threw setting empty value", true);
+          } catch (Exception e) {
+            assertTrue(property.name(), e instanceof NumberFormatException);
+          }
+
+          assertNull(property.name(), property.getValue(DEFAULT_INDEX));
+          assertNull(property.name(), property.getValue(NON_EXISTING_INDEX));
+        });
+  }
+
+  @Test
+  public void setEmptyValuesForLongProperties() {
+    Stream.concat(TIME_PROPERTIES.stream(), LONG_PROPERTIES.stream())
         .forEach(
             property -> {
               try {
@@ -202,7 +190,7 @@ public class RemotePropertiesTest {
   public void setEmptyValuesForPropertiesAsSet() {
     PROPERTIES_AS_SET.forEach(
         property -> {
-          property.setValue(DEFAULT_INDEX, EMPTY);
+          property.setValue(DEFAULT_INDEX, null);
 
           assertEquals(property.name(), EMPTY_SET, property.getValue(DEFAULT_INDEX));
           assertEquals(property.name(), EMPTY_SET, property.getValue(NON_EXISTING_INDEX));
@@ -210,24 +198,24 @@ public class RemotePropertiesTest {
   }
 
   @Test
-  public void setEmptyValueForPropertiesAsMap() {
-    PROPERTIES_AS_MAP.forEach(
-        property -> {
-          property.setValue(DEFAULT_INDEX, EMPTY);
-
-          assertEquals(property.name(), EMPTY_MAP, property.getValue(DEFAULT_INDEX));
-          assertEquals(property.name(), EMPTY_MAP, property.getValue(NON_EXISTING_INDEX));
-        });
-  }
-
-  @Test
-  public void checkValueIfPropertyNeverSet() {
-    of(values())
+  public void checkValueIfPropertyNeverSpecified() {
+    newHashSet(values())
+        .stream()
+        .filter(property -> !PROPERTIES_AS_SET.contains(property))
         .forEach(
             property -> {
               assertNull(property.name(), property.getValue(DEFAULT_INDEX));
               assertNull(property.name(), property.getValue(NON_EXISTING_INDEX));
             });
+  }
+
+  @Test
+  public void checkDefaultValueForPropertiesAsSetIfNeverSpecified() {
+    PROPERTIES_AS_SET.forEach(
+        property -> {
+          assertEquals(new HashSet<>(), property.getValue(DEFAULT_INDEX));
+          assertEquals(new HashSet<>(), property.getValue(NON_EXISTING_INDEX));
+        });
   }
 
   // *****************************************
@@ -258,45 +246,43 @@ public class RemotePropertiesTest {
 
   @Test
   public void checkIsValidRequestValueForNumericProperties() {
-    NUMERIC_PROPERTIES.forEach(
-        property -> {
-          System.out.println("Testing remote property as numeric: " + property);
-          String minValue = valueOf(MIN_VALUE);
-          String maxValue = valueOf(MAX_VALUE);
+    Stream.concat(LONG_PROPERTIES.stream(), INTEGER_PROPERTIES.stream())
+        .forEach(
+            property -> {
+              System.out.println("Testing remote property as numeric: " + property);
+              property.setValue(CUSTOM_INDEX, MAX_VALUE);
+              property.setValue(DEFAULT_INDEX, MIN_VALUE);
 
-          property.setValue(CUSTOM_INDEX, maxValue);
-          property.setValue(DEFAULT_INDEX, minValue);
+              // Test over custom index
+              assertEquals(
+                  property.name(),
+                  numberAsInteger(MAX_VALUE),
+                  numberAsInteger(property.getValue(null, CUSTOM_INDEX)));
+              assertEquals(
+                  property.name(),
+                  numberAsInteger(0),
+                  numberAsInteger(property.getValue(0, CUSTOM_INDEX)));
 
-          // Test over custom index
-          assertEquals(
-              property.name(),
-              numberAsInteger(MAX_VALUE),
-              numberAsInteger(property.getValue(null, CUSTOM_INDEX)));
-          assertEquals(
-              property.name(),
-              numberAsInteger(0),
-              numberAsInteger(property.getValue(0, CUSTOM_INDEX)));
+              // Test over default index
+              assertEquals(
+                  property.name(),
+                  numberAsInteger(MIN_VALUE),
+                  numberAsInteger(property.getValue(null, DEFAULT_INDEX)));
+              assertEquals(
+                  property.name(),
+                  numberAsInteger(0),
+                  numberAsInteger(property.getValue(0, DEFAULT_INDEX)));
 
-          // Test over default index
-          assertEquals(
-              property.name(),
-              numberAsInteger(MIN_VALUE),
-              numberAsInteger(property.getValue(null, DEFAULT_INDEX)));
-          assertEquals(
-              property.name(),
-              numberAsInteger(0),
-              numberAsInteger(property.getValue(0, DEFAULT_INDEX)));
-
-          // Test over non existing index
-          assertEquals(
-              property.name(),
-              numberAsInteger(MIN_VALUE),
-              numberAsInteger(property.getValue(null, NON_EXISTING_INDEX)));
-          assertEquals(
-              property.name(),
-              numberAsInteger(0),
-              numberAsInteger(property.getValue(0, NON_EXISTING_INDEX)));
-        });
+              // Test over non existing index
+              assertEquals(
+                  property.name(),
+                  numberAsInteger(MIN_VALUE),
+                  numberAsInteger(property.getValue(null, NON_EXISTING_INDEX)));
+              assertEquals(
+                  property.name(),
+                  numberAsInteger(0),
+                  numberAsInteger(property.getValue(0, NON_EXISTING_INDEX)));
+            });
   }
 
   @Test
@@ -338,11 +324,11 @@ public class RemotePropertiesTest {
     PROPERTIES_AS_SET.forEach(
         property -> {
           System.out.println("Testing remote property as set: " + property);
-          Set<String> customIndex = newLinkedHashSet(CUSTOM_INDEX, CUSTOM_INDEX, CUSTOM_INDEX);
-          property.setValue(CUSTOM_INDEX, customIndex.stream().collect(joining(",")));
+          List<String> customIndex = newArrayList(CUSTOM_INDEX, CUSTOM_INDEX, CUSTOM_INDEX);
+          property.setValue(CUSTOM_INDEX, customIndex);
 
-          Set<String> defaultIndex = newLinkedHashSet(DEFAULT_INDEX, DEFAULT_INDEX, DEFAULT_INDEX);
-          property.setValue(DEFAULT_INDEX, defaultIndex.stream().collect(joining(",")));
+          List<String> defaultIndex = newArrayList(DEFAULT_INDEX, DEFAULT_INDEX, DEFAULT_INDEX);
+          property.setValue(DEFAULT_INDEX, defaultIndex);
 
           // Test over custom index
           checkIsValidRequestForPropertyAsSet(property, customIndex, CUSTOM_INDEX);
@@ -354,58 +340,19 @@ public class RemotePropertiesTest {
   }
 
   private void checkIsValidRequestForPropertyAsSet(
-      RemoteProperties property, Set<String> expectedIndexValue, String indexName) {
+      RemoteProperties property, List<String> expectedIndexValue, String indexName) {
     // Use property value, since request value is null
-    assertEquals(property.name(), expectedIndexValue, property.getValue(null, indexName));
+    assertEquals(
+        property.name(), new HashSet<>(expectedIndexValue), property.getValue(null, indexName));
     // Use property value, since request value is empty
     assertEquals(
-        property.name(), expectedIndexValue, property.getValue(new HashSet<>(), indexName));
+        property.name(),
+        new HashSet<>(expectedIndexValue),
+        property.getValue(new HashSet<>(), indexName));
     // Use request value since is valid
     assertEquals(
         property.name(),
         newLinkedHashSet("requestValue"),
         property.getValue(newLinkedHashSet("requestValue"), indexName));
-  }
-
-  @Test
-  public void checkIsValidRequestValueForPropertiesAsMap() {
-    PROPERTIES_AS_MAP.forEach(
-        property -> {
-          System.out.println("Testing remote property as map: " + property);
-
-          Map<String, String> expectedMapForCustomIndex = new HashMap<>();
-          expectedMapForCustomIndex.put("customIndexKey1", "value1");
-          expectedMapForCustomIndex.put("customIndexKey2", "value2");
-          property.setValue(CUSTOM_INDEX, "customIndexKey1|value1#customIndexKey2|value2");
-
-          Map<String, String> expectedMapForDefaultIndex = new HashMap<>();
-          expectedMapForDefaultIndex.put("defaultIndexKey1", "value1");
-          expectedMapForDefaultIndex.put("defaultIndexKey2", "value2");
-          expectedMapForDefaultIndex.put("defaultIndexKey3", "value3");
-          property.setValue(
-              DEFAULT_INDEX,
-              "defaultIndexKey1|value1#defaultIndexKey2|value2#defaultIndexKey3|value3");
-
-          // Test over custom index
-          checkIsValidRequestForPropertyAsMap(property, expectedMapForCustomIndex, CUSTOM_INDEX);
-          // Test over default index
-          checkIsValidRequestForPropertyAsMap(property, expectedMapForDefaultIndex, DEFAULT_INDEX);
-          // Test over non existing index
-          checkIsValidRequestForPropertyAsMap(
-              property, expectedMapForDefaultIndex, NON_EXISTING_INDEX);
-        });
-  }
-
-  private void checkIsValidRequestForPropertyAsMap(
-      RemoteProperties property, Map<String, String> expectedIndexValue, String indexName) {
-    // Use property value, since request value is null
-    assertEquals(property.name(), expectedIndexValue, property.getValue(null, indexName));
-    // Use property value, since request value is empty
-    assertEquals(
-        property.name(), expectedIndexValue, property.getValue(new HashMap<>(), indexName));
-    // Use request value since is valid
-    Map<String, String> requestMap = new HashMap<>();
-    requestMap.put("requestStatus", "isValid");
-    assertEquals(property.name(), requestMap, property.getValue(requestMap, indexName));
   }
 }

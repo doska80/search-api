@@ -1,13 +1,18 @@
 package com.vivareal.search.api.itest.scenarios;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.Thread.sleep;
 import static org.apache.http.HttpStatus.SC_OK;
+import static org.elasticsearch.index.query.MultiMatchQueryBuilder.Type.PHRASE_PREFIX;
 import static org.hamcrest.Matchers.equalTo;
 
 import com.vivareal.search.api.itest.SearchApiIntegrationTest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -32,10 +37,23 @@ public class QueryStringIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void shouldReturnOneResultWhenUsingQParameterUsingAlias() throws InterruptedException {
+  public void shouldReturnOneResultWhenUsingQParameterUsingMultipleQueryTemplate()
+      throws InterruptedException {
+    Map<String, List<String>> fieldAliases = new HashMap<>();
+    fieldAliases.put("qs_alias", newArrayList("object.string_text:2"));
+    fieldAliases.put(
+        "another_qs_alias", newArrayList("object.string_text", "object.special_string"));
+
+    Map<String, Object> firstTemplate = new HashMap<>();
+    firstTemplate.put("type", PHRASE_PREFIX.name());
+    firstTemplate.put("boost", 4);
+    firstTemplate.put("fieldAliases", fieldAliases);
+
+    Map<String, Object> secondTemplate = new HashMap<>();
+    secondTemplate.put("fieldAliases", fieldAliases);
+
     esIndexHandler.putStandardProperty(
-        "querystring.alias.fields",
-        "qs_alias|object.string_text:2#another_qs_alias|object.string_text,object.special_string");
+        "querystring.templates", newArrayList(firstTemplate, secondTemplate));
     esIndexHandler.addStandardProperties();
 
     sleep(1500);

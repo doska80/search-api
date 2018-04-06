@@ -1,7 +1,10 @@
 package com.vivareal.search.api.configuration.environment;
 
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
+import static java.lang.Boolean.*;
 import static java.util.Arrays.stream;
+import static org.apache.commons.lang3.math.NumberUtils.createNumber;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -64,10 +67,20 @@ public class SearchApiEnv {
             sourceMap ->
                 sourceMap.forEach(
                     (k, v) -> {
-                      String propertyValue = String.valueOf(environment.getProperty(k));
-                      this.localProperties.put(k, propertyValue);
+                      this.localProperties.put(
+                          k, parseLocalEnvironmentValue(environment.getProperty(k)));
                     }));
     loadEnvironmentProperties(DEFAULT_INDEX, this.localProperties);
+  }
+
+  private Object parseLocalEnvironmentValue(String propertyValue) {
+    if (isCreatable(propertyValue)) {
+      return createNumber(propertyValue);
+    } else if (TRUE.toString().equalsIgnoreCase(propertyValue)
+        || FALSE.toString().equalsIgnoreCase(propertyValue)) {
+      return parseBoolean(propertyValue);
+    }
+    return propertyValue;
   }
 
   @Scheduled(fixedRateString = "${application.properties.refresh.rate.ms}")
@@ -120,7 +133,7 @@ public class SearchApiEnv {
     stream(RemoteProperties.values())
         .parallel()
         .filter(remoteProperty -> properties.containsKey(remoteProperty.getProperty()))
-        .forEach(env -> env.setValue(index, String.valueOf(properties.get(env.getProperty()))));
+        .forEach(env -> env.setValue(index, properties.get(env.getProperty())));
     LOG.debug("Environment Properties loaded with success");
 
     applicationEventPublisher.publishEvent(new RemotePropertiesUpdatedEvent(this, index));

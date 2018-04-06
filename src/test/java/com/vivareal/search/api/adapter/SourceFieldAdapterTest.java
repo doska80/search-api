@@ -1,5 +1,6 @@
 package com.vivareal.search.api.adapter;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
@@ -43,7 +44,7 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     when(fieldCache.isIndexHasField(anyString(), contains("invalid")))
         .thenThrow(new InvalidFieldException("invalid", INDEX_NAME));
 
-    SOURCE_INCLUDES.setValue(INDEX_NAME, "");
+    SOURCE_INCLUDES.setValue(INDEX_NAME, null);
     SOURCE_EXCLUDES.setValue(INDEX_NAME, null);
   }
 
@@ -90,8 +91,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void applyDefaultFetchSourceFieldsWhenRequestEmptyForRequestById() {
-    SOURCE_INCLUDES.setValue(INDEX_NAME, "default.field1,default.field2,default.field3");
-    SOURCE_EXCLUDES.setValue(INDEX_NAME, "default.field2,default.field3,default.field4");
+    SOURCE_INCLUDES.setValue(
+        INDEX_NAME, newArrayList("default.field1", "default.field2", "default.field3"));
+    SOURCE_EXCLUDES.setValue(
+        INDEX_NAME, newArrayList("default.field2", "default.field3", "default.field4"));
 
     sourceFieldAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
 
@@ -112,8 +115,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void applyDefaultFetchSourceFieldsWhenRequestEmptyForForSearchRequest() {
-    SOURCE_INCLUDES.setValue(INDEX_NAME, "default.field1,default.field2,default.field3");
-    SOURCE_EXCLUDES.setValue(INDEX_NAME, "default.field2,default.field3,default.field4");
+    SOURCE_INCLUDES.setValue(
+        INDEX_NAME, newArrayList("default.field1", "default.field2", "default.field3"));
+    SOURCE_EXCLUDES.setValue(
+        INDEX_NAME, newArrayList("default.field2", "default.field3", "default.field4"));
 
     sourceFieldAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
 

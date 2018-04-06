@@ -38,8 +38,8 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
     facetQueryAdapter.setIndexSettings(indexSettings);
 
-    ES_FACET_SIZE.setValue(DEFAULT_INDEX, "10");
-    ES_FACET_SIZE.setValue(INDEX_NAME, "20");
+    ES_FACET_SIZE.setValue(DEFAULT_INDEX, 10);
+    ES_FACET_SIZE.setValue(INDEX_NAME, 20);
   }
 
   private List<AggregationBuilder> simulateAggregationsApply(Set<String> facets) {

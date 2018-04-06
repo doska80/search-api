@@ -57,19 +57,11 @@ public class DefaultFilterFactoryTest {
   }
 
   @Test
-  public void emptyDefaultFiltersForIndexWithEmptyConfig() {
-    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, "");
-    defaultFilterFactory.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, SOME_INDEX));
-    assertEquals(
-        new HashSet<>(), defaultFilterFactory.getDefaultFilters(SOME_INDEX, new HashSet<>()));
-  }
-
-  @Test
   public void mustReturnSingleDefaultFilterForIndexWhenRequestDoesNotMatchFilterField() {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
     Filter filter = qfi.getFilter();
 
-    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, filter.toString());
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
     BoolQueryBuilder expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
@@ -99,8 +91,7 @@ public class DefaultFilterFactoryTest {
                 from(QueryFragmentItem.class).gimme("qfi"),
                 from(QueryFragmentItem.class).gimme("qfiNested")));
 
-    FILTER_DEFAULT_CLAUSES.setValue(
-        SOME_INDEX, String.join(",", qfi.toString(), qfiNested.toString()));
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
 
     BoolQueryBuilder expectedDefaultFilter1 = boolQuery();
     when(queryParser.parse(qfi.toString())).thenReturn(qfi);
@@ -131,7 +122,7 @@ public class DefaultFilterFactoryTest {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
     Filter filter = qfi.getFilter();
 
-    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, filter.toString());
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
     BoolQueryBuilder expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
@@ -157,7 +148,7 @@ public class DefaultFilterFactoryTest {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfiNested");
     Filter filter = qfi.getFilter();
 
-    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, filter.toString());
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
     BoolQueryBuilder expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
@@ -189,8 +180,7 @@ public class DefaultFilterFactoryTest {
                 from(QueryFragmentItem.class).gimme("qfi"),
                 from(QueryFragmentItem.class).gimme("qfiNested")));
 
-    FILTER_DEFAULT_CLAUSES.setValue(
-        SOME_INDEX, String.join(",", qfi.toString(), qfiNested.toString()));
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
 
     BoolQueryBuilder expectedDefaultFilter1 = boolQuery();
     when(queryParser.parse(qfi.toString())).thenReturn(qfi);

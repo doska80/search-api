@@ -59,12 +59,12 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     initMocks(this);
 
     QS_MM.setValue(INDEX_NAME, "75%");
-    QS_DEFAULT_FIELDS.setValue(INDEX_NAME, "field,field1");
-    ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, "100");
+    QS_DEFAULT_FIELDS.setValue(INDEX_NAME, newArrayList("field", "field1"));
+    ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, 100);
     ES_QUERY_TIMEOUT_UNIT.setValue(INDEX_NAME, "MILLISECONDS");
-    ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
-    ES_MAX_SIZE.setValue(INDEX_NAME, "200");
-    ES_FACET_SIZE.setValue(INDEX_NAME, "20");
+    ES_DEFAULT_SIZE.setValue(INDEX_NAME, 20);
+    ES_MAX_SIZE.setValue(INDEX_NAME, 200);
+    ES_FACET_SIZE.setValue(INDEX_NAME, 20);
     ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
 
     ESClient esClient = new ESClient(transportClient);

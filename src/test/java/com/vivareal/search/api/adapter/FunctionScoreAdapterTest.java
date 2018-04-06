@@ -1,5 +1,6 @@
 package com.vivareal.search.api.adapter;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
 import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.*;
@@ -14,6 +15,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.vivareal.search.api.model.mapping.MappingType;
 import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
+import java.util.LinkedList;
 import java.util.stream.Stream;
 import org.elasticsearch.action.get.GetRequestBuilder;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -42,14 +44,14 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     initMocks(this);
 
     QS_MM.setValue(INDEX_NAME, "75%");
-    QS_DEFAULT_FIELDS.setValue(INDEX_NAME, "field,field1");
-    SOURCE_INCLUDES.setValue(INDEX_NAME, "");
-    SOURCE_EXCLUDES.setValue(INDEX_NAME, "");
-    ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, "100");
+    QS_DEFAULT_FIELDS.setValue(INDEX_NAME, newArrayList("field", "field1"));
+    SOURCE_INCLUDES.setValue(INDEX_NAME, new LinkedList<>());
+    SOURCE_EXCLUDES.setValue(INDEX_NAME, new LinkedList<>());
+    ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, 100);
     ES_QUERY_TIMEOUT_UNIT.setValue(INDEX_NAME, "MILLISECONDS");
-    ES_DEFAULT_SIZE.setValue(INDEX_NAME, "20");
-    ES_MAX_SIZE.setValue(INDEX_NAME, "200");
-    ES_FACET_SIZE.setValue(INDEX_NAME, "20");
+    ES_DEFAULT_SIZE.setValue(INDEX_NAME, 20);
+    ES_MAX_SIZE.setValue(INDEX_NAME, 200);
+    ES_FACET_SIZE.setValue(INDEX_NAME, 20);
     ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
     SCORE_FACTOR_FIELD.setValue(INDEX_NAME, DEFAULT_SCORE_FACTOR_FIELD);
 
