@@ -34,7 +34,7 @@ public class Facet {
             });
   }
 
-  private boolean hasInvalidFieldName(Sort.Item item) {
+  private boolean hasInvalidFieldName(Item item) {
     return !_KEY.equals(item.getField().getName()) && !_COUNT.equals(item.getField().getName());
   }
 

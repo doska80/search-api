@@ -1,5 +1,7 @@
 package com.vivareal.search.api.model.parser;
 
+import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type;
+import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
 import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.VIEWPORT;
 import static org.junit.Assert.assertEquals;
 
@@ -139,5 +141,25 @@ public class ValueParserTest {
     valueParser
         .getGeoPointValue(VIEWPORT)
         .parse("[[-23.5534103,-46.6597479],[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidTypeGeoPoint() {
+    valueParser.getGeoPointValue(Type.valueOf("invalidtype")).parse("[[-23.5534103,-46.6597479]]");
+  }
+
+  @Test(expected = ParserException.class)
+  public void testInvalidSyntaxSingleGeoPoint() {
+    valueParser.getGeoPointValue(SINGLE).parse("[[-23.5534103,-46.6597479]]");
+  }
+
+  @Test(expected = ParserException.class)
+  public void testInvalidSingleNegativeSingleGeoPoint() {
+    valueParser.getGeoPointValue(SINGLE).parse("[-23.5534103]");
+  }
+
+  @Test(expected = ParserException.class)
+  public void testInvalidMultipleNegativeSingleGeoPoint() {
+    valueParser.getGeoPointValue(SINGLE).parse("[-23.5534103,-46.6597479, -40.1234567]");
   }
 }

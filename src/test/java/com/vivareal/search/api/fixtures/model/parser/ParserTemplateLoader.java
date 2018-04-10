@@ -35,7 +35,10 @@ public class ParserTemplateLoader {
 
   public static SortParser sortParserFixture() {
     return new SortParser(
-        fieldParserWithoutValidationFixture(), new OperatorParser(), queryParserFixture());
+        fieldParserWithoutValidationFixture(),
+        new OperatorParser(),
+        new ValueParser(),
+        queryParserFixture());
   }
 
   public static FacetParser facetParserFixture() {

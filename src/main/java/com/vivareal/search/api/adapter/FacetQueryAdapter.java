@@ -13,8 +13,8 @@ import static org.elasticsearch.search.aggregations.BucketOrder.key;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.vivareal.search.api.model.parser.FacetParser;
+import com.vivareal.search.api.model.query.Item;
 import com.vivareal.search.api.model.query.OrderOperator;
-import com.vivareal.search.api.model.query.Sort.Item;
 import com.vivareal.search.api.model.search.Facetable;
 import com.vivareal.search.api.service.parser.IndexSettings;
 import java.util.Optional;

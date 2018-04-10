@@ -10,18 +10,17 @@ import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import com.vivareal.search.api.model.parser.OperatorParser;
 import com.vivareal.search.api.model.parser.SortParser;
+import com.vivareal.search.api.model.parser.ValueParser;
 import java.util.List;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
-import org.elasticsearch.search.sort.ScoreSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.search.sort.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,7 +30,8 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   public SortQueryAdapterTest() {
     SortParser sortParser =
-        new SortParser(fieldParserFixture(), new OperatorParser(), queryParserFixture());
+        new SortParser(
+            fieldParserFixture(), new OperatorParser(), new ValueParser(), queryParserFixture());
     this.sortQueryAdapter = new SortQueryAdapter(sortParser, mock(FilterQueryAdapter.class));
   }
 
@@ -195,6 +195,26 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
     assertEquals("id", sortFields.get(0).getFieldName());
     assertEquals(ASC, sortFields.get(0).order());
+
+    assertEquals("_id", sortFields.get(1).getFieldName());
+    assertEquals(DESC, sortFields.get(1).order());
+  }
+
+  @Test
+  public void validateDistanceSortBuilder() {
+    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchApiRequest request = fullRequest.build();
+    request.setSort("field.geo NEAR [10.0, -20.0]");
+
+    sortQueryAdapter.apply(requestBuilder, request);
+    List<FieldSortBuilder> sortFields = (List) requestBuilder.request().source().sorts();
+
+    assertEquals(2, sortFields.size());
+
+    assertTrue((SortBuilder) sortFields.get(0) instanceof GeoDistanceSortBuilder);
+    assertEquals("ASC", ((SortBuilder) sortFields.get(0)).order().name());
+    assertEquals(
+        "field.geo", ((GeoDistanceSortBuilder) (SortBuilder) sortFields.get(0)).fieldName());
 
     assertEquals("_id", sortFields.get(1).getFieldName());
     assertEquals(DESC, sortFields.get(1).order());

@@ -1,5 +1,6 @@
 package com.vivareal.search.api.model.query;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.format;
 import static org.apache.lucene.geo.GeoUtils.checkLatitude;
 import static org.apache.lucene.geo.GeoUtils.checkLongitude;
@@ -15,6 +16,10 @@ public class GeoPointValue extends Value {
     this.checkCoordinates(points, type);
 
     this.contents = new ArrayList<>(points);
+  }
+
+  public GeoPointValue(Value point, final ValueParser.GeoPoint.Type type) {
+    this(newArrayList(point), type);
   }
 
   private void checkSize(final List<Value> points, final ValueParser.GeoPoint.Type type) {

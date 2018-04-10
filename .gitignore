@@ -29,6 +29,7 @@ out/
 *.orig
 
 logs/
+*.log
 
 deploy/output
 deploy/variables/user-data.sh

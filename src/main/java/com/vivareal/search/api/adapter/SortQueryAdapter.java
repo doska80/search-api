@@ -8,18 +8,23 @@ import static java.lang.Boolean.TRUE;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
+import static org.elasticsearch.search.sort.SortBuilders.geoDistanceSort;
 import static org.elasticsearch.search.sort.SortBuilders.scoreSort;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.elasticsearch.search.sort.SortOrder.valueOf;
 
 import com.vivareal.search.api.exception.InvalidFieldException;
 import com.vivareal.search.api.model.parser.SortParser;
-import com.vivareal.search.api.model.query.Sort.Item;
+import com.vivareal.search.api.model.query.GeoPointItem;
+import com.vivareal.search.api.model.query.GeoPointValue;
+import com.vivareal.search.api.model.query.Item;
 import com.vivareal.search.api.model.search.Sortable;
 import java.util.HashMap;
 import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.GeoDistanceSortBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.jparsec.error.ParserException;
@@ -109,10 +114,34 @@ public class SortQueryAdapter {
 
     if (fieldName.equals("_score")) return scoreSort();
 
+    if (item instanceof GeoPointItem) {
+      GeoDistanceSortBuilder geoDistanceSortBuilder =
+          getGeoDistanceSortBuilder((GeoPointItem) item);
+
+      if (FIELD_TYPE_NESTED.typeOf(item.getField().getTypeFirstName()))
+        geoDistanceSortBuilder.setNestedSort(getQueryFragment(item, request));
+
+      return geoDistanceSortBuilder;
+    }
+
     FieldSortBuilder fieldSortBuilder =
         fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
 
-    if (FIELD_TYPE_NESTED.typeOf(item.getField().getTypeFirstName())) {
+    if (FIELD_TYPE_NESTED.typeOf(item.getField().getTypeFirstName()))
+      fieldSortBuilder.setNestedSort(getQueryFragment(item, request));
+
+    return fieldSortBuilder;
+  }
+
+  private GeoDistanceSortBuilder getGeoDistanceSortBuilder(GeoPointItem item) {
+    GeoPointValue geoPointValue = item.getGeoPointValue();
+    GeoPoint geoPoint = new GeoPoint(geoPointValue.value(0, 1), geoPointValue.value(0, 0));
+
+    return geoDistanceSort(item.getField().getName(), geoPoint);
+  }
+
+  private NestedSortBuilder getQueryFragment(Item item, Sortable request) {
+    {
       NestedSortBuilder nestedSortBuilder = new NestedSortBuilder(item.getField().firstName());
 
       item.getQueryFragment()
@@ -124,8 +153,7 @@ public class SortQueryAdapter {
                 nestedSortBuilder.setFilter(queryBuilder);
               });
 
-      fieldSortBuilder.setNestedSort(nestedSortBuilder);
+      return nestedSortBuilder;
     }
-    return fieldSortBuilder;
   }
 }

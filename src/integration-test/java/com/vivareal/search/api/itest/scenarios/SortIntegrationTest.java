@@ -2,21 +2,21 @@ package com.vivareal.search.api.itest.scenarios;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
+import static com.vivareal.search.api.itest.configuration.data.TestData.latitude;
+import static com.vivareal.search.api.itest.configuration.data.TestData.longitude;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertTrue;
 
 import com.vivareal.search.api.itest.SearchApiIntegrationTest;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -221,6 +221,145 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
       assertTrue(lastId > currentId);
       lastId = currentId;
     }
+  }
+
+  @Test
+  public void validateSortByProximity() {
+    List<Float> expectedLat = new ArrayList<>();
+    List<Float> expectedLon = new ArrayList<>();
+    for (int i = standardDatasetSize; i > standardDatasetSize - defaultPageSize; i--) {
+      expectedLat.add(latitude(i));
+      expectedLon.add(longitude(i));
+    }
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?sort=geo NEAR [30.0, -30.0]", TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body("result.testdata.geo.lat", equalTo(expectedLat))
+        .body("result.testdata.geo.lon", equalTo(expectedLon));
+  }
+
+  @Test
+  public void validateSortByProximitySameDistance() {
+    int testValueLatitudeLongitude = 15;
+
+    List<Float> expectedLat = new ArrayList<>();
+    List<Float> expectedLon = new ArrayList<>();
+
+    for (int i = 0;
+        expectedLat.size() < defaultPageSize && expectedLon.size() < defaultPageSize;
+        i++) {
+
+      if (i == 0) {
+        expectedLon.add(longitude(testValueLatitudeLongitude));
+        expectedLat.add(latitude(testValueLatitudeLongitude));
+      } else {
+        expectedLon.add(longitude(testValueLatitudeLongitude) + i);
+        expectedLat.add(latitude(testValueLatitudeLongitude) - i);
+
+        expectedLon.add(longitude(testValueLatitudeLongitude) - i);
+        expectedLat.add(latitude(testValueLatitudeLongitude) + i);
+      }
+    }
+
+    expectedLat = expectedLat.subList(0, defaultPageSize);
+    expectedLon = expectedLon.subList(0, defaultPageSize);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(
+            format(
+                "%s?sort=geo NEAR [%s, %s]",
+                TEST_DATA_INDEX,
+                longitude(testValueLatitudeLongitude),
+                latitude(testValueLatitudeLongitude)))
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body("result.testdata.geo.lat", equalTo(expectedLat))
+        .body("result.testdata.geo.lon", equalTo(expectedLon));
+  }
+
+  @Test
+  public void validateSortByProximityWithSortFilter() {
+    List<Float> expectedLat = new ArrayList<>();
+    List<Float> expectedLon = new ArrayList<>();
+    for (int i = standardDatasetSize; i > standardDatasetSize - defaultPageSize; i--) {
+      expectedLat.add(latitude(i));
+      expectedLon.add(longitude(i));
+    }
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(
+            format(
+                "%s?sort=geo NEAR [30.0, -30.0] sortFilter:nested_array.string EQ \"b\"",
+                TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body("result.testdata.geo.lat", equalTo(expectedLat))
+        .body("result.testdata.geo.lon", equalTo(expectedLon));
+  }
+
+  @Test
+  public void validateSortByProximityWithWrongOperator() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?sort=geo FAR [30.0, -30.0]", TEST_DATA_INDEX));
+  }
+
+  @Test
+  public void validateSortByProximityWithTooManyPoints() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?sort=geo NEAR [30.0, -30.0, -25.0]", TEST_DATA_INDEX));
+  }
+
+  @Test
+  public void validateSortByProximityWithFewerPoints() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s?sort=geo NEAR [30.0]", TEST_DATA_INDEX));
   }
 
   @Test

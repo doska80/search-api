@@ -61,19 +61,28 @@ public class ValueParser {
     return rangeValueParser;
   }
 
-  Parser<Value> getGeoPointValue(GeoPoint.Type type) {
-    return between(
-            isChar('['),
-            get().sepBy1(between(WHITESPACES.skipMany(), isChar(','), WHITESPACES.skipMany())),
-            isChar(']'))
-        .label(type.name())
-        .map(values -> new GeoPointValue(values, type));
+  Parser<GeoPointValue> getGeoPointValue(GeoPoint.Type type) {
+    switch (type) {
+      case VIEWPORT:
+      case POLYGON:
+        return between(
+                isChar('['),
+                get().sepBy1(between(WHITESPACES.skipMany(), isChar(','), WHITESPACES.skipMany())),
+                isChar(']'))
+            .label(type.name())
+            .map(values -> new GeoPointValue(values, type));
+      case SINGLE:
+        return get().label(type.name()).map(value -> new GeoPointValue(value, type));
+      default:
+        throw new IllegalArgumentException("Invalid GeoPoint type");
+    }
   }
 
   public static class GeoPoint {
     public enum Type {
       VIEWPORT(2, 2),
-      POLYGON(3, 1000);
+      POLYGON(3, 1000),
+      SINGLE(1, 1);
 
       private final int minSize;
       private final int maxSize;

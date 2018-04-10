@@ -20,6 +20,11 @@ public class GeoPointValueTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
+  public void emptySingle() {
+    new GeoPointValue(emptyList(), Type.SINGLE);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
   public void hugeViewport() {
     List<Value> viewport =
         newArrayList(
@@ -31,10 +36,27 @@ public class GeoPointValueTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
+  public void hugeSingle() {
+    List<Value> single =
+        newArrayList(
+            new Value(asList(new Value(30.0), new Value(-40.0))),
+            new Value(asList(new Value(40.0), new Value(-50.0))));
+
+    new GeoPointValue(single, Type.SINGLE);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
   public void nullViewport() {
     List<Value> viewport = newArrayList(new Value(asList(new Value(1.0), new Value(2.0))), null);
 
     new GeoPointValue(viewport, Type.VIEWPORT);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void nullSingle() {
+    List<Value> single = newArrayList(new Value(asList(new Value(30.0), new Value(-40.0))), null);
+
+    new GeoPointValue(single, Type.SINGLE);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -45,6 +67,16 @@ public class GeoPointValueTest {
             new Value(asList(new Value(3.0), new Value(4.0), new Value(5.0))));
 
     new GeoPointValue(viewport, Type.VIEWPORT);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void hugeItemSingle() {
+    List<Value> single =
+        newArrayList(
+            new Value(asList(new Value(30.0), new Value(-40.0))),
+            new Value(asList(new Value(40.0), new Value(-50.0), new Value(50.0))));
+
+    new GeoPointValue(single, Type.SINGLE);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -98,5 +130,15 @@ public class GeoPointValueTest {
     assertEquals(valueOf(4.0), polygon.value(1, 1));
     assertEquals(valueOf(5.5), polygon.value(2, 0));
     assertEquals(valueOf(6.1), polygon.value(2, 1));
+  }
+
+  @Test
+  public void validSingle() {
+    List<Value> single = newArrayList(new Value(asList(new Value(30.0), new Value(-40.0))));
+
+    GeoPointValue polygon = new GeoPointValue(single, Type.SINGLE);
+
+    assertEquals(valueOf(30.0), polygon.value(0, 0));
+    assertEquals(valueOf(-40.0), polygon.value(0, 1));
   }
 }

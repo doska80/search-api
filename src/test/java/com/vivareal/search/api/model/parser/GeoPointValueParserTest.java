@@ -1,6 +1,7 @@
 package com.vivareal.search.api.model.parser;
 
 import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.POLYGON;
+import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
 import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.VIEWPORT;
 import static org.junit.Assert.assertEquals;
 
@@ -38,5 +39,11 @@ public class GeoPointValueParserTest {
   public void testViewport() {
     Value parse = valueParser.getGeoPointValue(VIEWPORT).parse("[[42.0,-74.0],[-40.0,-72.0]]");
     assertEquals("[[42.0, -74.0], [-40.0, -72.0]]", parse.toString());
+  }
+
+  @Test
+  public void testSingle() {
+    Value parse = valueParser.getGeoPointValue(SINGLE).parse("[42.0,-74.0]");
+    assertEquals("[42.0, -74.0]", parse.toString());
   }
 }

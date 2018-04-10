@@ -7,8 +7,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
+import com.vivareal.search.api.model.query.Item;
 import com.vivareal.search.api.model.query.Sort;
-import com.vivareal.search.api.model.query.Sort.Item;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -21,7 +21,20 @@ public class SortParserTest {
 
   public SortParserTest() {
     this.sortParser =
-        new SortParser(fieldParserFixture(), new OperatorParser(), queryParserFixture());
+        new SortParser(
+            fieldParserFixture(), new OperatorParser(), new ValueParser(), queryParserFixture());
+  }
+
+  @Test
+  public void testNearSort() {
+    Sort sort = sortParser.parse("field NEAR [42.0,-74.0]");
+    assertEquals("field ASC [42.0, -74.0]", sort.toString());
+  }
+
+  @Test
+  public void testNestedNearSort() {
+    Sort sort = sortParser.parse("field1.field2 NEAR [42.0,-74.0]");
+    assertEquals("field1.field2 ASC [42.0, -74.0]", sort.toString());
   }
 
   @Test
@@ -79,6 +92,15 @@ public class SortParserTest {
   }
 
   @Test
+  public void testNearWithSortFilter() {
+    List<Item> items =
+        newArrayList(sortParser.parse("field NEAR [42.0,-74.0] sortFilter:field2 EQ \"BETA\""));
+
+    assertThat(items, hasSize(1));
+    assertEquals("field ASC [42.0, -74.0] (field2 EQUAL \"BETA\")", items.get(0).toString());
+  }
+
+  @Test
   public void testSingleWithSortFilterWithSpaces() {
     String sortClause =
         Stream.of(
@@ -126,5 +148,10 @@ public class SortParserTest {
   @Test(expected = ParserException.class)
   public void testSpaceSortError() {
     sortParser.parse(" ");
+  }
+
+  @Test(expected = ParserException.class)
+  public void testNearSortWithMultipleCoordinates() {
+    sortParser.parse("field NEAR [[42.0,-74.0], [30.0, -40.0]]");
   }
 }
