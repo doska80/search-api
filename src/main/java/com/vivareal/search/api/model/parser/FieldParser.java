@@ -17,12 +17,12 @@ public class FieldParser {
   private Parser<Field> fieldParser;
   private Parser<Field> fieldParserWithNot;
 
-  public FieldParser(NotParser notParser, FieldFactory fieldFactory) {
-    this(notParser, fieldFactory::createField, fieldFactory::createField);
+  public FieldParser(NotParser notParser) {
+    this(notParser, FieldFactory::createField, FieldFactory::createField);
   }
 
-  public FieldParser(NotParser notParser, FieldFactory fieldFactory, FieldCache fieldCache) {
-    this(notParser, fieldCache::getField, fieldFactory::createField);
+  public FieldParser(NotParser notParser, FieldCache fieldCache) {
+    this(notParser, fieldCache::getField, FieldFactory::createField);
   }
 
   private FieldParser(

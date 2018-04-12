@@ -1,7 +1,6 @@
 package com.vivareal.search.api.model.parser.configuration;
 
 import com.vivareal.search.api.model.parser.*;
-import com.vivareal.search.api.service.parser.factory.FieldFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class QueryParserWithoutValidationConfiguration {
 
   @Bean("fieldParserWithoutValidation")
-  public FieldParser fieldParserWithoutValidation(NotParser notParser, FieldFactory fieldFactory) {
-    return new FieldParser(notParser, fieldFactory);
+  public FieldParser fieldParserWithoutValidation(NotParser notParser) {
+    return new FieldParser(notParser);
   }
 
   @Bean("filterParserWithoutValidation")

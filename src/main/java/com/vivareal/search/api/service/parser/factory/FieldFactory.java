@@ -16,11 +16,11 @@ public class FieldFactory {
 
   private static final String DEFAULT_TYPE = "_obj";
 
-  public Field createField(String fieldName) {
+  public static Field createField(String fieldName) {
     return createField(fieldName, new HashMap<>());
   }
 
-  public Field createField(String fieldName, Map<String, Object> typePerFieldName) {
+  public static Field createField(String fieldName, Map<String, Object> typePerFieldName) {
     List<String> names = asList(fieldName.split("\\."));
     LinkedMap fieldTypes =
         rangeClosed(1, names.size())
@@ -33,7 +33,7 @@ public class FieldFactory {
     return new Field(fieldTypes);
   }
 
-  public Field createField(Boolean not, Field field) {
+  public static Field createField(Boolean not, Field field) {
     return new Field(not, field.getTypesByName());
   }
 }

@@ -2,7 +2,6 @@ package com.vivareal.search.api.itest;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
 import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -14,7 +13,6 @@ import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
 import java.io.IOException;
 import javax.annotation.PostConstruct;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,11 +45,6 @@ public class SearchApiIntegrationTest {
 
   @Autowired protected ESIndexHandler esIndexHandler;
   @Autowired protected StandardDatasetAsserts asserts;
-
-  @BeforeClass
-  public static void setup() {
-    loadAll();
-  }
 
   @Before
   public void forceCircuitClosed() {

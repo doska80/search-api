@@ -15,6 +15,10 @@ public class InvalidFieldException extends IllegalArgumentException {
     super(ERROR_MESSAGE.apply(field, index), cause);
   }
 
+  public InvalidFieldException(final String text) {
+    super(text);
+  }
+
   public InvalidFieldException(Throwable cause) {
     super(cause);
   }

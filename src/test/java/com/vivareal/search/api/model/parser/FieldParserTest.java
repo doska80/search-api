@@ -4,7 +4,6 @@ import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader
 import static org.junit.Assert.assertEquals;
 
 import com.vivareal.search.api.model.query.Field;
-import com.vivareal.search.api.service.parser.factory.FieldFactory;
 import java.util.stream.Stream;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
@@ -15,7 +14,7 @@ public class FieldParserTest {
   private FieldParser fieldParser;
 
   public FieldParserTest() {
-    this.fieldParser = new FieldParser(new NotParser(), new FieldFactory(), fieldCacheFixture());
+    this.fieldParser = new FieldParser(new NotParser(), fieldCacheFixture());
   }
 
   @Test

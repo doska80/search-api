@@ -20,9 +20,21 @@ public final class Sort extends AbstractSet<Sort.Item> {
     items.add(new Item(field, orderOperator, queryFragment));
   }
 
+  public Sort(Field field, OrderOperator orderOperator) {
+    this(field, orderOperator, Optional.empty());
+  }
+
   @Override
   public Iterator<Item> iterator() {
     return items.iterator();
+  }
+
+  public Item getFirst() {
+    if (items.isEmpty()) {
+      throw new IllegalArgumentException("The sort is invalid: " + items.toString());
+    }
+
+    return items.iterator().next();
   }
 
   @Override
@@ -46,6 +58,12 @@ public final class Sort extends AbstractSet<Sort.Item> {
       this.queryFragment = queryFragment;
     }
 
+    private Item(Field field, OrderOperator orderOperator) {
+      this.field = field;
+      this.orderOperator = orderOperator;
+      this.queryFragment = Optional.empty();
+    }
+
     public Field getField() {
       return field;
     }
@@ -60,10 +78,14 @@ public final class Sort extends AbstractSet<Sort.Item> {
 
     @Override
     public String toString() {
-      return format(
-              "%s %s %s",
-              field, orderOperator, queryFragment.map(QueryFragment::toString).orElse(EMPTY))
-          .trim();
+      if (queryFragment != null) {
+        return format(
+                "%s %s %s",
+                field, orderOperator, queryFragment.map(QueryFragment::toString).orElse(EMPTY))
+            .trim();
+      } else {
+        return format("%s %s", field, orderOperator).trim();
+      }
     }
 
     @Override

@@ -33,8 +33,13 @@ public class ParserTemplateLoader {
     return new QueryParser(operatorParser, filterParser, new NotParser());
   }
 
+  public static SortParser sortParserFixture() {
+    return new SortParser(
+        fieldParserWithoutValidationFixture(), new OperatorParser(), queryParserFixture());
+  }
+
   public static FacetParser facetParserFixture() {
-    return new FacetParser(fieldParserFixture());
+    return new FacetParser(fieldParserFixture(), sortParserFixture());
   }
 
   public static FilterParser filterParserFixture() {
@@ -85,10 +90,10 @@ public class ParserTemplateLoader {
   }
 
   public static FieldParser fieldParserFixture() {
-    return new FieldParser(new NotParser(), new FieldFactory(), fieldCacheFixture());
+    return new FieldParser(new NotParser(), fieldCacheFixture());
   }
 
   private static FieldParser fieldParserWithoutValidationFixture() {
-    return new FieldParser(new NotParser(), new FieldFactory());
+    return new FieldParser(new NotParser());
   }
 }

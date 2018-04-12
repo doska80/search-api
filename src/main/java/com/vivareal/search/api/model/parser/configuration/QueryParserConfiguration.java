@@ -2,7 +2,6 @@ package com.vivareal.search.api.model.parser.configuration;
 
 import com.vivareal.search.api.model.parser.*;
 import com.vivareal.search.api.service.parser.factory.FieldCache;
-import com.vivareal.search.api.service.parser.factory.FieldFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,9 +12,8 @@ public class QueryParserConfiguration {
 
   @Bean("fieldParser")
   @Primary
-  public FieldParser fieldParserUsingFactory(
-      NotParser notParser, FieldFactory fieldFactory, FieldCache fieldCache) {
-    return new FieldParser(notParser, fieldFactory, fieldCache);
+  public FieldParser fieldParserUsingFactory(NotParser notParser, FieldCache fieldCache) {
+    return new FieldParser(notParser, fieldCache);
   }
 
   @Bean("filterParser")

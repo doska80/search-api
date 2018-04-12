@@ -18,6 +18,7 @@ public class SortParser {
 
   static final String SORT_FILTER_FIELD = "sortFilter";
 
+  private final Parser<Sort> sortSingleParser;
   private final Parser<Sort> sortParser;
 
   @Autowired
@@ -25,6 +26,7 @@ public class SortParser {
       FieldParser fieldParser, OperatorParser operatorParser, QueryParser queryParser) {
     Parser<OrderOperator> orderOperatorParser =
         operatorParser.getOrderOperatorParser().optional(OrderOperator.ASC).label("sortOperator");
+
     Parser<Optional<QueryFragment>> sortFilterParser =
         sequence(
                 string(SORT_FILTER_FIELD),
@@ -32,11 +34,18 @@ public class SortParser {
                 queryParser.getRecursiveQueryParser())
             .asOptional();
 
+    sortSingleParser =
+        sequence(fieldParser.getWithoutNot(), orderOperatorParser, sortFilterParser, Sort::new);
+
     sortParser =
-        sequence(fieldParser.getWithoutNot(), orderOperatorParser, sortFilterParser, Sort::new)
+        sortSingleParser
             .sepBy(isChar(',').next(WHITESPACES.skipMany()))
             .label("sort")
             .map(Sort::new);
+  }
+
+  public Parser<Sort> getSingleSortParser() {
+    return sortSingleParser;
   }
 
   @Trace

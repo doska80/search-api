@@ -1,5 +1,7 @@
 package com.vivareal.search.api.service.parser.factory;
 
+import static com.vivareal.search.api.model.query.Facet._COUNT;
+import static com.vivareal.search.api.model.query.Facet._KEY;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -22,7 +24,12 @@ import org.springframework.stereotype.Component;
 public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEvent> {
 
   public static final Map<String, String> WHITE_LIST_METAFIELDS =
-      ImmutableMap.<String, String>builder().put("_id", "string").put("_score", "float").build();
+      ImmutableMap.<String, String>builder()
+          .put("_id", "string")
+          .put("_score", "float")
+          .put(_KEY, "string")
+          .put(_COUNT, "string")
+          .build();
   private static final Logger LOG = LoggerFactory.getLogger(FieldCache.class);
 
   private FieldFactory fieldFactory;

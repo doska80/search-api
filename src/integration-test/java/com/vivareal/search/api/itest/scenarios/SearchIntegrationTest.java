@@ -15,14 +15,10 @@ import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.vivareal.search.api.itest.SearchApiIntegrationTest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
@@ -676,56 +672,6 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateFacetFields() {
-    given()
-        .log()
-        .all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_OK)
-        .when()
-        .get(TEST_DATA_INDEX + "?facets=id,array_integer,isEven")
-        .then()
-        .body("totalCount", equalTo(standardDatasetSize))
-        .body("result.testdata", hasSize(defaultPageSize))
-        .body("result.testdata", everyItem(notNullValue()))
-        .body("result.facets", notNullValue())
-        .body("result.facets.id.findAll { it.value == 1 }.size()", equalTo(facetSize))
-        .body("result.facets.isEven.true", equalTo(standardDatasetSize / 2))
-        .body("result.facets.isEven.false", equalTo(standardDatasetSize / 2))
-        .body(
-            "result.facets.array_integer.findAll { it.key.toInteger() + it.value - 1 == "
-                + standardDatasetSize
-                + " }.size()",
-            equalTo(facetSize));
-  }
-
-  @Test
-  public void validateFacetSize() {
-    given()
-        .log()
-        .all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_OK)
-        .when()
-        .get(TEST_DATA_INDEX + "?facets=id,array_integer&facetSize=" + standardDatasetSize)
-        .then()
-        .body("totalCount", equalTo(standardDatasetSize))
-        .body("result.testdata", hasSize(defaultPageSize))
-        .body("result.testdata", everyItem(notNullValue()))
-        .body("result.facets", notNullValue())
-        .body("result.facets.id.findAll { it.value == 1 }.size()", equalTo(standardDatasetSize))
-        .body(
-            "result.facets.array_integer.findAll { it.key.toInteger() + it.value - 1 == "
-                + standardDatasetSize
-                + " }.size()",
-            equalTo(standardDatasetSize));
-  }
-
-  @Test
   public void validatePaginationFromParameter() {
     int lastPage = (int) ceil(standardDatasetSize / (float) defaultPageSize);
     int lastPageSize = standardDatasetSize - defaultPageSize * (lastPage - 1);
@@ -941,19 +887,6 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .statusCode(SC_BAD_REQUEST)
         .when()
         .get(format("%s?filter=non_existing_field:1", TEST_DATA_INDEX));
-  }
-
-  @Test
-  public void validateSearchWithNonExistingFacet() {
-    given()
-        .log()
-        .all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_BAD_REQUEST)
-        .when()
-        .get(format("%s?facets=non_existing_field", TEST_DATA_INDEX));
   }
 
   @Test
@@ -1321,50 +1254,6 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .then()
         .body("totalCount", equalTo(standardDatasetSize))
         .body("result.testdata", hasSize(0));
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  public void validateFacetSortPosition() throws IOException {
-    String response =
-        given()
-            .log()
-            .all()
-            .baseUri(baseUrl)
-            .contentType(JSON)
-            .expect()
-            .statusCode(SC_OK)
-            .when()
-            .get(
-                format(
-                    "%s?size=0&facets=facetString,facetInteger,facetBoolean,array_integer&facetSize=%s",
-                    TEST_DATA_INDEX, standardDatasetSize))
-            .body()
-            .asString();
-
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
-    assertNotNull(facets);
-
-    List<Integer> facetString =
-        new ArrayList(mapper.convertValue(facets.get("facetString"), Map.class).values());
-    assertTrue(facetString.get(0) >= facetString.get(1));
-
-    List<Integer> facetInteger =
-        new ArrayList(mapper.convertValue(facets.get("facetInteger"), Map.class).values());
-    assertTrue(facetInteger.get(0) >= facetInteger.get(1));
-
-    List<Integer> facetBoolean =
-        new ArrayList(mapper.convertValue(facets.get("facetBoolean"), Map.class).values());
-    assertTrue(facetBoolean.get(0) >= facetBoolean.get(1));
-
-    List<Integer> facetArray =
-        new ArrayList(mapper.convertValue(facets.get("array_integer"), Map.class).values());
-    assertTrue(facetArray.size() == standardDatasetSize);
-    int index = 0;
-    while ((index + 1) < standardDatasetSize) {
-      assertTrue(facetArray.get(index) >= facetArray.get(index + 1));
-      index++;
-    }
   }
 
   @Test
