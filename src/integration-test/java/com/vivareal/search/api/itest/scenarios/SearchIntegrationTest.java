@@ -7,6 +7,7 @@ import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.*;
 import static java.lang.Math.*;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
+import static java.util.Locale.US;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
@@ -298,8 +299,13 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .when()
         .get(
             format(
+                US,
                 "%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]",
-                TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f))
+                TEST_DATA_INDEX,
+                (float) to,
+                from * -1f,
+                (float) from,
+                to * -1f))
         .then()
         .body("totalCount", equalTo(to - from - 1))
         .body("result.testdata", hasSize(to - from - 1))
@@ -323,8 +329,13 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .when()
         .get(
             format(
+                US,
                 "%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]] AND isEven EQ true",
-                TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f))
+                TEST_DATA_INDEX,
+                (float) to,
+                from * -1f,
+                (float) from,
+                to * -1f))
         .then()
         .body("totalCount", equalTo((to - from - 1) / 2))
         .body("result.testdata", hasSize((to - from - 1) / 2))
@@ -342,12 +353,20 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
     String filter1 =
         format(
+            US,
             "geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]",
-            (float) firstThird, from * -1f, (float) from, firstThird * -1f);
+            (float) firstThird,
+            from * -1f,
+            (float) from,
+            firstThird * -1f);
     String filter2 =
         format(
+            US,
             "geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]",
-            (float) to, secondThird * -1f, (float) secondThird, to * -1f);
+            (float) to,
+            secondThird * -1f,
+            (float) secondThird,
+            to * -1f);
 
     given()
         .log()
@@ -357,7 +376,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(format("%s?filter=%s OR %s", TEST_DATA_INDEX, filter1, filter2))
+        .get(format(US, "%s?filter=%s OR %s", TEST_DATA_INDEX, filter1, filter2))
         .then()
         .body("totalCount", equalTo((firstThird - from - 1) + (to - secondThird - 1)))
         .body("result.testdata", hasSize((firstThird - from - 1) + (to - secondThird - 1)))
@@ -796,8 +815,14 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .when()
         .get(
             format(
+                US,
                 "%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]] AND (numeric <= %d AND (isEven=true OR object.odd <> null))",
-                TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f, half))
+                TEST_DATA_INDEX,
+                (float) to,
+                from * -1f,
+                (float) from,
+                to * -1f,
+                half))
         .then()
         .body("totalCount", equalTo(expected))
         .body("result.testdata", hasSize(expected))
@@ -823,8 +848,14 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .when()
         .get(
             format(
+                US,
                 "%s?filter=geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]] AND (numeric <= %d AND (isEven=true OR nested.odd <> null))",
-                TEST_DATA_INDEX, (float) to, from * -1f, (float) from, to * -1f, half))
+                TEST_DATA_INDEX,
+                (float) to,
+                from * -1f,
+                (float) from,
+                to * -1f,
+                half))
         .then()
         .body("totalCount", equalTo(expected))
         .body("result.testdata", hasSize(expected))
