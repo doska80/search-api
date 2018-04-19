@@ -50,6 +50,12 @@ public class SortParserTest {
   }
 
   @Test
+  public void testMultipleSortWithDefaultOrder() {
+    Sort sort = sortParser.parse("field1, field2");
+    assertEquals("field1 ASC field2 ASC", sort.toString());
+  }
+
+  @Test
   public void testOneNestedFieldSort() {
     Sort sort = sortParser.parse("field.field2.field3 ASC");
     assertEquals("field.field2.field3 ASC", sort.toString());

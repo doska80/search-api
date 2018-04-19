@@ -20,8 +20,17 @@ public final class Sort extends AbstractSet<Item> {
     this(field, orderOperator, Optional.empty());
   }
 
-  public Sort(Field field, GeoPointValue geoPointValue, Optional<QueryFragment> queryFragment) {
-    items.add(new GeoPointItem(field, geoPointValue, queryFragment));
+  public Sort(
+      Field field,
+      OrderOperator orderOperator,
+      Optional<GeoPointValue> geoPointValue,
+      Optional<QueryFragment> queryFragment) {
+
+    if (geoPointValue.isPresent()) {
+      items.add(new GeoPointItem(field, geoPointValue.get(), queryFragment));
+    } else {
+      items.add(new Item(field, orderOperator, queryFragment));
+    }
   }
 
   @Override

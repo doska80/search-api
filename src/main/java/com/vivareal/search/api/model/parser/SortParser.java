@@ -1,15 +1,19 @@
 package com.vivareal.search.api.model.parser;
 
 import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
-import static org.jparsec.Parsers.between;
-import static org.jparsec.Parsers.sequence;
+import static com.vivareal.search.api.model.query.OrderOperator.ASC;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
+import static org.jparsec.Parsers.*;
 import static org.jparsec.Scanners.*;
 
 import com.newrelic.api.agent.Trace;
-import com.vivareal.search.api.model.query.*;
+import com.vivareal.search.api.model.query.GeoPointValue;
+import com.vivareal.search.api.model.query.OrderOperator;
+import com.vivareal.search.api.model.query.QueryFragment;
+import com.vivareal.search.api.model.query.Sort;
 import java.util.Optional;
 import org.jparsec.Parser;
-import org.jparsec.Parsers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +23,6 @@ public class SortParser {
   private static final String SORT_FILTER_FIELD = "sortFilter";
 
   private final Parser<Sort> sortSingleParser;
-  private final Parser<Sort> sortNearParser;
   private final Parser<Sort> sortParser;
 
   @Autowired
@@ -28,35 +31,84 @@ public class SortParser {
       OperatorParser operatorParser,
       ValueParser valueParser,
       QueryParser queryParser) {
-    Parser<OrderOperator> orderOperatorParser =
-        operatorParser.getOrderOperatorParser().optional(OrderOperator.ASC).label("sortOperator");
 
-    Parser<Optional<QueryFragment>> sortFilterParser =
-        sequence(
-                string(SORT_FILTER_FIELD),
-                between(WHITESPACES.skipMany(), string(":"), WHITESPACES.skipMany()),
-                queryParser.getRecursiveQueryParser())
-            .asOptional();
+    // SortFilter used in any kind of sort
+    Parser<Optional<QueryFragment>> sortFilterParser = createSortFilterParser(queryParser);
 
+    // Sort Optional Settings: ASC/DESC || NEAR [GeoPointValue]
+    Parser<SortOptionalSettings> sortOptionalSettingsParser =
+        createSortOptionalSettingsParser(operatorParser, valueParser);
+
+    // Single parser to sort facets
     sortSingleParser =
-        sequence(fieldParser.getWithoutNot(), orderOperatorParser, sortFilterParser, Sort::new);
-
-    sortNearParser =
         sequence(
             fieldParser.getWithoutNot(),
-            between(WHITESPACES.skipMany(), string("NEAR"), WHITESPACES.skipMany()),
+            operatorParser.getOrderOperatorParser().optional(ASC).label("sortOperator"),
+            sortFilterParser,
+            Sort::new);
+
+    sortParser =
+        sequence(
+                fieldParser.getWithoutNot(),
+                sortOptionalSettingsParser.asOptional(),
+                sortFilterParser,
+                (field, sortOptionalSettings, queryFragment) ->
+                    new Sort(
+                        field,
+                        sortOptionalSettings
+                            .map(SortOptionalSettings::getOrderOperator)
+                            .orElse(ASC),
+                        sortOptionalSettings
+                            .map(SortOptionalSettings::getGeoPointValue)
+                            .orElse(empty()),
+                        queryFragment))
+            .sepBy(isChar(',').next(WHITESPACES.skipMany()))
+            .label("sort")
+            .map(Sort::new);
+  }
+
+  private Parser<Optional<QueryFragment>> createSortFilterParser(QueryParser queryParser) {
+    return sequence(
+            string(SORT_FILTER_FIELD),
+            between(WHITESPACES.skipMany(), string(":"), WHITESPACES.skipMany()),
+            queryParser.getRecursiveQueryParser())
+        .asOptional();
+  }
+
+  private Parser<SortOptionalSettings> createSortOptionalSettingsParser(
+      OperatorParser operatorParser, ValueParser valueParser) {
+    return or(
+        operatorParser.getOrderOperatorParser().map(SortOptionalSettings::new),
+        sequence(
+            between(WHITESPACES.skipMany(), string("NEAR").retn(ASC), WHITESPACES.skipMany()),
             between(
                 WHITESPACES.skipMany(),
                 valueParser.getGeoPointValue(SINGLE),
                 WHITESPACES.skipMany()),
-            sortFilterParser,
-            (field, voidNear, geoPointValue, queryFragment) ->
-                new Sort(field, geoPointValue, queryFragment));
-    sortParser =
-        Parsers.or(sortNearParser, sortSingleParser)
-            .sepBy(isChar(',').next(WHITESPACES.skipMany()))
-            .label("sort")
-            .map(Sort::new);
+            SortOptionalSettings::new));
+  }
+
+  private static class SortOptionalSettings {
+    OrderOperator orderOperator;
+    Optional<GeoPointValue> geoPointValue;
+
+    private SortOptionalSettings(OrderOperator orderOperator) {
+      this.orderOperator = orderOperator;
+      this.geoPointValue = empty();
+    }
+
+    private SortOptionalSettings(OrderOperator orderOperator, GeoPointValue geoPointValue) {
+      this.orderOperator = orderOperator;
+      this.geoPointValue = of(geoPointValue);
+    }
+
+    private OrderOperator getOrderOperator() {
+      return orderOperator;
+    }
+
+    private Optional<GeoPointValue> getGeoPointValue() {
+      return geoPointValue;
+    }
   }
 
   public Parser<Sort> getSingleSortParser() {
