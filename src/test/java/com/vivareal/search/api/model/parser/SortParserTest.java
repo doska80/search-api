@@ -17,7 +17,7 @@ import org.junit.Test;
 
 public class SortParserTest {
 
-  private SortParser sortParser;
+  private final SortParser sortParser;
 
   public SortParserTest() {
     this.sortParser =

@@ -663,21 +663,25 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                                       .get(0);
 
                           assertEquals(field, terms.fieldName());
-                          assertTrue(
-                              asList(
-                                      stream(values)
-                                          .map(
-                                              value -> {
-                                                if (value instanceof String) {
-                                                  String s = String.valueOf(value);
-                                                  return s.replaceAll("\"", "");
-                                                }
-
-                                                return value;
-                                              })
-                                          .toArray())
-                                  .equals(terms.values()));
+                          getValue(values, terms);
                         }));
+  }
+
+  private void getValue(Object[] values, TermsQueryBuilder terms) {
+    assertTrue(
+        asList(
+                stream(values)
+                    .map(
+                        value -> {
+                          if (value instanceof String) {
+                            String s = String.valueOf(value);
+                            return s.replaceAll("\"", "");
+                          }
+
+                          return value;
+                        })
+                    .toArray())
+            .equals(terms.values()));
   }
 
   @Test
@@ -1118,20 +1122,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     // field 5
     TermsQueryBuilder filterTermsThirdLevelField5 = (TermsQueryBuilder) filterThirdLevel.get(0);
     assertEquals(field5Name, filterTermsThirdLevelField5.fieldName());
-    assertTrue(
-        asList(
-                stream(field5Value)
-                    .map(
-                        value -> {
-                          if (value instanceof String) {
-                            String s = String.valueOf(value);
-                            return s.replaceAll("\"", "");
-                          }
-
-                          return value;
-                        })
-                    .toArray())
-            .equals(filterTermsThirdLevelField5.values()));
+    getValue(field5Value, filterTermsThirdLevelField5);
 
     // field 6
     GeoBoundingBoxQueryBuilder filterViewportFouthLevelField6 =

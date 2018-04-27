@@ -26,7 +26,7 @@ import org.junit.Test;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
 
-  private SortQueryAdapter sortQueryAdapter;
+  private final SortQueryAdapter sortQueryAdapter;
 
   public SortQueryAdapterTest() {
     SortParser sortParser =

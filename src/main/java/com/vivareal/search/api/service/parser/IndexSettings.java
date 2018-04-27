@@ -15,7 +15,7 @@ import org.springframework.web.context.annotation.RequestScope;
 @Component
 public class IndexSettings {
 
-  private SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
+  private final SettingsAdapter<Map<String, Map<String, Object>>, String> settingsAdapter;
   private String index;
 
   @Autowired

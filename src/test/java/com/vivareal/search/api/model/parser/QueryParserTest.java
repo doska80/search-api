@@ -11,7 +11,7 @@ import org.junit.Test;
 
 public class QueryParserTest {
 
-  private QueryParser queryParser;
+  private final QueryParser queryParser;
 
   public QueryParserTest() {
     this.queryParser =

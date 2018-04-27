@@ -14,8 +14,8 @@ import org.jparsec.Parser;
 
 public class FieldParser {
 
-  private Parser<Field> fieldParser;
-  private Parser<Field> fieldParserWithNot;
+  private final Parser<Field> fieldParser;
+  private final Parser<Field> fieldParserWithNot;
 
   public FieldParser(NotParser notParser) {
     this(notParser, FieldFactory::createField, FieldFactory::createField);

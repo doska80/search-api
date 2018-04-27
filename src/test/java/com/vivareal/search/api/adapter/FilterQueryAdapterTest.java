@@ -15,8 +15,8 @@ import org.junit.Test;
 
 public class FilterQueryAdapterTest {
 
-  private FilterQueryAdapter filterQueryAdapter;
-  private QueryParser queryParser;
+  private final FilterQueryAdapter filterQueryAdapter;
+  private final QueryParser queryParser;
 
   public FilterQueryAdapterTest() {
     this.queryParser = queryParserFixture();

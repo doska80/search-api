@@ -58,9 +58,7 @@ public class SortParser {
                         sortOptionalSettings
                             .map(SortOptionalSettings::getOrderOperator)
                             .orElse(ASC),
-                        sortOptionalSettings
-                            .map(SortOptionalSettings::getGeoPointValue)
-                            .orElse(empty()),
+                        sortOptionalSettings.flatMap(SortOptionalSettings::getGeoPointValue),
                         queryFragment))
             .sepBy(isChar(',').next(WHITESPACES.skipMany()))
             .label("sort")
@@ -89,8 +87,8 @@ public class SortParser {
   }
 
   private static class SortOptionalSettings {
-    OrderOperator orderOperator;
-    Optional<GeoPointValue> geoPointValue;
+    final OrderOperator orderOperator;
+    final Optional<GeoPointValue> geoPointValue;
 
     private SortOptionalSettings(OrderOperator orderOperator) {
       this.orderOperator = orderOperator;

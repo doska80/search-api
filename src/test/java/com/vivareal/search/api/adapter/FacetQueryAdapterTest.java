@@ -29,10 +29,10 @@ import org.junit.Test;
 
 public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
-  private static int DEFAULT_SHARD_SIZE = 8;
+  private static final int DEFAULT_SHARD_SIZE = 8;
 
-  private FacetQueryAdapter facetQueryAdapter;
-  private IndexSettings indexSettings;
+  private final FacetQueryAdapter facetQueryAdapter;
+  private final IndexSettings indexSettings;
 
   public FacetQueryAdapterTest() {
     indexSettings = mock(IndexSettings.class);

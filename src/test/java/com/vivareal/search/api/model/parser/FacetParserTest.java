@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class FacetParserTest {
 
-  private FacetParser facetParser;
+  private final FacetParser facetParser;
 
   public FacetParserTest() {
     this.facetParser = facetParserFixture();

@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class FilterParserTest {
 
-  private FilterParser filterParser;
+  private final FilterParser filterParser;
 
   public FilterParserTest() {
     this.filterParser =

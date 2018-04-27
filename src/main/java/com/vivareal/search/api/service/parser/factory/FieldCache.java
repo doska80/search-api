@@ -32,7 +32,7 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
           .build();
   private static final Logger LOG = LoggerFactory.getLogger(FieldCache.class);
 
-  private FieldFactory fieldFactory;
+  private final FieldFactory fieldFactory;
   private Map<String, Field> validFields;
   private IndexSettings indexSettings; // Request scoped
 
@@ -79,7 +79,7 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
         .entrySet()
         .stream()
         .filter(entry -> entry.getValue() instanceof String)
-        .map(entry -> fieldFactory.createField(entry.getKey(), settings))
+        .map(entry -> FieldFactory.createField(entry.getKey(), settings))
         .collect(toMap(field -> keyForField(indexName, field.getName()), identity()));
   }
 

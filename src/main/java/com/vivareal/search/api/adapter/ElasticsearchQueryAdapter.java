@@ -147,7 +147,7 @@ public class ElasticsearchQueryAdapter
 
     if (ENABLED.equals(filterable.getDefaultFilterMode())) {
       Set<String> requestFields =
-          requestFilter.map(qf -> qf.getFieldNames(false)).orElseGet(() -> new HashSet<>());
+          requestFilter.map(qf -> qf.getFieldNames(false)).orElseGet(HashSet::new);
       defaultFilterFactory
           .getDefaultFilters(filterable.getIndex(), requestFields)
           .forEach(applyDefaultFilter(queryBuilder));

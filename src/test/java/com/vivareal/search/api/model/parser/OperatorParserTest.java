@@ -15,7 +15,7 @@ import org.junit.Test;
 
 public class OperatorParserTest {
 
-  private OperatorParser operatorParser = new OperatorParser();
+  private final OperatorParser operatorParser = new OperatorParser();
 
   @Test
   public void testRelationalEqualsOperator() {

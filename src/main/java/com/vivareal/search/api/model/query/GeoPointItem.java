@@ -8,7 +8,7 @@ import com.google.common.base.Objects;
 import java.util.Optional;
 
 public class GeoPointItem extends Item {
-  private GeoPointValue geoPointValue;
+  private final GeoPointValue geoPointValue;
 
   public GeoPointItem(
       Field field, GeoPointValue geoPointValue, Optional<QueryFragment> queryFragment) {

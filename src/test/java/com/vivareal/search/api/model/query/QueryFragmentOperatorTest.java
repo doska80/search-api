@@ -9,21 +9,21 @@ import org.junit.Test;
 
 public class QueryFragmentOperatorTest {
 
-  @Test
-  public void validQueryFragmentOperatorAnd() {
-    QueryFragmentOperator qfo = new QueryFragmentOperator(AND);
-    assertEquals(AND, qfo.getOperator());
+  private void validQueryFragmentOperator(LogicalOperator operator) {
+    QueryFragmentOperator qfo = new QueryFragmentOperator(operator);
+    assertEquals(operator, qfo.getOperator());
     assertEquals(newHashSet(), qfo.getFieldNames());
     assertEquals(newHashSet(), qfo.getFieldNames(true));
     assertEquals(newHashSet(), qfo.getFieldNames(false));
   }
 
   @Test
+  public void validQueryFragmentOperatorAnd() {
+    validQueryFragmentOperator(AND);
+  }
+
+  @Test
   public void validQueryFragmentOperatorOr() {
-    QueryFragmentOperator qfo = new QueryFragmentOperator(OR);
-    assertEquals(OR, qfo.getOperator());
-    assertEquals(newHashSet(), qfo.getFieldNames());
-    assertEquals(newHashSet(), qfo.getFieldNames(true));
-    assertEquals(newHashSet(), qfo.getFieldNames(false));
+    validQueryFragmentOperator(OR);
   }
 }

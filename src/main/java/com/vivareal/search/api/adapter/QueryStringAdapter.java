@@ -41,8 +41,8 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
 
   private static final Set<QSTemplate> DEFAULT_QS_TEMPLATE = singleton(new QSTemplate());
 
-  private FieldCache fieldCache;
-  private ObjectMapper objectMapper;
+  private final FieldCache fieldCache;
+  private final ObjectMapper objectMapper;
 
   private final Map<String, Set<QSTemplate>> queryTemplatePerIndex;
 
@@ -244,23 +244,22 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
       ofNullable(fieldAliases)
           .orElseGet(HashMap::new)
           .forEach(
-              (alias, fieldNames) -> {
-                qsFieldAliases.put(
-                    alias,
-                    ofNullable(fieldNames)
-                        .orElseGet(ArrayList::new)
-                        .stream()
-                        .map(qs -> qs.split(":"))
-                        .map(QueryStringAdapter::createQSField)
-                        .collect(toList()));
-              });
+              (alias, fieldNames) ->
+                  qsFieldAliases.put(
+                      alias,
+                      ofNullable(fieldNames)
+                          .orElseGet(ArrayList::new)
+                          .stream()
+                          .map(qs -> qs.split(":"))
+                          .map(QueryStringAdapter::createQSField)
+                          .collect(toList())));
       this.fieldAliases = qsFieldAliases;
     }
   }
 
   private static class QSField {
-    private String fieldName;
-    private float boost;
+    private final String fieldName;
+    private final float boost;
 
     public QSField(String fieldName, float boost) {
       this.fieldName = fieldName;

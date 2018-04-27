@@ -11,7 +11,7 @@ import org.junit.Test;
 
 public class FieldParserTest {
 
-  private FieldParser fieldParser;
+  private final FieldParser fieldParser;
 
   public FieldParserTest() {
     this.fieldParser = new FieldParser(new NotParser(), fieldCacheFixture());

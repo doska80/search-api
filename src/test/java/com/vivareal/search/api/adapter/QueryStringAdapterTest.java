@@ -239,11 +239,6 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     assertEquals(1, boolQueryBuilder.must().size());
     assertTrue(boolQueryBuilder.should().isEmpty());
 
-    Map<String, Float> expectedFields = new HashMap<>();
-    expectedFields.put("field1", 8f);
-    expectedFields.put("field2", 1f);
-    expectedFields.put("existingValidField", 1f);
-
     BoolQueryBuilder boolQuery = (BoolQueryBuilder) boolQueryBuilder.must().get(0);
     assertEquals(templates.size(), boolQuery.should().size());
 

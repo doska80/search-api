@@ -11,7 +11,7 @@ import org.junit.Test;
 
 public class ValueParserTest {
 
-  private ValueParser valueParser = new ValueParser();
+  private final ValueParser valueParser = new ValueParser();
 
   @Test
   public void testInteger() {

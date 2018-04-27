@@ -7,7 +7,7 @@ import org.junit.Test;
 
 public class NotParserTest {
 
-  private NotParser notParser = new NotParser();
+  private final NotParser notParser = new NotParser();
 
   @Test
   public void testNot() {

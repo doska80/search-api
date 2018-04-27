@@ -153,9 +153,9 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
   }
 
   private static class DefaultFilter {
-    private String id;
-    private Set<String> fields;
-    private BoolQueryBuilder queryBuilder;
+    private final String id;
+    private final Set<String> fields;
+    private final BoolQueryBuilder queryBuilder;
 
     public DefaultFilter(Set<String> fields, BoolQueryBuilder queryBuilder) {
       this.fields = new TreeSet<>(fields);

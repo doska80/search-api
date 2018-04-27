@@ -22,9 +22,9 @@ public class QueryParserBenchmark {
 
   @State(Scope.Benchmark)
   public static class QueryState {
-    OperatorParser operatorParser = new OperatorParser();
-    NotParser notParser = new NotParser();
-    FilterParser filterParser =
+    final OperatorParser operatorParser = new OperatorParser();
+    final NotParser notParser = new NotParser();
+    final FilterParser filterParser =
         new FilterParser(fieldParserFixture(), operatorParser, new ValueParser());
     final QueryParser parser = new QueryParser(operatorParser, filterParser, notParser);
   }

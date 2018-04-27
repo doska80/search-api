@@ -30,7 +30,7 @@ import org.mockito.Mock;
 
 public class SourceFieldAdapterTest extends SearchTransportClientMock {
 
-  private static String SOME_ID = "123";
+  private static final String SOME_ID = "123";
 
   @InjectMocks private SourceFieldAdapter sourceFieldAdapter;
 
