@@ -1,6 +1,8 @@
 package com.vivareal.search.api.adapter;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_FACET_SIZE;
 import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.facetParserFixture;
@@ -179,19 +181,20 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldApplyFacetsForNestedAndNotNestedFieldsUsingFacetSize() {
     Set<String> facets =
-        newHashSet(
-            "field1",
-            "nested1.field2",
-            "nested2.field3",
-            "field4",
-            "nested3.field5",
-            "field6 sortFacet: _key",
-            "field7 sortFacet: _count DESC",
-            "field8 sortFacet: _key DESC",
-            "nested4.field9 sortFacet: _key",
-            "nested5.field10 sortFacet: _key DESC",
-            "nested6.field11 sortFacet: _count",
-            "nested7.field12 sortFacet: _count DESC");
+        newLinkedHashSet(
+            newArrayList(
+                "field1",
+                "nested1.field2",
+                "nested2.field3",
+                "field4",
+                "nested3.field5",
+                "field6 sortFacet: _key",
+                "field7 sortFacet: _count DESC",
+                "field8 sortFacet: _key DESC",
+                "nested4.field9 sortFacet: _key",
+                "nested5.field10 sortFacet: _key DESC",
+                "nested6.field11 sortFacet: _count",
+                "nested7.field12 sortFacet: _count DESC"));
 
     int facetSize = 50;
     Facetable request = create().index(INDEX_NAME).facets(facets).facetSize(facetSize).build();
@@ -221,29 +224,23 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
         getSortAsString(aggregations.get(0))); // field1
 
     assertEquals(
-        "{\"_key\":\"desc\"}",
-        getSortAsString(
-            aggregations
-                .get(1)
-                .getSubAggregations()
-                .get(0))); // nested5.field10 sortFacet: _key DESC
+        "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
+        getSortAsString(aggregations.get(1).getSubAggregations().get(0))); // nested1.field2
 
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(aggregations.get(2).getSubAggregations().get(0))); // nested1.field2
-
-    assertEquals(
-        "[{\"_count\":\"asc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations.get(3).getSubAggregations().get(0))); // nested6.field11 sortFacet: _count
+        getSortAsString(aggregations.get(2).getSubAggregations().get(0))); // nested2.field3
 
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(aggregations.get(4).getSubAggregations().get(0))); // nested2.field3
+        getSortAsString(aggregations.get(3))); // field4
 
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(aggregations.get(5).getSubAggregations().get(0))); // nested3.field5
+        getSortAsString(aggregations.get(4).getSubAggregations().get(0))); // nested3.field5
+
+    assertEquals(
+        "{\"_key\":\"asc\"}", getSortAsString(aggregations.get(5))); // field6 sortFacet: _key
 
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
@@ -253,24 +250,30 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
         "{\"_key\":\"desc\"}", getSortAsString(aggregations.get(7))); // field8 sortFacet: _key DESC
 
     assertEquals(
+        "{\"_key\":\"asc\"}",
+        getSortAsString(
+            aggregations.get(8).getSubAggregations().get(0))); // nested4.field9 sortFacet: _key
+
+    assertEquals(
+        "{\"_key\":\"desc\"}",
+        getSortAsString(
+            aggregations
+                .get(9)
+                .getSubAggregations()
+                .get(0))); // nested5.field10 sortFacet: _key DESC
+
+    assertEquals(
+        "[{\"_count\":\"asc\"},{\"_key\":\"asc\"}]",
+        getSortAsString(
+            aggregations.get(10).getSubAggregations().get(0))); // nested6.field11 sortFacet: _count
+
+    assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
         getSortAsString(
             aggregations
-                .get(8)
+                .get(11)
                 .getSubAggregations()
                 .get(0))); // nested7.field12 sortFacet: _count DESC
-
-    assertEquals(
-        "{\"_key\":\"asc\"}",
-        getSortAsString(
-            aggregations.get(9).getSubAggregations().get(0))); // nested4.field9 sortFacet: _key
-
-    assertEquals(
-        "{\"_key\":\"asc\"}", getSortAsString(aggregations.get(10))); // field6 sortFacet: _key
-
-    assertEquals(
-        "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(aggregations.get(11))); // field4
   }
 
   private String getSortAsString(AggregationBuilder aggregationBuilder) {
