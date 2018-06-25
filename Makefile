@@ -61,7 +61,7 @@ ifeq ($(ENV),prod)
 		-e APPLICATION="$(PROJECT_NAME)" \
 		-e ENV="$(ENV)" \
 		-e INSTANCEID='$$(/usr/bin/curl -s --connect-timeout 2 curl http://169.254.169.254/latest/meta-data/local-ipv4)' \
-		-e LOGSTASH_HOST="logs.vivareal.com" \
+		-e LOGSTASH_HOST="gateway.logs.platform.private.$(ENV).us-east-1.vivareal.io" \
 		-e LOGSTASH_PORT="5044" \
 		-e PROCESS="$(PROCESS)" \
 		-e PRODUCT="$(PRODUCT)" \
