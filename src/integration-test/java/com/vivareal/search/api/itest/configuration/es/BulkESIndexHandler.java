@@ -3,7 +3,9 @@ package com.vivareal.search.api.itest.configuration.es;
 import static java.lang.String.valueOf;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.WAIT_UNTIL;
+import static org.elasticsearch.common.xcontent.XContentType.JSON;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,8 @@ public class BulkESIndexHandler {
 
   private final RestHighLevelClient restHighLevelClient;
 
+  private static final Gson gson = new Gson();
+
   @Autowired
   public BulkESIndexHandler(RestHighLevelClient restHighLevelClient) {
     this.restHighLevelClient = restHighLevelClient;
@@ -36,7 +40,9 @@ public class BulkESIndexHandler {
     request.setRefreshPolicy(WAIT_UNTIL);
     sources.forEach(
         source ->
-            request.add(new IndexRequest(index, type, valueOf(source.get("id"))).source(source)));
+            request.add(
+                new IndexRequest(index, type, valueOf(source.get("id")))
+                    .source(gson.toJson(source), JSON)));
     try {
       BulkResponse response = restHighLevelClient.bulk(request);
       if (response.hasFailures()) {
