@@ -6,7 +6,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import com.vivareal.search.api.model.http.SearchApiRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.Test;
 
 public class SearchAfterQueryAdapterTest extends SearchTransportClientMock {
@@ -15,18 +15,18 @@ public class SearchAfterQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplySearchAfterAndSetFromToZeroWhenFieldUsedInSortIsValid() {
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
-    requestBuilder.setFrom(20);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
+    requestBuilder.from(20);
 
     SearchApiRequest request = fullRequest.build();
     String _id = INDEX_NAME + "#1028071465";
     request.setCursorId("2.765432" + SORT_SEPARATOR + "A%5fB" + SORT_SEPARATOR + _id);
 
     searchAfterQueryAdapter.apply(requestBuilder, request);
-    assertNotNull(requestBuilder.request().source().searchAfter());
-    assertEquals(0, requestBuilder.request().source().from());
-    assertEquals("2.765432", requestBuilder.request().source().searchAfter()[0]);
-    assertEquals("A_B", requestBuilder.request().source().searchAfter()[1]);
-    assertEquals(_id, requestBuilder.request().source().searchAfter()[2]);
+    assertNotNull(requestBuilder.searchAfter());
+    assertEquals(0, requestBuilder.from());
+    assertEquals("2.765432", requestBuilder.searchAfter()[0]);
+    assertEquals("A_B", requestBuilder.searchAfter()[1]);
+    assertEquals(_id, requestBuilder.searchAfter()[2]);
   }
 }

@@ -17,9 +17,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.bucket.nested.InternalNested;
-import org.elasticsearch.search.aggregations.bucket.terms.InternalMappedTerms;
+import org.elasticsearch.search.aggregations.bucket.nested.Nested;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 
 public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<SearchResponse>> {
 
@@ -82,11 +82,11 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
     if (searchResponse.getAggregations() != null) {
       jgen.writeObjectFieldStart("facets");
       for (Aggregation agg : searchResponse.getAggregations()) {
-        if (agg instanceof InternalMappedTerms) {
+        if (agg instanceof Terms) {
           writeFacet(agg, jgen);
-        } else if (agg instanceof InternalNested) {
-          for (Aggregation aggregation : ((InternalNested) agg).getAggregations()) {
-            writeFacet(aggregation, jgen);
+        } else if (agg instanceof Nested) {
+          for (Aggregation nestedAgg : ((Nested) agg).getAggregations()) {
+            writeFacet(nestedAgg, jgen);
           }
         }
       }
@@ -97,13 +97,13 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
   @SuppressWarnings("unchecked")
   private void writeFacet(final Aggregation agg, JsonGenerator jgen) throws IOException {
     jgen.writeObjectFieldStart(agg.getName());
-    writeFacetBuckets(((InternalMappedTerms) agg).getBuckets(), jgen);
+    writeFacetBuckets(((Terms) agg).getBuckets(), jgen);
     jgen.writeEndObject();
   }
 
-  private void writeFacetBuckets(final List<Terms.Bucket> buckets, JsonGenerator jgen)
+  private void writeFacetBuckets(final List<? extends Bucket> buckets, JsonGenerator jgen)
       throws IOException {
-    for (Terms.Bucket bucket : buckets) {
+    for (Bucket bucket : buckets) {
       jgen.writeNumberField(bucket.getKeyAsString(), bucket.getDocCount());
     }
   }

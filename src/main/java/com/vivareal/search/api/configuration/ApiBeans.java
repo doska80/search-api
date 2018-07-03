@@ -1,5 +1,11 @@
 package com.vivareal.search.api.configuration;
 
+import static java.net.InetAddress.getAllByName;
+import static org.elasticsearch.client.RestClient.builder;
+import static org.elasticsearch.client.transport.TransportClient.CLIENT_TRANSPORT_SNIFF;
+import static org.elasticsearch.cluster.ClusterName.CLUSTER_NAME_SETTING;
+import static org.elasticsearch.common.settings.Settings.builder;
+import static org.elasticsearch.transport.Transport.TRANSPORT_TCP_COMPRESS;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
@@ -8,11 +14,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.cluster.ClusterName;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.transport.Transport;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,8 +31,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class ApiBeans implements DisposableBean {
 
-  private TransportClient esClient = null;
   private RestClient restClient = null;
+  private TransportClient esClient = null;
+  private RestHighLevelClient restHighLevelClient = null;
 
   @Value("${es.hostname}")
   private String hostname;
@@ -41,20 +47,46 @@ public class ApiBeans implements DisposableBean {
   @Value("${es.cluster.name}")
   private String clusterName;
 
+  @Value("${es.client.socket.timeout}")
+  private Integer socketTimeout;
+
+  @Value("${es.client.conn.timeout}")
+  private Integer connTimeout;
+
+  @Value("${es.client.max.retry.timeout}")
+  private Integer maxRetryTimeout;
+
   @Bean
   @Scope(SCOPE_SINGLETON)
   public TransportClient transportClient() throws UnknownHostException {
     Settings settings =
-        Settings.builder()
-            .put(TransportClient.CLIENT_TRANSPORT_SNIFF.getKey(), true)
-            .put(Transport.TRANSPORT_TCP_COMPRESS.getKey(), true)
-            .put(ClusterName.CLUSTER_NAME_SETTING.getKey(), clusterName)
+        builder()
+            .put(CLIENT_TRANSPORT_SNIFF.getKey(), true)
+            .put(TRANSPORT_TCP_COMPRESS.getKey(), true)
+            .put(CLUSTER_NAME_SETTING.getKey(), clusterName)
             .build();
+
     this.esClient = new PreBuiltTransportClient(settings);
 
-    for (InetAddress address : InetAddress.getAllByName(hostname))
+    for (InetAddress address : getAllByName(hostname))
       this.esClient.addTransportAddress(new TransportAddress(address, port));
+
     return esClient;
+  }
+
+  @Bean
+  @Scope(SCOPE_SINGLETON)
+  public RestHighLevelClient restHighLevelClient() {
+    this.restHighLevelClient =
+        new RestHighLevelClient(
+            builder(new HttpHost(hostname, restPort, "http"))
+                .setRequestConfigCallback(
+                    requestConfigBuilder ->
+                        requestConfigBuilder
+                            .setConnectTimeout(connTimeout)
+                            .setSocketTimeout(socketTimeout))
+                .setMaxRetryTimeoutMillis(maxRetryTimeout));
+    return restHighLevelClient;
   }
 
   @Bean
@@ -74,8 +106,8 @@ public class ApiBeans implements DisposableBean {
 
   @Override
   public void destroy() throws Exception {
-    if (this.esClient != null) this.esClient.close();
-
+    if (esClient != null) esClient.close();
+    if (restHighLevelClient != null) restHighLevelClient.close();
     if (restClient != null) restClient.close();
   }
 }

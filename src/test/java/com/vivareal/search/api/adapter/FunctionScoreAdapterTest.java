@@ -17,8 +17,8 @@ import com.vivareal.search.api.model.mapping.MappingType;
 import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.LinkedList;
 import java.util.stream.Stream;
-import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
@@ -31,7 +31,7 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
   private static final String DEFAULT_SCORE_FACTOR_FIELD = "factorField";
 
-  private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
+  private QueryAdapter<GetRequest, SearchRequest> queryAdapter;
 
   @Mock private ElasticsearchSettingsAdapter settingsAdapter;
 
@@ -55,8 +55,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
     SCORE_FACTOR_FIELD.setValue(INDEX_NAME, DEFAULT_SCORE_FACTOR_FIELD);
 
-    ESClient esClient = new ESClient(transportClient);
-
     PageQueryAdapter pageQueryAdapter = new PageQueryAdapter();
     QueryStringAdapter queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
     FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
@@ -67,7 +65,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
-            esClient,
             mock(SourceFieldAdapter.class),
             pageQueryAdapter,
             searchAfterQueryAdapter,
@@ -90,21 +87,17 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
   @After
   public void closeClient() {
-    this.transportClient.close();
     SCORE_FACTOR_FIELD.setValue(INDEX_NAME, null);
   }
 
   @Test
-  public void shouldReturnSearchRequestBuilderByQueryStringWithDefaultFactorField() {
-    SearchRequestBuilder searchRequestBuilder = queryAdapter.query(fullRequest.build());
+  public void shouldReturnSearchRequestByQueryStringWithDefaultFactorField() {
+    SearchRequest searchRequest = queryAdapter.query(fullRequest.build());
 
-    assertEquals(
-        FunctionScoreQueryBuilder.class,
-        searchRequestBuilder.request().source().query().getClass());
+    assertEquals(FunctionScoreQueryBuilder.class, searchRequest.source().query().getClass());
 
     FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders =
-        ((FunctionScoreQueryBuilder) searchRequestBuilder.request().source().query())
-            .filterFunctionBuilders();
+        ((FunctionScoreQueryBuilder) searchRequest.source().query()).filterFunctionBuilders();
 
     assertTrue(filterFunctionBuilders.length == 1);
 
@@ -119,18 +112,14 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldReturnSearchRequestBuilderByQueryStringWithFactorField() {
+  public void shouldReturnSearchRequestByQueryStringWithFactorField() {
     String field = "myFactorField";
-    SearchRequestBuilder searchRequestBuilder =
-        queryAdapter.query(fullRequest.factorField(field).build());
+    SearchRequest searchRequest = queryAdapter.query(fullRequest.factorField(field).build());
 
-    assertEquals(
-        FunctionScoreQueryBuilder.class,
-        searchRequestBuilder.request().source().query().getClass());
+    assertEquals(FunctionScoreQueryBuilder.class, searchRequest.source().query().getClass());
 
     FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders =
-        ((FunctionScoreQueryBuilder) searchRequestBuilder.request().source().query())
-            .filterFunctionBuilders();
+        ((FunctionScoreQueryBuilder) searchRequest.source().query()).filterFunctionBuilders();
 
     assertTrue(filterFunctionBuilders.length == 1);
 
@@ -141,18 +130,18 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldReturnSearchRequestBuilderByQueryStringWithFactorModifier() {
+  public void shouldReturnSearchRequestByQueryStringWithFactorModifier() {
     Stream.of(FieldValueFactorFunction.Modifier.values())
         .forEach(
             modifier -> {
-              SearchRequestBuilder searchRequestBuilder =
+              SearchRequest searchRequest =
                   queryAdapter.query(
                       fullRequest
                           .factorField("myFactorField")
                           .factorModifier(modifier.toString())
                           .build());
               FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders =
-                  ((FunctionScoreQueryBuilder) searchRequestBuilder.request().source().query())
+                  ((FunctionScoreQueryBuilder) searchRequest.source().query())
                       .filterFunctionBuilders();
 
               assertEquals(

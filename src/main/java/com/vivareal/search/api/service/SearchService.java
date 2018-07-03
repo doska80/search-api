@@ -1,6 +1,5 @@
 package com.vivareal.search.api.service;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_SEARCH_TIMEOUT;
 import static java.lang.String.format;
 import static java.lang.System.nanoTime;
 import static java.util.Optional.ofNullable;
@@ -17,11 +16,11 @@ import com.vivareal.search.api.model.http.FilterableApiRequest;
 import com.vivareal.search.api.model.http.SearchApiRequest;
 import java.io.OutputStream;
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.get.GetRequestBuilder;
+import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,21 +29,21 @@ public class SearchService {
 
   private static final long FILTER_THRESHOLD = 5000000000L; // 5 seconds
 
-  @Autowired private QueryAdapter<GetRequestBuilder, SearchRequestBuilder> queryAdapter;
+  @Autowired private QueryAdapter<GetRequest, SearchRequest> queryAdapter;
 
   @Autowired private ElasticSearchStream elasticSearch;
+
+  @Autowired private RestHighLevelClient restHighLevelClient;
 
   @Trace
   public GetResponse getById(BaseApiRequest request, String id) {
     try {
-      return this.queryAdapter
-          .getById(request, id)
-          .get((TimeValue) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
+      return restHighLevelClient.get(this.queryAdapter.getById(request, id));
     } catch (Exception e) {
       if (getRootCause(e) instanceof IllegalArgumentException)
         throw new IllegalArgumentException(e);
       if (e instanceof ElasticsearchException) throw new QueryPhaseExecutionException(e);
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 
@@ -55,35 +54,27 @@ public class SearchService {
 
   @Trace
   public SearchResponse search(SearchApiRequest request, final int retries) {
-    SearchRequestBuilder searchRequestBuilder = null;
-
+    SearchRequest searchRequest = this.queryAdapter.query(request);
     try {
-
-      searchRequestBuilder = this.queryAdapter.query(request);
-      SearchResponse searchResponse =
-          searchRequestBuilder.get(
-              (TimeValue) ES_CONTROLLER_SEARCH_TIMEOUT.getValue(request.getIndex()));
-
+      SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
       if (searchResponse.getFailedShards() != 0)
         throw new QueryPhaseExecutionException(
             format(
                 "%d of %d shards failed",
                 searchResponse.getFailedShards(), searchResponse.getTotalShards()),
-            searchRequestBuilder.toString());
-
-      if (searchResponse.isTimedOut())
-        throw new QueryTimeoutException(searchRequestBuilder.toString());
-
+            searchRequest.toString());
+      if (searchResponse.isTimedOut()) throw new QueryTimeoutException(searchRequest.toString());
       return searchResponse;
+
     } catch (Exception e) {
       if (getRootCause(e) instanceof IllegalArgumentException)
         throw new IllegalArgumentException(e);
       if (e instanceof ElasticsearchException) {
         if (retries != 0) return search(request, retries - 1);
         throw new QueryPhaseExecutionException(
-            ofNullable(searchRequestBuilder).map(SearchRequestBuilder::toString).orElse("{}"), e);
+            ofNullable(searchRequest).map(SearchRequest::toString).orElse("{}"), e);
       }
-      throw e;
+      throw new RuntimeException(e);
     }
   }
 

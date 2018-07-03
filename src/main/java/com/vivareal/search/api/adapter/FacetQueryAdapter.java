@@ -19,7 +19,6 @@ import com.vivareal.search.api.model.search.Facetable;
 import com.vivareal.search.api.service.parser.IndexSettings;
 import java.util.Optional;
 import java.util.Set;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregatorFactories.Builder;
 import org.elasticsearch.search.aggregations.BucketOrder;
@@ -43,7 +42,7 @@ public class FacetQueryAdapter {
     this.indexSettings = indexSettings;
   }
 
-  public void apply(SearchRequestBuilder searchRequestBuilder, final Facetable request) {
+  public void apply(SearchSourceBuilder searchSourceBuilder, final Facetable request) {
     Set<String> value = request.getFacets();
     if (isEmpty(value)) return;
 
@@ -63,15 +62,15 @@ public class FacetQueryAdapter {
                       .order(facetOrder(facet.getSort().getFirst()));
 
               if (FIELD_TYPE_NESTED.typeOf(facet.getField().getTypeFirstName()))
-                applyFacetsByNestedFields(searchRequestBuilder, facet.getField().firstName(), agg);
-              else searchRequestBuilder.addAggregation(agg);
+                applyFacetsByNestedFields(searchSourceBuilder, facet.getField().firstName(), agg);
+              else searchSourceBuilder.aggregation(agg);
             });
   }
 
   private void applyFacetsByNestedFields(
-      SearchRequestBuilder searchRequestBuilder, final String name, final AggregationBuilder agg) {
+      SearchSourceBuilder searchSourceBuilder, final String name, final AggregationBuilder agg) {
     Optional<AggregationBuilder> nestedAgg =
-        ofNullable(searchRequestBuilder.request().source())
+        ofNullable(searchSourceBuilder)
             .map(SearchSourceBuilder::aggregations)
             .map(Builder::getAggregatorFactories)
             .flatMap(
@@ -85,7 +84,7 @@ public class FacetQueryAdapter {
                         .findFirst());
 
     if (nestedAgg.isPresent()) nestedAgg.get().subAggregation(agg);
-    else searchRequestBuilder.addAggregation(nested(name, name).subAggregation(agg));
+    else searchSourceBuilder.aggregation(nested(name, name).subAggregation(agg));
   }
 
   private BucketOrder facetOrder(Item item) {

@@ -8,6 +8,26 @@
   },
   "item": [
     {
+      "name": "ReadOnly false",
+      "request": {
+        "url": "http://${es_host}:${es_port}/_all/_settings",
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": ""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"index.blocks.read_only_allow_delete\": \"null\"}"
+        },
+        "description": "Set read only to false"
+      },
+      "response": []
+    },
+    {
       "name": "Index template - Internal",
       "request": {
         "url": "http://${es_host}:${es_port}/_template/internal",

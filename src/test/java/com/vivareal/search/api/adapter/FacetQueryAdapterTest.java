@@ -9,22 +9,19 @@ import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_N
 import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.create;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.countMatches;
-import static org.elasticsearch.common.settings.Settings.EMPTY;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.vivareal.search.api.model.http.BaseApiRequest;
 import com.vivareal.search.api.model.search.Facetable;
 import com.vivareal.search.api.service.parser.IndexSettings;
 import java.util.List;
 import java.util.Set;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.support.ValuesSourceAggregationBuilder;
-import org.elasticsearch.transport.MockTransportClient;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.junit.Test;
 
 public class FacetQueryAdapterTest extends SearchTransportClientMock {
@@ -47,12 +44,9 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
   private List<AggregationBuilder> simulateAggregationsApply(Set<String> facets) {
     Facetable request = create().index(INDEX_NAME).facets(facets).build();
-
-    ESClient esClient = new ESClient(new MockTransportClient(EMPTY));
-    SearchRequestBuilder searchRequestBuilder = esClient.prepareSearch((BaseApiRequest) request);
-    facetQueryAdapter.apply(searchRequestBuilder, request);
-
-    return searchRequestBuilder.request().source().aggregations().getAggregatorFactories();
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    facetQueryAdapter.apply(searchSourceBuilder, request);
+    return searchSourceBuilder.aggregations().getAggregatorFactories();
   }
 
   private long countNestedAggregations(List<AggregationBuilder> aggregations) {
@@ -78,13 +72,12 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
     Facetable request = create().index(INDEX_NAME).facets(facets).build();
 
-    ESClient esClient = new ESClient(new MockTransportClient(EMPTY));
-    SearchRequestBuilder searchRequestBuilder = esClient.prepareSearch((BaseApiRequest) request);
-    facetQueryAdapter.apply(searchRequestBuilder, request);
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    facetQueryAdapter.apply(searchSourceBuilder, request);
 
     List<AggregationBuilder> aggregations = simulateAggregationsApply(facets);
     long nestedAggregations = countNestedAggregations(aggregations);
-    String facetAsJson = searchRequestBuilder.toString();
+    String facetAsJson = searchSourceBuilder.toString();
 
     assertNotNull(aggregations);
     assertEquals(facets.size(), aggregations.size());
@@ -125,13 +118,12 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
     Facetable request = create().index(INDEX_NAME).facets(facets).build();
 
-    ESClient esClient = new ESClient(new MockTransportClient(EMPTY));
-    SearchRequestBuilder searchRequestBuilder = esClient.prepareSearch((BaseApiRequest) request);
-    facetQueryAdapter.apply(searchRequestBuilder, request);
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    facetQueryAdapter.apply(searchSourceBuilder, request);
 
     List<AggregationBuilder> aggregations = simulateAggregationsApply(facets);
     long nestedAggregations = countNestedAggregations(aggregations);
-    String facetAsJson = searchRequestBuilder.toString();
+    String facetAsJson = searchSourceBuilder.toString();
 
     assertNotNull(aggregations);
     assertEquals(facets.size(), aggregations.size());
@@ -209,13 +201,12 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     int facetSize = 50;
     Facetable request = create().index(INDEX_NAME).facets(facets).facetSize(facetSize).build();
 
-    ESClient esClient = new ESClient(new MockTransportClient(EMPTY));
-    SearchRequestBuilder searchRequestBuilder = esClient.prepareSearch((BaseApiRequest) request);
-    facetQueryAdapter.apply(searchRequestBuilder, request);
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    facetQueryAdapter.apply(searchSourceBuilder, request);
 
     List<AggregationBuilder> aggregations = simulateAggregationsApply(facets);
     long nestedAggregations = countNestedAggregations(aggregations);
-    String facetAsJson = searchRequestBuilder.toString();
+    String facetAsJson = searchSourceBuilder.toString();
 
     assertNotNull(aggregations);
     assertEquals(12, aggregations.size());

@@ -11,8 +11,9 @@ import com.vivareal.search.api.service.parser.factory.FieldCache;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,16 +40,18 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
     defaultSourceExcludes = new ConcurrentHashMap<>();
   }
 
-  public void apply(SearchRequestBuilder searchRequestBuilder, final Fetchable request) {
+  public void apply(SearchSourceBuilder searchSourceBuilder, final Fetchable request) {
     String[] includeFields = getFetchSourceIncludeFields(request);
-    searchRequestBuilder.setFetchSource(
+    searchSourceBuilder.fetchSource(
         includeFields, getFetchSourceExcludeFields(request, includeFields));
   }
 
-  public void apply(GetRequestBuilder getRequestBuilder, final Fetchable request) {
+  public void apply(GetRequest getRequest, final Fetchable request) {
     String[] includeFields = getFetchSourceIncludeFields(request);
-    getRequestBuilder.setFetchSource(
-        includeFields, getFetchSourceExcludeFields(request, includeFields));
+    FetchSourceContext fetchSourceContext =
+        new FetchSourceContext(
+            true, includeFields, getFetchSourceExcludeFields(request, includeFields));
+    getRequest.fetchSourceContext(fetchSourceContext);
   }
 
   private String[] getFetchSourceIncludeFields(final Fetchable request) {

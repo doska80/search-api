@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import javax.servlet.http.HttpServletRequest;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.jparsec.error.ParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,10 +104,16 @@ public class ExceptionHandler {
   }
 
   private HttpStatus getStatusCode(Throwable e, HttpServletRequest request) {
+
+    if (e.getCause() instanceof ElasticsearchStatusException) {
+      return HttpStatus.valueOf(((ElasticsearchStatusException) e.getCause()).status().getStatus());
+    }
+
     if (isBadRequestException(e)) return BAD_REQUEST;
 
-    if (e instanceof QueryTimeoutException || getRootCause(e) instanceof TimeoutException)
-      return GATEWAY_TIMEOUT;
+    if (e instanceof QueryTimeoutException
+        || getRootCause(e) instanceof TimeoutException
+        || getRootCause(e) instanceof QueryTimeoutException) return GATEWAY_TIMEOUT;
 
     Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
     if (statusCode != null) {

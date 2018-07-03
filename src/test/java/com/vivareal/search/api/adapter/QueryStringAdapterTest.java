@@ -42,7 +42,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldReturnSimpleSearchRequestBuilderByQueryString() {
+  public void shouldReturnSimpleSearchRequestByQueryString() {
     String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
 
     newArrayList(filterableRequest, fullRequest)
@@ -65,7 +65,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldReturnSimpleSearchRequestBuilderByQueryStringWithSpecifiedFieldToSearch() {
+  public void shouldReturnSimpleSearchRequestByQueryStringWithSpecifiedFieldToSearch() {
     String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
 
     String fieldName1 = "field1.keyword";
@@ -108,7 +108,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldReturnSearchRequestBuilderByQueryStringWithValidMinimalShouldMatch() {
+  public void shouldReturnSearchRequestByQueryStringWithValidMinimalShouldMatch() {
     String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
     List<String> validMMs = Lists.newArrayList("-100%", "100%", "75%", "-2");
 

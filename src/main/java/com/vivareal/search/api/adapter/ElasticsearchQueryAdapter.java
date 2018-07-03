@@ -20,10 +20,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.action.get.GetRequestBuilder;
-import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +33,9 @@ import org.springframework.stereotype.Component;
 
 @Component
 @DependsOn("searchApiEnv")
-public class ElasticsearchQueryAdapter
-    implements QueryAdapter<GetRequestBuilder, SearchRequestBuilder> {
+public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, SearchRequest> {
 
   private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchQueryAdapter.class);
-
-  private final ESClient esClient;
 
   private final SourceFieldAdapter sourceFieldAdapter;
   private final PageQueryAdapter pageQueryAdapter;
@@ -53,7 +51,6 @@ public class ElasticsearchQueryAdapter
 
   @Autowired
   public ElasticsearchQueryAdapter(
-      ESClient esClient,
       SourceFieldAdapter sourceFieldAdapter,
       PageQueryAdapter pageQueryAdapter,
       SearchAfterQueryAdapter searchAfterQueryAdapter,
@@ -64,7 +61,6 @@ public class ElasticsearchQueryAdapter
       FilterQueryAdapter filterQueryAdapter,
       DefaultFilterFactory defaultFilterFactory,
       FacetQueryAdapter facetQueryAdapter) {
-    this.esClient = esClient;
     this.sourceFieldAdapter = sourceFieldAdapter;
     this.pageQueryAdapter = pageQueryAdapter;
     this.searchAfterQueryAdapter = searchAfterQueryAdapter;
@@ -79,19 +75,16 @@ public class ElasticsearchQueryAdapter
 
   @Override
   @Trace
-  public GetRequestBuilder getById(BaseApiRequest request, String id) {
-    GetRequestBuilder requestBuilder = esClient.prepareGet(request, id).setRealtime(false);
-
-    sourceFieldAdapter.apply(requestBuilder, request);
-
-    LOG.debug("Query getById {}", requestBuilder.request());
-
-    return requestBuilder;
+  public GetRequest getById(BaseApiRequest request, String id) {
+    final GetRequest getRequest = new GetRequest(request.getIndex(), request.getIndex(), id);
+    sourceFieldAdapter.apply(getRequest, request);
+    LOG.debug("Query getById {}", getRequest);
+    return getRequest;
   }
 
   @Override
   @Trace
-  public SearchRequestBuilder query(FilterableApiRequest request) {
+  public SearchRequest query(FilterableApiRequest request) {
     return prepareQuery(
         request,
         (searchBuilder, queryBuilder) ->
@@ -100,35 +93,39 @@ public class ElasticsearchQueryAdapter
 
   @Override
   @Trace
-  public SearchRequestBuilder query(SearchApiRequest request) {
+  public SearchRequest query(SearchApiRequest request) {
     return prepareQuery(
         request,
         (searchBuilder, queryBuilder) ->
             buildQueryBySearchApiRequest(request, searchBuilder, queryBuilder));
   }
 
-  private SearchRequestBuilder prepareQuery(
-      BaseApiRequest request, BiConsumer<SearchRequestBuilder, BoolQueryBuilder> builder) {
-    SearchRequestBuilder searchBuilder =
-        esClient
-            .prepareSearch(request)
-            .setTimeout(
-                new TimeValue(
-                    ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
-                    TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
+  private SearchRequest prepareQuery(
+      BaseApiRequest request, BiConsumer<SearchSourceBuilder, BoolQueryBuilder> builder) {
+
+    SearchRequest searchRequest = new SearchRequest();
+    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+
+    searchSourceBuilder.timeout(
+        new TimeValue(
+            ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
+            TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
+
+    searchRequest.source(searchSourceBuilder);
+    searchRequest.indices(request.getIndex());
 
     BoolQueryBuilder queryBuilder = boolQuery();
-    builder.accept(searchBuilder, queryBuilder);
+    builder.accept(searchSourceBuilder, queryBuilder);
 
-    if (searchBuilder.request().source().query() == null) searchBuilder.setQuery(queryBuilder);
+    if (searchSourceBuilder.query() == null) searchSourceBuilder.query(queryBuilder);
 
-    LOG.debug("Request: {} - Query: {}", request, searchBuilder);
-    return searchBuilder;
+    LOG.debug("Request: {} - Builder: {}", request, searchSourceBuilder);
+    return searchRequest;
   }
 
   private void buildQueryByFilterableApiRequest(
       FilterableApiRequest request,
-      SearchRequestBuilder searchBuilder,
+      SearchSourceBuilder searchBuilder,
       BoolQueryBuilder queryBuilder) {
     pageQueryAdapter.apply(searchBuilder, request);
     sourceFieldAdapter.apply(searchBuilder, request);
@@ -164,7 +161,7 @@ public class ElasticsearchQueryAdapter
   }
 
   private void buildQueryBySearchApiRequest(
-      SearchApiRequest request, SearchRequestBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
+      SearchApiRequest request, SearchSourceBuilder searchBuilder, BoolQueryBuilder queryBuilder) {
     buildQueryByFilterableApiRequest(request, searchBuilder, queryBuilder);
     facetQueryAdapter.apply(searchBuilder, request);
   }

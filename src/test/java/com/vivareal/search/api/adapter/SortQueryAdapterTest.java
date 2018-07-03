@@ -8,9 +8,7 @@ import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_N
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import com.vivareal.search.api.model.http.SearchApiRequest;
@@ -18,8 +16,8 @@ import com.vivareal.search.api.model.parser.OperatorParser;
 import com.vivareal.search.api.model.parser.SortParser;
 import com.vivareal.search.api.model.parser.ValueParser;
 import java.util.List;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.*;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,11 +41,11 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplySortByDefaultProperty() {
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
 
     sortQueryAdapter.apply(requestBuilder, request);
-    List<FieldSortBuilder> sorts = (List) requestBuilder.request().source().sorts();
+    List<FieldSortBuilder> sorts = (List) requestBuilder.sorts();
 
     assertEquals("id", sorts.get(0).getFieldName());
     assertEquals(ASC, sorts.get(0).order());
@@ -66,13 +64,13 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     String fieldName2 = "nested.field";
     SortOrder sortOrder2 = DESC;
 
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
     request.setSort(
         fieldName1 + " " + sortOrder1.name() + ", " + fieldName2 + " " + sortOrder2.name());
 
     sortQueryAdapter.apply(requestBuilder, request);
-    List<FieldSortBuilder> sorts = (List) requestBuilder.request().source().sorts();
+    List<FieldSortBuilder> sorts = (List) requestBuilder.sorts();
 
     assertEquals(fieldName1, sorts.get(0).getFieldName());
     assertEquals(sortOrder1, sorts.get(0).order());
@@ -92,12 +90,12 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   public void shouldApplySortByScore() {
     String fieldName = "_score";
 
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
     request.setSort(fieldName);
 
     sortQueryAdapter.apply(requestBuilder, request);
-    List<SortBuilder> sorts = (List) requestBuilder.request().source().sorts();
+    List<SortBuilder> sorts = (List) requestBuilder.sorts();
 
     assertEquals(SortOrder.DESC, sorts.get(0).order());
     assertEquals(ScoreSortBuilder.class, sorts.get(0).getClass());
@@ -112,7 +110,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     SortOrder sortOrder2 = DESC;
     String sortFilter2 = "sortFilter: fieldName EQ \"value\"";
 
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
     request.setSort(
         fieldName1
@@ -128,7 +126,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     BoolQueryBuilder boolQueryBuilder = boolQuery();
 
     sortQueryAdapter.apply(requestBuilder, request);
-    List<FieldSortBuilder> sorts = (List) requestBuilder.request().source().sorts();
+    List<FieldSortBuilder> sorts = (List) requestBuilder.sorts();
 
     assertEquals(fieldName1, sorts.get(0).getFieldName());
     assertEquals(sortOrder1, sorts.get(0).order());
@@ -146,12 +144,13 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void mustApplyDefaultSortWhenClientInputSortEmptyOnRequest() {
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
+
     SearchApiRequest request = fullRequest.build();
     request.setSort("");
 
     sortQueryAdapter.apply(requestBuilder, request);
-    List<FieldSortBuilder> sortFields = (List) requestBuilder.request().source().sorts();
+    List<FieldSortBuilder> sortFields = (List) requestBuilder.sorts();
 
     assertEquals(2, sortFields.size());
 
@@ -164,32 +163,32 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void mustNotApplySortWhenClientDisablesSortOnRequest() {
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
     request.setDisableSort(true);
 
     sortQueryAdapter.apply(requestBuilder, request);
-    assertNull(requestBuilder.request().source());
+    assertNull(requestBuilder.sorts());
   }
 
   @Test
   public void mustNotApplySortWhenSortDisabledOnProperty() {
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
     ES_SORT_DISABLE.setValue(INDEX_NAME, true);
 
     sortQueryAdapter.apply(requestBuilder, request);
-    assertNull(requestBuilder.request().source());
+    assertNull(requestBuilder.sorts());
   }
 
   @Test
   public void mustApplyDefaultSortWhenClientInputAnInvalidFieldSortOnRequest() {
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
     request.setSort("invalid.field ASC");
 
     sortQueryAdapter.apply(requestBuilder, request);
-    List<FieldSortBuilder> sortFields = (List) requestBuilder.request().source().sorts();
+    List<FieldSortBuilder> sortFields = (List) requestBuilder.sorts();
 
     assertEquals(2, sortFields.size());
 
@@ -202,12 +201,12 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void validateDistanceSortBuilder() {
-    SearchRequestBuilder requestBuilder = transportClient.prepareSearch(INDEX_NAME);
+    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
     request.setSort("field.geo NEAR [10.0, -20.0]");
 
     sortQueryAdapter.apply(requestBuilder, request);
-    List<FieldSortBuilder> sortFields = (List) requestBuilder.request().source().sorts();
+    List<FieldSortBuilder> sortFields = (List) requestBuilder.sorts();
 
     assertEquals(2, sortFields.size());
 

@@ -7,9 +7,7 @@ import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTE
 import static java.lang.Boolean.TRUE;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.search.sort.SortBuilders.fieldSort;
-import static org.elasticsearch.search.sort.SortBuilders.geoDistanceSort;
-import static org.elasticsearch.search.sort.SortBuilders.scoreSort;
+import static org.elasticsearch.search.sort.SortBuilders.*;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.elasticsearch.search.sort.SortOrder.valueOf;
 
@@ -20,9 +18,9 @@ import com.vivareal.search.api.model.query.GeoPointValue;
 import com.vivareal.search.api.model.query.Item;
 import com.vivareal.search.api.model.search.Sortable;
 import java.util.HashMap;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.GeoDistanceSortBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
@@ -50,21 +48,21 @@ public class SortQueryAdapter {
     this.filterQueryAdapter = filterQueryAdapter;
   }
 
-  public void apply(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
+  public void apply(SearchSourceBuilder searchSourceBuilder, final Sortable request) {
     if (TRUE.equals(ES_SORT_DISABLE.getValue(request.isDisableSort(), request.getIndex()))) return;
 
     if (!isBlank(request.getSort())) {
-      applySortFromRequest(searchRequestBuilder, request);
+      applySortFromRequest(searchSourceBuilder, request);
     } else {
-      applyDefaultSort(searchRequestBuilder, request);
+      applyDefaultSort(searchSourceBuilder, request);
     }
-    searchRequestBuilder.addSort(DEFAULT_TIEBREAKER);
+    searchSourceBuilder.sort(DEFAULT_TIEBREAKER);
   }
 
-  private void applySortFromRequest(SearchRequestBuilder searchRequestBuilder, Sortable request) {
+  private void applySortFromRequest(SearchSourceBuilder searchSourceBuilder, Sortable request) {
     try {
       apply(
-          searchRequestBuilder,
+          searchSourceBuilder,
           request,
           request.getIndex(),
           ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex()));
@@ -72,7 +70,7 @@ public class SortQueryAdapter {
       if (isInvalidFieldException(e)) {
         LOG.warn(e.getMessage());
         incrementCounter(NEW_RELIC_USE_DEFAULT_SORT_METRIC);
-        applyDefaultSort(searchRequestBuilder, request);
+        applyDefaultSort(searchSourceBuilder, request);
       } else {
         throw e;
       }
@@ -85,7 +83,7 @@ public class SortQueryAdapter {
   }
 
   private void apply(
-      SearchRequestBuilder searchRequestBuilder,
+      SearchSourceBuilder searchSourceBuilder,
       final Sortable request,
       final String index,
       final String sort) {
@@ -93,16 +91,15 @@ public class SortQueryAdapter {
         .parse(sort)
         .stream()
         .map(item -> asFieldSortBuilder(index, item, request))
-        .forEach(searchRequestBuilder::addSort);
+        .forEach(searchSourceBuilder::sort);
   }
 
-  private void applyDefaultSort(SearchRequestBuilder searchRequestBuilder, final Sortable request) {
-    if (searchRequestBuilder.request().source() != null
-        && searchRequestBuilder.request().source().sorts() != null)
-      searchRequestBuilder.request().source().sorts().clear();
+  private void applyDefaultSort(SearchSourceBuilder searchSourceBuilder, final Sortable request) {
+    if (searchSourceBuilder != null && searchSourceBuilder.sorts() != null)
+      searchSourceBuilder.sorts().clear();
 
     apply(
-        searchRequestBuilder,
+        searchSourceBuilder,
         request,
         request.getIndex(),
         ES_DEFAULT_SORT.getValue(null, request.getIndex()));

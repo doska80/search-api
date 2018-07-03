@@ -10,9 +10,9 @@ import static org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders.
 
 import com.vivareal.search.api.model.parser.FieldParser;
 import com.vivareal.search.api.model.search.Queryable;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,9 +25,7 @@ public class FunctionScoreAdapter {
   }
 
   public void apply(
-      SearchRequestBuilder searchRequestBuilder,
-      QueryBuilder queryBuilder,
-      final Queryable request) {
+      SearchSourceBuilder searchSourceBuilder, QueryBuilder queryBuilder, final Queryable request) {
     final String indexName = request.getIndex();
     String factorField =
         isEmpty(request.getFactorField())
@@ -47,7 +45,6 @@ public class FunctionScoreAdapter {
     if (isNotEmpty(factorModifier))
       fieldValueFactorFunctionBuilder.modifier(fromString(factorModifier));
 
-    searchRequestBuilder.setQuery(
-        functionScoreQuery(queryBuilder, fieldValueFactorFunctionBuilder));
+    searchSourceBuilder.query(functionScoreQuery(queryBuilder, fieldValueFactorFunctionBuilder));
   }
 }
