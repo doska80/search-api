@@ -1,3 +1,4 @@
+.SILENT:
 include make/git/Makefile
 
 ORG:=vivareal
@@ -16,8 +17,6 @@ include make/env/Makefile
 ARTIFACT_NAME:=$(ORG)-$(PROJECT_NAME)-$(VERSION).jar
 include make/gra/Makefile
 
-DOCKER_REGISTRY_DOMAIN=prod-search-docker-registry.vivareal.com
-
 CONTAINER_ID:=$(ENV)-$(VERSION)
 ARTIFACT:=build/libs/$(ARTIFACT_NAME)
 include make/doc/Makefile
@@ -33,12 +32,12 @@ ES_PORT?=9300
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 RUN_OPTS+=-server -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=65 -XX:MaxMetaspaceSize=256m
-RUN_OPTS+=-Xmx$(shell echo "$(RUN_MEMORY) * 0.9" | bc | grep -E -o ^[0-9]+)m -Xms$(shell echo "$(RUN_MEMORY) * 0.9" | bc | grep -E -o ^[0-9]+)m
+RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) \* 9 / 10)m -Xms$(shell expr $(RUN_MEMORY) \* 9 / 10)m
 RUN_OPTS+=-Dnewrelic.config.agent_enabled=$(NEWRELIC_ENABLED)
 RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
 
 # Elasticsearch
-RUN_OPTS+=-Des.hostname=$(ENV)-search-es-api-$(ES_CLUSTER_NAME).vivareal.com
+RUN_OPTS+=-Des.hostname=$(ES_HOSTNAME)
 RUN_OPTS+=-Des.port=$(ES_PORT)
 RUN_OPTS+=-Des.cluster.name=$(ES_CLUSTER_NAME)
 
@@ -61,7 +60,7 @@ ifeq ($(ENV),prod)
 		-e APPLICATION="$(PROJECT_NAME)" \
 		-e ENV="$(ENV)" \
 		-e INSTANCEID='$$(/usr/bin/curl -s --connect-timeout 2 curl http://169.254.169.254/latest/meta-data/local-ipv4)' \
-		-e LOGSTASH_HOST="gateway.logs.platform.private.$(ENV).us-east-1.vivareal.io" \
+		-e LOGSTASH_HOST="$(LOGSTASH_HOST)" \
 		-e LOGSTASH_PORT="5044" \
 		-e PROCESS="$(PROCESS)" \
 		-e PRODUCT="$(PRODUCT)" \
@@ -90,7 +89,7 @@ teardown: destroy-stack
 # Notifications config
 SLK_CHANNEL=alerts-search-ranking
 SLK_USER_GROUP=search-ranking
-SLK_CD_URL=http://jenkins.vivareal.com/view/SEARCH-API-V2/job/SEARCH_API_V2_$(ENV_CAPS)/parambuild?IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&delay=0sec
+SLK_CD_URL=$(CD_URL)ENV=$(ENV)&IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&delay=0sec
 include make/slk/Makefile
 
 push-with-notification: push notify-success-build
