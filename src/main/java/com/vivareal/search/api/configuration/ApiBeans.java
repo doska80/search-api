@@ -47,15 +47,6 @@ public class ApiBeans implements DisposableBean {
   @Value("${es.cluster.name}")
   private String clusterName;
 
-  @Value("${es.client.socket.timeout}")
-  private Integer socketTimeout;
-
-  @Value("${es.client.conn.timeout}")
-  private Integer connTimeout;
-
-  @Value("${es.client.max.retry.timeout}")
-  private Integer maxRetryTimeout;
-
   @Bean
   @Scope(SCOPE_SINGLETON)
   public TransportClient transportClient() throws UnknownHostException {
@@ -76,13 +67,22 @@ public class ApiBeans implements DisposableBean {
 
   @Bean
   @Scope(SCOPE_SINGLETON)
-  public RestHighLevelClient restHighLevelClient() {
+  public RestHighLevelClient restHighLevelClient(
+      @Value("${es.client.socket.timeout}") int socketTimeout,
+      @Value("${es.client.conn.timeout}") int connTimeout,
+      @Value("${es.client.conn.request.timeout}") int connRequestTimeout,
+      @Value("${es.client.max.retry.timeout}") int maxRetryTimeout,
+      @Value("${es.client.http.max.conn.total}") int maxConnTotal,
+      @Value("${es.client.http.max.conn.per-route}") int maxConnPerRoute) {
     this.restHighLevelClient =
         new RestHighLevelClient(
             builder(new HttpHost(hostname, restPort, "http"))
+                .setHttpClientConfigCallback(
+                    http -> http.setMaxConnTotal(maxConnTotal).setMaxConnPerRoute(maxConnPerRoute))
                 .setRequestConfigCallback(
                     requestConfigBuilder ->
                         requestConfigBuilder
+                            .setConnectionRequestTimeout(connRequestTimeout)
                             .setConnectTimeout(connTimeout)
                             .setSocketTimeout(socketTimeout))
                 .setMaxRetryTimeoutMillis(maxRetryTimeout));
