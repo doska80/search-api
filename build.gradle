@@ -16,10 +16,10 @@ buildscript {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
         classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2'
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.17.0'
-        classpath 'com.gradle:build-scan-plugin:1.13.1'
-        classpath 'io.spring.gradle:dependency-management-plugin:1.0.5.RELEASE'
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.5'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:+'
+        classpath 'com.gradle:build-scan-plugin:+'
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE'
+        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.7'
     }
 }
 
@@ -116,7 +116,7 @@ dependencies {
     compile 'org.elasticsearch.plugin:transport-netty4-client:' + ELASTICSEARCH_VERSION
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
-    compile 'net.logstash.logback:logstash-logback-encoder:5.0'
+    compile 'net.logstash.logback:logstash-logback-encoder:5.1'
 
     compile 'io.springfox:springfox-swagger2:' + SWAGGER
     compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
@@ -138,7 +138,7 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
+    gradleVersion = '4.9'
     distributionType = Wrapper.DistributionType.ALL
 }
 
