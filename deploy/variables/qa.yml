@@ -16,7 +16,7 @@ health_check:
   timeout: 2
   unhealthy_threshold: 6
 key_name: api
-instance_type: t2.micro
+instance_type: t2.small
 public_ip: false
 scaling:
   up:

@@ -20,7 +20,7 @@ include make/gra/Makefile
 CONTAINER_ID:=$(ENV)-$(VERSION)
 ARTIFACT:=build/libs/$(ARTIFACT_NAME)
 include make/doc/Makefile
-DOCKER_NET_CONFIG?=$(if $(filter prod,$(ENV)),--net host,-p 8482:8482 -p 4000:4000)
+DOCKER_NET_CONFIG?=$(if $(filter prod,$(ENV)),--net host, $(if $(filter qa,$(ENV)), --net host -p 8482:8482 -p 4000:4000, -p 8482:8482 -p 4000:4000))
 
 LOG:=/var/log/$(CONTAINER_NAME)
 CONTAINER_LOG:=/logs
