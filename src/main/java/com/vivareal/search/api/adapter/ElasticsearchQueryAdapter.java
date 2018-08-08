@@ -4,6 +4,7 @@ import static com.vivareal.search.api.configuration.environment.RemoteProperties
 import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
 import static com.vivareal.search.api.model.http.DefaultFilterMode.ENABLED;
 import static java.util.Optional.ofNullable;
+import static org.elasticsearch.cluster.routing.Preference.REPLICA_FIRST;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 
 import com.newrelic.api.agent.Trace;
@@ -104,6 +105,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
       BaseApiRequest request, BiConsumer<SearchSourceBuilder, BoolQueryBuilder> builder) {
 
     SearchRequest searchRequest = new SearchRequest();
+    searchRequest.preference(REPLICA_FIRST.type());
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
     searchSourceBuilder.timeout(
