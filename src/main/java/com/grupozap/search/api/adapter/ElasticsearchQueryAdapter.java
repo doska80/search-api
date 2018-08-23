@@ -4,7 +4,6 @@ import static com.grupozap.search.api.configuration.environment.RemoteProperties
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
 import static com.grupozap.search.api.model.http.DefaultFilterMode.ENABLED;
 import static java.util.Optional.ofNullable;
-import static org.elasticsearch.cluster.routing.Preference.REPLICA_FIRST;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 
 import com.grupozap.search.api.model.http.BaseApiRequest;
@@ -105,7 +104,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
       BaseApiRequest request, BiConsumer<SearchSourceBuilder, BoolQueryBuilder> builder) {
 
     SearchRequest searchRequest = new SearchRequest();
-    searchRequest.preference(REPLICA_FIRST.type());
     SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
     searchSourceBuilder.timeout(
