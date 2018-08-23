@@ -1,6 +1,6 @@
 package com.grupozap.search.api.serializer;
 
-import static com.vivareal.search.api.adapter.SearchAfterQueryAdapter.SORT_SEPARATOR;
+import static com.grupozap.search.api.adapter.SearchAfterQueryAdapter.SORT_SEPARATOR;
 import static java.lang.Float.isNaN;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Stream.of;
@@ -10,7 +10,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
+import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
 import java.io.IOException;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;

@@ -2,33 +2,25 @@ package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.create;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.create;
 import static org.elasticsearch.index.query.MultiMatchQueryBuilder.Type.*;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.junit.Assert.*;
 
 import com.google.common.collect.Sets;
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
+import com.grupozap.search.api.adapter.QueryStringAdapter.QSTemplate;
 import com.grupozap.search.api.exception.InvalidFieldException;
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.model.http.SearchApiRequest;
-import com.grupozap.search.api.model.http.SearchApiRequestBuilder;
 import com.grupozap.search.api.model.search.Queryable;
-import com.vivareal.search.api.adapter.QueryStringAdapter.QSTemplate;
-import com.vivareal.search.api.exception.InvalidFieldException;
-import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.search.Queryable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.assertj.core.util.Lists;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder;
 import org.elasticsearch.index.query.MultiMatchQueryBuilder.Type;
@@ -41,12 +33,11 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
   @Before
   public void setup() {
-    RemoteProperties.QS_MM.setValue(RemoteProperties.DEFAULT_INDEX, "75%");
-    RemoteProperties.QS_DEFAULT_FIELDS.setValue(
-        SearchApiRequestBuilder.INDEX_NAME, newArrayList("field", "field1"));
-    RemoteProperties.QS_TEMPLATES.setValue(SearchApiRequestBuilder.INDEX_NAME, null);
+    QS_MM.setValue(DEFAULT_INDEX, "75%");
+    QS_DEFAULT_FIELDS.setValue(INDEX_NAME, newArrayList("field", "field1"));
+    QS_TEMPLATES.setValue(INDEX_NAME, null);
 
-    queryStringAdapter = new QueryStringAdapter(ParserTemplateLoader.fieldCacheFixture());
+    queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
   }
 
   @Test
@@ -118,7 +109,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestByQueryStringWithValidMinimalShouldMatch() {
     String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-    List<String> validMMs = Lists.newArrayList("-100%", "100%", "75%", "-2");
+    List<String> validMMs = newArrayList("-100%", "100%", "75%", "-2");
 
     validMMs.forEach(
         mm ->
@@ -142,8 +133,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplyDefaultIndexFieldsForQuery() {
-    SearchApiRequest build = SearchApiRequestBuilder
-        .create().index(SearchApiRequestBuilder.INDEX_NAME).q("any text to search").build();
+    SearchApiRequest build = create().index(INDEX_NAME).q("any text to search").build();
 
     BoolQueryBuilder boolQueryBuilder = boolQuery();
     queryStringAdapter.apply(boolQueryBuilder, build);
@@ -162,8 +152,8 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   @Test(expected = InvalidFieldException.class)
   public void shouldThrowExceptionWhenTryQueryOverInvalidField() {
     SearchApiRequest build =
-        SearchApiRequestBuilder.create()
-            .index(SearchApiRequestBuilder.INDEX_NAME)
+        create()
+            .index(INDEX_NAME)
             .q("search")
             .fields(newHashSet("thisOneIsValid", "invalidField"))
             .build();
@@ -180,12 +170,12 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
           }
         });
 
-    RemoteProperties.QS_TEMPLATES.setValue(SearchApiRequestBuilder.INDEX_NAME, newArrayList(qsTemplate));
-    queryStringAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, SearchApiRequestBuilder.INDEX_NAME));
+    QS_TEMPLATES.setValue(INDEX_NAME, newArrayList(qsTemplate));
+    queryStringAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
 
     SearchApiRequest build =
-        SearchApiRequestBuilder.create()
-            .index(SearchApiRequestBuilder.INDEX_NAME)
+        create()
+            .index(INDEX_NAME)
             .q("search")
             .fields(newHashSet("someFieldAlias", "existingValidField"))
             .build();
@@ -232,12 +222,12 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         });
 
     List<QSTemplate> templates = newArrayList(firstTemplate, secondTemplate, new QSTemplate());
-    RemoteProperties.QS_TEMPLATES.setValue(SearchApiRequestBuilder.INDEX_NAME, templates);
-    queryStringAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, SearchApiRequestBuilder.INDEX_NAME));
+    QS_TEMPLATES.setValue(INDEX_NAME, templates);
+    queryStringAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
 
     SearchApiRequest build =
-        SearchApiRequestBuilder.create()
-            .index(SearchApiRequestBuilder.INDEX_NAME)
+        create()
+            .index(INDEX_NAME)
             .q("search")
             .fields(newHashSet("anotherAlias", "existingValidField"))
             .build();

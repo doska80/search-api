@@ -1,18 +1,17 @@
 package com.grupozap.search.api.fixtures.model.parser;
 
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
+import com.grupozap.search.api.model.parser.*;
+import com.grupozap.search.api.model.query.Field;
+import com.grupozap.search.api.service.parser.IndexSettings;
+import com.grupozap.search.api.service.parser.factory.FieldCache;
 import com.grupozap.search.api.service.parser.factory.FieldFactory;
-import com.vivareal.search.api.model.parser.*;
-import com.vivareal.search.api.model.query.Field;
-import com.vivareal.search.api.service.parser.IndexSettings;
-import com.vivareal.search.api.service.parser.factory.FieldCache;
-import com.vivareal.search.api.service.parser.factory.FieldFactory;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections.map.LinkedMap;

@@ -3,12 +3,11 @@ package com.grupozap.search.api.model.query;
 import static br.com.six2six.fixturefactory.Fixture.from;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
-import static com.vivareal.search.api.model.query.LogicalOperator.OR;
+import static com.grupozap.search.api.fixtures.FixtureTemplateLoader.loadAll;
+import static com.grupozap.search.api.model.query.LogicalOperator.OR;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 
-import com.grupozap.search.api.fixtures.FixtureTemplateLoader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -19,7 +18,7 @@ public class QueryFragmentListTest {
 
   @BeforeClass
   public static void setUpClass() {
-    FixtureTemplateLoader.loadAll();
+    loadAll();
   }
 
   @Test
@@ -84,7 +83,7 @@ public class QueryFragmentListTest {
                 from(QueryFragmentItem.class).gimme("qfiNested")));
 
     QueryFragmentList query =
-        new QueryFragmentList(newArrayList(qfi, new QueryFragmentOperator(LogicalOperator.OR), recursion));
+        new QueryFragmentList(newArrayList(qfi, new QueryFragmentOperator(OR), recursion));
 
     Set<String> expectedFieldNamesWithoutRoot =
         newHashSet("field", "multiple", "field1.field2.field3");

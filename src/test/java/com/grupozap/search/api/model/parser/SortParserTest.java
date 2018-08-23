@@ -1,21 +1,17 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
 import com.grupozap.search.api.model.query.Item;
 import com.grupozap.search.api.model.query.Sort;
-import com.vivareal.search.api.model.query.Item;
-import com.vivareal.search.api.model.query.Sort;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.assertj.core.util.Lists;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
@@ -26,8 +22,7 @@ public class SortParserTest {
   public SortParserTest() {
     this.sortParser =
         new SortParser(
-            ParserTemplateLoader.fieldParserFixture(), new OperatorParser(), new ValueParser(), ParserTemplateLoader
-            .queryParserFixture());
+            fieldParserFixture(), new OperatorParser(), new ValueParser(), queryParserFixture());
   }
 
   @Test
@@ -85,7 +80,7 @@ public class SortParserTest {
   @Test
   public void testMultipleSortWithIndex() {
     List<Item> items =
-        Lists.newArrayList(sortParser.parse("field ASC,field2 ASC,field3 DESC, field  ASC"));
+        newArrayList(sortParser.parse("field ASC,field2 ASC,field3 DESC, field  ASC"));
 
     assertThat(items, hasSize(3));
     assertEquals("field ASC", items.get(0).toString());
@@ -96,7 +91,7 @@ public class SortParserTest {
   /** ********************** Sort Filter ********************** */
   @Test
   public void testSingleWithSortFilter() {
-    List<Item> items = Lists.newArrayList(sortParser.parse("field ASC sortFilter:field2 EQ \"ALPHA\""));
+    List<Item> items = newArrayList(sortParser.parse("field ASC sortFilter:field2 EQ \"ALPHA\""));
 
     assertThat(items, hasSize(1));
     assertEquals("field ASC (field2 EQUAL \"ALPHA\")", items.get(0).toString());
@@ -105,7 +100,7 @@ public class SortParserTest {
   @Test
   public void testNearWithSortFilter() {
     List<Item> items =
-        Lists.newArrayList(sortParser.parse("field NEAR [42.0,-74.0] sortFilter:field2 EQ \"BETA\""));
+        newArrayList(sortParser.parse("field NEAR [42.0,-74.0] sortFilter:field2 EQ \"BETA\""));
 
     assertThat(items, hasSize(1));
     assertEquals("field ASC [42.0, -74.0] (field2 EQUAL \"BETA\")", items.get(0).toString());
@@ -122,7 +117,7 @@ public class SortParserTest {
             .collect(Collectors.joining(","));
 
     System.out.println(sortClause);
-    List<Item> items = Lists.newArrayList(sortParser.parse(sortClause));
+    List<Item> items = newArrayList(sortParser.parse(sortClause));
 
     assertThat(items, hasSize(4));
     assertEquals("field1 ASC (filter1 EQUAL \"ALPHA\")", items.get(0).toString());

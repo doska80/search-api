@@ -1,8 +1,8 @@
 package com.grupozap.search.api.adapter;
 
-import com.vivareal.search.api.model.http.BaseApiRequest;
-import com.vivareal.search.api.model.http.FilterableApiRequest;
-import com.vivareal.search.api.model.http.SearchApiRequest;
+import com.grupozap.search.api.model.http.BaseApiRequest;
+import com.grupozap.search.api.model.http.FilterableApiRequest;
+import com.grupozap.search.api.model.http.SearchApiRequest;
 
 /**
  * This interface is responsible to generate a queryBuilder to realize a search operation

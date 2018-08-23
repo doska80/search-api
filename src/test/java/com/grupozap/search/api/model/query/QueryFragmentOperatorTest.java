@@ -1,8 +1,8 @@
 package com.grupozap.search.api.model.query;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static com.vivareal.search.api.model.query.LogicalOperator.OR;
+import static com.grupozap.search.api.model.query.LogicalOperator.AND;
+import static com.grupozap.search.api.model.query.LogicalOperator.OR;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;

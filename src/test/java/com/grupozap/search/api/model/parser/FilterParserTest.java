@@ -1,13 +1,10 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
 import static org.junit.Assert.*;
 
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
 import com.grupozap.search.api.model.query.Filter;
 import com.grupozap.search.api.model.query.Value;
-import com.vivareal.search.api.model.query.Filter;
-import com.vivareal.search.api.model.query.Value;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
@@ -17,7 +14,7 @@ public class FilterParserTest {
 
   public FilterParserTest() {
     this.filterParser =
-        new FilterParser(ParserTemplateLoader.fieldParserFixture(), new OperatorParser(), new ValueParser());
+        new FilterParser(fieldParserFixture(), new OperatorParser(), new ValueParser());
   }
 
   @Test

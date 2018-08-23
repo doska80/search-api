@@ -1,27 +1,20 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
 import com.grupozap.search.api.model.http.SearchApiRequest;
-import com.grupozap.search.api.model.http.SearchApiRequestBuilder;
 import com.grupozap.search.api.model.parser.OperatorParser;
 import com.grupozap.search.api.model.parser.SortParser;
 import com.grupozap.search.api.model.parser.ValueParser;
-import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.parser.OperatorParser;
-import com.vivareal.search.api.model.parser.SortParser;
-import com.vivareal.search.api.model.parser.ValueParser;
 import java.util.List;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -36,15 +29,14 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   public SortQueryAdapterTest() {
     SortParser sortParser =
         new SortParser(
-            ParserTemplateLoader.fieldParserFixture(), new OperatorParser(), new ValueParser(), ParserTemplateLoader
-            .queryParserFixture());
+            fieldParserFixture(), new OperatorParser(), new ValueParser(), queryParserFixture());
     this.sortQueryAdapter = new SortQueryAdapter(sortParser, mock(FilterQueryAdapter.class));
   }
 
   @Before
   public void setup() {
-    RemoteProperties.ES_DEFAULT_SORT.setValue(SearchApiRequestBuilder.INDEX_NAME, "id ASC");
-    RemoteProperties.ES_SORT_DISABLE.setValue(SearchApiRequestBuilder.INDEX_NAME, false);
+    ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
+    ES_SORT_DISABLE.setValue(INDEX_NAME, false);
   }
 
   @Test
@@ -183,7 +175,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   public void mustNotApplySortWhenSortDisabledOnProperty() {
     SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
     SearchApiRequest request = fullRequest.build();
-    RemoteProperties.ES_SORT_DISABLE.setValue(SearchApiRequestBuilder.INDEX_NAME, true);
+    ES_SORT_DISABLE.setValue(INDEX_NAME, true);
 
     sortQueryAdapter.apply(requestBuilder, request);
     assertNull(requestBuilder.sorts());

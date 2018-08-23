@@ -1,10 +1,10 @@
 package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.*;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.*;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.NONE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -13,9 +13,8 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
-import com.vivareal.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
+import com.grupozap.search.api.model.mapping.MappingType;
+import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.LinkedList;
 import java.util.stream.Stream;
 import org.elasticsearch.action.get.GetRequest;
@@ -57,16 +56,12 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     SCORE_FACTOR_FIELD.setValue(INDEX_NAME, DEFAULT_SCORE_FACTOR_FIELD);
 
     PageQueryAdapter pageQueryAdapter = new PageQueryAdapter();
-    QueryStringAdapter queryStringAdapter = new QueryStringAdapter(
-        ParserTemplateLoader.fieldCacheFixture());
-    FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(
-        ParserTemplateLoader.fieldParserFixture());
-    FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(
-        ParserTemplateLoader.facetParserFixture());
-    FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(
-        ParserTemplateLoader.queryParserFixture());
+    QueryStringAdapter queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
+    FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
+    FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
+    FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
     DefaultFilterFactory defaultFilterFactory =
-        new DefaultFilterFactory(ParserTemplateLoader.queryParserWithOutValidationFixture(), filterQueryAdapter);
+        new DefaultFilterFactory(queryParserWithOutValidationFixture(), filterQueryAdapter);
 
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
@@ -76,7 +71,7 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
             sortQueryAdapter,
             queryStringAdapter,
             functionScoreAdapter,
-            ParserTemplateLoader.queryParserFixture(),
+            queryParserFixture(),
             filterQueryAdapter,
             defaultFilterFactory,
             facetQueryAdapter);

@@ -1,6 +1,6 @@
 package com.grupozap.search.api.configuration.environment;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
 import static java.lang.Boolean.*;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.math.NumberUtils.createNumber;
@@ -11,7 +11,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +70,7 @@ public class SearchApiEnv {
                       this.localProperties.put(
                           k, parseLocalEnvironmentValue(environment.getProperty(k)));
                     }));
-    loadEnvironmentProperties(RemoteProperties.DEFAULT_INDEX, this.localProperties);
+    loadEnvironmentProperties(DEFAULT_INDEX, this.localProperties);
   }
 
   private Object parseLocalEnvironmentValue(String propertyValue) {

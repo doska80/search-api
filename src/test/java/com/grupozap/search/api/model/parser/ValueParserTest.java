@@ -1,13 +1,12 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type;
-import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
-import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.VIEWPORT;
+import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type;
+import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
+import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.VIEWPORT;
 import static org.junit.Assert.assertEquals;
 
 import com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type;
 import com.grupozap.search.api.model.query.Value;
-import com.vivareal.search.api.model.query.Value;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
@@ -117,7 +116,7 @@ public class ValueParserTest {
   @Test
   public void testMultipleNegativeDoubleIN() {
     String value = "[[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
-    Value viewport = valueParser.getGeoPointValue(Type.VIEWPORT).parse(value);
+    Value viewport = valueParser.getGeoPointValue(VIEWPORT).parse(value);
     assertEquals("[[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
   }
 
@@ -130,18 +129,18 @@ public class ValueParserTest {
 
   @Test(expected = ParserException.class)
   public void testInvalidFirstMultipleNegativeDoubleIN() {
-    valueParser.getGeoPointValue(Type.VIEWPORT).parse("[[-23.5534103,-46.6597479],[-23.5534103]]");
+    valueParser.getGeoPointValue(VIEWPORT).parse("[[-23.5534103,-46.6597479],[-23.5534103]]");
   }
 
   @Test(expected = ParserException.class)
   public void testInvalidSecondMultipleNegativeDoubleIN() {
-    valueParser.getGeoPointValue(Type.VIEWPORT).parse("[[-46.6597479],[-23.5534103,-46.6597479]]");
+    valueParser.getGeoPointValue(VIEWPORT).parse("[[-46.6597479],[-23.5534103,-46.6597479]]");
   }
 
   @Test(expected = ParserException.class)
   public void testInvalidMultipleNegativeDoubleIN() {
     valueParser
-        .getGeoPointValue(Type.VIEWPORT)
+        .getGeoPointValue(VIEWPORT)
         .parse("[[-23.5534103,-46.6597479],[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]");
   }
 
@@ -152,16 +151,16 @@ public class ValueParserTest {
 
   @Test(expected = ParserException.class)
   public void testInvalidSyntaxSingleGeoPoint() {
-    valueParser.getGeoPointValue(Type.SINGLE).parse("[[-23.5534103,-46.6597479]]");
+    valueParser.getGeoPointValue(SINGLE).parse("[[-23.5534103,-46.6597479]]");
   }
 
   @Test(expected = ParserException.class)
   public void testInvalidSingleNegativeSingleGeoPoint() {
-    valueParser.getGeoPointValue(Type.SINGLE).parse("[-23.5534103]");
+    valueParser.getGeoPointValue(SINGLE).parse("[-23.5534103]");
   }
 
   @Test(expected = ParserException.class)
   public void testInvalidMultipleNegativeSingleGeoPoint() {
-    valueParser.getGeoPointValue(Type.SINGLE).parse("[-23.5534103,-46.6597479, -40.1234567]");
+    valueParser.getGeoPointValue(SINGLE).parse("[-23.5534103,-46.6597479, -40.1234567]");
   }
 }

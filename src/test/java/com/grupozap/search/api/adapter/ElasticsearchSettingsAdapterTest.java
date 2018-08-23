@@ -1,8 +1,8 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.*;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.mapping.MappingType.*;
+import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.*;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.mapping.MappingType.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -11,11 +11,6 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.grupozap.search.api.exception.IndexNotFoundException;
 import com.grupozap.search.api.exception.PropertyNotFoundException;
 import com.grupozap.search.api.model.http.BaseApiRequest;
-import com.grupozap.search.api.model.http.SearchApiRequestBuilder;
-import com.grupozap.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.exception.IndexNotFoundException;
-import com.vivareal.search.api.exception.PropertyNotFoundException;
-import com.vivareal.search.api.model.http.BaseApiRequest;
 import java.util.HashMap;
 import java.util.Map;
 import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
@@ -61,16 +56,16 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
 
   @Test
   public void shouldGetConfigurationByExistKey() {
-    String shards = settingsAdapter.settingsByKey(SearchApiRequestBuilder.INDEX_NAME, ElasticsearchSettingsAdapter.SHARDS);
+    String shards = settingsAdapter.settingsByKey(INDEX_NAME, SHARDS);
     assertEquals("8", shards);
 
-    String replicas = settingsAdapter.settingsByKey(SearchApiRequestBuilder.INDEX_NAME, ElasticsearchSettingsAdapter.REPLICAS);
+    String replicas = settingsAdapter.settingsByKey(INDEX_NAME, REPLICAS);
     assertEquals("2", replicas);
   }
 
   @Test(expected = PropertyNotFoundException.class)
   public void shouldThrowExceptionWhenGetConfigurationByNonExistKey() {
-    settingsAdapter.settingsByKey(SearchApiRequestBuilder.INDEX_NAME, "property.not.found");
+    settingsAdapter.settingsByKey(INDEX_NAME, "property.not.found");
   }
 
   @Test
@@ -108,73 +103,73 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   @Test
   public void isTypeOf() {
     assertTrue(
-        settingsAdapter.isTypeOf(validIndexRequest.getIndex(), VALID_FIELD_TEXT, MappingType.FIELD_TYPE_TEXT));
+        settingsAdapter.isTypeOf(validIndexRequest.getIndex(), VALID_FIELD_TEXT, FIELD_TYPE_TEXT));
     verify(settingsAdapter, times(1)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_TEXT);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_TEXT, MappingType.FIELD_TYPE_STRING));
+            validIndexRequest.getIndex(), VALID_FIELD_TEXT, FIELD_TYPE_STRING));
     verify(settingsAdapter, times(2)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_TEXT);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_KEYWORD, MappingType.FIELD_TYPE_KEYWORD));
+            validIndexRequest.getIndex(), VALID_FIELD_KEYWORD, FIELD_TYPE_KEYWORD));
     verify(settingsAdapter, times(1))
         .getFieldType(validIndexRequest.getIndex(), VALID_FIELD_KEYWORD);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_KEYWORD, MappingType.FIELD_TYPE_STRING));
+            validIndexRequest.getIndex(), VALID_FIELD_KEYWORD, FIELD_TYPE_STRING));
     verify(settingsAdapter, times(2))
         .getFieldType(validIndexRequest.getIndex(), VALID_FIELD_KEYWORD);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_BOOLEAN, MappingType.FIELD_TYPE_BOOLEAN));
+            validIndexRequest.getIndex(), VALID_FIELD_BOOLEAN, FIELD_TYPE_BOOLEAN));
     verify(settingsAdapter, times(1))
         .getFieldType(validIndexRequest.getIndex(), VALID_FIELD_BOOLEAN);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_NESTED, MappingType.FIELD_TYPE_NESTED));
+            validIndexRequest.getIndex(), VALID_FIELD_NESTED, FIELD_TYPE_NESTED));
     verify(settingsAdapter, times(1))
         .getFieldType(validIndexRequest.getIndex(), VALID_FIELD_NESTED);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_GEO_POINT, MappingType.FIELD_TYPE_GEOPOINT));
+            validIndexRequest.getIndex(), VALID_FIELD_GEO_POINT, FIELD_TYPE_GEOPOINT));
     verify(settingsAdapter, times(1))
         .getFieldType(validIndexRequest.getIndex(), VALID_FIELD_GEO_POINT);
 
     assertTrue(
-        settingsAdapter.isTypeOf(validIndexRequest.getIndex(), VALID_FIELD_LONG, MappingType.FIELD_TYPE_LONG));
+        settingsAdapter.isTypeOf(validIndexRequest.getIndex(), VALID_FIELD_LONG, FIELD_TYPE_LONG));
     verify(settingsAdapter, times(1)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_LONG);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_LONG, MappingType.FIELD_TYPE_NUMBER));
+            validIndexRequest.getIndex(), VALID_FIELD_LONG, FIELD_TYPE_NUMBER));
     verify(settingsAdapter, times(2)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_LONG);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_FLOAT, MappingType.FIELD_TYPE_FLOAT));
+            validIndexRequest.getIndex(), VALID_FIELD_FLOAT, FIELD_TYPE_FLOAT));
     verify(settingsAdapter, times(1)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_FLOAT);
 
     assertTrue(
         settingsAdapter.isTypeOf(
-            validIndexRequest.getIndex(), VALID_FIELD_FLOAT, MappingType.FIELD_TYPE_NUMBER));
+            validIndexRequest.getIndex(), VALID_FIELD_FLOAT, FIELD_TYPE_NUMBER));
     verify(settingsAdapter, times(2)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_FLOAT);
 
     assertTrue(
-        settingsAdapter.isTypeOf(validIndexRequest.getIndex(), VALID_FIELD_DATE, MappingType.FIELD_TYPE_DATE));
+        settingsAdapter.isTypeOf(validIndexRequest.getIndex(), VALID_FIELD_DATE, FIELD_TYPE_DATE));
     verify(settingsAdapter, times(1)).getFieldType(validIndexRequest.getIndex(), VALID_FIELD_DATE);
   }
 
   private Map<String, Map<String, Object>> structuredIndicesSettings() {
     Map<String, Map<String, Object>> structuredIndices = new HashMap<>();
     Map<String, Object> indexSettings = new HashMap<>();
-    indexSettings.put(ElasticsearchSettingsAdapter.SHARDS, 8);
-    indexSettings.put(ElasticsearchSettingsAdapter.REPLICAS, 2);
+    indexSettings.put(SHARDS, 8);
+    indexSettings.put(REPLICAS, 2);
     indexSettings.put(VALID_FIELD_TEXT, "text");
     indexSettings.put(VALID_FIELD_BOOLEAN, "boolean");
     indexSettings.put(VALID_FIELD_LONG, "long");
@@ -184,7 +179,7 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
     indexSettings.put(VALID_FIELD_KEYWORD, "keyword");
     indexSettings.put(VALID_FIELD_DATE, "date");
 
-    structuredIndices.put(SearchApiRequestBuilder.INDEX_NAME, indexSettings);
+    structuredIndices.put(INDEX_NAME, indexSettings);
     return structuredIndices;
   }
 }

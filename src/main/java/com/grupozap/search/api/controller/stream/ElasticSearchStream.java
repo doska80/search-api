@@ -1,7 +1,7 @@
 package com.grupozap.search.api.controller.stream;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.controller.stream.ResponseStream.iterate;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.controller.stream.ResponseStream.iterate;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Math.min;
 import static java.lang.String.format;
@@ -9,10 +9,9 @@ import static org.elasticsearch.common.bytes.BytesReference.toBytes;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
-import com.vivareal.search.api.adapter.QueryAdapter;
-import com.vivareal.search.api.model.SearchApiIterator;
-import com.vivareal.search.api.model.http.FilterableApiRequest;
+import com.grupozap.search.api.adapter.QueryAdapter;
+import com.grupozap.search.api.model.SearchApiIterator;
+import com.grupozap.search.api.model.http.FilterableApiRequest;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +38,7 @@ public class ElasticSearchStream {
   public void stream(FilterableApiRequest request, OutputStream stream) {
     String index = request.getIndex();
 
-    final Scroll scroll = new Scroll(timeValueMillis(RemoteProperties.ES_SCROLL_KEEP_ALIVE.getValue(index)));
+    final Scroll scroll = new Scroll(timeValueMillis(ES_SCROLL_KEEP_ALIVE.getValue(index)));
     SearchRequest searchRequest = new SearchRequest(index);
     searchRequest.scroll(scroll);
 
@@ -47,16 +46,16 @@ public class ElasticSearchStream {
         this.queryAdapter
             .query(request)
             .source()
-            .size(RemoteProperties.ES_STREAM_SIZE.getValue(index))
+            .size(ES_STREAM_SIZE.getValue(index))
             .timeout(
                 new TimeValue(
-                    RemoteProperties.ES_CONTROLLER_STREAM_TIMEOUT.getValue(index),
-                    TimeUnit.valueOf(RemoteProperties.ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
+                    ES_CONTROLLER_STREAM_TIMEOUT.getValue(index),
+                    TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
 
     int size = MAX_VALUE;
     if (request.getSize() != MAX_VALUE && request.getSize() != 0) {
       size = request.getSize();
-      searchSourceBuilder.size(min(request.getSize(), RemoteProperties.ES_STREAM_SIZE.getValue(index)));
+      searchSourceBuilder.size(min(request.getSize(), ES_STREAM_SIZE.getValue(index)));
       searchSourceBuilder.terminateAfter(size);
     }
 

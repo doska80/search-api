@@ -6,9 +6,9 @@ import org.springframework.context.annotation.ComponentScan;
 @SpringBootConfiguration
 @ComponentScan(
   basePackages = {
-    "com.vivareal.search.api.adapter",
-    "com.vivareal.search.api.controller",
-    "com.vivareal.search.api.service"
+    "com.grupozap.search.api.adapter",
+    "com.grupozap.search.api.controller",
+    "com.grupozap.search.api.service"
   }
 )
 public class SearchApiTest {

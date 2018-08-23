@@ -1,9 +1,9 @@
 package com.grupozap.search.api.adapter;
 
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.newrelic.api.agent.NewRelic.incrementCounter;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static java.lang.Boolean.TRUE;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -11,14 +11,12 @@ import static org.elasticsearch.search.sort.SortBuilders.*;
 import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.elasticsearch.search.sort.SortOrder.valueOf;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
 import com.grupozap.search.api.exception.InvalidFieldException;
-import com.vivareal.search.api.exception.InvalidFieldException;
-import com.vivareal.search.api.model.parser.SortParser;
-import com.vivareal.search.api.model.query.GeoPointItem;
-import com.vivareal.search.api.model.query.GeoPointValue;
-import com.vivareal.search.api.model.query.Item;
-import com.vivareal.search.api.model.search.Sortable;
+import com.grupozap.search.api.model.parser.SortParser;
+import com.grupozap.search.api.model.query.GeoPointItem;
+import com.grupozap.search.api.model.query.GeoPointValue;
+import com.grupozap.search.api.model.query.Item;
+import com.grupozap.search.api.model.search.Sortable;
 import java.util.HashMap;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -51,7 +49,7 @@ public class SortQueryAdapter {
   }
 
   public void apply(SearchSourceBuilder searchSourceBuilder, final Sortable request) {
-    if (TRUE.equals(RemoteProperties.ES_SORT_DISABLE.getValue(request.isDisableSort(), request.getIndex()))) return;
+    if (TRUE.equals(ES_SORT_DISABLE.getValue(request.isDisableSort(), request.getIndex()))) return;
 
     if (!isBlank(request.getSort())) {
       applySortFromRequest(searchSourceBuilder, request);
@@ -67,7 +65,7 @@ public class SortQueryAdapter {
           searchSourceBuilder,
           request,
           request.getIndex(),
-          RemoteProperties.ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex()));
+          ES_DEFAULT_SORT.getValue(request.getSort(), request.getIndex()));
     } catch (ParserException | InvalidFieldException e) {
       if (isInvalidFieldException(e)) {
         LOG.warn(e.getMessage());
@@ -104,7 +102,7 @@ public class SortQueryAdapter {
         searchSourceBuilder,
         request,
         request.getIndex(),
-        RemoteProperties.ES_DEFAULT_SORT.getValue(null, request.getIndex()));
+        ES_DEFAULT_SORT.getValue(null, request.getIndex()));
   }
 
   private SortBuilder asFieldSortBuilder(String index, Item item, final Sortable request)

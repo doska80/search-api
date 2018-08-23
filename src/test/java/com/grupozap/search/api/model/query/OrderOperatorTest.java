@@ -1,7 +1,5 @@
 package com.grupozap.search.api.model.query;
 
-import static com.vivareal.search.api.model.query.OrderOperator.get;
-import static com.vivareal.search.api.model.query.OrderOperator.getOperators;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -19,7 +17,8 @@ public class OrderOperatorTest {
 
   @Test
   public void testGetOperatorBySymbol() {
-    Stream.of(OrderOperator.getOperators()).forEach(operatorId -> assertNotNull(OrderOperator.get(operatorId)));
+    Stream.of(OrderOperator.getOperators())
+        .forEach(operatorId -> assertNotNull(OrderOperator.get(operatorId)));
   }
 
   @Test(expected = IllegalArgumentException.class)

@@ -1,7 +1,7 @@
 package com.grupozap.search.api.adapter;
 
-import com.vivareal.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.model.search.Indexable;
+import com.grupozap.search.api.model.mapping.MappingType;
+import com.grupozap.search.api.model.search.Indexable;
 
 public interface SettingsAdapter<T, U> {
 

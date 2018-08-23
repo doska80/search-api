@@ -8,8 +8,8 @@ import static org.elasticsearch.common.settings.Settings.builder;
 import static org.elasticsearch.transport.Transport.TRANSPORT_TCP_COMPRESS;
 import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
-import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
-import com.vivareal.search.api.serializer.ESResponseSerializer;
+import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
+import com.grupozap.search.api.serializer.ESResponseSerializer;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.apache.http.HttpHost;

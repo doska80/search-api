@@ -1,11 +1,11 @@
 package com.grupozap.search.api.service.parser;
 
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
+import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
 import static java.lang.Integer.parseInt;
 
-import com.vivareal.search.api.adapter.SettingsAdapter;
-import com.vivareal.search.api.model.search.Indexable;
+import com.grupozap.search.api.adapter.SettingsAdapter;
+import com.grupozap.search.api.model.search.Indexable;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

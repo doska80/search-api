@@ -3,8 +3,8 @@ package com.grupozap.search.api.service.parser.factory;
 import static br.com.six2six.fixturefactory.Fixture.from;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.FILTER_DEFAULT_CLAUSES;
-import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.FILTER_DEFAULT_CLAUSES;
+import static com.grupozap.search.api.fixtures.FixtureTemplateLoader.loadAll;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -13,19 +13,11 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.grupozap.search.api.adapter.FilterQueryAdapter;
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
-import com.grupozap.search.api.fixtures.FixtureTemplateLoader;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.model.parser.QueryParser;
 import com.grupozap.search.api.model.query.Filter;
 import com.grupozap.search.api.model.query.QueryFragmentItem;
 import com.grupozap.search.api.model.query.QueryFragmentList;
-import com.vivareal.search.api.adapter.FilterQueryAdapter;
-import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.vivareal.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.query.Filter;
-import com.vivareal.search.api.model.query.QueryFragmentItem;
-import com.vivareal.search.api.model.query.QueryFragmentList;
 import java.util.HashSet;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.junit.Before;
@@ -43,12 +35,12 @@ public class DefaultFilterFactoryTest {
 
   @BeforeClass
   public static void setUpClass() {
-    FixtureTemplateLoader.loadAll();
+    loadAll();
   }
 
   @Before
   public void setup() {
-    RemoteProperties.FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, null);
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, null);
 
     queryParser = mock(QueryParser.class);
     filterQueryAdapter = mock(FilterQueryAdapter.class);
@@ -58,7 +50,7 @@ public class DefaultFilterFactoryTest {
 
   @Test
   public void emptyDefaultFiltersForIndexWithNullConfig() {
-    RemoteProperties.FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, null);
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, null);
     defaultFilterFactory.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, SOME_INDEX));
     assertEquals(
         new HashSet<>(), defaultFilterFactory.getDefaultFilters(SOME_INDEX, new HashSet<>()));
@@ -69,7 +61,7 @@ public class DefaultFilterFactoryTest {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
     Filter filter = qfi.getFilter();
 
-    RemoteProperties.FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
     BoolQueryBuilder expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
@@ -99,7 +91,7 @@ public class DefaultFilterFactoryTest {
                 from(QueryFragmentItem.class).gimme("qfi"),
                 from(QueryFragmentItem.class).gimme("qfiNested")));
 
-    RemoteProperties.FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
 
     BoolQueryBuilder expectedDefaultFilter1 = boolQuery();
     when(queryParser.parse(qfi.toString())).thenReturn(qfi);
@@ -130,7 +122,7 @@ public class DefaultFilterFactoryTest {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
     Filter filter = qfi.getFilter();
 
-    RemoteProperties.FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
     BoolQueryBuilder expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
@@ -156,7 +148,7 @@ public class DefaultFilterFactoryTest {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfiNested");
     Filter filter = qfi.getFilter();
 
-    RemoteProperties.FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
     BoolQueryBuilder expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
@@ -188,7 +180,7 @@ public class DefaultFilterFactoryTest {
                 from(QueryFragmentItem.class).gimme("qfi"),
                 from(QueryFragmentItem.class).gimme("qfiNested")));
 
-    RemoteProperties.FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
+    FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
 
     BoolQueryBuilder expectedDefaultFilter1 = boolQuery();
     when(queryParser.parse(qfi.toString())).thenReturn(qfi);

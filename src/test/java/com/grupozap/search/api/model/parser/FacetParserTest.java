@@ -1,11 +1,9 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.facetParserFixture;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.facetParserFixture;
 import static org.junit.Assert.assertEquals;
 
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
 import com.grupozap.search.api.model.query.Facet;
-import com.vivareal.search.api.model.query.Facet;
 import java.util.List;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
@@ -15,7 +13,7 @@ public class FacetParserTest {
   private final FacetParser facetParser;
 
   public FacetParserTest() {
-    this.facetParser = ParserTemplateLoader.facetParserFixture();
+    this.facetParser = facetParserFixture();
   }
 
   @Test

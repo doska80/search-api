@@ -1,15 +1,15 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_FIELD;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_MODIFIER;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_FIELD;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_MODIFIER;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.fromString;
 import static org.elasticsearch.index.query.QueryBuilders.functionScoreQuery;
 import static org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders.fieldValueFactorFunction;
 
-import com.vivareal.search.api.model.parser.FieldParser;
-import com.vivareal.search.api.model.search.Queryable;
+import com.grupozap.search.api.model.parser.FieldParser;
+import com.grupozap.search.api.model.search.Queryable;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;

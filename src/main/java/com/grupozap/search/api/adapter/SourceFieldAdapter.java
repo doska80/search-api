@@ -1,17 +1,13 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
 import static org.apache.commons.lang3.ArrayUtils.contains;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
 import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
+import com.grupozap.search.api.model.search.Fetchable;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
-import com.vivareal.search.api.exception.InvalidFieldException;
-import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.vivareal.search.api.model.search.Fetchable;
-import com.vivareal.search.api.service.parser.factory.FieldCache;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,7 +61,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
   }
 
   private String[] getFetchSourceIncludeFields(Set<String> fields, String indexName) {
-    return RemoteProperties.SOURCE_INCLUDES
+    return SOURCE_INCLUDES
         .getValue(fields, indexName)
         .stream()
         .filter(field -> isValidFetchSourceField(indexName, field))
@@ -86,7 +82,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
 
   private String[] getFetchSourceExcludeFields(
       Set<String> fields, String[] includeFields, String indexName) {
-    return RemoteProperties.SOURCE_EXCLUDES
+    return SOURCE_EXCLUDES
         .getValue(fields, indexName)
         .stream()
         .filter(

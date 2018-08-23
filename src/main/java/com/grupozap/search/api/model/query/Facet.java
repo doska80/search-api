@@ -1,14 +1,12 @@
 package com.grupozap.search.api.model.query;
 
-import static com.vivareal.search.api.service.parser.factory.FieldFactory.createField;
-
 import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.service.parser.factory.FieldFactory;
-import com.vivareal.search.api.exception.InvalidFieldException;
 import java.util.Optional;
 
 public class Facet {
-  private static final Sort DEFAULT_SORT = new Sort(FieldFactory.createField("_count"), OrderOperator.DESC);
+  private static final Sort DEFAULT_SORT =
+      new Sort(FieldFactory.createField("_count"), OrderOperator.DESC);
 
   public static final String _KEY = "_key";
 

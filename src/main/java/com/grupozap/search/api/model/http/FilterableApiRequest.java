@@ -1,16 +1,12 @@
 package com.grupozap.search.api.model.http;
 
-import static com.vivareal.search.api.model.http.DefaultFilterMode.ENABLED;
+import static com.grupozap.search.api.model.http.DefaultFilterMode.ENABLED;
 
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.grupozap.search.api.model.search.Filterable;
 import com.grupozap.search.api.model.search.Pageable;
 import com.grupozap.search.api.model.search.Queryable;
 import com.grupozap.search.api.model.search.Sortable;
-import com.vivareal.search.api.model.search.Filterable;
-import com.vivareal.search.api.model.search.Pageable;
-import com.vivareal.search.api.model.search.Queryable;
-import com.vivareal.search.api.model.search.Sortable;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Set;
 
@@ -42,7 +38,7 @@ public class FilterableApiRequest extends BaseApiRequest
     value = "Determine if the default filter for the index should be applied",
     example = "ENABLED,DISABLED"
   )
-  private DefaultFilterMode defaultFilterMode = DefaultFilterMode.ENABLED;
+  private DefaultFilterMode defaultFilterMode = ENABLED;
 
   @ApiModelProperty(
     value = "Field list that will be filtered for query string",

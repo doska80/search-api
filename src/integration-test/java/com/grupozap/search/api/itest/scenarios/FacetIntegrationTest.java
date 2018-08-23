@@ -1,8 +1,8 @@
 package com.grupozap.search.api.itest.scenarios;
 
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.String.format;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -14,8 +14,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
-import com.grupozap.search.api.itest.configuration.es.ESIndexHandler;
-import com.vivareal.search.api.itest.SearchApiIntegrationTest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +34,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(ESIndexHandler.TEST_DATA_INDEX + "?facets=id,array_integer,isEven")
+        .get(TEST_DATA_INDEX + "?facets=id,array_integer,isEven")
         .then()
         .body("totalCount", equalTo(standardDatasetSize))
         .body("result.testdata", hasSize(defaultPageSize))
@@ -62,7 +60,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(ESIndexHandler.TEST_DATA_INDEX + "?facets=id,array_integer&facetSize=" + standardDatasetSize)
+        .get(TEST_DATA_INDEX + "?facets=id,array_integer&facetSize=" + standardDatasetSize)
         .then()
         .body("totalCount", equalTo(standardDatasetSize))
         .body("result.testdata", hasSize(defaultPageSize))
@@ -86,7 +84,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_BAD_REQUEST)
         .when()
-        .get(String.format("%s?facets=non_existing_field", ESIndexHandler.TEST_DATA_INDEX));
+        .get(format("%s?facets=non_existing_field", TEST_DATA_INDEX));
   }
 
   @Test
@@ -102,9 +100,9 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .statusCode(SC_OK)
             .when()
             .get(
-                String.format(
+                format(
                     "%s?size=0&facets=facetString,facetInteger,facetBoolean,array_integer&facetSize=%s",
-                    ESIndexHandler.TEST_DATA_INDEX, standardDatasetSize))
+                    TEST_DATA_INDEX, standardDatasetSize))
             .body()
             .asString();
 
@@ -145,7 +143,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .statusCode(SC_OK)
             .when()
             .get(
-                ESIndexHandler.TEST_DATA_INDEX
+                TEST_DATA_INDEX
                     + "?facets=facetString sortFacet: _key ASC, isEven sortFacet: _count DESC")
             .body()
             .asString();
@@ -167,7 +165,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .expect()
             .statusCode(SC_OK)
             .when()
-            .get(ESIndexHandler.TEST_DATA_INDEX + "?facets=nested.boolean sortFacet: _key ASC")
+            .get(TEST_DATA_INDEX + "?facets=nested.boolean sortFacet: _key ASC")
             .body()
             .asString();
 
@@ -187,7 +185,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .expect()
             .statusCode(SC_OK)
             .when()
-            .get(ESIndexHandler.TEST_DATA_INDEX + "?facets=facetString sortFacet: _key DESC")
+            .get(TEST_DATA_INDEX + "?facets=facetString sortFacet: _key DESC")
             .body()
             .asString();
 
@@ -207,7 +205,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .expect()
             .statusCode(SC_OK)
             .when()
-            .get(ESIndexHandler.TEST_DATA_INDEX + "?facets=nested.boolean sortFacet: _key DESC")
+            .get(TEST_DATA_INDEX + "?facets=nested.boolean sortFacet: _key DESC")
             .body()
             .asString();
 
@@ -227,7 +225,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .expect()
             .statusCode(SC_OK)
             .when()
-            .get(ESIndexHandler.TEST_DATA_INDEX + "?facets=facetString sortFacet: _count ASC")
+            .get(TEST_DATA_INDEX + "?facets=facetString sortFacet: _count ASC")
             .body()
             .asString();
 
@@ -247,7 +245,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .expect()
             .statusCode(SC_OK)
             .when()
-            .get(ESIndexHandler.TEST_DATA_INDEX + "?facets=facetString sortFacet: _count DESC")
+            .get(TEST_DATA_INDEX + "?facets=facetString sortFacet: _count DESC")
             .body()
             .asString();
 

@@ -2,10 +2,10 @@ package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.basic;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.basic;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.emptyArray;
 import static org.junit.Assert.*;
@@ -14,13 +14,10 @@ import static org.mockito.Matchers.contains;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
+import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
+import com.grupozap.search.api.model.search.Fetchable;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
-import com.vivareal.search.api.exception.InvalidFieldException;
-import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.vivareal.search.api.model.search.Fetchable;
-import com.vivareal.search.api.service.parser.factory.FieldCache;
 import java.util.HashSet;
 import java.util.Set;
 import org.elasticsearch.action.get.GetRequest;
@@ -47,8 +44,8 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     when(fieldCache.isIndexHasField(anyString(), contains("invalid")))
         .thenThrow(new InvalidFieldException("invalid", INDEX_NAME));
 
-    RemoteProperties.SOURCE_INCLUDES.setValue(INDEX_NAME, null);
-    RemoteProperties.SOURCE_EXCLUDES.setValue(INDEX_NAME, null);
+    SOURCE_INCLUDES.setValue(INDEX_NAME, null);
+    SOURCE_EXCLUDES.setValue(INDEX_NAME, null);
   }
 
   @Test
@@ -92,9 +89,9 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void applyDefaultFetchSourceFieldsWhenRequestEmptyForRequestById() {
-    RemoteProperties.SOURCE_INCLUDES.setValue(
+    SOURCE_INCLUDES.setValue(
         INDEX_NAME, newArrayList("default.field1", "default.field2", "default.field3"));
-    RemoteProperties.SOURCE_EXCLUDES.setValue(
+    SOURCE_EXCLUDES.setValue(
         INDEX_NAME, newArrayList("default.field2", "default.field3", "default.field4"));
 
     sourceFieldAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
@@ -113,9 +110,9 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void applyDefaultFetchSourceFieldsWhenRequestEmptyForForSearchRequest() {
-    RemoteProperties.SOURCE_INCLUDES.setValue(
+    SOURCE_INCLUDES.setValue(
         INDEX_NAME, newArrayList("default.field1", "default.field2", "default.field3"));
-    RemoteProperties.SOURCE_EXCLUDES.setValue(
+    SOURCE_EXCLUDES.setValue(
         INDEX_NAME, newArrayList("default.field2", "default.field3", "default.field4"));
 
     sourceFieldAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));

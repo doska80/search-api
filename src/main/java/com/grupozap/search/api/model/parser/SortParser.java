@@ -1,17 +1,17 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
-import static com.vivareal.search.api.model.query.OrderOperator.ASC;
+import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
+import static com.grupozap.search.api.model.query.OrderOperator.ASC;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.jparsec.Parsers.*;
 import static org.jparsec.Scanners.*;
 
+import com.grupozap.search.api.model.query.GeoPointValue;
+import com.grupozap.search.api.model.query.OrderOperator;
+import com.grupozap.search.api.model.query.QueryFragment;
+import com.grupozap.search.api.model.query.Sort;
 import com.newrelic.api.agent.Trace;
-import com.vivareal.search.api.model.query.GeoPointValue;
-import com.vivareal.search.api.model.query.OrderOperator;
-import com.vivareal.search.api.model.query.QueryFragment;
-import com.vivareal.search.api.model.query.Sort;
 import java.util.Optional;
 import org.jparsec.Parser;
 import org.springframework.beans.factory.annotation.Autowired;

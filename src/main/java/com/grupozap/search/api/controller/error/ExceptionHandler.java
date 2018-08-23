@@ -10,8 +10,8 @@ import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMess
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.web.context.request.RequestContextHolder.currentRequestAttributes;
 
-import com.vivareal.search.api.exception.QueryPhaseExecutionException;
-import com.vivareal.search.api.exception.QueryTimeoutException;
+import com.grupozap.search.api.exception.QueryPhaseExecutionException;
+import com.grupozap.search.api.exception.QueryTimeoutException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;

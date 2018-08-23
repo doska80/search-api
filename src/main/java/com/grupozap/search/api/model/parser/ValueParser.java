@@ -4,10 +4,10 @@ import static java.lang.String.valueOf;
 import static org.jparsec.Parsers.*;
 import static org.jparsec.Scanners.*;
 
-import com.vivareal.search.api.model.query.GeoPointValue;
-import com.vivareal.search.api.model.query.LikeValue;
-import com.vivareal.search.api.model.query.RangeValue;
-import com.vivareal.search.api.model.query.Value;
+import com.grupozap.search.api.model.query.GeoPointValue;
+import com.grupozap.search.api.model.query.LikeValue;
+import com.grupozap.search.api.model.query.RangeValue;
+import com.grupozap.search.api.model.query.Value;
 import org.jparsec.Parser;
 import org.springframework.stereotype.Component;
 

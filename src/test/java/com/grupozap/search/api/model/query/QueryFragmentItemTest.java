@@ -3,8 +3,8 @@ package com.grupozap.search.api.model.query;
 import static br.com.six2six.fixturefactory.Fixture.from;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
+import static com.grupozap.search.api.fixtures.FixtureTemplateLoader.loadAll;
+import static com.grupozap.search.api.model.query.LogicalOperator.AND;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 

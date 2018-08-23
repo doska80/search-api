@@ -1,12 +1,12 @@
 package com.grupozap.search.api.itest.scenarios;
 
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.Matchers.*;
 
-import com.vivareal.search.api.itest.SearchApiIntegrationTest;
+import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;

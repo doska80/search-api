@@ -1,6 +1,6 @@
 package com.grupozap.search.api.model.parser.configuration;
 
-import com.vivareal.search.api.model.parser.*;
+import com.grupozap.search.api.model.parser.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

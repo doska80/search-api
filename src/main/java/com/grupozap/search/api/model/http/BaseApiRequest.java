@@ -3,7 +3,6 @@ package com.grupozap.search.api.model.http;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.grupozap.search.api.model.search.Fetchable;
-import com.vivareal.search.api.model.search.Fetchable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Set;

@@ -1,7 +1,7 @@
 package com.grupozap.search.api.model.query;
 
-import static com.vivareal.search.api.model.query.LogicalOperator.get;
-import static com.vivareal.search.api.model.query.LogicalOperator.getOperators;
+import static com.grupozap.search.api.model.query.LogicalOperator.get;
+import static com.grupozap.search.api.model.query.LogicalOperator.getOperators;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 

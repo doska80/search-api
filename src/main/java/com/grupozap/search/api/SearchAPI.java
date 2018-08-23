@@ -5,7 +5,6 @@ import static org.springframework.http.HttpStatus.*;
 import static springfox.documentation.builders.PathSelectors.regex;
 
 import com.grupozap.search.api.configuration.NewRelicTransactionFilter;
-import com.vivareal.search.api.configuration.NewRelicTransactionFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -32,7 +31,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @Configuration
 @EnableAsync
-@ComponentScan(basePackages = {"com.vivareal.search.api"})
+@ComponentScan(basePackages = {"com.grupozap.search.api"})
 @EnableSwagger2
 @EnableHystrix
 @EnableHystrixDashboard
@@ -79,7 +78,7 @@ public class SearchAPI implements WebMvcConfigurer {
   private ApiInfo apiInfo() {
     return new ApiInfoBuilder()
         .title("Search API")
-        .termsOfServiceUrl("https://github.com/VivaReal/search-api")
+        .termsOfServiceUrl("https://github.com/grupozap/search-api")
         .version("2.0")
         .build();
   }

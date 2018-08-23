@@ -1,19 +1,18 @@
 package com.grupozap.search.api.fixtures.model.query;
 
-import static com.vivareal.search.api.model.query.RelationalOperator.EQUAL;
+import static com.grupozap.search.api.model.query.LogicalOperator.AND;
+import static com.grupozap.search.api.model.query.RelationalOperator.EQUAL;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 import br.com.six2six.fixturefactory.Fixture;
 import br.com.six2six.fixturefactory.Rule;
 import br.com.six2six.fixturefactory.loader.TemplateLoader;
+import com.grupozap.search.api.model.query.*;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.model.query.Filter;
-import com.grupozap.search.api.model.query.LogicalOperator;
 import com.grupozap.search.api.model.query.QueryFragmentItem;
-import com.grupozap.search.api.model.query.RelationalOperator;
 import com.grupozap.search.api.model.query.Value;
-import com.vivareal.search.api.model.query.*;
 import org.apache.commons.collections.map.LinkedMap;
 
 public class QueryTemplateLoader implements TemplateLoader {
@@ -100,7 +99,7 @@ public class QueryTemplateLoader implements TemplateLoader {
             new Rule() {
               {
                 add("field", one(Field.class, "field"));
-                add("relationalOperator", RelationalOperator.EQUAL);
+                add("relationalOperator", EQUAL);
                 add("value", one(Value.class, "value"));
               }
             });
@@ -111,7 +110,7 @@ public class QueryTemplateLoader implements TemplateLoader {
             new Rule() {
               {
                 add("field", one(Field.class, "multiple"));
-                add("relationalOperator", RelationalOperator.EQUAL);
+                add("relationalOperator", EQUAL);
                 add("value", one(Value.class, "multiple"));
               }
             });
@@ -122,7 +121,7 @@ public class QueryTemplateLoader implements TemplateLoader {
             new Rule() {
               {
                 add("field", one(Field.class, "nested"));
-                add("relationalOperator", RelationalOperator.EQUAL);
+                add("relationalOperator", EQUAL);
                 add("value", one(Value.class, "value"));
               }
             });
@@ -150,7 +149,7 @@ public class QueryTemplateLoader implements TemplateLoader {
             "qfiNested",
             new Rule() {
               {
-                add("logicalOperator", LogicalOperator.AND);
+                add("logicalOperator", AND);
                 add("filter", one(Filter.class, "nested"));
               }
             });

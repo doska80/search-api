@@ -1,8 +1,8 @@
 package com.grupozap.search.api.itest.scenarios;
 
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.util.stream.Collectors.joining;
@@ -13,7 +13,7 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
-import com.vivareal.search.api.itest.SearchApiIntegrationTest;
+import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -1,8 +1,7 @@
 package com.grupozap.search.api.configuration.environment;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.MIN_VALUE;
 import static java.util.Collections.EMPTY_SET;
@@ -31,27 +30,25 @@ public class RemotePropertiesTest {
 
   private static final Set<RemoteProperties> PROPERTIES_AS_SET =
       newLinkedHashSet(
-          RemoteProperties.QS_DEFAULT_FIELDS,
-          RemoteProperties.FILTER_DEFAULT_CLAUSES,
-          RemoteProperties.SOURCE_INCLUDES,
-          RemoteProperties.SOURCE_EXCLUDES,
-          RemoteProperties.QS_TEMPLATES);
+          QS_DEFAULT_FIELDS,
+          FILTER_DEFAULT_CLAUSES,
+          SOURCE_INCLUDES,
+          SOURCE_EXCLUDES,
+          QS_TEMPLATES);
 
   private static final Set<RemoteProperties> INTEGER_PROPERTIES =
-      newLinkedHashSet(RemoteProperties.ES_MAX_SIZE, RemoteProperties.ES_DEFAULT_SIZE, RemoteProperties.ES_FACET_SIZE, RemoteProperties.ES_STREAM_SIZE);
+      newLinkedHashSet(ES_MAX_SIZE, ES_DEFAULT_SIZE, ES_FACET_SIZE, ES_STREAM_SIZE);
 
   private static final Set<RemoteProperties> LONG_PROPERTIES =
-      newLinkedHashSet(
-          RemoteProperties.ES_QUERY_TIMEOUT_VALUE, RemoteProperties.ES_CONTROLLER_STREAM_TIMEOUT, RemoteProperties.ES_SCROLL_KEEP_ALIVE);
+      newLinkedHashSet(ES_QUERY_TIMEOUT_VALUE, ES_CONTROLLER_STREAM_TIMEOUT, ES_SCROLL_KEEP_ALIVE);
 
   private static final Set<RemoteProperties> TIME_PROPERTIES =
-      newLinkedHashSet(RemoteProperties.ES_CONTROLLER_SEARCH_TIMEOUT);
+      newLinkedHashSet(ES_CONTROLLER_SEARCH_TIMEOUT);
 
-  private static final Set<RemoteProperties> BOOLEAN_PROPERTIES = newLinkedHashSet(
-      RemoteProperties.ES_SORT_DISABLE);
+  private static final Set<RemoteProperties> BOOLEAN_PROPERTIES = newLinkedHashSet(ES_SORT_DISABLE);
 
   private static final Set<RemoteProperties> TEXT_PROPERTIES =
-      Stream.of(RemoteProperties.values())
+      of(RemoteProperties.values())
           .filter(
               p ->
                   !PROPERTIES_AS_SET.contains(p)
@@ -63,7 +60,7 @@ public class RemotePropertiesTest {
 
   @Before
   public void resetIndexPropertiesMap() {
-    Stream.of(RemoteProperties.values()).map(RemoteProperties::getIndexProperties).forEach(Map::clear);
+    of(RemoteProperties.values()).map(RemoteProperties::getIndexProperties).forEach(Map::clear);
   }
 
   // ****************************
@@ -75,12 +72,12 @@ public class RemotePropertiesTest {
     TEXT_PROPERTIES.forEach(
         property -> {
           property.setValue(CUSTOM_INDEX, CUSTOM_INDEX);
-          property.setValue(RemoteProperties.DEFAULT_INDEX, RemoteProperties.DEFAULT_INDEX);
+          property.setValue(DEFAULT_INDEX, DEFAULT_INDEX);
 
           assertEquals(property.name(), CUSTOM_INDEX, property.getValue(CUSTOM_INDEX));
-          Assert.assertEquals(property.name(), RemoteProperties.DEFAULT_INDEX, property.getValue(
-              RemoteProperties.DEFAULT_INDEX));
-          Assert.assertEquals(property.name(), RemoteProperties.DEFAULT_INDEX, property.getValue(NON_EXISTING_INDEX));
+          Assert.assertEquals(property.name(), DEFAULT_INDEX, property.getValue(DEFAULT_INDEX));
+          Assert.assertEquals(
+              property.name(), DEFAULT_INDEX, property.getValue(NON_EXISTING_INDEX));
         });
   }
 
@@ -89,7 +86,7 @@ public class RemotePropertiesTest {
     LONG_PROPERTIES.forEach(
         property -> {
           property.setValue(CUSTOM_INDEX, MAX_VALUE);
-          property.setValue(RemoteProperties.DEFAULT_INDEX, MIN_VALUE);
+          property.setValue(DEFAULT_INDEX, MIN_VALUE);
 
           assertEquals(
               property.name(),
@@ -98,7 +95,7 @@ public class RemotePropertiesTest {
           assertEquals(
               property.name(),
               numberAsInteger(MIN_VALUE),
-              numberAsInteger(property.getValue(RemoteProperties.DEFAULT_INDEX)));
+              numberAsInteger(property.getValue(DEFAULT_INDEX)));
           assertEquals(
               property.name(),
               numberAsInteger(MIN_VALUE),
@@ -111,11 +108,10 @@ public class RemotePropertiesTest {
     TIME_PROPERTIES.forEach(
         property -> {
           property.setValue(CUSTOM_INDEX, 0);
-          property.setValue(RemoteProperties.DEFAULT_INDEX, 10);
+          property.setValue(DEFAULT_INDEX, 10);
 
           assertEquals(property.name(), timeValueMillis(0), property.getValue(CUSTOM_INDEX));
-          assertEquals(property.name(), timeValueMillis(10), property.getValue(
-              RemoteProperties.DEFAULT_INDEX));
+          assertEquals(property.name(), timeValueMillis(10), property.getValue(DEFAULT_INDEX));
           assertEquals(property.name(), timeValueMillis(10), property.getValue(NON_EXISTING_INDEX));
         });
   }
@@ -131,15 +127,13 @@ public class RemotePropertiesTest {
           List<String> customIndex = newArrayList(CUSTOM_INDEX, CUSTOM_INDEX, CUSTOM_INDEX);
           property.setValue(CUSTOM_INDEX, customIndex);
 
-          List<String> defaultIndex = newArrayList(
-              RemoteProperties.DEFAULT_INDEX, RemoteProperties.DEFAULT_INDEX, RemoteProperties.DEFAULT_INDEX);
-          property.setValue(RemoteProperties.DEFAULT_INDEX, defaultIndex);
+          List<String> defaultIndex = newArrayList(DEFAULT_INDEX, DEFAULT_INDEX, DEFAULT_INDEX);
+          property.setValue(DEFAULT_INDEX, defaultIndex);
 
           assertEquals(
               property.name(), new HashSet<>(customIndex), property.getValue(CUSTOM_INDEX));
           assertEquals(
-              property.name(), new HashSet<>(defaultIndex), property.getValue(
-                  RemoteProperties.DEFAULT_INDEX));
+              property.name(), new HashSet<>(defaultIndex), property.getValue(DEFAULT_INDEX));
           assertEquals(
               property.name(), new HashSet<>(defaultIndex), property.getValue(NON_EXISTING_INDEX));
         });
@@ -153,9 +147,9 @@ public class RemotePropertiesTest {
   public void setEmptyValuesForTextProperties() {
     TEXT_PROPERTIES.forEach(
         property -> {
-          property.setValue(RemoteProperties.DEFAULT_INDEX, EMPTY);
+          property.setValue(DEFAULT_INDEX, EMPTY);
 
-          assertEquals(property.name(), EMPTY, property.getValue(RemoteProperties.DEFAULT_INDEX));
+          assertEquals(property.name(), EMPTY, property.getValue(DEFAULT_INDEX));
           assertEquals(property.name(), EMPTY, property.getValue(NON_EXISTING_INDEX));
         });
   }
@@ -165,13 +159,13 @@ public class RemotePropertiesTest {
     TIME_PROPERTIES.forEach(
         property -> {
           try {
-            property.setValue(RemoteProperties.DEFAULT_INDEX, EMPTY);
+            property.setValue(DEFAULT_INDEX, EMPTY);
             assertFalse(property.name() + ": Exception should be threw setting empty value", true);
           } catch (Exception e) {
             assertTrue(property.name(), e instanceof NumberFormatException);
           }
 
-          assertNull(property.name(), property.getValue(RemoteProperties.DEFAULT_INDEX));
+          assertNull(property.name(), property.getValue(DEFAULT_INDEX));
           assertNull(property.name(), property.getValue(NON_EXISTING_INDEX));
         });
   }
@@ -182,14 +176,14 @@ public class RemotePropertiesTest {
         .forEach(
             property -> {
               try {
-                property.setValue(RemoteProperties.DEFAULT_INDEX, EMPTY);
+                property.setValue(DEFAULT_INDEX, EMPTY);
                 assertFalse(
                     property.name() + ": Exception should be threw setting empty value", true);
               } catch (Exception e) {
                 assertTrue(property.name(), e instanceof NumberFormatException);
               }
 
-              assertNull(property.name(), property.getValue(RemoteProperties.DEFAULT_INDEX));
+              assertNull(property.name(), property.getValue(DEFAULT_INDEX));
               assertNull(property.name(), property.getValue(NON_EXISTING_INDEX));
             });
   }
@@ -198,9 +192,9 @@ public class RemotePropertiesTest {
   public void setEmptyValuesForPropertiesAsSet() {
     PROPERTIES_AS_SET.forEach(
         property -> {
-          property.setValue(RemoteProperties.DEFAULT_INDEX, null);
+          property.setValue(DEFAULT_INDEX, null);
 
-          assertEquals(property.name(), EMPTY_SET, property.getValue(RemoteProperties.DEFAULT_INDEX));
+          assertEquals(property.name(), EMPTY_SET, property.getValue(DEFAULT_INDEX));
           assertEquals(property.name(), EMPTY_SET, property.getValue(NON_EXISTING_INDEX));
         });
   }
@@ -212,7 +206,7 @@ public class RemotePropertiesTest {
         .filter(property -> !PROPERTIES_AS_SET.contains(property))
         .forEach(
             property -> {
-              assertNull(property.name(), property.getValue(RemoteProperties.DEFAULT_INDEX));
+              assertNull(property.name(), property.getValue(DEFAULT_INDEX));
               assertNull(property.name(), property.getValue(NON_EXISTING_INDEX));
             });
   }
@@ -221,7 +215,7 @@ public class RemotePropertiesTest {
   public void checkDefaultValueForPropertiesAsSetIfNeverSpecified() {
     PROPERTIES_AS_SET.forEach(
         property -> {
-          assertEquals(new HashSet<>(), property.getValue(RemoteProperties.DEFAULT_INDEX));
+          assertEquals(new HashSet<>(), property.getValue(DEFAULT_INDEX));
           assertEquals(new HashSet<>(), property.getValue(NON_EXISTING_INDEX));
         });
   }
@@ -236,18 +230,20 @@ public class RemotePropertiesTest {
         property -> {
           System.out.println("Testing remote property as text: " + property);
           property.setValue(CUSTOM_INDEX, CUSTOM_INDEX);
-          property.setValue(RemoteProperties.DEFAULT_INDEX, RemoteProperties.DEFAULT_INDEX);
+          property.setValue(DEFAULT_INDEX, DEFAULT_INDEX);
 
           // Test over custom index
           assertEquals(property.name(), CUSTOM_INDEX, property.getValue(null, CUSTOM_INDEX));
           assertEquals(property.name(), EMPTY, property.getValue(EMPTY, CUSTOM_INDEX));
 
           // Test over default index
-          Assert.assertEquals(property.name(), RemoteProperties.DEFAULT_INDEX, property.getValue(null, RemoteProperties.DEFAULT_INDEX));
-          assertEquals(property.name(), EMPTY, property.getValue(EMPTY, RemoteProperties.DEFAULT_INDEX));
+          Assert.assertEquals(
+              property.name(), DEFAULT_INDEX, property.getValue(null, DEFAULT_INDEX));
+          assertEquals(property.name(), EMPTY, property.getValue(EMPTY, DEFAULT_INDEX));
 
           // Test over non existing index
-          Assert.assertEquals(property.name(), RemoteProperties.DEFAULT_INDEX, property.getValue(null, NON_EXISTING_INDEX));
+          Assert.assertEquals(
+              property.name(), DEFAULT_INDEX, property.getValue(null, NON_EXISTING_INDEX));
           assertEquals(property.name(), EMPTY, property.getValue(EMPTY, NON_EXISTING_INDEX));
         });
   }
@@ -259,7 +255,7 @@ public class RemotePropertiesTest {
             property -> {
               System.out.println("Testing remote property as numeric: " + property);
               property.setValue(CUSTOM_INDEX, MAX_VALUE);
-              property.setValue(RemoteProperties.DEFAULT_INDEX, MIN_VALUE);
+              property.setValue(DEFAULT_INDEX, MIN_VALUE);
 
               // Test over custom index
               assertEquals(
@@ -275,11 +271,11 @@ public class RemotePropertiesTest {
               assertEquals(
                   property.name(),
                   numberAsInteger(MIN_VALUE),
-                  numberAsInteger(property.getValue(null, RemoteProperties.DEFAULT_INDEX)));
+                  numberAsInteger(property.getValue(null, DEFAULT_INDEX)));
               assertEquals(
                   property.name(),
                   numberAsInteger(0),
-                  numberAsInteger(property.getValue(0, RemoteProperties.DEFAULT_INDEX)));
+                  numberAsInteger(property.getValue(0, DEFAULT_INDEX)));
 
               // Test over non existing index
               assertEquals(
@@ -300,7 +296,7 @@ public class RemotePropertiesTest {
           System.out.println("Testing remote property as TimeValue: " + property);
 
           property.setValue(CUSTOM_INDEX, "0");
-          property.setValue(RemoteProperties.DEFAULT_INDEX, "10");
+          property.setValue(DEFAULT_INDEX, "10");
 
           // Test over custom index
           assertEquals(property.name(), timeValueMillis(0), property.getValue(null, CUSTOM_INDEX));
@@ -311,11 +307,11 @@ public class RemotePropertiesTest {
 
           // Test over default index
           assertEquals(
-              property.name(), timeValueMillis(10), property.getValue(null, RemoteProperties.DEFAULT_INDEX));
+              property.name(), timeValueMillis(10), property.getValue(null, DEFAULT_INDEX));
           assertEquals(
               property.name(),
               timeValueMillis(12),
-              property.getValue(timeValueMillis(12), RemoteProperties.DEFAULT_INDEX));
+              property.getValue(timeValueMillis(12), DEFAULT_INDEX));
 
           // Test over non existing index
           assertEquals(
@@ -335,14 +331,13 @@ public class RemotePropertiesTest {
           List<String> customIndex = newArrayList(CUSTOM_INDEX, CUSTOM_INDEX, CUSTOM_INDEX);
           property.setValue(CUSTOM_INDEX, customIndex);
 
-          List<String> defaultIndex = newArrayList(
-              RemoteProperties.DEFAULT_INDEX, RemoteProperties.DEFAULT_INDEX, RemoteProperties.DEFAULT_INDEX);
-          property.setValue(RemoteProperties.DEFAULT_INDEX, defaultIndex);
+          List<String> defaultIndex = newArrayList(DEFAULT_INDEX, DEFAULT_INDEX, DEFAULT_INDEX);
+          property.setValue(DEFAULT_INDEX, defaultIndex);
 
           // Test over custom index
           checkIsValidRequestForPropertyAsSet(property, customIndex, CUSTOM_INDEX);
           // Test over default index
-          checkIsValidRequestForPropertyAsSet(property, defaultIndex, RemoteProperties.DEFAULT_INDEX);
+          checkIsValidRequestForPropertyAsSet(property, defaultIndex, DEFAULT_INDEX);
           // Test over non existing index
           checkIsValidRequestForPropertyAsSet(property, defaultIndex, NON_EXISTING_INDEX);
         });

@@ -1,16 +1,16 @@
 package com.grupozap.search.api.itest.scenarios;
 
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.*;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.*;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.HttpStatus.SC_GATEWAY_TIMEOUT;
 
-import com.vivareal.search.api.itest.SearchApiIntegrationTest;
-import com.vivareal.search.api.itest.configuration.data.TestData;
-import com.vivareal.search.api.itest.configuration.es.BulkESIndexHandler;
+import com.grupozap.search.api.itest.SearchApiIntegrationTest;
+import com.grupozap.search.api.itest.configuration.data.TestData;
+import com.grupozap.search.api.itest.configuration.es.BulkESIndexHandler;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

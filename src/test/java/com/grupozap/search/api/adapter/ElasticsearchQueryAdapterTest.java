@@ -2,12 +2,13 @@ package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.vivareal.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.*;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static com.vivareal.search.api.model.query.RelationalOperator.*;
+import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.*;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_GEOPOINT;
+import static com.grupozap.search.api.model.query.LogicalOperator.AND;
+import static com.grupozap.search.api.model.query.RelationalOperator.*;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
@@ -19,23 +20,13 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.common.collect.Sets;
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
 import com.grupozap.search.api.model.http.BaseApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
-import com.grupozap.search.api.model.http.SearchApiRequestBuilder;
 import com.grupozap.search.api.model.mapping.MappingType;
-import com.grupozap.search.api.model.query.LogicalOperator;
-import com.grupozap.search.api.model.query.RelationalOperator;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
-import com.vivareal.search.api.model.http.BaseApiRequest;
-import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.assertj.core.util.Lists;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.geo.GeoPoint;
@@ -66,25 +57,24 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   public void setup() {
     initMocks(this);
 
-    RemoteProperties.QS_MM.setValue(SearchApiRequestBuilder.INDEX_NAME, "75%");
-    RemoteProperties.QS_DEFAULT_FIELDS.setValue(
-        SearchApiRequestBuilder.INDEX_NAME, newArrayList("field", "field1"));
-    RemoteProperties.ES_QUERY_TIMEOUT_VALUE.setValue(SearchApiRequestBuilder.INDEX_NAME, 100);
-    RemoteProperties.ES_QUERY_TIMEOUT_UNIT.setValue(SearchApiRequestBuilder.INDEX_NAME, "MILLISECONDS");
-    RemoteProperties.ES_DEFAULT_SIZE.setValue(SearchApiRequestBuilder.INDEX_NAME, 20);
-    RemoteProperties.ES_MAX_SIZE.setValue(SearchApiRequestBuilder.INDEX_NAME, 200);
-    RemoteProperties.ES_FACET_SIZE.setValue(SearchApiRequestBuilder.INDEX_NAME, 20);
-    RemoteProperties.ES_MAPPING_META_FIELDS_ID.setValue(SearchApiRequestBuilder.INDEX_NAME, "id");
+    QS_MM.setValue(INDEX_NAME, "75%");
+    QS_DEFAULT_FIELDS.setValue(INDEX_NAME, newArrayList("field", "field1"));
+    ES_QUERY_TIMEOUT_VALUE.setValue(INDEX_NAME, 100);
+    ES_QUERY_TIMEOUT_UNIT.setValue(INDEX_NAME, "MILLISECONDS");
+    ES_DEFAULT_SIZE.setValue(INDEX_NAME, 20);
+    ES_MAX_SIZE.setValue(INDEX_NAME, 200);
+    ES_FACET_SIZE.setValue(INDEX_NAME, 20);
+    ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
 
     SourceFieldAdapter sourceFieldAdapter = mock(SourceFieldAdapter.class);
 
     this.pageQueryAdapter = new PageQueryAdapter();
-    this.queryStringAdapter = new QueryStringAdapter(ParserTemplateLoader.fieldCacheFixture());
-    this.functionScoreAdapter = new FunctionScoreAdapter(ParserTemplateLoader.fieldParserFixture());
-    this.facetQueryAdapter = new FacetQueryAdapter(ParserTemplateLoader.facetParserFixture());
-    this.filterQueryAdapter = new FilterQueryAdapter(ParserTemplateLoader.queryParserFixture());
+    this.queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
+    this.functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
+    this.facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
+    this.filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
     this.defaultFilterFactory =
-        new DefaultFilterFactory(ParserTemplateLoader.queryParserWithOutValidationFixture(), filterQueryAdapter);
+        new DefaultFilterFactory(queryParserWithOutValidationFixture(), filterQueryAdapter);
 
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
@@ -94,7 +84,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             sortQueryAdapter,
             queryStringAdapter,
             functionScoreAdapter,
-            ParserTemplateLoader.queryParserFixture(),
+            queryParserFixture(),
             filterQueryAdapter,
             defaultFilterFactory,
             facetQueryAdapter);
@@ -105,7 +95,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     doNothing().when(searchAfterQueryAdapter).apply(any(), any());
     doNothing().when(sortQueryAdapter).apply(any(), any());
 
-    when(settingsAdapter.settingsByKey(SearchApiRequestBuilder.INDEX_NAME, ElasticsearchSettingsAdapter.SHARDS)).thenReturn("8");
+    when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
     when(settingsAdapter.isTypeOf(anyString(), anyString(), any(MappingType.class)))
         .thenReturn(false);
   }
@@ -155,7 +145,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         .forEach(
             request -> {
               SearchRequest searchRequest =
-                  queryAdapter.query(request.filter(format(field, value, RelationalOperator.EQUAL.name())).build());
+                  queryAdapter.query(request.filter(format(field, value, EQUAL.name())).build());
 
               NestedQueryBuilder nestedQueryBuilder =
                   (NestedQueryBuilder)
@@ -180,7 +170,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field1";
     final Object value = "Lorem Ipsum";
 
-    RelationalOperator.DIFFERENT
+    DIFFERENT
         .getAlias()
         .parallelStream()
         .forEach(
@@ -208,7 +198,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field1";
     final Object value = "Lorem Ipsum";
 
-    RelationalOperator.EQUAL
+    EQUAL
         .getAlias()
         .parallelStream()
         .forEach(
@@ -233,7 +223,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestByTwoFragmentLevelsUsingOR() {
-    RelationalOperator.EQUAL
+    EQUAL
         .getAlias()
         .parallelStream()
         .forEach(
@@ -257,7 +247,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestByTwoFragmentLevelsUsingAND() {
-    RelationalOperator.EQUAL
+    EQUAL
         .getAlias()
         .parallelStream()
         .forEach(
@@ -281,7 +271,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestByTwoFragmentLevelsUsingNOT() {
-    RelationalOperator.EQUAL
+    EQUAL
         .getAlias()
         .parallelStream()
         .forEach(
@@ -314,7 +304,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field1";
     final Object value = 10;
 
-    RelationalOperator.GREATER
+    GREATER
         .getAlias()
         .forEach(
             op ->
@@ -343,7 +333,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field1";
     final Object value = 10;
 
-    RelationalOperator.GREATER_EQUAL
+    GREATER_EQUAL
         .getAlias()
         .parallelStream()
         .forEach(
@@ -373,7 +363,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field1";
     final Object value = 10;
 
-    RelationalOperator.LESS.getAlias()
+    LESS.getAlias()
         .parallelStream()
         .forEach(
             op ->
@@ -402,7 +392,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field1";
     final Object value = 10;
 
-    RelationalOperator.LESS_EQUAL
+    LESS_EQUAL
         .getAlias()
         .parallelStream()
         .forEach(
@@ -438,7 +428,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     double southWestLat = -40.0;
     double southWestLon = -72.0;
 
-    RelationalOperator.VIEWPORT
+    VIEWPORT
         .getAlias()
         .parallelStream()
         .forEach(
@@ -488,7 +478,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   public void shouldReturnSearchRequestByPolygon() {
     String query = "field.location.geo_point POLYGON [[-1.1,2.2],[3.3,-4.4],[5.5,6.6]]";
 
-    RelationalOperator.POLYGON
+    POLYGON
         .getAlias()
         .parallelStream()
         .forEach(
@@ -528,7 +518,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     String value = "Break line\\nNew line with special chars: % \\% _ \\_ * ? \\a!";
     String expected = "Break line\nNew line with special chars: * % ? _ \\* \\? \\a!";
 
-    RelationalOperator.LIKE.getAlias()
+    LIKE.getAlias()
         .parallelStream()
         .forEach(
             op ->
@@ -555,7 +545,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field";
     final int from = 3, to = 5;
 
-    RelationalOperator.RANGE
+    RANGE
         .getAlias()
         .parallelStream()
         .forEach(
@@ -589,7 +579,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field";
     final int from = 5, to = 10;
 
-    RelationalOperator.RANGE
+    RANGE
         .getAlias()
         .parallelStream()
         .forEach(
@@ -624,7 +614,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "field1";
     final Object[] values = new Object[] {1, "\"string\"", 1.2, true};
 
-    RelationalOperator.IN.getAlias()
+    IN.getAlias()
         .parallelStream()
         .forEach(
             op ->
@@ -672,7 +662,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     final String field = "id";
     final Set<Object> values = newHashSet("\"123\"", 456, "\"7a8b9\"");
 
-    RelationalOperator.IN.getAlias()
+    IN.getAlias()
         .parallelStream()
         .forEach(
             op ->
@@ -905,8 +895,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldThrowExceptionWhenMinimalShouldMatchIsInvalid() {
     String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-    List<String> invalidMMs =
-        Lists.newArrayList("-101%", "101%", "75%.1", "75%,1", "75%123", "75%a");
+    List<String> invalidMMs = newArrayList("-101%", "101%", "75%.1", "75%,1", "75%123", "75%a");
 
     invalidMMs.forEach(
         mm ->
@@ -962,34 +951,33 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     // Filters
     String field1Name = "field1";
-    String field1RelationalOperator = RelationalOperator.EQUAL.name();
+    String field1RelationalOperator = EQUAL.name();
     Object field1Value = "\"string\"";
 
     String field2Name = "field2";
-    String field2RelationalOperator = RelationalOperator.DIFFERENT.name();
+    String field2RelationalOperator = DIFFERENT.name();
     Object field2Value = 5432;
 
     String field3Name = "field3";
-    String field3RelationalOperator = RelationalOperator.GREATER.name();
+    String field3RelationalOperator = GREATER.name();
     Object field3Value = 3;
 
     String field4Name = "field4";
-    String field4RelationalOperator = RelationalOperator.LESS.name();
+    String field4RelationalOperator = LESS.name();
     Object field4Value = 8;
 
     String field5Name = "field5";
-    String field5RelationalOperator = RelationalOperator.IN.name();
+    String field5RelationalOperator = IN.name();
     Object[] field5Value = new Object[] {1, "\"string\"", 1.2, true};
 
     String field6Name = "field6.location.geo_point";
-    String field6RelationalOperator = RelationalOperator.VIEWPORT.name();
+    String field6RelationalOperator = VIEWPORT.name();
     double northEastLat = 42.0;
     double northEastLon = -74.0;
     double southWestLat = -40.0;
     double southWestLon = -72.0;
 
-    when(settingsAdapter.isTypeOf(SearchApiRequestBuilder.INDEX_NAME, field6Name, MappingType.FIELD_TYPE_GEOPOINT))
-        .thenReturn(true);
+    when(settingsAdapter.isTypeOf(INDEX_NAME, field6Name, FIELD_TYPE_GEOPOINT)).thenReturn(true);
 
     String filter =
         String.format(
@@ -1001,11 +989,11 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             field2Name,
             field2RelationalOperator,
             field2Value,
-            LogicalOperator.AND.name(),
+            AND.name(),
             field3Name,
             field3RelationalOperator,
             field3Value,
-            LogicalOperator.AND.name(),
+            AND.name(),
             field4Name,
             field4RelationalOperator,
             field4Value,
@@ -1013,7 +1001,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             field5Name,
             field5RelationalOperator,
             Arrays.toString(field5Value),
-            LogicalOperator.AND.name(),
+            AND.name(),
             field6Name,
             field6RelationalOperator,
             northEastLon,

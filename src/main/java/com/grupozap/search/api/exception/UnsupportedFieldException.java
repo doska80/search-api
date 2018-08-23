@@ -1,6 +1,6 @@
 package com.grupozap.search.api.exception;
 
-import com.vivareal.search.api.model.query.RelationalOperator;
+import com.grupozap.search.api.model.query.RelationalOperator;
 
 @FunctionalInterface
 interface InvalidMessageFunction {

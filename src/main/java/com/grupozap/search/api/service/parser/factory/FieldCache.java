@@ -1,17 +1,16 @@
 package com.grupozap.search.api.service.parser.factory;
 
-import static com.vivareal.search.api.model.query.Facet._COUNT;
-import static com.vivareal.search.api.model.query.Facet._KEY;
+import static com.grupozap.search.api.model.query.Facet._COUNT;
+import static com.grupozap.search.api.model.query.Facet._KEY;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableMap;
+import com.grupozap.search.api.exception.InvalidFieldException;
+import com.grupozap.search.api.model.event.ClusterSettingsUpdatedEvent;
+import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.IndexSettings;
-import com.vivareal.search.api.exception.InvalidFieldException;
-import com.vivareal.search.api.model.event.ClusterSettingsUpdatedEvent;
-import com.vivareal.search.api.model.query.Field;
-import com.vivareal.search.api.service.parser.IndexSettings;
 import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.collections.map.LinkedMap;

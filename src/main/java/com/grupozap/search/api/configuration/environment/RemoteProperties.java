@@ -1,8 +1,8 @@
 package com.grupozap.search.api.configuration.environment;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
 import static java.lang.Long.parseLong;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;

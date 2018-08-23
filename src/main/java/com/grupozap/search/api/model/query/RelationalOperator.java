@@ -1,6 +1,6 @@
 package com.grupozap.search.api.model.query;
 
-import static com.vivareal.search.api.model.query.RelationalOperator.RelationalOperatorMap.OPERATORS;
+import static com.grupozap.search.api.model.query.RelationalOperator.RelationalOperatorMap.OPERATORS;
 import static java.util.Optional.ofNullable;
 
 import java.util.*;

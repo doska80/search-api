@@ -1,11 +1,12 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.model.query.RelationalOperator.*;
+import static com.grupozap.search.api.model.query.RelationalOperator.*;
 import static org.jparsec.Parsers.or;
 import static org.jparsec.Parsers.sequence;
 
-import com.vivareal.search.api.model.parser.ValueParser.GeoPoint.Type;
-import com.vivareal.search.api.model.query.Filter;
+import com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type;
+import com.grupozap.search.api.model.query.Filter;
+import com.grupozap.search.api.model.query.RelationalOperator;
 import org.jparsec.Parser;
 
 public class FilterParser {
@@ -39,7 +40,7 @@ public class FilterParser {
     Parser<Filter> viewportParser =
         sequence(
                 fieldParser.get(),
-                operatorParser.exact(VIEWPORT),
+                operatorParser.exact(RelationalOperator.VIEWPORT),
                 valueParser.getGeoPointValue(Type.VIEWPORT),
                 Filter::new)
             .label("VIEWPORT filter");

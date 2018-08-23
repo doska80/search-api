@@ -1,6 +1,6 @@
 package com.grupozap.search.api.itest.configuration.es;
 
-import static com.vivareal.search.api.itest.configuration.data.TestData.createTestData;
+import static com.grupozap.search.api.itest.configuration.data.TestData.createTestData;
 import static java.lang.String.valueOf;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
@@ -8,7 +8,6 @@ import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grupozap.search.api.itest.configuration.data.TestData;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -110,7 +109,7 @@ public class ESIndexHandler {
   }
 
   public String createStandardEntityForId(int id, int facetValue) {
-    return writeValueAsStringFromMap(id, TestData.createTestData(id, facetValue));
+    return writeValueAsStringFromMap(id, createTestData(id, facetValue));
   }
 
   private String writeValueAsStringFromMap(Object id, Map<String, Object> data) {

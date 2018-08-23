@@ -2,7 +2,7 @@ package com.grupozap.search.api.adapter;
 
 import static java.util.stream.Stream.of;
 
-import com.vivareal.search.api.model.http.FilterableApiRequest;
+import com.grupozap.search.api.model.http.FilterableApiRequest;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Component;
 

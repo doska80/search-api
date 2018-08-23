@@ -6,7 +6,6 @@ import static org.apache.lucene.geo.GeoUtils.checkLatitude;
 import static org.apache.lucene.geo.GeoUtils.checkLongitude;
 
 import com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type;
-import com.vivareal.search.api.model.parser.ValueParser;
 import java.util.ArrayList;
 import java.util.List;
 

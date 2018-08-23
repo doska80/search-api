@@ -5,8 +5,8 @@ import static org.jparsec.Parsers.or;
 import static org.jparsec.Parsers.sequence;
 import static org.jparsec.Scanners.isChar;
 
+import com.grupozap.search.api.model.query.*;
 import com.newrelic.api.agent.Trace;
-import com.vivareal.search.api.model.query.*;
 import org.jparsec.Parser;
 
 public class QueryParser {

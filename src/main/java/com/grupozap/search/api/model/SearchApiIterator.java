@@ -2,8 +2,6 @@ package com.grupozap.search.api.model;
 
 import com.grupozap.search.api.exception.FailedShardsException;
 import com.grupozap.search.api.exception.QueryTimeoutException;
-import com.vivareal.search.api.exception.FailedShardsException;
-import com.vivareal.search.api.exception.QueryTimeoutException;
 import java.io.IOException;
 import java.util.Iterator;
 import org.elasticsearch.action.search.SearchResponse;

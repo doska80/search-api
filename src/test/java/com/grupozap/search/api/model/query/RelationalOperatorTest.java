@@ -1,7 +1,7 @@
 package com.grupozap.search.api.model.query;
 
-import static com.vivareal.search.api.model.query.RelationalOperator.get;
-import static com.vivareal.search.api.model.query.RelationalOperator.getOperators;
+import static com.grupozap.search.api.model.query.RelationalOperator.get;
+import static com.grupozap.search.api.model.query.RelationalOperator.getOperators;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -12,24 +12,23 @@ public class RelationalOperatorTest {
 
   @Test
   public void testGetOperators() {
-    String[] operators = RelationalOperator.getOperators();
+    String[] operators = getOperators();
     assertNotNull(operators);
     assertTrue(operators.length > 0);
   }
 
   @Test
   public void testGetOperatorBySymbol() {
-    Stream.of(RelationalOperator.getOperators()).forEach(operatorId -> assertNotNull(
-        RelationalOperator.get(operatorId)));
+    Stream.of(getOperators()).forEach(operatorId -> assertNotNull(get(operatorId)));
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testGetInvalidOperator() {
-    RelationalOperator.get("NonExistent");
+    get("NonExistent");
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testNullInvalidOperator() {
-    RelationalOperator.get(null);
+    get(null);
   }
 }

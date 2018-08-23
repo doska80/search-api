@@ -1,6 +1,6 @@
 package com.grupozap.search.api.serializer;
 
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.elasticsearch.search.SearchHit.createFromMap;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -13,9 +13,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.type.CollectionLikeType;
-import com.grupozap.search.api.model.http.SearchApiRequestBuilder;
 import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
-import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -117,12 +115,12 @@ public class ESResponseSerializerTest {
 
     String expected =
         "{\"time\":123,\"maxScore\":0.0,\"totalCount\":2,\"result\":{\""
-            + SearchApiRequestBuilder.INDEX_NAME
+            + INDEX_NAME
             + "\":[{\"id\":\"1\",\"field\":\"string\"},{\"id\":\"2\",\"facet.field\":\"string\"}],\"facets\":{\"field\":{\"string\":1},\"facet.field\":{\"string\":1}}}}";
 
     assertEquals(
         expected,
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(SearchApiRequestBuilder.INDEX_NAME, searchResponse)));
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
   }
 
   @Test
@@ -146,12 +144,12 @@ public class ESResponseSerializerTest {
 
     String expected =
         "{\"time\":2,\"maxScore\":0.0,\"totalCount\":1,\"result\":{\""
-            + SearchApiRequestBuilder.INDEX_NAME
+            + INDEX_NAME
             + "\":[{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],\"object\":{\"child\":{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],}}}]}}";
 
     assertEquals(
         expected,
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(SearchApiRequestBuilder.INDEX_NAME, searchResponse)));
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
   }
 
   @Test
@@ -166,10 +164,10 @@ public class ESResponseSerializerTest {
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
-    String expected = "{\"time\":1,\"totalCount\":1,\"result\":{\"" + SearchApiRequestBuilder.INDEX_NAME + "\":[]}}";
+    String expected = "{\"time\":1,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
     assertEquals(
         expected,
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(SearchApiRequestBuilder.INDEX_NAME, searchResponse)));
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
   }
 
   @Test
@@ -185,10 +183,10 @@ public class ESResponseSerializerTest {
     when(searchResponse.getHits()).thenReturn(searchHits);
 
     String expected =
-        "{\"time\":1,\"maxScore\":1.0,\"totalCount\":1,\"result\":{\"" + SearchApiRequestBuilder.INDEX_NAME + "\":[]}}";
+        "{\"time\":1,\"maxScore\":1.0,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
     assertEquals(
         expected,
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(SearchApiRequestBuilder.INDEX_NAME, searchResponse)));
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
   }
 
   @Test
@@ -248,12 +246,12 @@ public class ESResponseSerializerTest {
 
     String expected =
         "{\"time\":123,\"maxScore\":0.0,\"totalCount\":56789,\"result\":{\""
-            + SearchApiRequestBuilder.INDEX_NAME
+            + INDEX_NAME
             + "\":[],\"facets\":{\"field\":{\"value\":10},\"facet.field\":{\"value\":10}}}}";
 
     assertEquals(
         expected,
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(SearchApiRequestBuilder.INDEX_NAME, searchResponse)));
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
   }
 
   @Test
@@ -300,12 +298,12 @@ public class ESResponseSerializerTest {
 
     String expected =
         "{\"time\":123,\"maxScore\":0.0,\"totalCount\":0,\"result\":{\""
-            + SearchApiRequestBuilder.INDEX_NAME
+            + INDEX_NAME
             + "\":[],\"facets\":{\"field\":{},\"facet.field\":{}}}}";
 
     assertEquals(
         expected,
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(SearchApiRequestBuilder.INDEX_NAME, searchResponse)));
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
   }
 
   @Test
@@ -324,7 +322,7 @@ public class ESResponseSerializerTest {
     BytesReference source = new BytesArray("{\"id\":1}");
     values.put("_source", source);
 
-    String _id = SearchApiRequestBuilder.INDEX_NAME + "#1028071465";
+    String _id = INDEX_NAME + "#1028071465";
 
     values.put(
         "sort",
@@ -334,7 +332,7 @@ public class ESResponseSerializerTest {
     hits[0] = createFromMap(values);
 
     assertThat(
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(SearchApiRequestBuilder.INDEX_NAME, searchResponse)),
+        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)),
         containsString("\"cursorId\":\"0.23456_A%5fB_" + _id + "\""));
   }
 }

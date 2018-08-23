@@ -3,8 +3,8 @@ package com.grupozap.search.api.controller;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import com.vivareal.search.api.service.ClusterSettingsService;
-import com.vivareal.search.api.service.SearchApiEnvService;
+import com.grupozap.search.api.service.ClusterSettingsService;
+import com.grupozap.search.api.service.SearchApiEnvService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;

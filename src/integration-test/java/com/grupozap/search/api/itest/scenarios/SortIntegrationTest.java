@@ -1,10 +1,10 @@
 package com.grupozap.search.api.itest.scenarios;
 
+import static com.grupozap.search.api.itest.configuration.data.TestData.latitude;
+import static com.grupozap.search.api.itest.configuration.data.TestData.longitude;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.itest.configuration.data.TestData.latitude;
-import static com.vivareal.search.api.itest.configuration.data.TestData.longitude;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
@@ -15,7 +15,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertTrue;
 
-import com.vivareal.search.api.itest.SearchApiIntegrationTest;
+import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;

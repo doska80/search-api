@@ -1,7 +1,7 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static com.vivareal.search.api.model.query.RelationalOperator.EQUAL;
+import static com.grupozap.search.api.model.query.LogicalOperator.AND;
+import static com.grupozap.search.api.model.query.RelationalOperator.EQUAL;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
 import static org.hamcrest.Matchers.*;
@@ -9,8 +9,6 @@ import static org.junit.Assert.assertThat;
 
 import com.grupozap.search.api.model.query.LogicalOperator;
 import com.grupozap.search.api.model.query.RelationalOperator;
-import com.vivareal.search.api.model.query.LogicalOperator;
-import com.vivareal.search.api.model.query.RelationalOperator;
 import java.util.List;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
@@ -27,7 +25,7 @@ public class OperatorParserTest {
             .collect(toList());
 
     assertThat(ops, hasSize(3));
-    assertThat(ops, everyItem(equalTo(RelationalOperator.EQUAL)));
+    assertThat(ops, everyItem(equalTo(EQUAL)));
   }
 
   @Test(expected = ParserException.class)
@@ -41,7 +39,7 @@ public class OperatorParserTest {
         of("AND", "&&").map(operatorParser.getLogicalOperatorParser()::parse).collect(toList());
 
     assertThat(ops, hasSize(2));
-    assertThat(ops, everyItem(equalTo(LogicalOperator.AND)));
+    assertThat(ops, everyItem(equalTo(AND)));
   }
 
   @Test(expected = ParserException.class)

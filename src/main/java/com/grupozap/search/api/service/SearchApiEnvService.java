@@ -1,7 +1,6 @@
 package com.grupozap.search.api.service;
 
 import com.grupozap.search.api.configuration.environment.SearchApiEnv;
-import com.vivareal.search.api.configuration.environment.SearchApiEnv;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

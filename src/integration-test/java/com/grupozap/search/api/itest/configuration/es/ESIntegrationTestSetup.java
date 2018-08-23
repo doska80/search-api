@@ -1,8 +1,8 @@
 package com.grupozap.search.api.itest.configuration.es;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;

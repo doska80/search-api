@@ -1,11 +1,9 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
 import static org.junit.Assert.assertEquals;
 
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
 import com.grupozap.search.api.model.query.Field;
-import com.vivareal.search.api.model.query.Field;
 import java.util.stream.Stream;
 import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
@@ -16,7 +14,7 @@ public class FieldParserTest {
   private final FieldParser fieldParser;
 
   public FieldParserTest() {
-    this.fieldParser = new FieldParser(new NotParser(), ParserTemplateLoader.fieldCacheFixture());
+    this.fieldParser = new FieldParser(new NotParser(), fieldCacheFixture());
   }
 
   @Test

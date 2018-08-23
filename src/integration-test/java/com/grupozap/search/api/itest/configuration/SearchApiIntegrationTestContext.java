@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 
 @Configuration
-@ComponentScan(basePackages = "com.vivareal.search.api.itest.configuration")
+@ComponentScan(basePackages = "com.grupozap.search.api.itest.configuration")
 public class SearchApiIntegrationTestContext {
 
   @Value("${es.hostname}")

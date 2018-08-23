@@ -1,9 +1,9 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_FACET_SIZE;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
-import static com.vivareal.search.api.model.query.Facet._COUNT;
-import static com.vivareal.search.api.model.query.Facet._KEY;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_FACET_SIZE;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static com.grupozap.search.api.model.query.Facet._COUNT;
+import static com.grupozap.search.api.model.query.Facet._KEY;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.nested;
@@ -12,18 +12,11 @@ import static org.elasticsearch.search.aggregations.BucketOrder.count;
 import static org.elasticsearch.search.aggregations.BucketOrder.key;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
-import com.grupozap.search.api.model.mapping.MappingType;
 import com.grupozap.search.api.model.parser.FacetParser;
 import com.grupozap.search.api.model.query.Item;
 import com.grupozap.search.api.model.query.OrderOperator;
 import com.grupozap.search.api.model.search.Facetable;
 import com.grupozap.search.api.service.parser.IndexSettings;
-import com.vivareal.search.api.model.parser.FacetParser;
-import com.vivareal.search.api.model.query.Item;
-import com.vivareal.search.api.model.query.OrderOperator;
-import com.vivareal.search.api.model.search.Facetable;
-import com.vivareal.search.api.service.parser.IndexSettings;
 import java.util.Optional;
 import java.util.Set;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
@@ -54,7 +47,7 @@ public class FacetQueryAdapter {
     if (isEmpty(value)) return;
 
     final String indexName = request.getIndex();
-    request.setFacetingValues(RemoteProperties.ES_FACET_SIZE.getValue(indexName));
+    request.setFacetingValues(ES_FACET_SIZE.getValue(indexName));
 
     final int facetSize = request.getFacetSize();
     facetParser
@@ -68,7 +61,7 @@ public class FacetQueryAdapter {
                       .shardSize(indexSettings.getShards())
                       .order(facetOrder(facet.getSort().getFirst()));
 
-              if (MappingType.FIELD_TYPE_NESTED.typeOf(facet.getField().getTypeFirstName()))
+              if (FIELD_TYPE_NESTED.typeOf(facet.getField().getTypeFirstName()))
                 applyFacetsByNestedFields(searchSourceBuilder, facet.getField().firstName(), agg);
               else searchSourceBuilder.aggregation(agg);
             });

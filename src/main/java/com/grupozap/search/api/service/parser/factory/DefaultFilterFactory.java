@@ -1,7 +1,7 @@
 package com.grupozap.search.api.service.parser.factory;
 
 import static com.google.common.base.Objects.equal;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.FILTER_DEFAULT_CLAUSES;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.FILTER_DEFAULT_CLAUSES;
 import static java.util.Collections.unmodifiableMap;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
@@ -9,10 +9,10 @@ import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.base.Objects;
-import com.vivareal.search.api.adapter.FilterQueryAdapter;
-import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.vivareal.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.query.QueryFragment;
+import com.grupozap.search.api.adapter.FilterQueryAdapter;
+import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
+import com.grupozap.search.api.model.parser.QueryParser;
+import com.grupozap.search.api.model.query.QueryFragment;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;

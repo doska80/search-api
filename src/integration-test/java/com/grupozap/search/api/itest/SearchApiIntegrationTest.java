@@ -1,15 +1,15 @@
 package com.grupozap.search.api.itest;
 
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static org.apache.http.HttpStatus.SC_OK;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vivareal.search.api.itest.configuration.SearchApiIntegrationTestContext;
-import com.vivareal.search.api.itest.configuration.data.StandardDatasetAsserts;
-import com.vivareal.search.api.itest.configuration.es.ESIndexHandler;
+import com.grupozap.search.api.itest.configuration.SearchApiIntegrationTestContext;
+import com.grupozap.search.api.itest.configuration.data.StandardDatasetAsserts;
+import com.grupozap.search.api.itest.configuration.es.ESIndexHandler;
 import java.io.IOException;
 import javax.annotation.PostConstruct;
 import org.junit.Before;

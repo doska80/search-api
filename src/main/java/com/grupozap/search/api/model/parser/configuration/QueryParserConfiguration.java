@@ -1,5 +1,6 @@
 package com.grupozap.search.api.model.parser.configuration;
 
+import com.grupozap.search.api.model.parser.*;
 import com.grupozap.search.api.model.parser.FieldParser;
 import com.grupozap.search.api.model.parser.FilterParser;
 import com.grupozap.search.api.model.parser.NotParser;
@@ -7,8 +8,6 @@ import com.grupozap.search.api.model.parser.OperatorParser;
 import com.grupozap.search.api.model.parser.QueryParser;
 import com.grupozap.search.api.model.parser.ValueParser;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
-import com.vivareal.search.api.model.parser.*;
-import com.vivareal.search.api.service.parser.factory.FieldCache;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

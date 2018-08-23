@@ -1,21 +1,19 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.adapter.FilterQueryAdapter.QueryType.*;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_MAPPING_META_FIELDS_ID;
-import static com.vivareal.search.api.model.mapping.MappingType.*;
-import static com.vivareal.search.api.model.query.LogicalOperator.AND;
-import static com.vivareal.search.api.model.query.RelationalOperator.*;
+import static com.grupozap.search.api.adapter.FilterQueryAdapter.QueryType.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_MAPPING_META_FIELDS_ID;
+import static com.grupozap.search.api.model.mapping.MappingType.*;
+import static com.grupozap.search.api.model.query.LogicalOperator.AND;
+import static com.grupozap.search.api.model.query.RelationalOperator.*;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static java.util.stream.Collectors.toList;
 import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
 import com.grupozap.search.api.exception.UnsupportedFieldException;
-import com.vivareal.search.api.exception.UnsupportedFieldException;
-import com.vivareal.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.query.*;
+import com.grupozap.search.api.model.parser.QueryParser;
+import com.grupozap.search.api.model.query.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,7 +217,7 @@ public class FilterQueryAdapter {
             break;
 
           case IN:
-            if (fieldName.equals(RemoteProperties.ES_MAPPING_META_FIELDS_ID.getValue(indexName))) {
+            if (fieldName.equals(ES_MAPPING_META_FIELDS_ID.getValue(indexName))) {
               String[] values =
                   filterValue
                       .stream()

@@ -1,27 +1,24 @@
 package com.grupozap.search.api.controller;
 
+import static com.grupozap.search.api.configuration.ThreadPoolConfig.MAX_SIZE;
+import static com.grupozap.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
 import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.*;
-import static com.vivareal.search.api.configuration.ThreadPoolConfig.MAX_SIZE;
-import static com.vivareal.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import com.grupozap.search.api.configuration.ThreadPoolConfig;
 import com.grupozap.search.api.controller.error.ExceptionHandler;
+import com.grupozap.search.api.model.http.BaseApiRequest;
+import com.grupozap.search.api.model.http.FilterableApiRequest;
+import com.grupozap.search.api.model.http.SearchApiRequest;
+import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
+import com.grupozap.search.api.service.SearchService;
 import com.grupozap.search.api.service.parser.IndexSettings;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.hystrix.contrib.javanica.annotation.DefaultProperties;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.newrelic.api.agent.Trace;
-import com.vivareal.search.api.controller.error.ExceptionHandler;
-import com.vivareal.search.api.model.http.BaseApiRequest;
-import com.vivareal.search.api.model.http.FilterableApiRequest;
-import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.serializer.SearchResponseEnvelope;
-import com.vivareal.search.api.service.SearchService;
-import com.vivareal.search.api.service.parser.IndexSettings;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -89,8 +86,8 @@ public class SearchController {
       @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "90")
     },
     threadPoolProperties = {
-      @HystrixProperty(name = CORE_SIZE, value = ThreadPoolConfig.MIN_SIZE),
-      @HystrixProperty(name = MAXIMUM_SIZE, value = ThreadPoolConfig.MAX_SIZE)
+      @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
+      @HystrixProperty(name = MAXIMUM_SIZE, value = MAX_SIZE)
     }
   )
   @Trace(dispatcher = true)
@@ -129,8 +126,8 @@ public class SearchController {
       @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "70")
     },
     threadPoolProperties = {
-      @HystrixProperty(name = CORE_SIZE, value = ThreadPoolConfig.MIN_SIZE),
-      @HystrixProperty(name = MAXIMUM_SIZE, value = ThreadPoolConfig.MAX_SIZE)
+      @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
+      @HystrixProperty(name = MAXIMUM_SIZE, value = MAX_SIZE)
     }
   )
   @Trace(dispatcher = true)

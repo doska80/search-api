@@ -1,16 +1,13 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static java.lang.String.format;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-import com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader;
-import com.grupozap.search.api.model.http.SearchApiRequestBuilder;
 import com.grupozap.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.parser.QueryParser;
 import java.util.HashMap;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.NestedQueryBuilder;
@@ -22,8 +19,8 @@ public class FilterQueryAdapterTest {
   private final QueryParser queryParser;
 
   public FilterQueryAdapterTest() {
-    this.queryParser = ParserTemplateLoader.queryParserFixture();
-    this.filterQueryAdapter = new FilterQueryAdapter(ParserTemplateLoader.queryParserFixture());
+    this.queryParser = queryParserFixture();
+    this.filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
   }
 
   private BoolQueryBuilder getQueryBuilder(String field, boolean ignoreNestedQueryBuilder) {
@@ -32,7 +29,7 @@ public class FilterQueryAdapterTest {
     filterQueryAdapter.apply(
         boolQueryBuilder,
         queryParser.parse(format("%s=\"%s\"", field, "Lorem Ipsum")),
-        SearchApiRequestBuilder.INDEX_NAME,
+        INDEX_NAME,
         new HashMap<>(),
         ignoreNestedQueryBuilder);
 

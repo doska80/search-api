@@ -5,6 +5,6 @@ import static br.com.six2six.fixturefactory.loader.FixtureFactoryLoader.loadTemp
 public class FixtureTemplateLoader {
 
   public static void loadAll() {
-    loadTemplates("com.vivareal.search.api.fixtures");
+    loadTemplates("com.grupozap.search.api.fixtures");
   }
 }

@@ -6,9 +6,9 @@ import static org.jparsec.Scanners.WHITESPACES;
 import static org.jparsec.Terminals.fragment;
 import static org.jparsec.Terminals.operators;
 
-import com.vivareal.search.api.model.query.LogicalOperator;
-import com.vivareal.search.api.model.query.OrderOperator;
-import com.vivareal.search.api.model.query.RelationalOperator;
+import com.grupozap.search.api.model.query.LogicalOperator;
+import com.grupozap.search.api.model.query.OrderOperator;
+import com.grupozap.search.api.model.query.RelationalOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;

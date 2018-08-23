@@ -1,8 +1,8 @@
 package com.grupozap.search.api.model.query;
 
 import static br.com.six2six.fixturefactory.Fixture.from;
-import static com.vivareal.search.api.fixtures.FixtureTemplateLoader.loadAll;
-import static com.vivareal.search.api.model.query.RelationalOperator.EQUAL;
+import static com.grupozap.search.api.fixtures.FixtureTemplateLoader.loadAll;
+import static com.grupozap.search.api.model.query.RelationalOperator.EQUAL;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.BeforeClass;

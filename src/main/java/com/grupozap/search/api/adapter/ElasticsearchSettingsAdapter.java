@@ -1,7 +1,7 @@
 package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.vivareal.search.api.utils.FlattenMapUtils.flat;
+import static com.grupozap.search.api.utils.FlattenMapUtils.flat;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -11,11 +11,8 @@ import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.grupozap.search.api.exception.IndexNotFoundException;
 import com.grupozap.search.api.exception.PropertyNotFoundException;
 import com.grupozap.search.api.model.event.ClusterSettingsUpdatedEvent;
-import com.vivareal.search.api.exception.IndexNotFoundException;
-import com.vivareal.search.api.exception.PropertyNotFoundException;
-import com.vivareal.search.api.model.event.ClusterSettingsUpdatedEvent;
-import com.vivareal.search.api.model.mapping.MappingType;
-import com.vivareal.search.api.model.search.Indexable;
+import com.grupozap.search.api.model.mapping.MappingType;
+import com.grupozap.search.api.model.search.Indexable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;

@@ -2,19 +2,19 @@ package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_FACET_SIZE;
-import static com.vivareal.search.api.fixtures.model.parser.ParserTemplateLoader.facetParserFixture;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.vivareal.search.api.model.http.SearchApiRequestBuilder.create;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_FACET_SIZE;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.facetParserFixture;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.create;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.vivareal.search.api.model.search.Facetable;
-import com.vivareal.search.api.service.parser.IndexSettings;
+import com.grupozap.search.api.model.search.Facetable;
+import com.grupozap.search.api.service.parser.IndexSettings;
 import java.util.List;
 import java.util.Set;
 import org.elasticsearch.search.aggregations.AggregationBuilder;

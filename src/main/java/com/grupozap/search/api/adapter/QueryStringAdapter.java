@@ -1,7 +1,7 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.*;
-import static com.vivareal.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static java.lang.Float.parseFloat;
 import static java.util.Collections.singleton;
 import static java.util.Optional.ofNullable;
@@ -16,18 +16,11 @@ import static org.elasticsearch.index.query.QueryBuilders.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
 import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.grupozap.search.api.model.mapping.MappingType;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.model.search.Queryable;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
-import com.vivareal.search.api.exception.InvalidFieldException;
-import com.vivareal.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.vivareal.search.api.model.query.Field;
-import com.vivareal.search.api.model.search.Queryable;
-import com.vivareal.search.api.service.parser.factory.FieldCache;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.elasticsearch.index.query.AbstractQueryBuilder;
@@ -65,7 +58,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
 
     String indexName = request.getIndex();
 
-    String mm = isEmpty(request.getMm()) ? RemoteProperties.QS_MM.getValue(indexName) : request.getMm();
+    String mm = isEmpty(request.getMm()) ? QS_MM.getValue(indexName) : request.getMm();
     checkMM(mm);
 
     List<BoolQueryBuilder> queries =
@@ -82,7 +75,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
                           qsField -> {
                             Field field = fieldCache.getField(qsField.getFieldName());
                             float boost = qsField.getBoost();
-                            if (MappingType.FIELD_TYPE_NESTED.typeOf(field.getTypeFirstName())) {
+                            if (FIELD_TYPE_NESTED.typeOf(field.getTypeFirstName())) {
                               String nestedField = field.firstName();
 
                               if (queryStringQueries.containsKey(nestedField))
@@ -139,7 +132,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
   private List<QSField> getQueryStringFields(
       QSTemplate qsTemplate, Queryable request, String indexName) {
     List<QSField> qsFields = new ArrayList<>();
-    RemoteProperties.QS_DEFAULT_FIELDS
+    QS_DEFAULT_FIELDS
         .getValue(request.getFields(), indexName)
         .forEach(
             qsField -> {
@@ -197,7 +190,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
   @Override
   public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
     Set rawQueryTemplates =
-        ofNullable((Set) RemoteProperties.QS_TEMPLATES.getValue(event.getIndex()))
+        ofNullable((Set) QS_TEMPLATES.getValue(event.getIndex()))
             .filter(queries -> !queries.isEmpty())
             .orElse(DEFAULT_QS_TEMPLATE);
 

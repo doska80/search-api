@@ -4,7 +4,7 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
 
-import com.vivareal.search.api.model.query.Field;
+import com.grupozap.search.api.model.query.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

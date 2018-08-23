@@ -3,8 +3,8 @@ package com.grupozap.search.api.model;
 import static java.lang.Integer.MAX_VALUE;
 import static org.junit.Assert.assertEquals;
 
-import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.search.Pageable;
+import com.grupozap.search.api.model.http.SearchApiRequest;
+import com.grupozap.search.api.model.search.Pageable;
 import org.junit.Test;
 
 public class SearchApiRequestTest {

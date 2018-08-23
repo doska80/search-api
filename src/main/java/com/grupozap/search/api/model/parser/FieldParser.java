@@ -5,11 +5,9 @@ import static org.jparsec.Parsers.sequence;
 import static org.jparsec.Scanners.IDENTIFIER;
 import static org.jparsec.Scanners.isChar;
 
+import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
 import com.grupozap.search.api.service.parser.factory.FieldFactory;
-import com.vivareal.search.api.model.query.Field;
-import com.vivareal.search.api.service.parser.factory.FieldCache;
-import com.vivareal.search.api.service.parser.factory.FieldFactory;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.jparsec.Parser;

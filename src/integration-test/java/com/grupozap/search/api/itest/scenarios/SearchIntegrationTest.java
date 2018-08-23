@@ -1,9 +1,9 @@
 package com.grupozap.search.api.itest.scenarios;
 
+import static com.grupozap.search.api.itest.configuration.data.TestData.*;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.*;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static com.vivareal.search.api.itest.configuration.data.TestData.*;
-import static com.vivareal.search.api.itest.configuration.es.ESIndexHandler.*;
 import static java.lang.Math.*;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
@@ -16,7 +16,7 @@ import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import com.vivareal.search.api.itest.SearchApiIntegrationTest;
+import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;

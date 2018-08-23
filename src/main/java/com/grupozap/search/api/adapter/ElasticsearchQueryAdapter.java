@@ -1,22 +1,19 @@
 package com.grupozap.search.api.adapter;
 
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_UNIT;
-import static com.vivareal.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
-import static com.vivareal.search.api.model.http.DefaultFilterMode.ENABLED;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_UNIT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
+import static com.grupozap.search.api.model.http.DefaultFilterMode.ENABLED;
 import static java.util.Optional.ofNullable;
 import static org.elasticsearch.cluster.routing.Preference.REPLICA_FIRST;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 
-import com.grupozap.search.api.configuration.environment.RemoteProperties;
-import com.grupozap.search.api.model.http.DefaultFilterMode;
+import com.grupozap.search.api.model.http.BaseApiRequest;
+import com.grupozap.search.api.model.http.FilterableApiRequest;
+import com.grupozap.search.api.model.http.SearchApiRequest;
+import com.grupozap.search.api.model.parser.QueryParser;
+import com.grupozap.search.api.model.query.QueryFragment;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
 import com.newrelic.api.agent.Trace;
-import com.vivareal.search.api.model.http.BaseApiRequest;
-import com.vivareal.search.api.model.http.FilterableApiRequest;
-import com.vivareal.search.api.model.http.SearchApiRequest;
-import com.vivareal.search.api.model.parser.QueryParser;
-import com.vivareal.search.api.model.query.QueryFragment;
-import com.vivareal.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -113,8 +110,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
 
     searchSourceBuilder.timeout(
         new TimeValue(
-            RemoteProperties.ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
-            TimeUnit.valueOf(RemoteProperties.ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
+            ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),
+            TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
 
     searchRequest.source(searchSourceBuilder);
     searchRequest.indices(request.getIndex());
@@ -147,7 +144,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     requestFilter.ifPresent(
         filter -> filterQueryAdapter.apply(queryBuilder, filter, filterable.getIndex()));
 
-    if (DefaultFilterMode.ENABLED.equals(filterable.getDefaultFilterMode())) {
+    if (ENABLED.equals(filterable.getDefaultFilterMode())) {
       Set<String> requestFields =
           requestFilter.map(qf -> qf.getFieldNames(false)).orElseGet(HashSet::new);
       defaultFilterFactory
