@@ -1,4 +1,4 @@
-package com.vivareal.search.api.client;
+package com.grupozap.search.api.client;
 
 import haxe.Http;
 import haxe.Json;

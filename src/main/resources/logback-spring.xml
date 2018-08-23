@@ -19,7 +19,7 @@
         </filter>
         <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
             <evaluator class="ch.qos.logback.classic.boolex.JaninoEventEvaluator">
-                <expression>com.vivareal.search.api.controller.error.ExceptionHandler.isBadRequestException(throwable)</expression>
+                <expression>com.grupozap.search.api.controller.error.ExceptionHandler.isBadRequestException(throwable)</expression>
             </evaluator>
             <onMatch>DENY</onMatch>
         </filter>
