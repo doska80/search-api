@@ -26,13 +26,13 @@ LOG:=/var/log/$(CONTAINER_NAME)
 CONTAINER_LOG:=/logs
 include make/log/Makefile
 
-RUN_MEMORY:=$(if $(filter prod,$(ENV)),2500,900)
+RUN_MEMORY:=$(if $(filter prod,$(ENV)),3500,900)
 PORT:=8482
 ES_PORT?=9300
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
-RUN_OPTS+=-server -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=65 -XX:MaxMetaspaceSize=$(RUN_MEMORY)m
-RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) \* 9 / 10)m -Xms$(shell expr $(RUN_MEMORY) \* 9 / 10)m
+RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=65 -XX:MaxMetaspaceSize=256m
+RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) \* 5 / 10)m -Xms$(shell expr $(RUN_MEMORY) \* 5 / 10)m
 RUN_OPTS+=-Dnewrelic.config.agent_enabled=$(NEWRELIC_ENABLED)
 RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
 

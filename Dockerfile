@@ -7,4 +7,4 @@ COPY build/libs/newrelic.jar /usr/local/
 COPY build/resources/main/newrelic.yml /usr/local/
 
 EXPOSE 8482
-ENTRYPOINT java $JAVA_OPTS -server -jar /usr/local/search-api.jar
+ENTRYPOINT exec java $JAVA_OPTS -server -jar /usr/local/search-api.jar
