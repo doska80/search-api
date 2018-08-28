@@ -13,7 +13,7 @@ elb:
     - subnet-ba5f96e1
     - subnet-03b3662e
     - subnet-bcd942b0
-image_id: ami-5040d846
+image_id: ami-07193dec8522d4764
 security_groups:
   - sg-3ce7ce43
   - sg-a0e4cddf
