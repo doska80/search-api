@@ -1,5 +1,7 @@
 package com.grupozap.search.api.model;
 
+import static org.elasticsearch.client.RequestOptions.DEFAULT;
+
 import com.grupozap.search.api.exception.FailedShardsException;
 import com.grupozap.search.api.exception.QueryTimeoutException;
 import java.io.IOException;
@@ -51,7 +53,7 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
       SearchScrollRequest scrollRequest = new SearchScrollRequest(response.getScrollId());
       scrollRequest.scroll(scroll);
 
-      response = client.searchScroll(scrollRequest);
+      response = client.scroll(scrollRequest, DEFAULT);
 
       if (response.getFailedShards() > 0)
         throw new FailedShardsException(response.getFailedShards(), response.getTotalShards());

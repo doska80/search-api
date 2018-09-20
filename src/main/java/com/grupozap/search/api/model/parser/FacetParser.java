@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class FacetParser {
-  static final String SORT_FACET_FIELD = "sortFacet";
+  private static final String SORT_FACET_FIELD = "sortFacet";
 
   private final Parser<List<Facet>> facetParser;
 
@@ -30,7 +30,7 @@ public class FacetParser {
             (void1, void2, sort) -> sort);
 
     this.facetParser =
-        sequence(fieldParser.getWithoutNot(), sortFacetParser.asOptional(), Facet::new)
+        sequence(fieldParser.getWithNot(), sortFacetParser.asOptional(), Facet::new)
             .sepBy(isChar(',').next(WHITESPACES.skipMany()))
             .label("sort");
   }

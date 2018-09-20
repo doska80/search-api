@@ -42,14 +42,14 @@ public class SortParser {
     // Single parser to sort facets
     sortSingleParser =
         sequence(
-            fieldParser.getWithoutNot(),
+            fieldParser.getWithNot(),
             operatorParser.getOrderOperatorParser().optional(ASC).label("sortOperator"),
             sortFilterParser,
             Sort::new);
 
     sortParser =
         sequence(
-                fieldParser.getWithoutNot(),
+                fieldParser.getWithNot(),
                 sortOptionalSettingsParser.asOptional(),
                 sortFilterParser,
                 (field, sortOptionalSettings, queryFragment) ->

@@ -4,6 +4,7 @@ import static java.lang.String.format;
 import static java.lang.System.nanoTime;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
+import static org.elasticsearch.client.RequestOptions.DEFAULT;
 
 import com.grupozap.search.api.adapter.QueryAdapter;
 import com.grupozap.search.api.controller.stream.ElasticSearchStream;
@@ -38,7 +39,7 @@ public class SearchService {
   @Trace
   public GetResponse getById(BaseApiRequest request, String id) {
     try {
-      return restHighLevelClient.get(this.queryAdapter.getById(request, id));
+      return restHighLevelClient.get(this.queryAdapter.getById(request, id), DEFAULT);
     } catch (Exception e) {
       if (getRootCause(e) instanceof IllegalArgumentException)
         throw new IllegalArgumentException(e);
@@ -56,7 +57,7 @@ public class SearchService {
   public SearchResponse search(SearchApiRequest request, final int retries) {
     SearchRequest searchRequest = this.queryAdapter.query(request);
     try {
-      SearchResponse searchResponse = restHighLevelClient.search(searchRequest);
+      SearchResponse searchResponse = restHighLevelClient.search(searchRequest, DEFAULT);
       if (searchResponse.getFailedShards() != 0)
         throw new QueryPhaseExecutionException(
             format(

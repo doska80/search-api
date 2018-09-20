@@ -16,7 +16,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertTrue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -179,13 +182,11 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
                 .path("result.testdata.nested_array"));
 
     Integer lastMin = Integer.MIN_VALUE;
-    Integer lastId = Integer.MIN_VALUE;
 
     ArrayList<HashMap> objectArray;
 
-    /* we have 2 phases:
+    /*
         - first: the numbers from the "b" object type must be in ASC order and respect the range
-        - second: default sort for the index (in this case, sort=id DESC)
     */
     firstSort:
     while (!nestedArray.isEmpty()) {
@@ -201,7 +202,6 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         if (number >= 50 && number <= 5000) {
           if (number < currentMin) currentMin = number;
         } else {
-          lastId = (Integer) object.get("id");
           break firstSort;
         }
       }
@@ -210,16 +210,6 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         assertTrue(lastMin < currentMin);
         lastMin = currentMin;
       }
-    }
-
-    // beginning validation of second phase
-    while (!nestedArray.isEmpty()) {
-      objectArray = nestedArray.removeFirst();
-
-      Integer currentId = (Integer) objectArray.get(0).get("id");
-
-      assertTrue(lastId > currentId);
-      lastId = currentId;
     }
   }
 
@@ -363,7 +353,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void mustApplyDefaultSortWhenRequestHaveFieldThatNotExists() {
+  public void validateScriptSortASC() {
     given()
         .log()
         .all()
@@ -372,7 +362,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get(format("%s?sort=non.existing.field DESC", TEST_DATA_INDEX))
+        .get(TEST_DATA_INDEX + "?sort=testdata_numericsort ASC")
         .then()
         .body("totalCount", equalTo(standardDatasetSize))
         .body("result.testdata", hasSize(defaultPageSize))
@@ -380,5 +370,30 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
             "result.testdata.id",
             equalTo(
                 rangeClosed(1, defaultPageSize).boxed().map(String::valueOf).collect(toList())));
+  }
+
+  @Test
+  public void validateScriptSortDESC() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?sort=testdata_numericsort DESC")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.id",
+            equalTo(
+                range(1, standardDatasetSize)
+                    .boxed()
+                    .map(i -> standardDatasetSize - i + 1)
+                    .limit(defaultPageSize)
+                    .map(String::valueOf)
+                    .collect(toList())));
   }
 }

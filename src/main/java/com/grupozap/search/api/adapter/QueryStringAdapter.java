@@ -2,6 +2,7 @@ package com.grupozap.search.api.adapter;
 
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static com.grupozap.search.api.utils.MapperUtils.convertValue;
 import static java.lang.Float.parseFloat;
 import static java.util.Collections.singleton;
 import static java.util.Optional.ofNullable;
@@ -15,7 +16,6 @@ import static org.elasticsearch.index.query.MultiMatchQueryBuilder.Type.BEST_FIE
 import static org.elasticsearch.index.query.QueryBuilders.*;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.model.query.Field;
@@ -42,14 +42,11 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
   private static final Set<QSTemplate> DEFAULT_QS_TEMPLATE = singleton(new QSTemplate());
 
   private final FieldCache fieldCache;
-  private final ObjectMapper objectMapper;
 
   private final Map<String, Set<QSTemplate>> queryTemplatePerIndex;
 
   public QueryStringAdapter(FieldCache fieldCache) {
     this.fieldCache = fieldCache;
-    this.objectMapper = new ObjectMapper();
-
     this.queryTemplatePerIndex = new ConcurrentHashMap<>();
   }
 
@@ -204,7 +201,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
   }
 
   private QSTemplate toQSTemplate(Object rawQueryTemplate) {
-    return objectMapper.convertValue(rawQueryTemplate, QSTemplate.class);
+    return convertValue(rawQueryTemplate, QSTemplate.class);
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)

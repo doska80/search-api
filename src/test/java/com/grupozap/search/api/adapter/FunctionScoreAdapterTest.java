@@ -35,8 +35,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
   @Mock private ElasticsearchSettingsAdapter settingsAdapter;
 
-  @Mock private SearchAfterQueryAdapter searchAfterQueryAdapter;
-
   @Mock private SortQueryAdapter sortQueryAdapter;
 
   @Before
@@ -67,7 +65,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
         new ElasticsearchQueryAdapter(
             mock(SourceFieldAdapter.class),
             pageQueryAdapter,
-            searchAfterQueryAdapter,
             sortQueryAdapter,
             queryStringAdapter,
             functionScoreAdapter,
@@ -77,7 +74,6 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
             facetQueryAdapter);
 
     doNothing().when(settingsAdapter).checkIndex(any());
-    doNothing().when(searchAfterQueryAdapter).apply(any(), any());
     doNothing().when(sortQueryAdapter).apply(any(), any());
 
     when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");

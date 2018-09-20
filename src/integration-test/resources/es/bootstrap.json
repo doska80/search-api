@@ -160,7 +160,7 @@
           },
           {
             "key": "kbn-version",
-            "value": "6.4.0",
+            "value": "6.4.2",
             "description": ""
           }
         ],
@@ -169,6 +169,26 @@
           "raw": "{\"value\":\"testdata*\"}"
         },
         "description": "Set default index"
+      },
+      "response": []
+    },
+    {
+      "name": "Adding painless script",
+      "request": {
+        "url": "http://${es_host}:${es_port}/_scripts/testdata_numericsort",
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": ""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"script\": {\"lang\": \"painless\",\"source\": \"double score(Map doc, Map params) {return doc['numeric'].value * params.score_factor;}score(doc, params)\"}}"
+        },
+        "description": "Painless script"
       },
       "response": []
     }

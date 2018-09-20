@@ -42,7 +42,7 @@ public class FieldParser {
     return fieldParser;
   }
 
-  Parser<Field> getWithoutNot() {
+  Parser<Field> getWithNot() {
     return fieldParserWithNot;
   }
 

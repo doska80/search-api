@@ -3,9 +3,7 @@ package com.grupozap.search.api.serializer;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.elasticsearch.search.SearchHit.createFromMap;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
@@ -22,10 +20,8 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.unit.TimeValue;
-import org.elasticsearch.search.DocValueFormat;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.SearchSortValues;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.InternalAggregation;
@@ -304,35 +300,5 @@ public class ESResponseSerializerTest {
     assertEquals(
         expected,
         mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
-  }
-
-  @Test
-  public void shouldReturnCursorIdOnResponse() throws IOException {
-    SearchResponse searchResponse = mock(SearchResponse.class);
-    TimeValue took = mock(TimeValue.class);
-    when(searchResponse.getTook()).thenReturn(took);
-    when(took.getMillis()).thenReturn(2L);
-
-    SearchHit[] hits = new SearchHit[1];
-    SearchHits searchHits = new SearchHits(hits, hits.length, 0);
-
-    when(searchResponse.getHits()).thenReturn(searchHits);
-
-    Map<String, Object> values = new LinkedHashMap<>();
-    BytesReference source = new BytesArray("{\"id\":1}");
-    values.put("_source", source);
-
-    String _id = INDEX_NAME + "#1028071465";
-
-    values.put(
-        "sort",
-        new SearchSortValues(
-            new Object[] {0.23456, "A_B", _id},
-            new DocValueFormat[] {DocValueFormat.RAW, DocValueFormat.RAW}));
-    hits[0] = createFromMap(values);
-
-    assertThat(
-        mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)),
-        containsString("\"cursorId\":\"0.23456_A%5fB_" + _id + "\""));
   }
 }

@@ -1,8 +1,10 @@
 package com.grupozap.search.api.adapter;
 
-import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.*;
+import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.REPLICAS;
+import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.grupozap.search.api.model.mapping.MappingType.*;
+import static com.grupozap.search.api.utils.ReadFileUtils.readFileFromResources;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
@@ -11,9 +13,14 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 import com.grupozap.search.api.exception.IndexNotFoundException;
 import com.grupozap.search.api.exception.PropertyNotFoundException;
 import com.grupozap.search.api.model.http.BaseApiRequest;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.elasticsearch.action.admin.indices.get.GetIndexResponse;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.StringEntity;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.context.ApplicationEventPublisher;
@@ -32,23 +39,24 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   private final BaseApiRequest invalidIndexRequest = basicRequest.index("not-valid-index").build();
 
   private ElasticsearchSettingsAdapter settingsAdapter;
-  private ESClient esClient;
 
   private Map<String, Map<String, Object>> structuredIndices;
 
   @Before
-  public void setup() {
+  public void setup() throws IOException {
     ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
     doNothing().when(applicationEventPublisher).publishEvent(any());
 
-    esClient = mock(ESClient.class);
-    GetIndexResponse getIndexResponse = mock(GetIndexResponse.class);
+    RestClient restClient = mock(RestClient.class);
 
-    when(esClient.getIndexResponse()).thenReturn(getIndexResponse);
-    when(getIndexResponse.getIndices()).thenReturn(new String[] {});
+    Response response = mock(Response.class);
+    when(restClient.performRequest(any(Request.class))).thenReturn(response);
+
+    final HttpEntity entity = new StringEntity(readFileFromResources("cluster_state.json"));
+    when(response.getEntity()).thenReturn(entity);
 
     this.settingsAdapter =
-        spy(new ElasticsearchSettingsAdapter(applicationEventPublisher, esClient));
+        spy(new ElasticsearchSettingsAdapter(applicationEventPublisher, restClient));
     this.structuredIndices = spy(structuredIndicesSettings());
 
     setField(this.settingsAdapter, "structuredIndices", structuredIndices);

@@ -1,7 +1,8 @@
-version: '2'
+version: '2.1'
 services:
 
   es:
+    container_name: es
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTICSEARCH_VERSION}
     environment:
       - "ES_JAVA_OPTS=-Xms256m -Xmx256m -Des.allow_insecure_settings=true"
@@ -18,8 +19,14 @@ services:
     ports:
       - "9200:9200"
       - "9300:9300"
+    healthcheck:
+      test: "curl http://localhost:9200/_cat/health | grep green || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   kibana:
+    container_name: kibana
     image: docker.elastic.co/kibana/kibana:${ELASTICSEARCH_VERSION}
     depends_on:
       - es
@@ -32,6 +39,7 @@ services:
       - "5601:5601"
 
   search-api:
+    container_name: search-api
     build:
       context: ../../../../
       args:
@@ -46,3 +54,8 @@ services:
     ports:
       - "5005:5005"
       - "8482:8482"
+    healthcheck:
+      test: "wget --spider -S http://localhost:8482/actuator/health 2>&1 | grep 'HTTP/' | awk '{print $$2}' | grep 200 || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10

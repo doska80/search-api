@@ -1,9 +1,6 @@
 package com.grupozap.search.api.serializer;
 
-import static com.grupozap.search.api.adapter.SearchAfterQueryAdapter.SORT_SEPARATOR;
 import static java.lang.Float.isNaN;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Stream.of;
 import static org.elasticsearch.common.bytes.BytesReference.toBytes;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -13,7 +10,6 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
 import java.io.IOException;
 import java.util.List;
-import org.apache.commons.lang3.ArrayUtils;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
@@ -49,8 +45,6 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
     jgen.writeNumberField("totalCount", searchResponse.getHits().getTotalHits());
 
     SearchHit[] hits = searchResponse.getHits().getHits();
-    writeCursorId(hits, jgen);
-
     jgen.writeObjectFieldStart("result");
     jgen.writeArrayFieldStart(value.getIndexName());
     writeResultSet(hits, jgen);
@@ -106,17 +100,5 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
     for (Bucket bucket : buckets) {
       jgen.writeNumberField(bucket.getKeyAsString(), bucket.getDocCount());
     }
-  }
-
-  private void writeCursorId(final SearchHit[] hits, JsonGenerator jgen) throws IOException {
-    if (hits.length == 0) return;
-
-    Object[] sortValues = hits[hits.length - 1].getSortValues();
-    if (!ArrayUtils.isEmpty(sortValues))
-      jgen.writeStringField(
-          "cursorId",
-          of(sortValues)
-              .map(value -> String.valueOf(value).replaceAll("_", "%5f"))
-              .collect(joining(SORT_SEPARATOR)));
   }
 }

@@ -1,6 +1,7 @@
 package com.grupozap.search.api.configuration.environment;
 
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
+import static com.grupozap.search.api.utils.MapperUtils.parser;
 import static java.lang.Boolean.*;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.math.NumberUtils.createNumber;
@@ -8,8 +9,6 @@ import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import java.io.IOException;
 import java.util.HashMap;
@@ -20,6 +19,8 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
@@ -44,8 +45,6 @@ public class SearchApiEnv {
 
   private final ApplicationEventPublisher applicationEventPublisher;
   private final RestClient restClient;
-
-  private final ObjectMapper mapper = new ObjectMapper();
 
   private final Map<String, Object> localProperties = new HashMap<>();
   private final Map<String, Object> remoteProperties = new HashMap<>();
@@ -83,22 +82,23 @@ public class SearchApiEnv {
     return propertyValue;
   }
 
+  @SuppressWarnings("unchecked")
   @Scheduled(fixedRateString = "${application.properties.refresh.rate.ms}")
   private void loadRemoteProperties() {
     try {
-      HttpEntity entity =
-          restClient
-              .performRequest(GET.name(), SEARCH_API_CONFIG_ENDPOINT, SEARCH_API_HEADERS)
-              .getEntity();
+
+      final Request request = new Request(GET.name(), SEARCH_API_CONFIG_ENDPOINT);
+      final RequestOptions.Builder options = RequestOptions.DEFAULT.toBuilder();
+      options.addHeader(SEARCH_API_HEADERS.getName(), SEARCH_API_HEADERS.getValue());
+      request.setOptions(options);
+
+      HttpEntity entity = restClient.performRequest(request).getEntity();
 
       if (entity != null) {
-        String retSrc = EntityUtils.toString(entity);
-        HashMap<String, Object> response =
-            mapper.readValue(retSrc, new TypeReference<HashMap<String, Object>>() {});
+        final HashMap<String, Object> response = parser(EntityUtils.toString(entity));
         if (!isEmpty(response) && response.containsKey("hits")) {
 
-          @SuppressWarnings("unchecked")
-          Map hitsMap = (HashMap<String, Object>) response.get("hits");
+          final Map hitsMap = (HashMap<String, Object>) response.get("hits");
 
           if (hitsMap.containsKey("hits")) {
             ((List<Map>) hitsMap.get("hits"))

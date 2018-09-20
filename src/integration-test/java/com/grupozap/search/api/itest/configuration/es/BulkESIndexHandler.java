@@ -3,6 +3,7 @@ package com.grupozap.search.api.itest.configuration.es;
 import static java.lang.String.valueOf;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.elasticsearch.action.support.WriteRequest.RefreshPolicy.WAIT_UNTIL;
+import static org.elasticsearch.client.RequestOptions.DEFAULT;
 import static org.elasticsearch.common.xcontent.XContentType.JSON;
 
 import com.google.gson.Gson;
@@ -44,7 +45,7 @@ public class BulkESIndexHandler {
                 new IndexRequest(index, type, valueOf(source.get("id")))
                     .source(gson.toJson(source), JSON)));
     try {
-      BulkResponse response = restHighLevelClient.bulk(request);
+      BulkResponse response = restHighLevelClient.bulk(request, DEFAULT);
       if (response.hasFailures()) {
         response
             .iterator()

@@ -49,8 +49,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Mock private ElasticsearchSettingsAdapter settingsAdapter;
 
-  @Mock private SearchAfterQueryAdapter searchAfterQueryAdapter;
-
   @Mock private SortQueryAdapter sortQueryAdapter;
 
   @Before
@@ -80,7 +78,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         new ElasticsearchQueryAdapter(
             sourceFieldAdapter,
             pageQueryAdapter,
-            searchAfterQueryAdapter,
             sortQueryAdapter,
             queryStringAdapter,
             functionScoreAdapter,
@@ -92,7 +89,6 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     doNothing().when(sourceFieldAdapter).apply(any(SearchSourceBuilder.class), any());
     doNothing().when(sourceFieldAdapter).apply(any(GetRequest.class), any());
     doNothing().when(settingsAdapter).checkIndex(any());
-    doNothing().when(searchAfterQueryAdapter).apply(any(), any());
     doNothing().when(sortQueryAdapter).apply(any(), any());
 
     when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");

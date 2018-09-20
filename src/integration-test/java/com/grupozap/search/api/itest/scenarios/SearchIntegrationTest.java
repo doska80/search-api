@@ -14,7 +14,8 @@ import static java.util.stream.IntStream.rangeClosed;
 import static java.util.stream.Stream.concat;
 import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import java.io.IOException;
@@ -1031,8 +1032,8 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .when()
         .get("/cluster/settings")
         .then()
-        .body("testdata['index.number_of_shards']", equalTo("3"))
-        .body("testdata['index.number_of_replicas']", equalTo("1"))
+        .body("testdata['number_of_shards']", equalTo("3"))
+        .body("testdata['number_of_replicas']", equalTo("1"))
         .body("testdata['geo']", equalTo("geo_point"))
         .body("testdata['isEven']", equalTo("boolean"))
         .body("testdata['object']", equalTo("_obj"))
@@ -1188,7 +1189,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
             .get("/cluster/settings")
             .then()
             .extract()
-            .path(format("%s['index.number_of_shards'].toInteger()", TEST_DATA_TYPE));
+            .path(format("%s['number_of_shards'].toInteger()", TEST_DATA_TYPE));
 
     Function<Integer, Integer> getHits =
         size -> {

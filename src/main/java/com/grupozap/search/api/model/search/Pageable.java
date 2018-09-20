@@ -14,10 +14,6 @@ public interface Pageable extends Indexable {
 
   void setSize(int size);
 
-  String getCursorId();
-
-  void setCursorId(String cursorId);
-
   default void setPaginationValues(final int defaultSize, final int maxSize) {
     if (getFrom() < 0)
       throw new IllegalArgumentException("Parameter [from] must be a positive integer");

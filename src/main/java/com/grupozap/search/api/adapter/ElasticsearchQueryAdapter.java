@@ -39,7 +39,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
 
   private final SourceFieldAdapter sourceFieldAdapter;
   private final PageQueryAdapter pageQueryAdapter;
-  private final SearchAfterQueryAdapter searchAfterQueryAdapter;
   private final SortQueryAdapter sortQueryAdapter;
   private final QueryStringAdapter queryStringAdapter;
   private final FunctionScoreAdapter functionScoreAdapter;
@@ -53,7 +52,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   public ElasticsearchQueryAdapter(
       SourceFieldAdapter sourceFieldAdapter,
       PageQueryAdapter pageQueryAdapter,
-      SearchAfterQueryAdapter searchAfterQueryAdapter,
       SortQueryAdapter sortQueryAdapter,
       QueryStringAdapter queryStringAdapter,
       FunctionScoreAdapter functionScoreAdapter,
@@ -63,7 +61,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
       FacetQueryAdapter facetQueryAdapter) {
     this.sourceFieldAdapter = sourceFieldAdapter;
     this.pageQueryAdapter = pageQueryAdapter;
-    this.searchAfterQueryAdapter = searchAfterQueryAdapter;
     this.sortQueryAdapter = sortQueryAdapter;
     this.queryStringAdapter = queryStringAdapter;
     this.functionScoreAdapter = functionScoreAdapter;
@@ -133,7 +130,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     functionScoreAdapter.apply(searchBuilder, queryBuilder, request);
     applyFilter(request, queryBuilder);
     sortQueryAdapter.apply(searchBuilder, request);
-    searchAfterQueryAdapter.apply(searchBuilder, request);
   }
 
   private void applyFilter(FilterableApiRequest filterable, BoolQueryBuilder queryBuilder) {

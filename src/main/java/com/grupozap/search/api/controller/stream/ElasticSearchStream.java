@@ -5,6 +5,7 @@ import static com.grupozap.search.api.controller.stream.ResponseStream.iterate;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Math.min;
 import static java.lang.String.format;
+import static org.elasticsearch.client.RequestOptions.DEFAULT;
 import static org.elasticsearch.common.bytes.BytesReference.toBytes;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 import static org.slf4j.LoggerFactory.getLogger;
@@ -62,7 +63,7 @@ public class ElasticSearchStream {
     searchRequest.source(searchSourceBuilder);
 
     try {
-      SearchResponse response = client.search(searchRequest);
+      SearchResponse response = client.search(searchRequest, DEFAULT);
 
       SearchApiIterator<SearchHit> searchApiIterator =
           new SearchApiIterator<>(client, response, scroll, size);

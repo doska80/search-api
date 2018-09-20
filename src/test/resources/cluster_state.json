@@ -1,0 +1,70 @@
+{
+  "cluster_name": "unification",
+  "metadata": {
+    "indices": {
+      "index-name": {
+        "settings": {
+          "index": {
+            "number_of_shards": "2",
+            "number_of_replicas": "1"
+          }
+        },
+        "mappings": {
+          "index-name": {
+            "properties": {
+              "nested": {
+                "type": "nested",
+                "properties": {
+                  "kids": {
+                    "properties": {
+                      "keyword": {
+                        "ignore_above": 64,
+                        "type": "keyword",
+                        "doc_values": false
+                      }
+                    }
+                  }
+                }
+              },
+              "_obj": {
+                "properties": {
+                  "float": {
+                    "type": "float"
+                  }
+                }
+              },
+              "description": {
+                "norms": false,
+                "analyzer": "searchable_text",
+                "type": "text"
+              },
+              "date": {
+                "type": "date",
+                "doc_values": false
+              },
+              "integer": {
+                "type": "integer",
+                "doc_values": false
+              },
+              "keyword": {
+                "ignore_above": 64,
+                "type": "keyword",
+                "doc_values": false
+              },
+              "boolean": {
+                "type": "boolean",
+                "doc_values": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "stored_scripts": {
+      "index_identification": {
+        "lang": "painless",
+        "source": "doc['field.a'].value * params.score_factor + (Math.random() * params.random_factor)"
+      }
+    }
+  }
+}

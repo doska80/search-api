@@ -5,9 +5,9 @@ import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.SEAR
 import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -24,6 +24,8 @@ import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.nio.entity.NStringEntity;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
@@ -104,13 +106,13 @@ public class ESIntegrationTestSetup {
   private void executeSingleCommand(Map<String, Object> req) {
     URL url = createUrlRawText(req.get("url").toString());
     HttpMethod method = HttpMethod.valueOf(req.get("method").toString());
-    Header[] headers =
+    List<Header> headers =
         ofNullable(req.get("header"))
             .map(item -> (List<Map<String, String>>) item)
             .orElse(emptyList())
             .stream()
             .map(item -> new BasicHeader(item.get("key"), item.get("value")))
-            .toArray(Header[]::new);
+            .collect(toList());
     String body =
         ofNullable(req.get("body"))
             .map(item -> (Map<String, String>) item)
@@ -120,17 +122,20 @@ public class ESIntegrationTestSetup {
     LOG.info(
         format(
             "Executing single command: [%s] [%s] [%s] [%s]",
-            url, method, Arrays.toString(headers), body));
+            url, method, headers.toString(), body));
 
     try (RestClient restClient =
         RestClient.builder(new HttpHost(url.getHost(), url.getPort(), url.getProtocol())).build()) {
-      Response response =
-          restClient.performRequest(
-              method.name(),
-              url.getPath(),
-              emptyMap(),
-              new NStringEntity(body, APPLICATION_JSON),
-              headers);
+
+      final Request request = new Request(method.name(), url.getPath());
+      request.setEntity(new NStringEntity(body, APPLICATION_JSON));
+
+      final RequestOptions.Builder options = RequestOptions.DEFAULT.toBuilder();
+      headers.forEach(header -> options.addHeader(header.getName(), header.getValue()));
+      request.setOptions(options);
+
+      final Response response = restClient.performRequest(request);
+
       LOG.info("Response: " + response + " -- " + body);
     } catch (IOException e) {
       LOG.error("Error setting configuration ", e);

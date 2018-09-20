@@ -53,6 +53,9 @@ public class FilterableApiRequest extends BaseApiRequest
   )
   private String sort;
 
+  @ApiModelProperty(value = "The sort id script stored on ES", example = "scores-a")
+  private String sortId;
+
   @ApiModelProperty("Disable sorting. If true, the \"sort\" is ignored")
   private Boolean disableSort;
 
@@ -61,9 +64,6 @@ public class FilterableApiRequest extends BaseApiRequest
 
   @ApiModelProperty("The number of search hits to return")
   private int size = Integer.MAX_VALUE;
-
-  @ApiModelProperty("The cursor_id to use in pagination")
-  private String cursorId;
 
   public String getQ() {
     return q;
@@ -153,14 +153,6 @@ public class FilterableApiRequest extends BaseApiRequest
     this.size = size;
   }
 
-  public String getCursorId() {
-    return cursorId;
-  }
-
-  public void setCursorId(String cursorId) {
-    this.cursorId = cursorId;
-  }
-
   protected ToStringHelper addValuesToStringHelper(ToStringHelper stringHelper) {
     return super.addValuesToStringHelper(stringHelper)
         .add("filter", getFilter())
@@ -169,7 +161,6 @@ public class FilterableApiRequest extends BaseApiRequest
         .add("fields", getFields())
         .add("from", getFrom())
         .add("size", getSize())
-        .add("cursorId", getCursorId())
         .add("sort", getSort());
   }
 }

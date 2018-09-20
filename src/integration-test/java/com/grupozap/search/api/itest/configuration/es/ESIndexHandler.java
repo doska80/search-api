@@ -1,19 +1,17 @@
 package com.grupozap.search.api.itest.configuration.es;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.grupozap.search.api.itest.configuration.data.TestData.createTestData;
 import static java.lang.String.valueOf;
-import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import org.apache.http.nio.entity.NStringEntity;
+import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
@@ -62,23 +60,36 @@ public class ESIndexHandler {
   }
 
   public void truncateIndexData(String index) throws IOException {
-    Response response =
-        restClient.performRequest(
-            "POST",
-            index + "/_delete_by_query?refresh=true",
-            emptyMap(),
-            new NStringEntity(
-                "{\n" + "  \"query\": {\n" + "    \"match_all\": {}\n" + "  }\n" + "}",
-                APPLICATION_JSON));
+
+    final Request request = new Request("POST", index + "/_delete_by_query?refresh=true");
+    request.setEntity(
+        new NStringEntity(
+            "{\n" + "  \"query\": {\n" + "    \"match_all\": {}\n" + "  }\n" + "}",
+            APPLICATION_JSON));
+
+    Response response = restClient.performRequest(request);
 
     LOG.info(index + " index cleared, deleted " + response + " documents");
   }
 
+  @SuppressWarnings("unchecked")
   public void setDefaultProperties() {
     putStandardProperty("es.default.size", size);
     putStandardProperty("es.default.sort", "numeric ASC");
     putStandardProperty("es.query.timeout.unit", queryTimeoutUnit);
     putStandardProperty("es.query.timeout.value", queryTimeoutValue);
+
+    Map<String, Object> script = new HashMap<>();
+    script.put("id", "testdata_numericsort");
+    script.put("scriptType", "stored");
+    script.put("scriptSortType", "number");
+    script.put("lang", "painless");
+
+    Map<String, Object> params = new HashMap<>();
+    params.put("score_factor", 2.0);
+    script.put("params", params);
+
+    putStandardProperty("es.scripts", newArrayList(script));
   }
 
   public void addStandardProperties() {
@@ -123,12 +134,10 @@ public class ESIndexHandler {
 
   private boolean insertEntityByIndex(String index, String type, String id, String body) {
     try {
-      Response response =
-          restClient.performRequest(
-              "POST",
-              index + "/" + type + "/" + id + "?refresh=true",
-              emptyMap(),
-              new NStringEntity(body, APPLICATION_JSON));
+      final Request request = new Request("POST", index + "/" + type + "/" + id + "?refresh=true");
+      request.setEntity(new NStringEntity(body, APPLICATION_JSON));
+      Response response = restClient.performRequest(request);
+
       LOG.info(String.format("%s adding document %s documents", index, response));
       return true;
     } catch (IOException e) {
@@ -139,7 +148,7 @@ public class ESIndexHandler {
 
   private void refreshIndex(String index) {
     try {
-      restClient.performRequest("POST", index + "/_refresh", emptyMap());
+      restClient.performRequest(new Request("POST", index + "/_refresh"));
       MICROSECONDS.sleep(timeout);
       LOG.info("Forced commit into index: " + index);
     } catch (IOException | InterruptedException e) {

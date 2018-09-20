@@ -61,8 +61,10 @@ workflows:
       - run_tests:
           filters:
             branches:
-              ignore: master
+              ignore:
+                - master
       - build_image:
           filters:
             branches:
-              only: master
+              only:
+                - master

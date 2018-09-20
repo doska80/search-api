@@ -1,5 +1,6 @@
 package com.grupozap.search.api.service.parser.factory;
 
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_OBJECT;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FieldFactory {
 
-  private static final String DEFAULT_TYPE = "_obj";
+  private static final String DEFAULT_TYPE = FIELD_TYPE_OBJECT.getDefaultType();
 
   public static Field createField(String fieldName) {
     return createField(fieldName, new HashMap<>());
