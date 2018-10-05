@@ -60,7 +60,7 @@ public class SearchController {
   @Autowired private ExceptionHandler exceptionHandler;
 
   @RequestMapping(
-    value = {"/{index}/{id:[0-9]+}"},
+    value = {"/{index}/{id}"},
     method = GET,
     produces = MediaType.APPLICATION_JSON_UTF8_VALUE
   )
