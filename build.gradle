@@ -20,9 +20,11 @@ buildscript {
         classpath 'com.gradle:build-scan-plugin:+'
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE'
         classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.7'
+        classpath 'org.owasp:dependency-check-gradle:+'
     }
 }
 
+apply plugin: 'org.owasp.dependencycheck'
 apply plugin: 'com.diffplug.gradle.spotless'
 apply plugin: 'com.gradle.build-scan'
 apply plugin: 'io.spring.dependency-management'
