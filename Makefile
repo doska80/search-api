@@ -89,7 +89,7 @@ teardown: destroy-stack
 # Notifications config
 SLK_CHANNEL=alerts-search-ranking
 SLK_USER_GROUP=search-ranking
-SLK_CD_URL=$(CD_URL)ENV=$(ENV)&IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&delay=0sec
+SLK_CD_URL=$(CD_URL)ENV=$(ENV)&IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&BRANCH=$(GIT_BRANCH)&delay=0sec
 include make/slk/Makefile
 
 push-with-notification: push notify-success-build
