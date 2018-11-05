@@ -49,7 +49,7 @@ buildScan {
 group = 'com.vivareal.search'
 
 ext {
-    artifactName = project.hasProperty('artifactName') ? artifactName : 'vivareal-search-api-v2-SNAPSHOT.jar'
+    artifactName = project.hasProperty('artifactName') ? artifactName : 'vivareal-search-api-SNAPSHOT.jar'
 }
 
 eclipse {
@@ -184,8 +184,8 @@ bootJar.finalizedBy copyJarForDockerCompose
 
 sonarqube {
     properties {
-        property "sonar.projectKey", "br.com.vivareal:search-api-v2"
-        property "sonar.projectName", "search-api-v2"
+        property "sonar.projectKey", "br.com.vivareal:search-api"
+        property "sonar.projectName", "search-api"
         property "sonar.scm.provider", "git"
         property "sonar.host.url", "http://sonarqube.vivareal.io/"
         property "sonar.sourceEncoding", "UTF-8"

@@ -5,7 +5,7 @@
 
     <springProperty scope="context" name="environment" source="spring.profiles.active"/>
 
-    <springProperty scope="context" name="application" source="application.title" defaultValue="search-api-v2"/>
+    <springProperty scope="context" name="application" source="application.title" defaultValue="search-api"/>
     <springProperty scope="context" name="version" source="application.version"/>
 
     <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">

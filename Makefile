@@ -2,7 +2,7 @@
 include make/git/Makefile
 
 ORG:=vivareal
-PROJECT_NAME:=search-api-v2
+PROJECT_NAME:=search-api
 PROCESS:=api
 PRODUCT:=search
 include make/pro/Makefile

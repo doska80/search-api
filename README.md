@@ -22,16 +22,16 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
 
 ## Application Checklist
 
-- [X] [API Docs](http://search-api-v2.vivareal.com/swagger-ui.html)
+- [X] [API Docs](http://search-api.vivareal.com/swagger-ui.html)
 - [X] [CD](http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_PROD/build?delay=0sec)
 - [x] [CircleCI](https://circleci.com/gh/GrupoZapVivaReal/search-api)
 - [X] [Code Quality](https://sonarqube.vivareal.io/dashboard/index/14469)
-- [X] [DockerHub](https://hub.docker.com/r/vivareal/search-api-v2/)
+- [X] [DockerHub](https://hub.docker.com/r/vivareal/search-api/)
 - [X] Logs
-    - [X] [Graylog](http://logs-dash.vivareal.com/search?rangetype=relative&fields=message,source&width=1920&highlightMessage=&relative=7200&q=application:search-api-v2)
-    - [X] [Sentry](https://sentry-logs.vivareal.com/vivareal/searchapi-v2)
+    - [X] [Graylog](http://logs-dash.vivareal.com/search?rangetype=relative&fields=message,source&width=1920&highlightMessage=&relative=7200&q=application:search-api)
+    - [X] [Sentry](https://sentry-logs.vivareal.com/vivareal/searchapi)
 - [X] [New Relic](https://rpm.newrelic.com/accounts/645240/applications/47165905)
-- [X] [Hystrix/Turbine](http://search-api-v2.vivareal.com/hystrix/monitor?stream=search-api-v2.vivareal.com/actuator/hystrix.stream)
+- [X] [Hystrix/Turbine](http://search-api.vivareal.com/hystrix/monitor?stream=search-api.vivareal.com/actuator/hystrix.stream)
 
 ## Setup
 
@@ -75,7 +75,7 @@ Tool      | Command
 --------- | -------
 <img src="src/main/resources/static/gradle.png" alt="Gradle" width="75" />   | ```./gradlew bootRun -Des.cluster.name=<YOUR_CLUSTER_NAME>```
 <img src="src/main/resources/static/java.png" alt="Java" width="75" />       | ```java -Des.cluster.name=<YOUR_CLUSTER_NAME> -jar build/libs/search-api.jar```
-<img src="src/main/resources/static/docker.png" alt="Docker" width="75"/>    | ```docker run --rm -it -p 8482:8482 -e JAVA_OPTS='-Des.cluster.name=<YOUR_CLUSTER_NAME>' vivareal/search-api-v2:<VERSION>```
+<img src="src/main/resources/static/docker.png" alt="Docker" width="75"/>    | ```docker run --rm -it -p 8482:8482 -e JAVA_OPTS='-Des.cluster.name=<YOUR_CLUSTER_NAME>' vivareal/search-api:<VERSION>```
 
 ### How to Test
 
@@ -120,7 +120,7 @@ There are only two endpoints to **searching** and **monitoring**:
     | `includeFields`   | `string[]` | Fields that will be included in the result
     | `excludeFields`   | `string[]` | Fields that will be excluded in the result
 
-    There are many parameters and you can see [here](http://search-api-v2.vivareal.com).
+    There are many parameters and you can see [here](http://search-api.vivareal.com).
 
 - **Monitoring** endpoints:
 
