@@ -38,7 +38,7 @@
                 <levelValue>level</levelValue>
                 <level>Severity</level>
             </fieldNames>
-            <customFields>{"product":"search","cluster":"${es.cluster.name}","server":"${java.rmi.server.hostname}","log_type":"application"}"</customFields>
+            <customFields>{"_product":"search","_cluster":"${es.cluster.name}","_server":"${java.rmi.server.hostname}","_log_type":"application"}"</customFields>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
