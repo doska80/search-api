@@ -29,7 +29,7 @@ public class ValueParser {
 
   private final Parser<Value> numberParser =
       or(
-              longer(INTEGER.map(Integer::valueOf), DECIMAL.map(Double::valueOf)),
+              longer(INTEGER.map(Long::valueOf), DECIMAL.map(Double::valueOf)),
               string("-").next(DECIMAL.map(n -> -Double.valueOf(n))))
           .label("number")
           .map(Value::new);

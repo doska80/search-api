@@ -1,6 +1,5 @@
 package com.grupozap.search.api.model.parser;
 
-import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type;
 import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
 import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.VIEWPORT;
 import static org.junit.Assert.assertEquals;
@@ -18,7 +17,7 @@ public class ValueParserTest {
   public void testInteger() {
     String value = "123456";
     Value parsed = valueParser.get().parse(value);
-    assertEquals(Integer.valueOf(value), parsed.first());
+    assertEquals(Long.valueOf(value), parsed.first());
   }
 
   @Test

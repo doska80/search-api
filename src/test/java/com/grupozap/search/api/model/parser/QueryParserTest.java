@@ -30,8 +30,8 @@ public class QueryParserTest {
 
   @Test
   public void inTest() {
-    QueryFragment query = queryParser.parse("banos IN [3,4]");
-    assertEquals("(banos IN [3, 4])", query.toString());
+    QueryFragment query = queryParser.parse("banos IN [3,4,2164325564]");
+    assertEquals("(banos IN [3, 4, 2164325564])", query.toString());
   }
 
   @Test

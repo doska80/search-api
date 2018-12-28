@@ -26,7 +26,7 @@ import com.grupozap.search.api.model.mapping.MappingType;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.common.geo.GeoPoint;
@@ -298,7 +298,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleFilterGreater() {
     final String field = "field1";
-    final Object value = 10;
+    final Object value = 10L;
 
     GREATER
         .getAlias()
@@ -327,7 +327,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleFilterGreaterEqual() {
     final String field = "field1";
-    final Object value = 10;
+    final Object value = 10L;
 
     GREATER_EQUAL
         .getAlias()
@@ -357,7 +357,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleFilterLess() {
     final String field = "field1";
-    final Object value = 10;
+    final Object value = 10L;
 
     LESS.getAlias()
         .parallelStream()
@@ -386,7 +386,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleFilterLessEqual() {
     final String field = "field1";
-    final Object value = 10;
+    final Object value = 10L;
 
     LESS_EQUAL
         .getAlias()
@@ -539,7 +539,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleFilterWithRange() {
     final String field = "field";
-    final int from = 3, to = 5;
+    final long from = 3L, to = 5L;
 
     RANGE
         .getAlias()
@@ -573,7 +573,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleFilterWithRangeWhenNot() {
     final String field = "field";
-    final int from = 5, to = 10;
+    final long from = 5L, to = 10L;
 
     RANGE
         .getAlias()
@@ -608,7 +608,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleFilterIn() {
     final String field = "field1";
-    final Object[] values = new Object[] {1, "\"string\"", 1.2, true};
+    final Object[] values = new Object[] {1L, "\"string\"", 1.2, true};
 
     IN.getAlias()
         .parallelStream()
@@ -696,7 +696,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     Object fieldValue1 = "string";
 
     String fieldName2 = "field2";
-    Object fieldValue2 = 12345;
+    Object fieldValue2 = 12345L;
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
@@ -728,7 +728,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     Object fieldValue1 = "string";
 
     String fieldName2 = "field2";
-    Object fieldValue2 = 12345;
+    Object fieldValue2 = 12345L;
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
@@ -869,7 +869,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestWithSingleOperatorNot() {
     String fieldName1 = "field1";
-    Object fieldValue1 = 1234324;
+    Object fieldValue1 = 1234324L;
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
@@ -952,19 +952,19 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
     String field2Name = "field2";
     String field2RelationalOperator = DIFFERENT.name();
-    Object field2Value = 5432;
+    Object field2Value = 5432L;
 
     String field3Name = "field3";
     String field3RelationalOperator = GREATER.name();
-    Object field3Value = 3;
+    Object field3Value = 3L;
 
     String field4Name = "field4";
     String field4RelationalOperator = LESS.name();
-    Object field4Value = 8;
+    Object field4Value = 8L;
 
     String field5Name = "field5";
     String field5RelationalOperator = IN.name();
-    Object[] field5Value = new Object[] {1, "\"string\"", 1.2, true};
+    Object[] field5Value = new Object[] {1L, "\"string\"", 1.2, true};
 
     String field6Name = "field6.location.geo_point";
     String field6RelationalOperator = VIEWPORT.name();
@@ -1119,7 +1119,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
               final QueryBuilder query = builder.source().query();
               assertThat(query, instanceOf(BoolQueryBuilder.class));
               final BoolQueryBuilder boolQuery = (BoolQueryBuilder) query;
-              final AtomicInteger counter = new AtomicInteger(1);
+              final AtomicLong counter = new AtomicLong(1);
               assertEquals(3, boolQuery.filter().size());
               boolQuery
                   .filter()
@@ -1144,7 +1144,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
               final QueryBuilder query = builder.source().query();
               assertThat(query, instanceOf(BoolQueryBuilder.class));
               final BoolQueryBuilder boolQuery = (BoolQueryBuilder) query;
-              final AtomicInteger counter = new AtomicInteger(1);
+              final AtomicLong counter = new AtomicLong(1);
               assertEquals(3, boolQuery.mustNot().size());
               boolQuery
                   .mustNot()
