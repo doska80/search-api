@@ -28,7 +28,6 @@ include make/log/Makefile
 
 RUN_MEMORY:=$(if $(filter prod,$(ENV)),3500,900)
 PORT:=8482
-ES_PORT?=9300
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -XX:+UseCMSInitiatingOccupancyOnly -XX:CMSInitiatingOccupancyFraction=65 -XX:MaxMetaspaceSize=256m
@@ -38,7 +37,6 @@ RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
 
 # Elasticsearch
 RUN_OPTS+=-Des.hostname=$(ES_HOSTNAME)
-RUN_OPTS+=-Des.port=$(ES_PORT)
 RUN_OPTS+=-Des.cluster.name=$(ES_CLUSTER_NAME)
 
 include make/jmx/Makefile

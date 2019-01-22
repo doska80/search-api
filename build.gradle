@@ -114,8 +114,6 @@ dependencies {
 
     compile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
     compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:' + ELASTICSEARCH_VERSION
-    compile 'org.elasticsearch.client:transport:' + ELASTICSEARCH_VERSION
-    compile 'org.elasticsearch.plugin:transport-netty4-client:' + ELASTICSEARCH_VERSION
 
     compile 'com.getsentry.raven:raven-logback:8.0.3'
     compile 'net.logstash.logback:logstash-logback-encoder:5.2'

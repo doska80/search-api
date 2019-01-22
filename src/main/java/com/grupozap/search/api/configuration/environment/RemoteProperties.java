@@ -22,7 +22,6 @@ public enum RemoteProperties {
   SCORE_FACTOR_FIELD("score.factor.field"),
   SCORE_FACTOR_MODIFIER("score.factor.modifier"),
   ES_HOSTNAME("es.hostname"),
-  ES_PORT("es.port"),
   ES_REST_PORT("es.rest.port"),
   ES_CLUSTER_NAME("es.cluster.name"),
   ES_DEFAULT_SIZE("es.default.size"),
