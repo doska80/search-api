@@ -15,11 +15,9 @@ import static org.mockito.Mockito.when;
 import com.grupozap.search.api.adapter.FilterQueryAdapter;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.model.parser.QueryParser;
-import com.grupozap.search.api.model.query.Filter;
 import com.grupozap.search.api.model.query.QueryFragmentItem;
 import com.grupozap.search.api.model.query.QueryFragmentList;
 import java.util.HashSet;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -59,11 +57,11 @@ public class DefaultFilterFactoryTest {
   @Test
   public void mustReturnSingleDefaultFilterForIndexWhenRequestDoesNotMatchFilterField() {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
-    Filter filter = qfi.getFilter();
+    var filter = qfi.getFilter();
 
     FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
-    BoolQueryBuilder expectedBoolQuery = boolQuery();
+    var expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
     when(filterQueryAdapter.fromQueryFragment(SOME_INDEX, qfi)).thenReturn(expectedBoolQuery);
 
@@ -85,7 +83,7 @@ public class DefaultFilterFactoryTest {
   @Test
   public void mustReturnMultipleDefaultFilterForIndexWhenRequestDoesNotMatchFilterField() {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
-    QueryFragmentList qfiNested =
+    var qfiNested =
         new QueryFragmentList(
             newArrayList(
                 from(QueryFragmentItem.class).gimme("qfi"),
@@ -93,11 +91,11 @@ public class DefaultFilterFactoryTest {
 
     FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
 
-    BoolQueryBuilder expectedDefaultFilter1 = boolQuery();
+    var expectedDefaultFilter1 = boolQuery();
     when(queryParser.parse(qfi.toString())).thenReturn(qfi);
     when(filterQueryAdapter.fromQueryFragment(SOME_INDEX, qfi)).thenReturn(expectedDefaultFilter1);
 
-    BoolQueryBuilder expectedDefaultFilter2 = boolQuery();
+    var expectedDefaultFilter2 = boolQuery();
     when(queryParser.parse(qfiNested.toString())).thenReturn(qfiNested);
     when(filterQueryAdapter.fromQueryFragment(SOME_INDEX, qfiNested))
         .thenReturn(expectedDefaultFilter2);
@@ -120,11 +118,11 @@ public class DefaultFilterFactoryTest {
   @Test
   public void mustNotReturnDefaultFilterForIndexWhenRequestHasFilterField() {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
-    Filter filter = qfi.getFilter();
+    var filter = qfi.getFilter();
 
     FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
-    BoolQueryBuilder expectedBoolQuery = boolQuery();
+    var expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
     when(filterQueryAdapter.fromQueryFragment(SOME_INDEX, qfi)).thenReturn(expectedBoolQuery);
 
@@ -146,11 +144,11 @@ public class DefaultFilterFactoryTest {
   @Test
   public void mustNotReturnDefaultFilterForIndexWhenRequestHasRootFilterField() {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfiNested");
-    Filter filter = qfi.getFilter();
+    var filter = qfi.getFilter();
 
     FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(filter.toString()));
 
-    BoolQueryBuilder expectedBoolQuery = boolQuery();
+    var expectedBoolQuery = boolQuery();
     when(queryParser.parse(filter.toString())).thenReturn(qfi);
     when(filterQueryAdapter.fromQueryFragment(SOME_INDEX, qfi)).thenReturn(expectedBoolQuery);
 
@@ -158,7 +156,7 @@ public class DefaultFilterFactoryTest {
     defaultFilterFactory.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, SOME_INDEX));
 
     // Must not return default filter when request filter match with any default filter field
-    String rootFieldName = filter.getField().getNames().stream().findFirst().get();
+    var rootFieldName = filter.getField().getNames().stream().findFirst().get();
     assertEquals(
         new HashSet<>(),
         defaultFilterFactory.getDefaultFilters(SOME_INDEX, singleton(rootFieldName)));
@@ -174,7 +172,7 @@ public class DefaultFilterFactoryTest {
   public void
       mustNotReturnAnyDefaultFilterForIndexWhenRequestFilterFieldMatchAllDefaultFilterFields() {
     QueryFragmentItem qfi = from(QueryFragmentItem.class).gimme("qfi");
-    QueryFragmentList qfiNested =
+    var qfiNested =
         new QueryFragmentList(
             newArrayList(
                 from(QueryFragmentItem.class).gimme("qfi"),
@@ -182,11 +180,11 @@ public class DefaultFilterFactoryTest {
 
     FILTER_DEFAULT_CLAUSES.setValue(SOME_INDEX, newArrayList(qfi.toString(), qfiNested.toString()));
 
-    BoolQueryBuilder expectedDefaultFilter1 = boolQuery();
+    var expectedDefaultFilter1 = boolQuery();
     when(queryParser.parse(qfi.toString())).thenReturn(qfi);
     when(filterQueryAdapter.fromQueryFragment(SOME_INDEX, qfi)).thenReturn(expectedDefaultFilter1);
 
-    BoolQueryBuilder expectedDefaultFilter2 = boolQuery();
+    var expectedDefaultFilter2 = boolQuery();
     when(queryParser.parse(qfiNested.toString())).thenReturn(qfiNested);
     when(filterQueryAdapter.fromQueryFragment(SOME_INDEX, qfiNested))
         .thenReturn(expectedDefaultFilter2);

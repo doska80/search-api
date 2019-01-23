@@ -39,7 +39,7 @@ public class Filter {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    Filter filter = (Filter) o;
+    var filter = (Filter) o;
 
     return Objects.equal(this.field, filter.field)
         && Objects.equal(this.relationalOperator, filter.relationalOperator)

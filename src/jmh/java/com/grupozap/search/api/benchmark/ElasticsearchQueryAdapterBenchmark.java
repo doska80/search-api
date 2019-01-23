@@ -5,8 +5,6 @@ import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.create;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 
 import com.grupozap.search.api.adapter.FilterQueryAdapter;
-import com.grupozap.search.api.model.parser.QueryParser;
-import com.grupozap.search.api.model.query.QueryFragment;
 import com.grupozap.search.api.model.search.Filterable;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -17,8 +15,8 @@ public class ElasticsearchQueryAdapterBenchmark {
 
   @Benchmark
   public void applyFilterQuery(ElasticsearchQueryAdapterState state) {
-    QueryParser queryParser = queryParserFixture();
-    QueryFragment queryFragment = queryParser.parse(state.filterable.getFilter());
+    var queryParser = queryParserFixture();
+    var queryFragment = queryParser.parse(state.filterable.getFilter());
     state.adapter.apply(state.bqb, queryFragment, state.filterable.getIndex());
   }
 

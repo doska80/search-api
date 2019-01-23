@@ -17,7 +17,7 @@ public class QueryFragmentOperator implements QueryFragment {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    QueryFragmentOperator that = (QueryFragmentOperator) o;
+    var that = (QueryFragmentOperator) o;
 
     return operator == that.operator;
   }

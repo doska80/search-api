@@ -15,7 +15,6 @@ import com.grupozap.search.api.exception.UnsupportedFieldException;
 import com.grupozap.search.api.model.parser.QueryParser;
 import com.grupozap.search.api.model.query.*;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -36,7 +35,7 @@ public class FilterQueryAdapter {
   private LogicalOperator getLogicalOperatorByQueryFragmentList(
       final QueryFragmentList queryFragmentList, int index, LogicalOperator logicalOperator) {
     if (index + 1 < queryFragmentList.size()) {
-      QueryFragment next = queryFragmentList.get(index + 1);
+      var next = queryFragmentList.get(index + 1);
       if (next instanceof QueryFragmentItem) return ((QueryFragmentItem) next).getLogicalOperator();
 
       if (next instanceof QueryFragmentOperator)
@@ -46,7 +45,7 @@ public class FilterQueryAdapter {
   }
 
   public QueryBuilder fromQueryFragment(String index, QueryFragment queryFragment) {
-    BoolQueryBuilder queryBuilder = boolQuery();
+    var queryBuilder = boolQuery();
     apply(queryBuilder, queryFragment, index);
     return queryBuilder;
   }
@@ -61,19 +60,19 @@ public class FilterQueryAdapter {
       final String indexName,
       Map<FilterQueryAdapter.QueryType, Map<String, BoolQueryBuilder>> nestedMap,
       boolean ignoreNestedQueryBuilder) {
-    if (queryFragment == null || !(queryFragment instanceof QueryFragmentList)) return;
+    if (!(queryFragment instanceof QueryFragmentList)) return;
 
-    QueryFragmentList queryFragmentList = (QueryFragmentList) queryFragment;
-    LogicalOperator logicalOperator = AND;
+    var queryFragmentList = (QueryFragmentList) queryFragment;
+    var logicalOperator = AND;
 
-    for (int index = 0; index < queryFragmentList.size(); index++) {
-      QueryFragment queryFragmentFilter = queryFragmentList.get(index);
+    for (var index = 0; index < queryFragmentList.size(); index++) {
+      var queryFragmentFilter = queryFragmentList.get(index);
 
       if (queryFragmentFilter instanceof QueryFragmentList) {
-        BoolQueryBuilder recursiveQueryBuilder = boolQuery();
+        var recursiveQueryBuilder = boolQuery();
         logicalOperator =
             getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
-        Map<FilterQueryAdapter.QueryType, Map<String, BoolQueryBuilder>> innerNestedMap =
+        var innerNestedMap =
             addFilterQuery(
                 new HashMap<>(),
                 queryBuilder,
@@ -90,20 +89,20 @@ public class FilterQueryAdapter {
             ignoreNestedQueryBuilder);
 
       } else if (queryFragmentFilter instanceof QueryFragmentItem) {
-        QueryFragmentItem queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
-        Filter filter = queryFragmentItem.getFilter();
+        var queryFragmentItem = (QueryFragmentItem) queryFragmentFilter;
+        var filter = queryFragmentItem.getFilter();
 
-        Field field = filter.getField();
-        String fieldName = field.getName();
-        String fieldType = field.getType();
-        String fieldFirstName = field.firstName();
-        boolean nested =
+        var field = filter.getField();
+        var fieldName = field.getName();
+        var fieldType = field.getType();
+        var fieldFirstName = field.firstName();
+        var nested =
             FIELD_TYPE_NESTED.typeOf(field.getTypeFirstName()) && !ignoreNestedQueryBuilder;
 
-        final boolean not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
+        final var not = isNotBeforeCurrentQueryFragment(queryFragmentList, index);
         logicalOperator =
             getLogicalOperatorByQueryFragmentList(queryFragmentList, index, logicalOperator);
-        RelationalOperator operator = filter.getRelationalOperator();
+        var operator = filter.getRelationalOperator();
 
         if (filter.getValue().isEmpty()) {
           addFilterQuery(
@@ -117,7 +116,7 @@ public class FilterQueryAdapter {
           continue;
         }
 
-        Value filterValue = filter.getValue();
+        var filterValue = filter.getValue();
 
         switch (operator) {
           case DIFFERENT:
@@ -218,9 +217,8 @@ public class FilterQueryAdapter {
 
           case IN:
             if (fieldName.equals(ES_MAPPING_META_FIELDS_ID.getValue(indexName))) {
-              String[] values =
-                  filterValue
-                      .stream()
+              var values =
+                  filterValue.stream()
                       .map(contents -> ((Value) contents).value(0))
                       .map(Object::toString)
                       .toArray(String[]::new);
@@ -233,7 +231,7 @@ public class FilterQueryAdapter {
                   nested,
                   fieldFirstName);
             } else {
-              Object[] values =
+              var values =
                   filterValue.stream().map(contents -> ((Value) contents).value(0)).toArray();
               addFilterQuery(
                   nestedMap,
@@ -251,9 +249,8 @@ public class FilterQueryAdapter {
               throw new UnsupportedFieldException(
                   fieldName, fieldType, FIELD_TYPE_GEOPOINT.toString(), POLYGON);
 
-            List<GeoPoint> points =
-                filterValue
-                    .stream()
+            var points =
+                filterValue.stream()
                     .map(
                         point ->
                             new GeoPoint(
@@ -275,8 +272,8 @@ public class FilterQueryAdapter {
               throw new UnsupportedFieldException(
                   fieldName, fieldType, FIELD_TYPE_GEOPOINT.toString(), VIEWPORT);
 
-            GeoPoint topRight = new GeoPoint(filterValue.value(0, 1), filterValue.value(0, 0));
-            GeoPoint bottomLeft = new GeoPoint(filterValue.value(1, 1), filterValue.value(1, 0));
+            var topRight = new GeoPoint(filterValue.value(0, 1), filterValue.value(0, 0));
+            var bottomLeft = new GeoPoint(filterValue.value(1, 1), filterValue.value(1, 0));
 
             addFilterQuery(
                 nestedMap,
@@ -289,7 +286,7 @@ public class FilterQueryAdapter {
             break;
 
           case CONTAINS_ALL:
-            Object[] values =
+            var values =
                 filterValue.stream().map(contents -> ((Value) contents).value(0)).toArray();
             Stream.of(values)
                 .forEach(
@@ -320,11 +317,11 @@ public class FilterQueryAdapter {
       final boolean not,
       final boolean nested,
       final String fieldFirstName) {
-    QueryType queryType = getQueryType(logicalOperator, not);
-    QueryBuilder query = queryBuilder;
+    var queryType = getQueryType(logicalOperator, not);
+    var query = queryBuilder;
 
     if (nested) {
-      Optional<QueryBuilder> nestedQuery =
+      var nestedQuery =
           addNestedQuery(queryType, nestedMap, fieldFirstName, queryBuilder, logicalOperator);
       if (nestedQuery.isPresent()) {
         query = nestedQuery.get();
@@ -365,12 +362,12 @@ public class FilterQueryAdapter {
       final String fieldFirstName,
       final QueryBuilder queryBuilder,
       final LogicalOperator logicalOperator) {
-    final boolean nested = false;
-    final boolean not = false;
+    final var nested = false;
+    final var not = false;
 
     if (!nestedMap.containsKey(queryType)) {
       Map<String, BoolQueryBuilder> m = new HashMap<>();
-      BoolQueryBuilder bq = boolQuery();
+      var bq = boolQuery();
       m.put(fieldFirstName, bq);
       nestedMap.put(queryType, m);
 
@@ -378,7 +375,7 @@ public class FilterQueryAdapter {
       return of(nestedQuery(fieldFirstName, bq, None));
 
     } else if (!nestedMap.get(queryType).containsKey(fieldFirstName)) {
-      BoolQueryBuilder bq = boolQuery();
+      var bq = boolQuery();
       nestedMap.get(queryType).put(fieldFirstName, bq);
 
       addFilterQuery(nestedMap, bq, queryBuilder, logicalOperator, not, nested, fieldFirstName);
@@ -401,7 +398,7 @@ public class FilterQueryAdapter {
   private boolean isNotBeforeCurrentQueryFragment(
       final QueryFragmentList queryFragmentList, final int index) {
     if (index - 1 >= 0) {
-      QueryFragment before = queryFragmentList.get(index - 1);
+      var before = queryFragmentList.get(index - 1);
       if (before instanceof QueryFragmentNot) return ((QueryFragmentNot) before).isNot();
     }
     return false;

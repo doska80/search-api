@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 import org.apache.http.Header;
-import org.apache.http.HttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
@@ -87,12 +86,12 @@ public class SearchApiEnv {
   private void loadRemoteProperties() {
     try {
 
-      final Request request = new Request(GET.name(), SEARCH_API_CONFIG_ENDPOINT);
-      final RequestOptions.Builder options = RequestOptions.DEFAULT.toBuilder();
+      final var request = new Request(GET.name(), SEARCH_API_CONFIG_ENDPOINT);
+      final var options = RequestOptions.DEFAULT.toBuilder();
       options.addHeader(SEARCH_API_HEADERS.getName(), SEARCH_API_HEADERS.getValue());
       request.setOptions(options);
 
-      HttpEntity entity = restClient.performRequest(request).getEntity();
+      var entity = restClient.performRequest(request).getEntity();
 
       if (entity != null) {
         final HashMap<String, Object> response = parser(EntityUtils.toString(entity));
@@ -104,12 +103,12 @@ public class SearchApiEnv {
             ((List<Map>) hitsMap.get("hits"))
                 .forEach(
                     hit -> {
-                      Map<String, Object> source = (Map<String, Object>) hit.get("_source");
+                      var source = (Map<String, Object>) hit.get("_source");
 
                       LOG.debug(
                           "Remote properties loaded with success. Endpoint: {}",
                           SEARCH_API_CONFIG_ENDPOINT);
-                      String index = hit.get("_id").toString();
+                      var index = hit.get("_id").toString();
                       loadEnvironmentProperties(index, source);
                       this.remoteProperties.put(index, source);
                     });

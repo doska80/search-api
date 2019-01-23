@@ -50,7 +50,7 @@ public class SearchApiRequestBuilder {
     }
 
     public BaseApiRequest build() {
-      BaseApiRequest request = new BaseApiRequest();
+      var request = new BaseApiRequest();
 
       if (allNotNull(index)) request.setIndex(index);
 
@@ -133,7 +133,7 @@ public class SearchApiRequestBuilder {
 
     @Override
     public FilterableApiRequest build() {
-      FilterableApiRequest request = new FilterableApiRequest();
+      var request = new FilterableApiRequest();
 
       if (allNotNull(index)) request.setIndex(index);
 
@@ -254,7 +254,7 @@ public class SearchApiRequestBuilder {
 
     @Override
     public SearchApiRequest build() {
-      SearchApiRequest request = new SearchApiRequest();
+      var request = new SearchApiRequest();
 
       if (allNotNull(index)) request.setIndex(index);
 

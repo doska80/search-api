@@ -1,9 +1,4 @@
 buildscript {
-    ext {
-        integrationTestComposeMode = project.hasProperty('circleCi') ? 'circleci' : 'localhost'
-        integrationTestComposeFile = "${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose-${integrationTestComposeMode}.yml"
-    }
-
     repositories {
         jcenter()
         mavenCentral()
@@ -14,12 +9,12 @@ buildscript {
     dependencies {
         classpath 'com.diffplug.spotless:spotless-plugin-gradle:+'
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
-        classpath 'com.avast.gradle:docker-compose-gradle-plugin:0.5.0'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.6.2'
+        classpath 'gradle.plugin.com.avast.gradle:gradle-docker-compose-plugin:+'
+        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.+'
         classpath 'com.github.ben-manes:gradle-versions-plugin:+'
-        classpath 'com.gradle:build-scan-plugin:1.+'
+        classpath 'com.gradle:build-scan-plugin:2.+'
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE'
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.7'
+        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.8'
         classpath 'org.owasp:dependency-check-gradle:+'
     }
 }
@@ -38,13 +33,6 @@ apply plugin: 'docker-compose'
 apply plugin: 'com.github.ben-manes.versions'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: "me.champeau.gradle.jmh"
-
-buildScan {
-    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
-    licenseAgree = 'yes'
-
-    publishAlways()
-}
 
 group = 'com.vivareal.search'
 
@@ -66,9 +54,14 @@ idea {
     }
 }
 
+sourceCompatibility = 11
+targetCompatibility = 11
+
+jacoco { toolVersion = "0.8.2" }
+
 spotless {
     java {
-        googleJavaFormat('1.5')
+        googleJavaFormat('1.7')
     }
 }
 
@@ -103,6 +96,9 @@ dependencyManagement {
 }
 
 dependencies {
+    // java >= 9 modules compatibility
+    compile 'javax.xml.bind:jaxb-api:2.+'
+
     compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
     compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix-dashboard'
     compile 'org.springframework.cloud:spring-cloud-starter-netflix-turbine'
@@ -121,9 +117,14 @@ dependencies {
     compile 'io.springfox:springfox-swagger2:' + SWAGGER
     compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
 
-    compile 'org.codehaus.janino:janino:3.0.9'
+    compile 'org.apache.commons:commons-lang3:3.+'
+    compile 'org.apache.commons:commons-collections4:4.+'
 
-    compile 'org.jparsec:jparsec:3.0'
+    compile 'com.google.code.gson:gson:2.8.5'
+
+    compile 'org.codehaus.janino:janino:3.0.12'
+
+    compile 'org.jparsec:jparsec:3.1'
 
     compile 'com.newrelic.agent.java:newrelic-api:' + NEW_RELIC_VERSION
     newRelic 'com.newrelic.agent.java:newrelic-agent:' + NEW_RELIC_VERSION
@@ -135,11 +136,6 @@ dependencies {
     // Fixtures
     testCompile 'br.com.six2six:fixture-factory:3.1.0'
     testCompile 'com.jayway.restassured:rest-assured:2.9.0'
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.9'
-    distributionType = Wrapper.DistributionType.ALL
 }
 
 bootRun {
@@ -210,11 +206,6 @@ def isSearchApiHealthy = {
     return isDependencyHealthy('http://localhost:8482/actuator/health')
 }
 
-def isESHealthy = {
-    return isDependencyHealthy('http://localhost:9200/_cluster/health')
-}
-
-
 def isDependencyHealthy(String url) {
     try {
         url.toURL().text
@@ -253,14 +244,13 @@ configurations{
 }
 
 task integrationTest(type: Test) {
-    doFirst {
-        if(!isESHealthy() && !isSearchApiHealthy()) {
-            throw new RuntimeException("Searchapi compose is not healthy")
-        }
-    }
-
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
+    outputs.upToDateWhen { false }
+    mustRunAfter test
+    jacoco {
+        destinationFile = file("$buildDir/jacoco/jacocoIntegrationTest.exec")
+    }
 }
 
 test.finalizedBy(integrationTest)
@@ -274,9 +264,8 @@ tasks.withType(Test) {
  ****************************/
 
 if(!project.hasProperty('noDockerCompose')) {
-
     dockerCompose {
-        useComposeFiles = [integrationTestComposeFile]
+        useComposeFiles = ["${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose.yml"]
         stopContainers = true
         removeContainers = false
         removeVolumes = false
@@ -287,13 +276,7 @@ if(!project.hasProperty('noDockerCompose')) {
 
     dockerCompose.isRequiredBy(integrationTest)
 
-
-    composeUp.doFirst {
-        println "Using: $integrationTestComposeFile"
-    }
-
     composeUp.doLast {
-        waitForTestDependencyHealthy('es', 180, isESHealthy)
         waitForTestDependencyHealthy('searchApi', 120, isSearchApiHealthy)
     }
 }

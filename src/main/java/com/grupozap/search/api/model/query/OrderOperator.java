@@ -9,7 +9,7 @@ public enum OrderOperator {
   DESC;
 
   public static OrderOperator get(String order) {
-    String value = ofNullable(order).map(String::toUpperCase).orElse("");
+    var value = ofNullable(order).map(String::toUpperCase).orElse("");
 
     return Stream.of(OrderOperator.values())
         .filter(o -> o.name().equals(value))

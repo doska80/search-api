@@ -47,10 +47,10 @@ public class ExceptionHandler {
   }
 
   public ResponseEntity<Map<String, Object>> error(Throwable e, HttpServletRequest request) {
-    Map<String, Object> errorBody =
+    var errorBody =
         errorAttributes.getErrorAttributes(new DispatcherServletWebRequest(request), false);
 
-    HttpStatus httpStatus = getStatusCode(e, request);
+    var httpStatus = getStatusCode(e, request);
     Optional<String> rootCauseMessage = Optional.empty();
 
     errorBody.put("request", request.getParameterMap());
@@ -72,7 +72,7 @@ public class ExceptionHandler {
       HttpServletRequest request,
       Map<String, Object> errorBody,
       Optional<String> rootCauseMessage) {
-    StringBuilder builder =
+    var builder =
         new StringBuilder("Path: [" + ofNullable(request.getServletPath()).orElse("None") + "]");
     builder
         .append(" - Request Parameters: [")
@@ -80,7 +80,7 @@ public class ExceptionHandler {
         .append("]");
     rootCauseMessage.ifPresent(
         rootCause -> builder.append(" - RootCauseMessage: [").append(rootCause).append("]"));
-    String additionalMessage = additionalMessage(e);
+    var additionalMessage = additionalMessage(e);
 
     if (nonNull(additionalMessage)) {
       builder.append(additionalMessage);
@@ -90,7 +90,7 @@ public class ExceptionHandler {
   }
 
   private String additionalMessage(Throwable e) {
-    if (e != null && e instanceof QueryPhaseExecutionException)
+    if (e instanceof QueryPhaseExecutionException)
       return " - Query: [" + ((QueryPhaseExecutionException) e).getQuery() + "]";
 
     return null;
@@ -115,7 +115,7 @@ public class ExceptionHandler {
         || getRootCause(e) instanceof TimeoutException
         || getRootCause(e) instanceof QueryTimeoutException) return GATEWAY_TIMEOUT;
 
-    Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+    var statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
     if (statusCode != null) {
       try {
         return HttpStatus.valueOf(statusCode);
@@ -128,10 +128,7 @@ public class ExceptionHandler {
   }
 
   private String getParametersFromRequest(final HttpServletRequest request) {
-    return request
-        .getParameterMap()
-        .entrySet()
-        .stream()
+    return request.getParameterMap().entrySet().stream()
         .map(e -> format("%s=%s", e.getKey(), join(e.getValue())))
         .collect(joining("&"));
   }

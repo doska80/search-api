@@ -7,9 +7,8 @@ import static java.util.stream.IntStream.rangeClosed;
 
 import com.grupozap.search.api.model.query.Field;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,7 +21,7 @@ public class FieldFactory {
   }
 
   public static Field createField(String fieldName, Map<String, Object> typePerFieldName) {
-    List<String> names = asList(fieldName.split("\\."));
+    var names = asList(fieldName.split("\\."));
     LinkedMap fieldTypes =
         rangeClosed(1, names.size())
             .boxed()

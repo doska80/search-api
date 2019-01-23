@@ -23,7 +23,7 @@ public class QueryFragmentItemTest {
   @Test
   public void queryFragmentWithLogicalOperatorToString() {
     Filter filter = from(Filter.class).gimme("filter");
-    QueryFragmentItem queryFragmentItem = new QueryFragmentItem(Optional.of(AND), filter);
+    var queryFragmentItem = new QueryFragmentItem(Optional.of(AND), filter);
 
     assertEquals("AND field EQUAL \"value\"", queryFragmentItem.toString());
     assertEquals(newHashSet("field"), queryFragmentItem.getFieldNames());
@@ -34,7 +34,7 @@ public class QueryFragmentItemTest {
   @Test
   public void fieldNamesForQueryFragmentWithFieldWithDots() {
     Filter filter = from(Filter.class).gimme("nested");
-    QueryFragmentItem queryFragmentItem = new QueryFragmentItem(Optional.empty(), filter);
+    var queryFragmentItem = new QueryFragmentItem(Optional.empty(), filter);
 
     Set<String> expectedFieldNamesWithRoot =
         newLinkedHashSet(asList("field1", "field1.field2", "field1.field2.field3"));
@@ -47,7 +47,7 @@ public class QueryFragmentItemTest {
   @Test
   public void queryFragmentWithoutLogicalOperatorToString() {
     Filter filter = from(Filter.class).gimme("filter");
-    QueryFragmentItem queryFragmentItem = new QueryFragmentItem(Optional.empty(), filter);
+    var queryFragmentItem = new QueryFragmentItem(Optional.empty(), filter);
 
     assertEquals("field EQUAL \"value\"", queryFragmentItem.toString());
     assertEquals(newHashSet("field"), queryFragmentItem.getFieldNames());

@@ -10,7 +10,7 @@ import org.junit.Test;
 public class QueryFragmentOperatorTest {
 
   private void validQueryFragmentOperator(LogicalOperator operator) {
-    QueryFragmentOperator qfo = new QueryFragmentOperator(operator);
+    var qfo = new QueryFragmentOperator(operator);
     assertEquals(operator, qfo.getOperator());
     assertEquals(newHashSet(), qfo.getFieldNames());
     assertEquals(newHashSet(), qfo.getFieldNames(true));

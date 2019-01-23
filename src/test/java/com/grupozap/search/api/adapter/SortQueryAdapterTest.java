@@ -9,12 +9,10 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 
 import com.grupozap.search.api.listener.ScriptRemotePropertiesListener;
-import com.grupozap.search.api.model.http.SearchApiRequest;
 import com.grupozap.search.api.model.parser.OperatorParser;
 import com.grupozap.search.api.model.parser.SortParser;
 import com.grupozap.search.api.model.parser.ValueParser;
 import java.util.List;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.sort.*;
 import org.junit.Test;
@@ -24,7 +22,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   private final SortQueryAdapter sortQueryAdapter;
 
   public SortQueryAdapterTest() {
-    SortParser sortParser =
+    var sortParser =
         new SortParser(
             fieldParserFixture(), new OperatorParser(), new ValueParser(), queryParserFixture());
     this.sortQueryAdapter =
@@ -37,14 +35,14 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplySortByRequest() {
-    String fieldName1 = "id";
-    SortOrder sortOrder1 = ASC;
+    var fieldName1 = "id";
+    var sortOrder1 = ASC;
 
-    String fieldName2 = "nested.field";
-    SortOrder sortOrder2 = DESC;
+    var fieldName2 = "nested.field";
+    var sortOrder2 = DESC;
 
-    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
-    SearchApiRequest request = fullRequest.build();
+    var requestBuilder = new SearchSourceBuilder();
+    var request = fullRequest.build();
     request.setSort(
         fieldName1 + " " + sortOrder1.name() + ", " + fieldName2 + " " + sortOrder2.name());
 
@@ -63,10 +61,10 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplySortByScore() {
-    String fieldName = "_score";
+    var fieldName = "_score";
 
-    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
-    SearchApiRequest request = fullRequest.build();
+    var requestBuilder = new SearchSourceBuilder();
+    var request = fullRequest.build();
     request.setSort(fieldName);
 
     sortQueryAdapter.apply(requestBuilder, request);
@@ -78,15 +76,15 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplySortFilterWhenExplicit() {
-    String fieldName1 = "id";
-    SortOrder sortOrder1 = ASC;
+    var fieldName1 = "id";
+    var sortOrder1 = ASC;
 
-    String fieldName2 = "nested.field";
-    SortOrder sortOrder2 = DESC;
-    String sortFilter2 = "sortFilter: fieldName EQ \"value\"";
+    var fieldName2 = "nested.field";
+    var sortOrder2 = DESC;
+    var sortFilter2 = "sortFilter: fieldName EQ \"value\"";
 
-    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
-    SearchApiRequest request = fullRequest.build();
+    var requestBuilder = new SearchSourceBuilder();
+    var request = fullRequest.build();
     request.setSort(
         fieldName1
             + " "
@@ -98,7 +96,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
             + " "
             + sortFilter2);
 
-    BoolQueryBuilder boolQueryBuilder = boolQuery();
+    var boolQueryBuilder = boolQuery();
 
     sortQueryAdapter.apply(requestBuilder, request);
     List<FieldSortBuilder> sorts = (List) requestBuilder.sorts();
@@ -115,8 +113,8 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void mustNotApplySortWhenClientDisablesSortOnRequest() {
-    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
-    SearchApiRequest request = fullRequest.build();
+    var requestBuilder = new SearchSourceBuilder();
+    var request = fullRequest.build();
     request.setDisableSort(true);
 
     sortQueryAdapter.apply(requestBuilder, request);
@@ -125,8 +123,8 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void mustNotApplySortWhenSortDisabledOnProperty() {
-    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
-    SearchApiRequest request = fullRequest.build();
+    var requestBuilder = new SearchSourceBuilder();
+    var request = fullRequest.build();
 
     sortQueryAdapter.apply(requestBuilder, request);
     assertNull(requestBuilder.sorts());
@@ -134,8 +132,8 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void validateDistanceSortBuilder() {
-    SearchSourceBuilder requestBuilder = new SearchSourceBuilder();
-    SearchApiRequest request = fullRequest.build();
+    var requestBuilder = new SearchSourceBuilder();
+    var request = fullRequest.build();
     request.setSort("field.geo NEAR [10.0, -20.0]");
 
     sortQueryAdapter.apply(requestBuilder, request);

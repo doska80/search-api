@@ -53,27 +53,25 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
   public void apply(BoolQueryBuilder queryBuilder, final Queryable request) {
     if (isEmpty(request.getQ())) return;
 
-    String indexName = request.getIndex();
+    var indexName = request.getIndex();
 
     String mm = isEmpty(request.getMm()) ? QS_MM.getValue(indexName) : request.getMm();
     checkMM(mm);
 
-    List<BoolQueryBuilder> queries =
-        queryTemplatePerIndex
-            .getOrDefault(request.getIndex(), DEFAULT_QS_TEMPLATE)
-            .stream()
+    var queries =
+        queryTemplatePerIndex.getOrDefault(request.getIndex(), DEFAULT_QS_TEMPLATE).stream()
             .map(
                 qsTemplate -> {
-                  BoolQueryBuilder boolQuery = boolQuery();
+                  var boolQuery = boolQuery();
 
                   Map<String, AbstractQueryBuilder> queryStringQueries = new HashMap<>();
                   getQueryStringFields(qsTemplate, request, indexName)
                       .forEach(
                           qsField -> {
-                            Field field = fieldCache.getField(qsField.getFieldName());
-                            float boost = qsField.getBoost();
+                            var field = fieldCache.getField(qsField.getFieldName());
+                            var boost = qsField.getBoost();
                             if (FIELD_TYPE_NESTED.typeOf(field.getTypeFirstName())) {
-                              String nestedField = field.firstName();
+                              var nestedField = field.firstName();
 
                               if (queryStringQueries.containsKey(nestedField))
                                 buildQueryStringQuery(
@@ -119,7 +117,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
     if (queries.size() == 1) {
       queryBuilder.must().addAll(queries.get(0).must());
     } else {
-      BoolQueryBuilder shouldBetweenQueries = boolQuery();
+      var shouldBetweenQueries = boolQuery();
       queries.forEach(q -> shouldBetweenQueries.should().addAll(q.must()));
 
       queryBuilder.must().add(shouldBetweenQueries);
@@ -129,13 +127,11 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
   private List<QSField> getQueryStringFields(
       QSTemplate qsTemplate, Queryable request, String indexName) {
     List<QSField> qsFields = new ArrayList<>();
-    QS_DEFAULT_FIELDS
-        .getValue(request.getFields(), indexName)
+    QS_DEFAULT_FIELDS.getValue(request.getFields(), indexName).stream()
+        .map(qsField -> qsField.split(":"))
         .forEach(
-            qsField -> {
-              String[] qsRaw = qsField.split(":");
-
-              List<QSField> aliasFields =
+            qsRaw -> {
+              var aliasFields =
                   qsTemplate.getFieldAliases().getOrDefault(qsRaw[0], new LinkedList<>());
               if (!aliasFields.isEmpty()) {
                 qsFields.addAll(aliasFields);
@@ -158,11 +154,11 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
     if (mm.contains(".") || mm.contains("%") && ((mm.length() - 1) > mm.indexOf('%')))
       throw new NumberFormatException(MM_ERROR_MESSAGE);
 
-    String mmNumber = mm.replace("%", "");
+    var mmNumber = mm.replace("%", "");
 
     if (!isCreatable(mmNumber)) throw new NumberFormatException(MM_ERROR_MESSAGE);
 
-    int number = toInt(mmNumber);
+    var number = toInt(mmNumber);
 
     if (number < -100 || number > 100) throw new IllegalArgumentException(MM_ERROR_MESSAGE);
   }
@@ -186,7 +182,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
 
   @Override
   public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
-    Set rawQueryTemplates =
+    var rawQueryTemplates =
         ofNullable((Set) QS_TEMPLATES.getValue(event.getIndex()))
             .filter(queries -> !queries.isEmpty())
             .orElse(DEFAULT_QS_TEMPLATE);
@@ -194,8 +190,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
     queryTemplatePerIndex.put(
         event.getIndex(),
         (Set<QSTemplate>)
-            rawQueryTemplates
-                .stream()
+            rawQueryTemplates.stream()
                 .map(this::toQSTemplate)
                 .collect(toCollection(() -> new LinkedHashSet<>(rawQueryTemplates.size()))));
   }
@@ -244,9 +239,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
               (alias, fieldNames) ->
                   qsFieldAliases.put(
                       alias,
-                      ofNullable(fieldNames)
-                          .orElseGet(ArrayList::new)
-                          .stream()
+                      ofNullable(fieldNames).orElseGet(ArrayList::new).stream()
                           .map(qs -> qs.split(":"))
                           .map(QueryStringAdapter::createQSField)
                           .collect(toList())));

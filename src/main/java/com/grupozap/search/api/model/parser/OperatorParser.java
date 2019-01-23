@@ -28,8 +28,8 @@ public class OperatorParser {
       get(OrderOperator::getOperators, OrderOperator::get, "order operator");
 
   private <T> Parser<T> get(Supplier<String[]> operators, Function<String, T> getFn, String label) {
-    Terminals OPERATORS = operators(operators.get());
-    Parser<T> OPERATOR_MAPPER = fragment(Tokens.Tag.RESERVED).label(label).map(getFn);
+    var OPERATORS = operators(operators.get());
+    var OPERATOR_MAPPER = fragment(Tokens.Tag.RESERVED).label(label).map(getFn);
     return OPERATOR_MAPPER.from(OPERATORS.tokenizer(), WHITESPACES.optional(null)).label(label);
   }
 

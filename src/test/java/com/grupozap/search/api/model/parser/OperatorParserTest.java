@@ -7,9 +7,6 @@ import static java.util.stream.Stream.of;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
-import com.grupozap.search.api.model.query.LogicalOperator;
-import com.grupozap.search.api.model.query.RelationalOperator;
-import java.util.List;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
@@ -19,7 +16,7 @@ public class OperatorParserTest {
 
   @Test
   public void testRelationalEqualsOperator() {
-    List<RelationalOperator> ops =
+    var ops =
         of(":", "=", "EQ")
             .map(operatorParser.getRelationalOperatorParser()::parse)
             .collect(toList());
@@ -35,7 +32,7 @@ public class OperatorParserTest {
 
   @Test
   public void testLogicalAndOperator() {
-    List<LogicalOperator> ops =
+    var ops =
         of("AND", "&&").map(operatorParser.getLogicalOperatorParser()::parse).collect(toList());
 
     assertThat(ops, hasSize(2));

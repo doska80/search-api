@@ -31,12 +31,12 @@ public class StandardDatasetAsserts {
   }
 
   public List<Integer> allIdsUntil(int id) {
-    IntStream intStream = rangeClosed(1, id);
+    var intStream = rangeClosed(1, id);
     return getIds(intStream);
   }
 
   public Set<Integer> idsBetween(int from, int to) {
-    IntStream intStream = rangeClosed(from, to);
+    var intStream = rangeClosed(from, to);
     return new LinkedHashSet<>(getIds(intStream));
   }
 

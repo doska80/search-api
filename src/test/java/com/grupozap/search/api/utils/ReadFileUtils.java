@@ -7,8 +7,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.util.stream.Stream;
 import org.slf4j.Logger;
 
 public class ReadFileUtils {
@@ -16,13 +14,13 @@ public class ReadFileUtils {
   private static final Logger log = getLogger(ReadFileUtils.class);
 
   public static String readFileFromResources(final String name) {
-    StringBuilder data = new StringBuilder();
+    var data = new StringBuilder();
 
     try {
-      Path path =
+      var path =
           get(requireNonNull(ReadFileUtils.class.getClassLoader().getResource(name)).toURI());
 
-      Stream<String> lines = lines(path);
+      var lines = lines(path);
       lines.forEach(line -> data.append(line).append("\n"));
       lines.close();
 

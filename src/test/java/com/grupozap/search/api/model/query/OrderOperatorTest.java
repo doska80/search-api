@@ -10,7 +10,7 @@ public class OrderOperatorTest {
 
   @Test
   public void testGetOperators() {
-    String[] operators = OrderOperator.getOperators();
+    var operators = OrderOperator.getOperators();
     assertNotNull(operators);
     assertTrue(operators.length > 0);
   }

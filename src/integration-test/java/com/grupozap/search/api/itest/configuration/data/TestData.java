@@ -50,7 +50,7 @@ public class TestData {
   }
 
   public static Map<String, Object> createTestData(int id, int facetValue) {
-    boolean isEven = isEven(id);
+    var isEven = isEven(id);
 
     Map<String, Object> kv =
         unmodifiableMap(
@@ -59,7 +59,7 @@ public class TestData {
                     new SimpleEntry<>("array_string", idsBetween(1, id)))
                 .collect(toMap(SimpleEntry::getKey, SimpleEntry::getValue)));
 
-    Map<String, Object> nestedObject =
+    var nestedObject =
         unmodifiableMap(
             Stream.of(
                     new SimpleEntry<>("object", kv),
@@ -82,7 +82,7 @@ public class TestData {
     data.put("object", nestedObject);
     data.put("nested_array", getNestedArray(id));
 
-    int maxFieldId = id % FIELD_MAX_VALUE;
+    var maxFieldId = id % FIELD_MAX_VALUE;
     data.put("field" + maxFieldId, "value" + maxFieldId);
     data.put("geo", geoField(id));
     data.putAll(facetsData(id, facetValue));

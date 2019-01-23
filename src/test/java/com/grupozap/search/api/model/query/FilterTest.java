@@ -19,7 +19,7 @@ public class FilterTest {
   public void testToString() {
     Field field = from(Field.class).gimme("field");
     Value value = from(Value.class).gimme("value");
-    Filter filter = new Filter(field, EQUAL, value);
+    var filter = new Filter(field, EQUAL, value);
     assertEquals("field EQUAL \"value\"", filter.toString());
   }
 }

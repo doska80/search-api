@@ -55,9 +55,9 @@ public class SearchService {
 
   @Trace
   public SearchResponse search(SearchApiRequest request, final int retries) {
-    SearchRequest searchRequest = this.queryAdapter.query(request);
+    var searchRequest = this.queryAdapter.query(request);
     try {
-      SearchResponse searchResponse = restHighLevelClient.search(searchRequest, DEFAULT);
+      var searchResponse = restHighLevelClient.search(searchRequest, DEFAULT);
       if (searchResponse.getFailedShards() != 0)
         throw new QueryPhaseExecutionException(
             format(
@@ -80,7 +80,7 @@ public class SearchService {
   }
 
   public void stream(FilterableApiRequest request, OutputStream stream) {
-    final long startTime = nanoTime();
+    final var startTime = nanoTime();
 
     // Default value for stream size: return all results
     if (request.getSize() == Integer.MAX_VALUE) request.setSize(0);

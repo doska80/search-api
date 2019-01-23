@@ -10,9 +10,7 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
@@ -36,7 +34,7 @@ public class BulkESIndexHandler {
   }
 
   public void bulkInsert(final String index, final String type, List<Map> sources) {
-    BulkRequest request = new BulkRequest();
+    var request = new BulkRequest();
     request.timeout(new TimeValue(30, SECONDS));
     request.setRefreshPolicy(WAIT_UNTIL);
     sources.forEach(
@@ -45,14 +43,14 @@ public class BulkESIndexHandler {
                 new IndexRequest(index, type, valueOf(source.get("id")))
                     .source(gson.toJson(source), JSON)));
     try {
-      BulkResponse response = restHighLevelClient.bulk(request, DEFAULT);
+      var response = restHighLevelClient.bulk(request, DEFAULT);
       if (response.hasFailures()) {
         response
             .iterator()
             .forEachRemaining(
                 bulkItemResponse -> {
                   if (bulkItemResponse.isFailed()) {
-                    BulkItemResponse.Failure failure = bulkItemResponse.getFailure();
+                    var failure = bulkItemResponse.getFailure();
                     LOG.info(
                         "Document {} not indexed! Message: {}",
                         bulkItemResponse.getId(),

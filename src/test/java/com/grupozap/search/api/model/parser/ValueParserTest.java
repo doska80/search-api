@@ -15,15 +15,15 @@ public class ValueParserTest {
 
   @Test
   public void testInteger() {
-    String value = "123456";
-    Value parsed = valueParser.get().parse(value);
+    var value = "123456";
+    var parsed = valueParser.get().parse(value);
     assertEquals(Long.valueOf(value), parsed.first());
   }
 
   @Test
   public void testFloat() {
-    String value = "123.456";
-    Value parsed = valueParser.get().parse(value);
+    var value = "123.456";
+    var parsed = valueParser.get().parse(value);
     assertEquals(Double.valueOf(value), parsed.first());
   }
 
@@ -39,29 +39,29 @@ public class ValueParserTest {
 
   @Test
   public void testSingleQuotedString() {
-    String value = "'single-quoted and with a lot of spaces'";
-    Value parsed = valueParser.get().parse(value);
+    var value = "'single-quoted and with a lot of spaces'";
+    var parsed = valueParser.get().parse(value);
     assertEquals(value.substring(1, value.length() - 1), parsed.first());
   }
 
   @Test
   public void testDoubleQuotedString() {
-    String value = "\"single-quoted and with a lot of spaces and sôme spécial chars\"";
-    Value parsed = valueParser.get().parse(value);
+    var value = "\"single-quoted and with a lot of spaces and sôme spécial chars\"";
+    var parsed = valueParser.get().parse(value);
     assertEquals(value.substring(1, value.length() - 1), parsed.first());
   }
 
   @Test
   public void testUsingIN() {
-    String value = "[1.2,'2',3,\"4\"]";
-    Value parsed = valueParser.get().parse(value);
+    var value = "[1.2,'2',3,\"4\"]";
+    var parsed = valueParser.get().parse(value);
     assertEquals("[1.2, \"2\", 3, \"4\"]", parsed.toString());
   }
 
   @Test
   public void testUsingINWithSpaces() {
-    String in = "[   1.2 ,'2   ',          3    ,   \"   4   \"     ]";
-    Value parsed = valueParser.get().parse(in);
+    var in = "[   1.2 ,'2   ',          3    ,   \"   4   \"     ]";
+    var parsed = valueParser.get().parse(in);
     assertEquals("[1.2, \"2\", 3, \"4\"]", parsed.toString());
   }
 
@@ -72,8 +72,8 @@ public class ValueParserTest {
 
   @Test
   public void testNullValue() {
-    Value nullValue = valueParser.get().parse("NULL");
-    Value nullValueLowerCase = valueParser.get().parse("null");
+    var nullValue = valueParser.get().parse("NULL");
+    var nullValueLowerCase = valueParser.get().parse("null");
     assertEquals(nullValue, Value.NULL_VALUE);
     assertEquals(nullValueLowerCase, Value.NULL_VALUE);
     assertEquals(nullValue, nullValueLowerCase);
@@ -81,48 +81,48 @@ public class ValueParserTest {
 
   @Test
   public void testBooleanFalseValue() {
-    Value actual = new Value(false);
+    var actual = new Value(false);
 
-    Value falseValue = valueParser.get().parse("FALSE");
+    var falseValue = valueParser.get().parse("FALSE");
     assertEquals(falseValue, actual);
     assertEquals(falseValue, new Value(Boolean.FALSE));
 
-    Value falseValueLowerCase = valueParser.get().parse("false");
+    var falseValueLowerCase = valueParser.get().parse("false");
     assertEquals(falseValueLowerCase, actual);
     assertEquals(falseValue, falseValueLowerCase);
   }
 
   @Test
   public void testBooleanTrueValue() {
-    Value actual = new Value(true);
+    var actual = new Value(true);
 
-    Value trueValue = valueParser.get().parse("TRUE");
+    var trueValue = valueParser.get().parse("TRUE");
     assertEquals(trueValue, actual);
     assertEquals(trueValue, new Value(Boolean.TRUE));
 
-    Value trueValueLowerCase = valueParser.get().parse("true");
+    var trueValueLowerCase = valueParser.get().parse("true");
     assertEquals(trueValueLowerCase, actual);
     assertEquals(trueValue, trueValueLowerCase);
   }
 
   @Test
   public void testSimpleNegativeDoubleIN() {
-    String value = "[-23.5534103,-46.6597479]";
-    Value viewport = valueParser.get().parse(value);
+    var value = "[-23.5534103,-46.6597479]";
+    var viewport = valueParser.get().parse(value);
     assertEquals("[-23.5534103, -46.6597479]", viewport.toString());
   }
 
   @Test
   public void testMultipleNegativeDoubleIN() {
-    String value = "[[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
+    var value = "[[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
     Value viewport = valueParser.getGeoPointValue(VIEWPORT).parse(value);
     assertEquals("[[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]", viewport.toString());
   }
 
   @Test
   public void testNegativeDoubleValuesLikeIN() {
-    String value = "[-23.5534103  ,   -46.6597479, -23.5534103,-46.6597479  ]";
-    Value in = valueParser.get().parse(value);
+    var value = "[-23.5534103  ,   -46.6597479, -23.5534103,-46.6597479  ]";
+    var in = valueParser.get().parse(value);
     assertEquals("[-23.5534103, -46.6597479, -23.5534103, -46.6597479]", in.toString());
   }
 

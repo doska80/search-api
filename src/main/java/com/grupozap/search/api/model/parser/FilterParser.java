@@ -15,7 +15,7 @@ public class FilterParser {
 
   public FilterParser(
       FieldParser fieldParser, OperatorParser operatorParser, ValueParser valueParser) {
-    Parser<Filter> normalParser =
+    var normalParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(
@@ -23,28 +23,28 @@ public class FilterParser {
                 valueParser.get(),
                 Filter::new)
             .label("filter");
-    Parser<Filter> likeParser =
+    var likeParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(LIKE),
                 valueParser.getLikeValue(),
                 Filter::new)
             .label("LIKE filter");
-    Parser<Filter> rangeParser =
+    var rangeParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(RANGE),
                 valueParser.getRangeValue(),
                 Filter::new)
             .label("RANGE filter");
-    Parser<Filter> viewportParser =
+    var viewportParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(RelationalOperator.VIEWPORT),
                 valueParser.getGeoPointValue(Type.VIEWPORT),
                 Filter::new)
             .label("VIEWPORT filter");
-    Parser<Filter> polygonParser =
+    var polygonParser =
         sequence(
                 fieldParser.get(),
                 operatorParser.exact(POLYGON),

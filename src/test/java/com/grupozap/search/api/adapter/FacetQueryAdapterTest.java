@@ -15,9 +15,9 @@ import static org.mockito.Mockito.when;
 
 import com.grupozap.search.api.model.search.Facetable;
 import com.grupozap.search.api.service.parser.IndexSettings;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.nested.NestedAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
@@ -45,18 +45,13 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
   private List<AggregationBuilder> simulateAggregationsApply(Set<String> facets) {
     Facetable request = create().index(INDEX_NAME).facets(facets).build();
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     facetQueryAdapter.apply(searchSourceBuilder, request);
-    return searchSourceBuilder
-        .aggregations()
-        .getAggregatorFactories()
-        .stream()
-        .collect(Collectors.toList());
+    return new ArrayList<>(searchSourceBuilder.aggregations().getAggregatorFactories());
   }
 
   private long countNestedAggregations(List<AggregationBuilder> aggregations) {
-    return aggregations
-        .stream()
+    return aggregations.stream()
         .filter(aggregationBuilder -> aggregationBuilder instanceof NestedAggregationBuilder)
         .count();
   }
@@ -77,12 +72,12 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
     Facetable request = create().index(INDEX_NAME).facets(facets).build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     facetQueryAdapter.apply(searchSourceBuilder, request);
 
-    List<AggregationBuilder> aggregations = simulateAggregationsApply(facets);
-    long nestedAggregations = countNestedAggregations(aggregations);
-    String facetAsJson = searchSourceBuilder.toString();
+    var aggregations = simulateAggregationsApply(facets);
+    var nestedAggregations = countNestedAggregations(aggregations);
+    var facetAsJson = searchSourceBuilder.toString();
 
     assertNotNull(aggregations);
     assertEquals(facets.size(), aggregations.size());
@@ -123,12 +118,12 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
     Facetable request = create().index(INDEX_NAME).facets(facets).build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     facetQueryAdapter.apply(searchSourceBuilder, request);
 
-    List<AggregationBuilder> aggregations = simulateAggregationsApply(facets);
-    long nestedAggregations = countNestedAggregations(aggregations);
-    String facetAsJson = searchSourceBuilder.toString();
+    var aggregations = simulateAggregationsApply(facets);
+    var nestedAggregations = countNestedAggregations(aggregations);
+    var facetAsJson = searchSourceBuilder.toString();
 
     assertNotNull(aggregations);
     assertEquals(facets.size(), aggregations.size());
@@ -140,7 +135,7 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(
         facets.size(), countMatches(facetAsJson, "\"size\":" + ES_FACET_SIZE.getValue(INDEX_NAME)));
 
-    Set<String> fieldsFirstNames = getFieldFirstNames(facets);
+    var fieldsFirstNames = getFieldFirstNames(facets);
 
     assertTrue(
         fieldsFirstNames.containsAll(
@@ -150,81 +145,51 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(
         "nested1.field1",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(0)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(0).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations.get(0).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(0).getSubAggregations()).get(0)));
 
     assertEquals("nested2", ((NestedAggregationBuilder) aggregations.get(1)).path());
     assertEquals(
         "nested2.field2",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(1)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(1).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "{\"_key\":\"asc\"}",
-        getSortAsString(
-            aggregations.get(1).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(1).getSubAggregations()).get(0)));
 
     assertEquals("nested3", ((NestedAggregationBuilder) aggregations.get(2)).path());
     assertEquals(
         "nested3.field3",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(2)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(2).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "{\"_key\":\"desc\"}",
-        getSortAsString(
-            aggregations.get(2).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(2).getSubAggregations()).get(0)));
 
     assertEquals("nested4", ((NestedAggregationBuilder) aggregations.get(3)).path());
     assertEquals(
         "nested4.field4",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(3)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(3).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"asc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations.get(3).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(3).getSubAggregations()).get(0)));
 
     assertEquals("nested5", ((NestedAggregationBuilder) aggregations.get(4)).path());
     assertEquals(
         "nested5.field6",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(4)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(4).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations.get(4).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(4).getSubAggregations()).get(0)));
   }
 
   @Test
@@ -245,15 +210,15 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
                 "nested6.field11 sortFacet: _count",
                 "nested7.field12 sortFacet: _count DESC"));
 
-    int facetSize = 50;
+    var facetSize = 50;
     Facetable request = create().index(INDEX_NAME).facets(facets).facetSize(facetSize).build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     facetQueryAdapter.apply(searchSourceBuilder, request);
 
-    List<AggregationBuilder> aggregations = simulateAggregationsApply(facets);
-    long nestedAggregations = countNestedAggregations(aggregations);
-    String facetAsJson = searchSourceBuilder.toString();
+    var aggregations = simulateAggregationsApply(facets);
+    var nestedAggregations = countNestedAggregations(aggregations);
+    var facetAsJson = searchSourceBuilder.toString();
 
     assertNotNull(aggregations);
     assertEquals(12, aggregations.size());
@@ -262,7 +227,7 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
 
     assertEquals(facets.size(), countMatches(facetAsJson, "\"shard_size\":" + DEFAULT_SHARD_SIZE));
     assertEquals(facets.size(), countMatches(facetAsJson, "\"size\":" + facetSize));
-    Set<String> fieldsFirstNames = getFieldFirstNames(facets);
+    var fieldsFirstNames = getFieldFirstNames(facets);
     assertTrue(
         fieldsFirstNames.containsAll(
             aggregations.stream().map(AggregationBuilder::getName).collect(toSet())));
@@ -275,33 +240,21 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(
         "nested1.field2",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(1)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(1).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations.get(1).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(1).getSubAggregations()).get(0)));
 
     assertEquals("nested2", ((NestedAggregationBuilder) aggregations.get(2)).path());
     assertEquals(
         "nested2.field3",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(2)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(2).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations.get(2).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(2).getSubAggregations()).get(0)));
 
     assertEquals("field4", ((TermsAggregationBuilder) aggregations.get(3)).field());
     assertEquals(
@@ -311,17 +264,11 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(
         "nested3.field5",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(4)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(4).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations.get(4).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(4).getSubAggregations()).get(0)));
 
     assertEquals("field6", ((TermsAggregationBuilder) aggregations.get(5)).field());
     assertEquals("{\"_key\":\"asc\"}", getSortAsString(aggregations.get(5)));
@@ -337,75 +284,41 @@ public class FacetQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(
         "nested4.field9",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(8)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(8).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "{\"_key\":\"asc\"}",
-        getSortAsString(
-            aggregations.get(8).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(8).getSubAggregations()).get(0)));
 
     assertEquals("nested5", ((NestedAggregationBuilder) aggregations.get(9)).path());
     assertEquals(
         "nested5.field10",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(9)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(9).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "{\"_key\":\"desc\"}",
-        getSortAsString(
-            aggregations.get(9).getSubAggregations().stream().collect(Collectors.toList()).get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(9).getSubAggregations()).get(0)));
 
     assertEquals("nested6", ((NestedAggregationBuilder) aggregations.get(10)).path());
     assertEquals(
         "nested6.field11",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(10)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(10).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"asc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations
-                .get(10)
-                .getSubAggregations()
-                .stream()
-                .collect(Collectors.toList())
-                .get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(10).getSubAggregations()).get(0)));
 
     assertEquals("nested7", ((NestedAggregationBuilder) aggregations.get(11)).path());
     assertEquals(
         "nested7.field12",
         ((ValuesSourceAggregationBuilder)
-                aggregations
-                    .get(11)
-                    .getSubAggregations()
-                    .stream()
-                    .collect(Collectors.toList())
-                    .get(0))
+                new ArrayList<>(aggregations.get(11).getSubAggregations()).get(0))
             .field());
     assertEquals(
         "[{\"_count\":\"desc\"},{\"_key\":\"asc\"}]",
-        getSortAsString(
-            aggregations
-                .get(11)
-                .getSubAggregations()
-                .stream()
-                .collect(Collectors.toList())
-                .get(0)));
+        getSortAsString(new ArrayList<>(aggregations.get(11).getSubAggregations()).get(0)));
   }
 
   private String getSortAsString(AggregationBuilder aggregationBuilder) {

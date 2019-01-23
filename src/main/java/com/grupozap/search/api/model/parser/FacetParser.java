@@ -22,7 +22,7 @@ public class FacetParser {
   @Autowired
   public FacetParser(FieldParser fieldParser, SortParser sortParser) {
 
-    Parser<Sort> sortFacetParser =
+    var sortFacetParser =
         sequence(
             between(WHITESPACES.skipMany(), string(SORT_FACET_FIELD), WHITESPACES.skipMany()),
             between(WHITESPACES.skipMany(), string(":"), WHITESPACES.skipMany()),

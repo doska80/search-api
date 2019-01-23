@@ -41,14 +41,14 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
   }
 
   public void apply(SearchSourceBuilder searchSourceBuilder, final Fetchable request) {
-    String[] includeFields = getFetchSourceIncludeFields(request);
+    var includeFields = getFetchSourceIncludeFields(request);
     searchSourceBuilder.fetchSource(
         includeFields, getFetchSourceExcludeFields(request, includeFields));
   }
 
   public void apply(GetRequest getRequest, final Fetchable request) {
-    String[] includeFields = getFetchSourceIncludeFields(request);
-    FetchSourceContext fetchSourceContext =
+    var includeFields = getFetchSourceIncludeFields(request);
+    var fetchSourceContext =
         new FetchSourceContext(
             true, includeFields, getFetchSourceExcludeFields(request, includeFields));
     getRequest.fetchSourceContext(fetchSourceContext);
@@ -61,9 +61,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
   }
 
   private String[] getFetchSourceIncludeFields(Set<String> fields, String indexName) {
-    return SOURCE_INCLUDES
-        .getValue(fields, indexName)
-        .stream()
+    return SOURCE_INCLUDES.getValue(fields, indexName).stream()
         .filter(field -> isValidFetchSourceField(indexName, field))
         .toArray(String[]::new);
   }
@@ -82,9 +80,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
 
   private String[] getFetchSourceExcludeFields(
       Set<String> fields, String[] includeFields, String indexName) {
-    return SOURCE_EXCLUDES
-        .getValue(fields, indexName)
-        .stream()
+    return SOURCE_EXCLUDES.getValue(fields, indexName).stream()
         .filter(
             field -> !contains(includeFields, field) && isValidFetchSourceField(indexName, field))
         .toArray(String[]::new);
@@ -104,7 +100,7 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
   @Override
   public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
     try {
-      String[] defaultIncludes = getDefaultFetchSourceIncludeFieldsForIndex(event.getIndex());
+      var defaultIncludes = getDefaultFetchSourceIncludeFieldsForIndex(event.getIndex());
       defaultSourceIncludes.put(event.getIndex(), defaultIncludes);
       defaultSourceExcludes.put(
           event.getIndex(),

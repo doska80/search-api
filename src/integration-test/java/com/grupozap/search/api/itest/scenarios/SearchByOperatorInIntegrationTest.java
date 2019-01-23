@@ -14,7 +14,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
-import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -43,8 +42,7 @@ public class SearchByOperatorInIntegrationTest extends SearchApiIntegrationTest 
 
   @Test
   public void validateInFilterOnArrayField() {
-    List<Integer> range =
-        rangeClosed(standardDatasetSize - 3, standardDatasetSize).boxed().collect(toList());
+    var range = rangeClosed(standardDatasetSize - 3, standardDatasetSize).boxed().collect(toList());
 
     given()
         .log()
@@ -67,8 +65,7 @@ public class SearchByOperatorInIntegrationTest extends SearchApiIntegrationTest 
 
   @Test
   public void validateInFilterOnArrayFieldWhenNested() {
-    List<Integer> range =
-        rangeClosed(standardDatasetSize - 3, standardDatasetSize).boxed().collect(toList());
+    var range = rangeClosed(standardDatasetSize - 3, standardDatasetSize).boxed().collect(toList());
 
     given()
         .log()

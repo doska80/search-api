@@ -10,7 +10,6 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.type.CollectionLikeType;
 import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -38,7 +37,7 @@ public class ESResponseSerializerTest {
 
   @BeforeClass
   public static void setup() {
-    CollectionLikeType type =
+    var type =
         mapper
             .getTypeFactory()
             .constructCollectionLikeType(SearchResponseEnvelope.class, SearchResponse.class);
@@ -48,13 +47,13 @@ public class ESResponseSerializerTest {
   @Test
   public void shouldValidateResponseFromEsResponseSerializerByResultsAndFacets()
       throws IOException {
-    SearchResponse searchResponse = mock(SearchResponse.class);
-    TimeValue took = mock(TimeValue.class);
+    var searchResponse = mock(SearchResponse.class);
+    var took = mock(TimeValue.class);
     when(searchResponse.getTook()).thenReturn(took);
     when(took.getMillis()).thenReturn(123L);
 
-    SearchHit[] hits = new SearchHit[2];
-    SearchHits searchHits = new SearchHits(hits, hits.length, 0);
+    var hits = new SearchHit[2];
+    var searchHits = new SearchHits(hits, hits.length, 0);
     when(searchResponse.getHits()).thenReturn(searchHits);
 
     Map<String, Object> values1 = new LinkedHashMap<>();
@@ -68,36 +67,36 @@ public class ESResponseSerializerTest {
     hits[1] = createFromMap(values2);
 
     // create aggregations
-    Aggregations aggregations = mock(Aggregations.class);
+    var aggregations = mock(Aggregations.class);
     when(searchResponse.getAggregations()).thenReturn(aggregations);
 
     // create aggregation for normal fields
-    InternalMappedTerms normalAggregation = mock(InternalMappedTerms.class);
+    var normalAggregation = mock(InternalMappedTerms.class);
     when(normalAggregation.getName()).thenReturn("field");
 
     List<Terms.Bucket> bucketTerms = newArrayList();
-    Terms.Bucket bucket = mock(Terms.Bucket.class);
+    var bucket = mock(Terms.Bucket.class);
     when(bucket.getKeyAsString()).thenReturn("string");
     when(bucket.getDocCount()).thenReturn(1L);
     bucketTerms.add(bucket);
     when(normalAggregation.getBuckets()).thenReturn(bucketTerms);
 
     // create aggregation for nested fields
-    InternalNested internalNested = mock(InternalNested.class);
+    var internalNested = mock(InternalNested.class);
     List<InternalAggregation> nestedAggregations = newArrayList();
 
-    InternalMappedTerms internalAggregation = mock(InternalMappedTerms.class);
+    var internalAggregation = mock(InternalMappedTerms.class);
     when(internalAggregation.getName()).thenReturn("facet.field");
     nestedAggregations.add(internalAggregation);
 
     List<Terms.Bucket> nestedBucketTerms = newArrayList();
-    Terms.Bucket nestedBucket = mock(Terms.Bucket.class);
+    var nestedBucket = mock(Terms.Bucket.class);
     when(nestedBucket.getKeyAsString()).thenReturn("string");
     when(nestedBucket.getDocCount()).thenReturn(1L);
     nestedBucketTerms.add(nestedBucket);
     when(internalAggregation.getBuckets()).thenReturn(nestedBucketTerms);
 
-    InternalAggregations internalAggregations = new InternalAggregations(nestedAggregations);
+    var internalAggregations = new InternalAggregations(nestedAggregations);
     when(internalNested.getAggregations()).thenReturn(internalAggregations);
 
     setField(internalAggregations, "aggregations", nestedAggregations);
@@ -109,7 +108,7 @@ public class ESResponseSerializerTest {
 
     setField(aggregations, "aggregations", aggregationList);
 
-    String expected =
+    var expected =
         "{\"time\":123,\"maxScore\":0.0,\"totalCount\":2,\"result\":{\""
             + INDEX_NAME
             + "\":[{\"id\":\"1\",\"field\":\"string\"},{\"id\":\"2\",\"facet.field\":\"string\"}],\"facets\":{\"field\":{\"string\":1},\"facet.field\":{\"string\":1}}}}";
@@ -121,13 +120,13 @@ public class ESResponseSerializerTest {
 
   @Test
   public void shouldValidateResponseFromEsResponseSerializerByResults() throws IOException {
-    SearchResponse searchResponse = mock(SearchResponse.class);
-    TimeValue took = mock(TimeValue.class);
+    var searchResponse = mock(SearchResponse.class);
+    var took = mock(TimeValue.class);
     when(searchResponse.getTook()).thenReturn(took);
     when(took.getMillis()).thenReturn(2L);
 
-    SearchHit[] hits = new SearchHit[1];
-    SearchHits searchHits = new SearchHits(hits, hits.length, 0);
+    var hits = new SearchHit[1];
+    var searchHits = new SearchHits(hits, hits.length, 0);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
@@ -138,7 +137,7 @@ public class ESResponseSerializerTest {
     values1.put("_source", bytesReference1);
     hits[0] = createFromMap(values1);
 
-    String expected =
+    var expected =
         "{\"time\":2,\"maxScore\":0.0,\"totalCount\":1,\"result\":{\""
             + INDEX_NAME
             + "\":[{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],\"object\":{\"child\":{\"string\":\"string\",\"float\":1.5,\"int\":1,\"negative_number\":-4.4,\"boolean\":true,\"array\":[\"a\",\"b\",\"c\"],}}}]}}";
@@ -150,17 +149,17 @@ public class ESResponseSerializerTest {
 
   @Test
   public void shouldReturnMaxScore() throws IOException {
-    SearchResponse searchResponse = mock(SearchResponse.class);
-    TimeValue took = mock(TimeValue.class);
+    var searchResponse = mock(SearchResponse.class);
+    var took = mock(TimeValue.class);
     when(searchResponse.getTook()).thenReturn(took);
     when(took.getMillis()).thenReturn(1L);
 
-    SearchHit[] hits = new SearchHit[0];
-    SearchHits searchHits = new SearchHits(hits, 1, Float.NaN);
+    var hits = new SearchHit[0];
+    var searchHits = new SearchHits(hits, 1, Float.NaN);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
-    String expected = "{\"time\":1,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
+    var expected = "{\"time\":1,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
     assertEquals(
         expected,
         mapper.writeValueAsString(new SearchResponseEnvelope<>(INDEX_NAME, searchResponse)));
@@ -168,17 +167,17 @@ public class ESResponseSerializerTest {
 
   @Test
   public void shouldNotReturnMaxScore() throws IOException {
-    SearchResponse searchResponse = mock(SearchResponse.class);
-    TimeValue took = mock(TimeValue.class);
+    var searchResponse = mock(SearchResponse.class);
+    var took = mock(TimeValue.class);
     when(searchResponse.getTook()).thenReturn(took);
     when(took.getMillis()).thenReturn(1L);
 
-    SearchHit[] hits = new SearchHit[0];
-    SearchHits searchHits = new SearchHits(hits, 1, 1f);
+    var hits = new SearchHit[0];
+    var searchHits = new SearchHits(hits, 1, 1f);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
-    String expected =
+    var expected =
         "{\"time\":1,\"maxScore\":1.0,\"totalCount\":1,\"result\":{\"" + INDEX_NAME + "\":[]}}";
     assertEquals(
         expected,
@@ -188,47 +187,47 @@ public class ESResponseSerializerTest {
   @Test
   public void shouldValidateResponseFromEsResponseSerializerByFacetsWhenPropertySizeIsZero()
       throws IOException {
-    SearchResponse searchResponse = mock(SearchResponse.class);
-    TimeValue took = mock(TimeValue.class);
+    var searchResponse = mock(SearchResponse.class);
+    var took = mock(TimeValue.class);
     when(searchResponse.getTook()).thenReturn(took);
     when(took.getMillis()).thenReturn(123L);
 
-    SearchHit[] hits = new SearchHit[0];
-    SearchHits searchHits = new SearchHits(hits, 56789L, 0);
+    var hits = new SearchHit[0];
+    var searchHits = new SearchHits(hits, 56789L, 0);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
     // create aggregations
-    Aggregations aggregations = mock(Aggregations.class);
+    var aggregations = mock(Aggregations.class);
     when(searchResponse.getAggregations()).thenReturn(aggregations);
 
     // create aggregation for normal fields
-    InternalMappedTerms normalAggregation = mock(InternalMappedTerms.class);
+    var normalAggregation = mock(InternalMappedTerms.class);
     when(normalAggregation.getName()).thenReturn("field");
 
     List<Terms.Bucket> bucketTerms = newArrayList();
-    Terms.Bucket bucket = mock(Terms.Bucket.class);
+    var bucket = mock(Terms.Bucket.class);
     when(bucket.getKeyAsString()).thenReturn("value");
     when(bucket.getDocCount()).thenReturn(10L);
     bucketTerms.add(bucket);
     when(normalAggregation.getBuckets()).thenReturn(bucketTerms);
 
     // create aggregation for nested fields
-    InternalNested internalNested = mock(InternalNested.class);
+    var internalNested = mock(InternalNested.class);
     List<InternalAggregation> nestedAggregations = newArrayList();
 
-    InternalMappedTerms internalAggregation = mock(InternalMappedTerms.class);
+    var internalAggregation = mock(InternalMappedTerms.class);
     when(internalAggregation.getName()).thenReturn("facet.field");
     nestedAggregations.add(internalAggregation);
 
     List<Terms.Bucket> nestedBucketTerms = newArrayList();
-    Terms.Bucket nestedBucket = mock(Terms.Bucket.class);
+    var nestedBucket = mock(Terms.Bucket.class);
     when(nestedBucket.getKeyAsString()).thenReturn("value");
     when(nestedBucket.getDocCount()).thenReturn(10L);
     nestedBucketTerms.add(nestedBucket);
     when(internalAggregation.getBuckets()).thenReturn(nestedBucketTerms);
 
-    InternalAggregations internalAggregations = new InternalAggregations(nestedAggregations);
+    var internalAggregations = new InternalAggregations(nestedAggregations);
     when(internalNested.getAggregations()).thenReturn(internalAggregations);
 
     setField(internalAggregations, "aggregations", nestedAggregations);
@@ -240,7 +239,7 @@ public class ESResponseSerializerTest {
 
     setField(aggregations, "aggregations", aggregationList);
 
-    String expected =
+    var expected =
         "{\"time\":123,\"maxScore\":0.0,\"totalCount\":56789,\"result\":{\""
             + INDEX_NAME
             + "\":[],\"facets\":{\"field\":{\"value\":10},\"facet.field\":{\"value\":10}}}}";
@@ -253,34 +252,34 @@ public class ESResponseSerializerTest {
   @Test
   public void shouldValidateResponseFromEsResponseSerializerWhenSearchReturnZeroResults()
       throws IOException {
-    SearchResponse searchResponse = mock(SearchResponse.class);
-    TimeValue took = mock(TimeValue.class);
+    var searchResponse = mock(SearchResponse.class);
+    var took = mock(TimeValue.class);
     when(searchResponse.getTook()).thenReturn(took);
     when(took.getMillis()).thenReturn(123L);
 
-    SearchHit[] hits = new SearchHit[0];
-    SearchHits searchHits = new SearchHits(hits, 0, 0);
+    var hits = new SearchHit[0];
+    var searchHits = new SearchHits(hits, 0, 0);
     when(searchResponse.getHits()).thenReturn(searchHits);
 
     // create aggregations
-    Aggregations aggregations = mock(Aggregations.class);
+    var aggregations = mock(Aggregations.class);
     when(searchResponse.getAggregations()).thenReturn(aggregations);
 
     // create aggregation for normal fields with zero buckets
-    InternalMappedTerms normalAggregation = mock(InternalMappedTerms.class);
+    var normalAggregation = mock(InternalMappedTerms.class);
     when(normalAggregation.getName()).thenReturn("field");
     when(normalAggregation.getBuckets()).thenReturn(newArrayList());
 
     // create aggregation for nested fields  with zero buckets
-    InternalNested internalNested = mock(InternalNested.class);
+    var internalNested = mock(InternalNested.class);
     List<InternalAggregation> nestedAggregations = newArrayList();
 
-    InternalMappedTerms internalAggregation = mock(InternalMappedTerms.class);
+    var internalAggregation = mock(InternalMappedTerms.class);
     when(internalAggregation.getName()).thenReturn("facet.field");
     nestedAggregations.add(internalAggregation);
     when(internalAggregation.getBuckets()).thenReturn(newArrayList());
 
-    InternalAggregations internalAggregations = new InternalAggregations(nestedAggregations);
+    var internalAggregations = new InternalAggregations(nestedAggregations);
     when(internalNested.getAggregations()).thenReturn(internalAggregations);
 
     setField(internalAggregations, "aggregations", nestedAggregations);
@@ -292,7 +291,7 @@ public class ESResponseSerializerTest {
 
     setField(aggregations, "aggregations", aggregationList);
 
-    String expected =
+    var expected =
         "{\"time\":123,\"maxScore\":0.0,\"totalCount\":0,\"result\":{\""
             + INDEX_NAME
             + "\":[],\"facets\":{\"field\":{},\"facet.field\":{}}}}";

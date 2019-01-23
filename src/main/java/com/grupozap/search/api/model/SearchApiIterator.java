@@ -47,10 +47,10 @@ public class SearchApiIterator<T> implements Iterator<T[]> {
   public T[] next() {
 
     @SuppressWarnings("unchecked")
-    T[] result = (T[]) response.getHits().getHits();
+    var result = (T[]) response.getHits().getHits();
 
     try {
-      SearchScrollRequest scrollRequest = new SearchScrollRequest(response.getScrollId());
+      var scrollRequest = new SearchScrollRequest(response.getScrollId());
       scrollRequest.scroll(scroll);
 
       response = client.scroll(scrollRequest, DEFAULT);

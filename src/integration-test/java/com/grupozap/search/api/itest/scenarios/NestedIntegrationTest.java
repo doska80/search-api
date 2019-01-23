@@ -80,11 +80,10 @@ public class NestedIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void shouldBeSameResultWithDifferentQueries() throws IOException {
-    String query1 =
-        "NOT (nested.string:'string with char i' OR nested.string:'string with char h')";
-    String query2 =
+    var query1 = "NOT (nested.string:'string with char i' OR nested.string:'string with char h')";
+    var query2 =
         "NOT nested.string:'string with char i' AND NOT nested.string:'string with char h'";
-    String query3 =
+    var query3 =
         "NOT nested.string:'string with char i' AND (NOT nested.string:'string with char h')";
 
     assertEquals(getResponse(query1), getResponse(query2));
@@ -92,7 +91,7 @@ public class NestedIntegrationTest extends SearchApiIntegrationTest {
   }
 
   private String getResponse(final String query) throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()

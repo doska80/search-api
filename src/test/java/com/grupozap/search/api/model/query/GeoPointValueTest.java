@@ -108,7 +108,7 @@ public class GeoPointValueTest {
             new Value(asList(new Value(10.1), new Value(2.0))),
             new Value(asList(new Value(3.3), new Value(4.0))));
 
-    GeoPointValue viewportValue = new GeoPointValue(viewport, VIEWPORT);
+    var viewportValue = new GeoPointValue(viewport, VIEWPORT);
 
     assertEquals(valueOf(10.1), viewportValue.value(0, 0));
     assertEquals(valueOf(2.0), viewportValue.value(0, 1));
@@ -124,7 +124,7 @@ public class GeoPointValueTest {
             new Value(asList(new Value(3.3), new Value(4.0))),
             new Value(asList(new Value(5.5), new Value(6.1))));
 
-    GeoPointValue polygon = new GeoPointValue(viewport, POLYGON);
+    var polygon = new GeoPointValue(viewport, POLYGON);
 
     assertEquals(valueOf(10.1), polygon.value(0, 0));
     assertEquals(valueOf(2.0), polygon.value(0, 1));
@@ -138,7 +138,7 @@ public class GeoPointValueTest {
   public void validSingle() {
     List<Value> single = newArrayList(new Value(asList(new Value(30.0), new Value(-40.0))));
 
-    GeoPointValue polygon = new GeoPointValue(single, SINGLE);
+    var polygon = new GeoPointValue(single, SINGLE);
 
     assertEquals(valueOf(30.0), polygon.value(0, 0));
     assertEquals(valueOf(-40.0), polygon.value(0, 1));

@@ -4,7 +4,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.google.common.base.Objects;
 import java.util.Set;
-import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.collections4.map.LinkedMap;
 
 public class Field {
 
@@ -61,7 +61,7 @@ public class Field {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    Field field = (Field) o;
+    var field = (Field) o;
 
     return Objects.equal(this.typesByName, field.typesByName);
   }

@@ -37,7 +37,7 @@ public class GeoPointItem extends Item {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    GeoPointItem item = (GeoPointItem) o;
+    var item = (GeoPointItem) o;
     return equal(this.getField(), item.getField())
         && equal(this.getOrderOperator(), item.getOrderOperator())
         && equal(this.getQueryFragment(), item.getQueryFragment())

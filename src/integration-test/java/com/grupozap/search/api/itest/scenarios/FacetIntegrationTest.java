@@ -6,13 +6,14 @@ import static com.jayway.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -90,7 +91,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
   @Test
   @SuppressWarnings("unchecked")
   public void validateFacetSortPosition() throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()
@@ -106,7 +107,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
+    var facets = mapper.readTree(response).get("result").get("facets");
     assertNotNull(facets);
 
     List<Integer> facetString =
@@ -123,8 +124,8 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
 
     List<Integer> facetArray =
         new ArrayList(mapper.convertValue(facets.get("array_integer"), Map.class).values());
-    assertTrue(facetArray.size() == standardDatasetSize);
-    int index = 0;
+    assertEquals(facetArray.size(), (int) standardDatasetSize);
+    var index = 0;
     while ((index + 1) < standardDatasetSize) {
       assertTrue(facetArray.get(index) >= facetArray.get(index + 1));
       index++;
@@ -133,7 +134,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateFacetKeyASCSort() throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()
@@ -148,7 +149,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
+    var facets = mapper.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"A\":18,\"B\":12}", facets.get("facetString").toString());
     assertEquals("{\"false\":15,\"true\":15}", facets.get("isEven").toString());
@@ -156,7 +157,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateNestedFacetKeyASCSort() throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()
@@ -169,14 +170,14 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
+    var facets = mapper.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"false\":15,\"true\":15}", facets.get("nested.boolean").toString());
   }
 
   @Test
   public void validateFacetKeyDESCSort() throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()
@@ -189,14 +190,14 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
+    var facets = mapper.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"B\":12,\"A\":18}", facets.get("facetString").toString());
   }
 
   @Test
   public void validateNestedFacetKeyDESCSort() throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()
@@ -209,14 +210,14 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
+    var facets = mapper.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"true\":15,\"false\":15}", facets.get("nested.boolean").toString());
   }
 
   @Test
   public void validateFacetCountASCSort() throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()
@@ -229,14 +230,14 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
+    var facets = mapper.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"B\":12,\"A\":18}", facets.get("facetString").toString());
   }
 
   @Test
   public void validateFacetCountDESCSort() throws IOException {
-    String response =
+    var response =
         given()
             .log()
             .all()
@@ -249,7 +250,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    JsonNode facets = mapper.readTree(response).get("result").get("facets");
+    var facets = mapper.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"A\":18,\"B\":12}", facets.get("facetString").toString());
   }

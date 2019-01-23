@@ -14,7 +14,6 @@ import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.model.parser.QueryParser;
 import com.grupozap.search.api.model.query.QueryFragment;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.slf4j.Logger;
@@ -47,15 +46,12 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
   }
 
   public Set<BoolQueryBuilder> getDefaultFilters(String index, Set<String> requestFilterFields) {
-    Map<String, DefaultFilter> defaultFiltersForRequest =
+    var defaultFiltersForRequest =
         getDefaultFiltersForRequest(
             requestFilterFields,
             defaultFiltersPerFieldForIndex.getOrDefault(index, new HashMap<>()),
             defaultFiltersPerIndex.getOrDefault(index, new HashMap<>()));
-    return defaultFiltersForRequest
-        .entrySet()
-        .stream()
-        .map(Entry::getValue)
+    return defaultFiltersForRequest.values().stream()
         .map(DefaultFilter::getQueryBuilder)
         .collect(toCollection(() -> new LinkedHashSet<>(defaultFiltersForRequest.size())));
   }
@@ -78,14 +74,13 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
 
   @Override
   public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
-    String index = event.getIndex();
-    Set<String> rawClauses =
+    var index = event.getIndex();
+    var rawClauses =
         (Set<String>) ofNullable(FILTER_DEFAULT_CLAUSES.getValue(index)).orElseGet(HashSet::new);
-    Map<Set<String>, QueryFragment> queryFragmentsPerFields =
-        rawClauses2QueryFragmentsPerFields(rawClauses);
-    Set<DefaultFilter> filters = queryFragments2DefaultFilters(index, queryFragmentsPerFields);
+    var queryFragmentsPerFields = rawClauses2QueryFragmentsPerFields(rawClauses);
+    var filters = queryFragments2DefaultFilters(index, queryFragmentsPerFields);
 
-    Map<String, DefaultFilter> defaultFiltersPerId = getDefaultFiltersPerId(filters);
+    var defaultFiltersPerId = getDefaultFiltersPerId(filters);
 
     this.defaultFiltersPerIndex.put(index, defaultFiltersPerId);
     this.defaultFiltersPerFieldForIndex.put(index, getDefaultFiltersPerField(filters));
@@ -99,8 +94,7 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
 
   private Map<Set<String>, QueryFragment> rawClauses2QueryFragmentsPerFields(
       Set<String> rawClauses) {
-    return rawClauses
-        .stream()
+    return rawClauses.stream()
         .map(queryParser::parse)
         .collect(
             toMap(
@@ -112,9 +106,7 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
 
   private Set<DefaultFilter> queryFragments2DefaultFilters(
       String index, Map<Set<String>, QueryFragment> fieldsByQueryFragment) {
-    return fieldsByQueryFragment
-        .entrySet()
-        .stream()
+    return fieldsByQueryFragment.entrySet().stream()
         .map(entry -> asDefaultFilter(index, entry.getKey(), entry.getValue()))
         .collect(toCollection(() -> new LinkedHashSet<>(fieldsByQueryFragment.size())));
   }
@@ -126,8 +118,7 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
 
   private Map<String, DefaultFilter> getDefaultFiltersPerId(Set<DefaultFilter> filters) {
     return unmodifiableMap(
-        filters
-            .stream()
+        filters.stream()
             .collect(
                 toMap(
                     DefaultFilter::getId,
@@ -144,7 +135,7 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
                 .getFields()
                 .forEach(
                     field -> {
-                      Set<String> defaultFilterIds =
+                      var defaultFilterIds =
                           defaultFiltersPerField.getOrDefault(field, new HashSet<>());
                       defaultFilterIds.add(filter.getId());
                       defaultFiltersPerField.put(field, defaultFilterIds);
@@ -180,7 +171,7 @@ public class DefaultFilterFactory implements ApplicationListener<RemotePropertie
       if (this == obj) return true;
       if (obj == null || getClass() != obj.getClass()) return false;
 
-      DefaultFilter that = (DefaultFilter) obj;
+      var that = (DefaultFilter) obj;
       return equal(this.id, that.id)
           && equal(this.fields, that.fields)
           && equal(this.queryBuilder, that.queryBuilder);

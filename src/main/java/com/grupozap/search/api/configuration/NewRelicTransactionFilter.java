@@ -16,7 +16,7 @@ public class NewRelicTransactionFilter extends GenericFilterBean {
   public void doFilter(
       final ServletRequest request, final ServletResponse response, final FilterChain chain)
       throws IOException, ServletException {
-    final String servletPath = ((HttpServletRequest) request).getServletPath();
+    final var servletPath = ((HttpServletRequest) request).getServletPath();
     if (servletPath != null && !servletPath.startsWith("/v2"))
       request.setAttribute("com.newrelic.agent.IGNORE", true);
 

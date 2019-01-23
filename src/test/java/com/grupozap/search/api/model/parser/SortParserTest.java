@@ -8,10 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import com.grupozap.search.api.model.query.Item;
-import com.grupozap.search.api.model.query.Sort;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
@@ -27,49 +24,49 @@ public class SortParserTest {
 
   @Test
   public void testNearSort() {
-    Sort sort = sortParser.parse("field NEAR [42.0,-74.0]");
+    var sort = sortParser.parse("field NEAR [42.0,-74.0]");
     assertEquals("field ASC [42.0, -74.0]", sort.toString());
   }
 
   @Test
   public void testNestedNearSort() {
-    Sort sort = sortParser.parse("field1.field2 NEAR [42.0,-74.0]");
+    var sort = sortParser.parse("field1.field2 NEAR [42.0,-74.0]");
     assertEquals("field1.field2 ASC [42.0, -74.0]", sort.toString());
   }
 
   @Test
   public void testOneSort() {
-    Sort sort = sortParser.parse("field ASC");
+    var sort = sortParser.parse("field ASC");
     assertEquals("field ASC", sort.toString());
   }
 
   @Test
   public void testOneSortWithDefaultOrder() {
-    Sort sort = sortParser.parse("field");
+    var sort = sortParser.parse("field");
     assertEquals("field ASC", sort.toString());
   }
 
   @Test
   public void testMultipleSortWithDefaultOrder() {
-    Sort sort = sortParser.parse("field1, field2");
+    var sort = sortParser.parse("field1, field2");
     assertEquals("field1 ASC field2 ASC", sort.toString());
   }
 
   @Test
   public void testOneNestedFieldSort() {
-    Sort sort = sortParser.parse("field.field2.field3 ASC");
+    var sort = sortParser.parse("field.field2.field3 ASC");
     assertEquals("field.field2.field3 ASC", sort.toString());
   }
 
   @Test
   public void testMultipleSort() {
-    Sort sort = sortParser.parse("field ASC, field2 ASC, field3 DESC");
+    var sort = sortParser.parse("field ASC, field2 ASC, field3 DESC");
     assertEquals("field ASC field2 ASC field3 DESC", sort.toString());
   }
 
   @Test
   public void testMultipleNestedFieldSort() {
-    Sort sort =
+    var sort =
         sortParser.parse(
             "field.field2 ASC, field2.field3.field4 ASC, field3.field5.field6.field10 DESC");
     assertEquals(
@@ -108,13 +105,13 @@ public class SortParserTest {
 
   @Test
   public void testSingleWithSortFilterWithSpaces() {
-    String sortClause =
-        Stream.of(
-                "field1 ASC sortFilter:  filter1 EQ \"ALPHA\"",
-                "field2 ASC  sortFilter :filter2 EQ \"BETA\"",
-                "field3 ASC    sortFilter  :  filter3 EQ \"GAMMA\"",
-                "fieldN ASC sortFilter   :    filterM EQ \"OMEGA\"")
-            .collect(Collectors.joining(","));
+    var sortClause =
+        String.join(
+            ",",
+            "field1 ASC sortFilter:  filter1 EQ \"ALPHA\"",
+            "field2 ASC  sortFilter :filter2 EQ \"BETA\"",
+            "field3 ASC    sortFilter  :  filter3 EQ \"GAMMA\"",
+            "fieldN ASC sortFilter   :    filterM EQ \"OMEGA\"");
 
     System.out.println(sortClause);
     List<Item> items = newArrayList(sortParser.parse(sortClause));

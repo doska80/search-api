@@ -26,7 +26,6 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,17 +81,15 @@ public class ESIntegrationTestSetup {
 
   private String getBoostrapConfig() throws IOException {
     LOG.info("Reading configuration file: '" + INDEXES_FILE + "'");
-    try (BufferedReader buffer =
+    try (var buffer =
         new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(INDEXES_FILE)))) {
       return buffer.lines().collect(joining("\n"));
     }
   }
 
   private void executeConfigurationCommands() {
-    List<Object> items =
-        (List<Object>) firstNonNull(boostrapConfiguration.get("item"), emptyList());
-    items
-        .stream()
+    var items = (List<Object>) firstNonNull(boostrapConfiguration.get("item"), emptyList());
+    items.stream()
         .map(item -> (Map<String, Object>) item)
         .forEach(
             item -> {
@@ -104,16 +101,14 @@ public class ESIntegrationTestSetup {
   }
 
   private void executeSingleCommand(Map<String, Object> req) {
-    URL url = createUrlRawText(req.get("url").toString());
-    HttpMethod method = HttpMethod.valueOf(req.get("method").toString());
+    var url = createUrlRawText(req.get("url").toString());
+    var method = HttpMethod.valueOf(req.get("method").toString());
     List<Header> headers =
-        ofNullable(req.get("header"))
-            .map(item -> (List<Map<String, String>>) item)
-            .orElse(emptyList())
-            .stream()
+        ofNullable(req.get("header")).map(item -> (List<Map<String, String>>) item)
+            .orElse(emptyList()).stream()
             .map(item -> new BasicHeader(item.get("key"), item.get("value")))
             .collect(toList());
-    String body =
+    var body =
         ofNullable(req.get("body"))
             .map(item -> (Map<String, String>) item)
             .map(item -> item.get("raw"))
@@ -124,17 +119,17 @@ public class ESIntegrationTestSetup {
             "Executing single command: [%s] [%s] [%s] [%s]",
             url, method, headers.toString(), body));
 
-    try (RestClient restClient =
+    try (var restClient =
         RestClient.builder(new HttpHost(url.getHost(), url.getPort(), url.getProtocol())).build()) {
 
-      final Request request = new Request(method.name(), url.getPath());
+      final var request = new Request(method.name(), url.getPath());
       request.setEntity(new NStringEntity(body, APPLICATION_JSON));
 
-      final RequestOptions.Builder options = RequestOptions.DEFAULT.toBuilder();
+      final var options = RequestOptions.DEFAULT.toBuilder();
       headers.forEach(header -> options.addHeader(header.getName(), header.getValue()));
       request.setOptions(options);
 
-      final Response response = restClient.performRequest(request);
+      final var response = restClient.performRequest(request);
 
       LOG.info("Response: " + response + " -- " + body);
     } catch (IOException e) {

@@ -35,7 +35,7 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
   public void serialize(
       SearchResponseEnvelope<SearchResponse> value, JsonGenerator jgen, SerializerProvider provider)
       throws IOException {
-    SearchResponse searchResponse = value.getSearchResponse();
+    var searchResponse = value.getSearchResponse();
 
     jgen.writeStartObject();
 
@@ -44,7 +44,7 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
       jgen.writeNumberField("maxScore", searchResponse.getHits().getMaxScore());
     jgen.writeNumberField("totalCount", searchResponse.getHits().getTotalHits());
 
-    SearchHit[] hits = searchResponse.getHits().getHits();
+    var hits = searchResponse.getHits().getHits();
     jgen.writeObjectFieldStart("result");
     jgen.writeArrayFieldStart(value.getIndexName());
     writeResultSet(hits, jgen);
@@ -56,14 +56,14 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
   }
 
   private String hitAsString(SearchHit h) {
-    byte[] bytes = toBytes(h.getSourceRef());
+    var bytes = toBytes(h.getSourceRef());
     return new String(bytes, 0, bytes.length);
   }
 
   private void writeResultSet(final SearchHit[] hits, JsonGenerator jgen) throws IOException {
     if (hits.length > 0) {
-      int len = hits.length - 1;
-      for (int i = 0; i < len; i++) {
+      var len = hits.length - 1;
+      for (var i = 0; i < len; i++) {
         jgen.writeRaw(hitAsString(hits[i]));
         jgen.writeRaw(",");
       }
@@ -75,11 +75,11 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
       throws IOException {
     if (searchResponse.getAggregations() != null) {
       jgen.writeObjectFieldStart("facets");
-      for (Aggregation agg : searchResponse.getAggregations()) {
+      for (var agg : searchResponse.getAggregations()) {
         if (agg instanceof Terms) {
           writeFacet(agg, jgen);
         } else if (agg instanceof Nested) {
-          for (Aggregation nestedAgg : ((Nested) agg).getAggregations()) {
+          for (var nestedAgg : ((Nested) agg).getAggregations()) {
             writeFacet(nestedAgg, jgen);
           }
         }

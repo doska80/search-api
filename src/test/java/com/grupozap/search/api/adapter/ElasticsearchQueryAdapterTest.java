@@ -14,14 +14,18 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.common.collect.Sets;
-import com.grupozap.search.api.model.http.BaseApiRequest;
-import com.grupozap.search.api.model.http.SearchApiRequest;
+import com.grupozap.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
 import com.grupozap.search.api.model.mapping.MappingType;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.*;
@@ -64,7 +68,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     ES_FACET_SIZE.setValue(INDEX_NAME, 20);
     ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
 
-    SourceFieldAdapter sourceFieldAdapter = mock(SourceFieldAdapter.class);
+    var sourceFieldAdapter = mock(SourceFieldAdapter.class);
 
     this.pageQueryAdapter = new PageQueryAdapter();
     this.queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
@@ -98,15 +102,14 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnGetRequestBuilderByGetId() {
-    String id = "123456";
+    var id = "123456";
 
     newArrayList(basicRequest, filterableRequest, fullRequest)
         .parallelStream()
+        .map(BasicRequestBuilder::build)
         .forEach(
-            request -> {
-              BaseApiRequest searchApiRequest = request.build();
-              GetRequest requestBuilder = queryAdapter.getById(searchApiRequest, id);
-
+            searchApiRequest -> {
+              var requestBuilder = queryAdapter.getById(searchApiRequest, id);
               assertEquals(id, requestBuilder.id());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.index());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.type());
@@ -115,16 +118,16 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplyTimeoutOnQueryBody() {
-    SearchApiRequest request = fullRequest.build();
-    SearchRequest searchRequest = queryAdapter.query(request);
+    var request = fullRequest.build();
+    var searchRequest = queryAdapter.query(request);
     assertEquals(new TimeValue(100, TimeUnit.MILLISECONDS), searchRequest.source().timeout());
   }
 
   @Test
   public void shouldReturnSimpleSearchRequestWithBasicRequestPagination() {
-    SearchApiRequest request = fullRequest.build();
-    SearchRequest searchRequest = queryAdapter.query(request);
-    SearchSourceBuilder source = searchRequest.source();
+    var request = fullRequest.build();
+    var searchRequest = queryAdapter.query(request);
+    var source = searchRequest.source();
 
     assertEquals(request.getIndex(), searchRequest.indices()[0]);
     assertEquals(request.getFrom(), source.from());
@@ -133,26 +136,26 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSimpleNestedObject() {
-    final String field = "nested.field";
+    final var field = "nested.field";
     final Object value = "Lorem Ipsum";
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
+        .map(
+            request ->
+                queryAdapter.query(request.filter(format(field, value, EQUAL.name())).build()))
+        .map(
+            searchRequest ->
+                (NestedQueryBuilder)
+                    ((BoolQueryBuilder) searchRequest.source().query()).filter().get(0))
         .forEach(
-            request -> {
-              SearchRequest searchRequest =
-                  queryAdapter.query(request.filter(format(field, value, EQUAL.name())).build());
-
-              NestedQueryBuilder nestedQueryBuilder =
-                  (NestedQueryBuilder)
-                      ((BoolQueryBuilder) searchRequest.source().query()).filter().get(0);
+            nestedQueryBuilder -> {
               assertNotNull(nestedQueryBuilder);
               assertTrue(
                   nestedQueryBuilder
                       .toString()
                       .contains("\"path\" : \"" + field.split("\\.")[0] + "\""));
-
-              MatchQueryBuilder filter =
+              var filter =
                   (MatchQueryBuilder)
                       ((BoolQueryBuilder) nestedQueryBuilder.query()).filter().get(0);
               assertNotNull(filter);
@@ -163,7 +166,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterDifferent() {
-    final String field = "field1";
+    final var field = "field1";
     final Object value = "Lorem Ipsum";
 
     DIFFERENT
@@ -175,9 +178,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(request.filter(format(field, value, op)).build());
-                          MatchQueryBuilder mustNot =
+                          var mustNot =
                               (MatchQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .mustNot()
@@ -191,7 +194,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterEqual() {
-    final String field = "field1";
+    final var field = "field1";
     final Object value = "Lorem Ipsum";
 
     EQUAL
@@ -203,9 +206,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(request.filter(format(field, value, op)).build());
-                          MatchQueryBuilder filter =
+                          var filter =
                               (MatchQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -228,11 +231,10 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request.filter("(x1:1 AND y1:1) OR (x1:2 AND y2:2)").build());
-                          List<QueryBuilder> should =
-                              ((BoolQueryBuilder) searchRequest.source().query()).should();
+                          var should = ((BoolQueryBuilder) searchRequest.source().query()).should();
 
                           assertNotNull(should);
                           assertEquals(2, should.size());
@@ -252,11 +254,10 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request.filter("(x1:1 OR y1:1) AND (x1:2 OR y2:2)").build());
-                          List<QueryBuilder> filter =
-                              ((BoolQueryBuilder) searchRequest.source().query()).filter();
+                          var filter = ((BoolQueryBuilder) searchRequest.source().query()).filter();
 
                           assertNotNull(filter);
                           assertEquals(2, filter.size());
@@ -276,18 +277,18 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter("NOT((x1:1 AND y1:1) OR (x1:2 AND y2:2))")
                                       .build());
-                          List<QueryBuilder> mustNot =
+                          var mustNot =
                               ((BoolQueryBuilder) searchRequest.source().query()).mustNot();
 
                           assertNotNull(mustNot);
                           assertEquals(1, mustNot.size());
 
-                          List<QueryBuilder> should = ((BoolQueryBuilder) mustNot.get(0)).should();
+                          var should = ((BoolQueryBuilder) mustNot.get(0)).should();
                           assertNotNull(should);
                           assertEquals(2, should.size());
                           assertEquals(2, ((BoolQueryBuilder) should.get(0)).filter().size());
@@ -297,7 +298,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterGreater() {
-    final String field = "field1";
+    final var field = "field1";
     final Object value = 10L;
 
     GREATER
@@ -308,9 +309,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(request.filter(format(field, value, op)).build());
-                          RangeQueryBuilder range =
+                          var range =
                               (RangeQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -326,7 +327,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterGreaterEqual() {
-    final String field = "field1";
+    final var field = "field1";
     final Object value = 10L;
 
     GREATER_EQUAL
@@ -338,9 +339,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(request.filter(format(field, value, op)).build());
-                          RangeQueryBuilder range =
+                          var range =
                               (RangeQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -356,7 +357,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterLess() {
-    final String field = "field1";
+    final var field = "field1";
     final Object value = 10L;
 
     LESS.getAlias()
@@ -367,9 +368,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(request.filter(format(field, value, op)).build());
-                          RangeQueryBuilder range =
+                          var range =
                               (RangeQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -385,7 +386,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterLessEqual() {
-    final String field = "field1";
+    final var field = "field1";
     final Object value = 10L;
 
     LESS_EQUAL
@@ -397,9 +398,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(request.filter(format(field, value, op)).build());
-                          RangeQueryBuilder range =
+                          var range =
                               (RangeQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -416,13 +417,13 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   @Test
   public void shouldReturnSearchRequestByViewport() {
 
-    String field = "field.location.geo_point";
+    var field = "field.location.geo_point";
 
     // Google nomenclature
-    double northEastLat = 42.0;
-    double northEastLon = -74.0;
-    double southWestLat = -40.0;
-    double southWestLon = -72.0;
+    var northEastLat = 42.0;
+    var northEastLon = -74.0;
+    var southWestLat = -40.0;
+    var southWestLon = -72.0;
 
     VIEWPORT
         .getAlias()
@@ -433,7 +434,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(
@@ -446,13 +447,13 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                                               southWestLon,
                                               southWestLat))
                                       .build());
-                          GeoBoundingBoxQueryBuilder geoBoundingBoxQueryBuilder =
+                          var geoBoundingBoxQueryBuilder =
                               (GeoBoundingBoxQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
                                       .get(0);
 
-                          int delta = 0;
+                          var delta = 0;
                           assertNotNull(geoBoundingBoxQueryBuilder);
                           assertEquals(field, geoBoundingBoxQueryBuilder.fieldName());
                           assertEquals(
@@ -472,7 +473,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestByPolygon() {
-    String query = "field.location.geo_point POLYGON [[-1.1,2.2],[3.3,-4.4],[5.5,6.6]]";
+    var query = "field.location.geo_point POLYGON [[-1.1,2.2],[3.3,-4.4],[5.5,6.6]]";
 
     POLYGON
         .getAlias()
@@ -483,9 +484,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
-                              queryAdapter.query(request.filter(query).build());
-                          GeoPolygonQueryBuilder polygon =
+                          var searchRequest = queryAdapter.query(request.filter(query).build());
+                          var polygon =
                               (GeoPolygonQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -510,9 +510,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterWithLike() {
-    final String field = "field1.keyword";
-    String value = "Break line\\nNew line with special chars: % \\% _ \\_ * ? \\a!";
-    String expected = "Break line\nNew line with special chars: * % ? _ \\* \\? \\a!";
+    final var field = "field1.keyword";
+    var value = "Break line\\nNew line with special chars: % \\% _ \\_ * ? \\a!";
+    var expected = "Break line\nNew line with special chars: * % ? _ \\* \\? \\a!";
 
     LIKE.getAlias()
         .parallelStream()
@@ -522,9 +522,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(request.filter(format(field, value, op)).build());
-                          WildcardQueryBuilder wildcardQueryBuilder =
+                          var wildcardQueryBuilder =
                               (WildcardQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -538,7 +538,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterWithRange() {
-    final String field = "field";
+    final var field = "field";
     final long from = 3L, to = 5L;
 
     RANGE
@@ -550,12 +550,12 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(String.format("%s %s [%d,%d]", field, op, from, to))
                                       .build());
-                          RangeQueryBuilder rangeQueryBuilder =
+                          var rangeQueryBuilder =
                               (RangeQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -572,7 +572,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterWithRangeWhenNot() {
-    final String field = "field";
+    final var field = "field";
     final long from = 5L, to = 10L;
 
     RANGE
@@ -584,13 +584,13 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(
                                           String.format("NOT %s %s [%d,%d]", field, op, from, to))
                                       .build());
-                          RangeQueryBuilder rangeQueryBuilder =
+                          var rangeQueryBuilder =
                               (RangeQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .mustNot()
@@ -607,8 +607,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleFilterIn() {
-    final String field = "field1";
-    final Object[] values = new Object[] {1L, "\"string\"", 1.2, true};
+    final var field = "field1";
+    final var values = new Object[] {1L, "\"string\"", 1.2, true};
 
     IN.getAlias()
         .parallelStream()
@@ -618,14 +618,14 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(
                                           String.format(
                                               "%s %s %s", field, op, Arrays.toString(values)))
                                       .build());
-                          TermsQueryBuilder terms =
+                          var terms =
                               (TermsQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -637,25 +637,25 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   }
 
   private void getValue(Object[] values, TermsQueryBuilder terms) {
-    assertTrue(
+    assertEquals(
         asList(
-                stream(values)
-                    .map(
-                        value -> {
-                          if (value instanceof String) {
-                            String s = String.valueOf(value);
-                            return s.replaceAll("\"", "");
-                          }
+            stream(values)
+                .map(
+                    value -> {
+                      if (value instanceof String) {
+                        var s = String.valueOf(value);
+                        return s.replaceAll("\"", "");
+                      }
 
-                          return value;
-                        })
-                    .toArray())
-            .equals(terms.values()));
+                      return value;
+                    })
+                .toArray()),
+        terms.values());
   }
 
   @Test
   public void shouldValidateQueyUsingInOperatorByIds() {
-    final String field = "id";
+    final var field = "id";
     final Set<Object> values = newHashSet("\"123\"", 456, "\"7a8b9\"");
 
     IN.getAlias()
@@ -666,7 +666,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(
@@ -674,7 +674,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                                               "%s %s %s",
                                               field, op, Arrays.toString(values.toArray())))
                                       .build());
-                          IdsQueryBuilder idsQueryBuilder =
+                          var idsQueryBuilder =
                               (IdsQueryBuilder)
                                   ((BoolQueryBuilder) searchRequest.source().query())
                                       .filter()
@@ -682,8 +682,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
                           assertEquals("ids", idsQueryBuilder.getName());
                           assertEquals(
-                              values
-                                  .stream()
+                              values.stream()
                                   .map(value -> value.toString().replaceAll("\"", ""))
                                   .collect(toSet()),
                               idsQueryBuilder.ids());
@@ -692,29 +691,28 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleOperatorAnd() {
-    String fieldName1 = "field1";
+    var fieldName1 = "field1";
     Object fieldValue1 = "string";
 
-    String fieldName2 = "field2";
+    var fieldName2 = "field2";
     Object fieldValue2 = 12345L;
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
+        .map(
+            request ->
+                queryAdapter.query(
+                    request
+                        .filter(
+                            String.format(
+                                "%s:\"%s\" AND %s:%s",
+                                fieldName1, fieldValue1, fieldName2, fieldValue2))
+                        .build()))
+        .map(searchRequest -> ((BoolQueryBuilder) searchRequest.source().query()).filter())
         .forEach(
-            request -> {
-              SearchRequest searchRequest =
-                  queryAdapter.query(
-                      request
-                          .filter(
-                              String.format(
-                                  "%s:\"%s\" AND %s:%s",
-                                  fieldName1, fieldValue1, fieldName2, fieldValue2))
-                          .build());
-              List<QueryBuilder> filter =
-                  ((BoolQueryBuilder) searchRequest.source().query()).filter();
-
+            filter -> {
               assertNotNull(filter);
-              assertTrue(filter.size() == 2);
+              assertEquals(2, filter.size());
               assertEquals(fieldName1, ((MatchQueryBuilder) filter.get(0)).fieldName());
               assertEquals(fieldValue1, ((MatchQueryBuilder) filter.get(0)).value());
               assertEquals(fieldName2, ((MatchQueryBuilder) filter.get(1)).fieldName());
@@ -724,29 +722,28 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleOperatorOr() {
-    String fieldName1 = "field1";
+    var fieldName1 = "field1";
     Object fieldValue1 = "string";
 
-    String fieldName2 = "field2";
+    var fieldName2 = "field2";
     Object fieldValue2 = 12345L;
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
+        .map(
+            request ->
+                queryAdapter.query(
+                    request
+                        .filter(
+                            String.format(
+                                "%s:\"%s\" OR %s:%s",
+                                fieldName1, fieldValue1, fieldName2, fieldValue2))
+                        .build()))
+        .map(searchRequest -> ((BoolQueryBuilder) searchRequest.source().query()).should())
         .forEach(
-            request -> {
-              SearchRequest searchRequest =
-                  queryAdapter.query(
-                      request
-                          .filter(
-                              String.format(
-                                  "%s:\"%s\" OR %s:%s",
-                                  fieldName1, fieldValue1, fieldName2, fieldValue2))
-                          .build());
-              List<QueryBuilder> should =
-                  ((BoolQueryBuilder) searchRequest.source().query()).should();
-
+            should -> {
               assertNotNull(should);
-              assertTrue(should.size() == 2);
+              assertEquals(2, should.size());
               assertEquals(fieldName1, ((MatchQueryBuilder) should.get(0)).fieldName());
               assertEquals(fieldValue1, ((MatchQueryBuilder) should.get(0)).value());
               assertEquals(fieldName2, ((MatchQueryBuilder) should.get(1)).fieldName());
@@ -756,7 +753,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWhenValueIsNullOnOperatorIsEqual() {
-    String fieldName = "field1";
+    var fieldName = "field1";
     List<Object> nullValues = newArrayList("NULL", null, "null");
 
     nullValues
@@ -767,16 +764,15 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(String.format("%s:%s", fieldName, nullValue))
                                       .build());
-                          List<QueryBuilder> mustNot =
+                          var mustNot =
                               ((BoolQueryBuilder) searchRequest.source().query()).mustNot();
 
-                          ExistsQueryBuilder existsQueryBuilder =
-                              (ExistsQueryBuilder) mustNot.get(0);
+                          var existsQueryBuilder = (ExistsQueryBuilder) mustNot.get(0);
                           assertNotNull(existsQueryBuilder);
                           assertEquals(fieldName, existsQueryBuilder.fieldName());
                         }));
@@ -784,7 +780,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWhenValueIsNullOnOperatorIsEqualWithNot() {
-    String fieldName = "field1";
+    var fieldName = "field1";
     List<Object> nullValues = newArrayList("NULL", null, "null");
 
     nullValues
@@ -795,16 +791,14 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(String.format("NOT %s:%s", fieldName, nullValue))
                                       .build());
-                          List<QueryBuilder> filter =
-                              ((BoolQueryBuilder) searchRequest.source().query()).filter();
+                          var filter = ((BoolQueryBuilder) searchRequest.source().query()).filter();
 
-                          ExistsQueryBuilder existsQueryBuilder =
-                              (ExistsQueryBuilder) filter.get(0);
+                          var existsQueryBuilder = (ExistsQueryBuilder) filter.get(0);
                           assertNotNull(existsQueryBuilder);
                           assertEquals(fieldName, existsQueryBuilder.fieldName());
                         }));
@@ -812,7 +806,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWhenValueIsNullOnOperatorIsDifferent() {
-    String fieldName = "field1";
+    var fieldName = "field1";
     List<Object> nullValues = newArrayList("NULL", null, "null");
 
     nullValues
@@ -823,16 +817,14 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(String.format("%s<>%s", fieldName, nullValue))
                                       .build());
-                          List<QueryBuilder> filter =
-                              ((BoolQueryBuilder) searchRequest.source().query()).filter();
+                          var filter = ((BoolQueryBuilder) searchRequest.source().query()).filter();
 
-                          ExistsQueryBuilder existsQueryBuilder =
-                              (ExistsQueryBuilder) filter.get(0);
+                          var existsQueryBuilder = (ExistsQueryBuilder) filter.get(0);
                           assertNotNull(existsQueryBuilder);
                           assertEquals(fieldName, existsQueryBuilder.fieldName());
                         }));
@@ -840,7 +832,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWhenValueIsNullOnOperatorIsDifferentWithNot() {
-    String fieldName = "field1";
+    var fieldName = "field1";
     List<Object> nullValues = newArrayList("NULL", null, "null");
 
     nullValues
@@ -851,16 +843,15 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                     .parallelStream()
                     .forEach(
                         request -> {
-                          SearchRequest searchRequest =
+                          var searchRequest =
                               queryAdapter.query(
                                   request
                                       .filter(String.format("NOT %s<>%s", fieldName, nullValue))
                                       .build());
-                          List<QueryBuilder> mustNot =
+                          var mustNot =
                               ((BoolQueryBuilder) searchRequest.source().query()).mustNot();
 
-                          ExistsQueryBuilder existsQueryBuilder =
-                              (ExistsQueryBuilder) mustNot.get(0);
+                          var existsQueryBuilder = (ExistsQueryBuilder) mustNot.get(0);
                           assertNotNull(existsQueryBuilder);
                           assertEquals(fieldName, existsQueryBuilder.fieldName());
                         }));
@@ -868,20 +859,21 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestWithSingleOperatorNot() {
-    String fieldName1 = "field1";
+    var fieldName1 = "field1";
     Object fieldValue1 = 1234324L;
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
+        .map(
+            request ->
+                queryAdapter.query(
+                    request.filter(String.format("NOT %s:%s", fieldName1, fieldValue1)).build()))
+        .map(
+            searchRequest ->
+                (MatchQueryBuilder)
+                    ((BoolQueryBuilder) searchRequest.source().query()).mustNot().get(0))
         .forEach(
-            request -> {
-              SearchRequest searchRequest =
-                  queryAdapter.query(
-                      request.filter(String.format("NOT %s:%s", fieldName1, fieldValue1)).build());
-              MatchQueryBuilder mustNot =
-                  (MatchQueryBuilder)
-                      ((BoolQueryBuilder) searchRequest.source().query()).mustNot().get(0);
-
+            mustNot -> {
               assertNotNull(mustNot);
               assertEquals(fieldName1, mustNot.fieldName());
               assertEquals(fieldValue1, mustNot.value());
@@ -890,7 +882,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldThrowExceptionWhenMinimalShouldMatchIsInvalid() {
-    String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+    var q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
     List<String> invalidMMs = newArrayList("-101%", "101%", "75%.1", "75%,1", "75%123", "75%a");
 
     invalidMMs.forEach(
@@ -899,7 +891,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
                 .parallelStream()
                 .forEach(
                     request -> {
-                      boolean throwsException = false;
+                      var throwsException = false;
                       try {
                         queryAdapter.query(request.q(q).mm(mm).build());
                       } catch (IllegalArgumentException e) {
@@ -928,54 +920,54 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   public void shouldReturnSimpleSearchRequestWithRecursiveRequest() {
 
     // QueryString
-    String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
-    String fieldName1 = "field1";
-    float boostValue1 = 1.0f; // default boost value
+    var q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+    var fieldName1 = "field1";
+    var boostValue1 = 1.0f; // default boost value
 
-    String fieldName2 = "field2";
-    float boostValue2 = 2.0f;
+    var fieldName2 = "field2";
+    var boostValue2 = 2.0f;
 
-    String fieldName3 = "field3";
-    float boostValue3 = 5.0f;
+    var fieldName3 = "field3";
+    var boostValue3 = 5.0f;
     Set<String> fields =
         Sets.newLinkedHashSet(
             newArrayList(
                 String.format("%s", fieldName1),
                 String.format("%s:%s", fieldName2, boostValue2),
                 String.format("%s:%s", fieldName3, boostValue3)));
-    String mm = "50%";
+    var mm = "50%";
 
     // Filters
-    String field1Name = "field1";
-    String field1RelationalOperator = EQUAL.name();
+    var field1Name = "field1";
+    var field1RelationalOperator = EQUAL.name();
     Object field1Value = "\"string\"";
 
-    String field2Name = "field2";
-    String field2RelationalOperator = DIFFERENT.name();
+    var field2Name = "field2";
+    var field2RelationalOperator = DIFFERENT.name();
     Object field2Value = 5432L;
 
-    String field3Name = "field3";
-    String field3RelationalOperator = GREATER.name();
+    var field3Name = "field3";
+    var field3RelationalOperator = GREATER.name();
     Object field3Value = 3L;
 
-    String field4Name = "field4";
-    String field4RelationalOperator = LESS.name();
+    var field4Name = "field4";
+    var field4RelationalOperator = LESS.name();
     Object field4Value = 8L;
 
-    String field5Name = "field5";
-    String field5RelationalOperator = IN.name();
-    Object[] field5Value = new Object[] {1L, "\"string\"", 1.2, true};
+    var field5Name = "field5";
+    var field5RelationalOperator = IN.name();
+    var field5Value = new Object[] {1L, "\"string\"", 1.2, true};
 
-    String field6Name = "field6.location.geo_point";
-    String field6RelationalOperator = VIEWPORT.name();
-    double northEastLat = 42.0;
-    double northEastLon = -74.0;
-    double southWestLat = -40.0;
-    double southWestLon = -72.0;
+    var field6Name = "field6.location.geo_point";
+    var field6RelationalOperator = VIEWPORT.name();
+    var northEastLat = 42.0;
+    var northEastLon = -74.0;
+    var southWestLat = -40.0;
+    var southWestLon = -72.0;
 
     when(settingsAdapter.isTypeOf(INDEX_NAME, field6Name, FIELD_TYPE_GEOPOINT)).thenReturn(true);
 
-    String filter =
+    var filter =
         String.format(
             "%s %s %s %s %s %s %s %s (%s %s %s %s (%s %s %s %s %s %s %s %s (%s %s [[%s,%s],[%s,%s]])))",
             field1Name,
@@ -1005,20 +997,19 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             southWestLon,
             southWestLat);
 
-    SearchApiRequest searchApiRequest =
-        fullRequest.filter(filter).q(q).fields(fields).mm(mm).build();
+    var searchApiRequest = fullRequest.filter(filter).q(q).fields(fields).mm(mm).build();
 
-    SearchRequest searchRequest = queryAdapter.query(searchApiRequest);
-    SearchSourceBuilder source = searchRequest.source();
+    var searchRequest = queryAdapter.query(searchApiRequest);
+    var source = searchRequest.source();
 
     // index
     assertEquals(searchApiRequest.getIndex(), searchRequest.indices()[0]);
 
     // filters
-    List<QueryBuilder> filterFirstLevel = ((BoolQueryBuilder) source.query()).filter();
-    List<QueryBuilder> mustFirstLevel = ((BoolQueryBuilder) source.query()).must();
-    List<QueryBuilder> mustNotFirstLevel = ((BoolQueryBuilder) source.query()).mustNot();
-    List<QueryBuilder> shouldFirstLevel = ((BoolQueryBuilder) source.query()).should();
+    var filterFirstLevel = ((BoolQueryBuilder) source.query()).filter();
+    var mustFirstLevel = ((BoolQueryBuilder) source.query()).must();
+    var mustNotFirstLevel = ((BoolQueryBuilder) source.query()).mustNot();
+    var shouldFirstLevel = ((BoolQueryBuilder) source.query()).should();
 
     assertNotNull(filterFirstLevel);
     assertNotNull(mustFirstLevel);
@@ -1030,7 +1021,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(1, shouldFirstLevel.size());
 
     // querystring
-    MultiMatchQueryBuilder multiMatchQueryBuilder = (MultiMatchQueryBuilder) mustFirstLevel.get(0);
+    var multiMatchQueryBuilder = (MultiMatchQueryBuilder) mustFirstLevel.get(0);
     Map<String, Float> fieldsAndWeights = new HashMap<>(3);
     fieldsAndWeights.put(fieldName1, boostValue1);
     fieldsAndWeights.put(fieldName2, boostValue2);
@@ -1039,40 +1030,40 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(q, multiMatchQueryBuilder.value());
     assertEquals(mm, multiMatchQueryBuilder.minimumShouldMatch());
     assertEquals(OR, multiMatchQueryBuilder.operator());
-    assertTrue(fieldsAndWeights.equals(multiMatchQueryBuilder.fields()));
+    assertEquals(fieldsAndWeights, multiMatchQueryBuilder.fields());
 
     // field 1
-    MatchQueryBuilder shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(0);
+    var shouldMatchField1 = (MatchQueryBuilder) shouldFirstLevel.get(0);
     assertEquals(field1Name, shouldMatchField1.fieldName());
     assertEquals(String.valueOf(field1Value).replaceAll("\"", ""), shouldMatchField1.value());
     assertEquals(OR, shouldMatchField1.operator());
 
     // field 2
-    MatchQueryBuilder mustNotMatchField2 = (MatchQueryBuilder) mustNotFirstLevel.get(0);
+    var mustNotMatchField2 = (MatchQueryBuilder) mustNotFirstLevel.get(0);
     assertEquals(field2Name, mustNotMatchField2.fieldName());
     assertEquals(field2Value, mustNotMatchField2.value());
 
     // Second Level
-    List<QueryBuilder> filterSecondLevel = ((BoolQueryBuilder) filterFirstLevel.get(0)).filter();
-    assertTrue(filterSecondLevel.size() == 2);
+    var filterSecondLevel = ((BoolQueryBuilder) filterFirstLevel.get(0)).filter();
+    assertEquals(2, filterSecondLevel.size());
 
     // field 3
-    RangeQueryBuilder filterRangeSecondLevelField3 = (RangeQueryBuilder) filterSecondLevel.get(0);
+    var filterRangeSecondLevelField3 = (RangeQueryBuilder) filterSecondLevel.get(0);
     assertEquals(field3Name, filterRangeSecondLevelField3.fieldName());
     assertEquals(field3Value, filterRangeSecondLevelField3.from());
     assertNull(filterRangeSecondLevelField3.to());
     assertFalse(filterRangeSecondLevelField3.includeLower());
     assertTrue(filterRangeSecondLevelField3.includeUpper());
 
-    BoolQueryBuilder queryBuilderThirdLevel = (BoolQueryBuilder) filterSecondLevel.get(1);
-    List<QueryBuilder> shouldThirdLevel = queryBuilderThirdLevel.should(); // 1
-    List<QueryBuilder> filterThirdLevel = queryBuilderThirdLevel.filter(); // 2
+    var queryBuilderThirdLevel = (BoolQueryBuilder) filterSecondLevel.get(1);
+    var shouldThirdLevel = queryBuilderThirdLevel.should(); // 1
+    var filterThirdLevel = queryBuilderThirdLevel.filter(); // 2
 
-    assertTrue(shouldThirdLevel.size() == 1);
-    assertTrue(filterThirdLevel.size() == 2);
+    assertEquals(1, shouldThirdLevel.size());
+    assertEquals(2, filterThirdLevel.size());
 
     // field 4
-    RangeQueryBuilder shouldRangeThirdLevelField4 = (RangeQueryBuilder) shouldThirdLevel.get(0);
+    var shouldRangeThirdLevelField4 = (RangeQueryBuilder) shouldThirdLevel.get(0);
     assertEquals(field4Name, shouldRangeThirdLevelField4.fieldName());
     assertEquals(field4Value, shouldRangeThirdLevelField4.to());
     assertNull(shouldRangeThirdLevelField4.from());
@@ -1080,14 +1071,14 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     assertFalse(shouldRangeThirdLevelField4.includeUpper());
 
     // field 5
-    TermsQueryBuilder filterTermsThirdLevelField5 = (TermsQueryBuilder) filterThirdLevel.get(0);
+    var filterTermsThirdLevelField5 = (TermsQueryBuilder) filterThirdLevel.get(0);
     assertEquals(field5Name, filterTermsThirdLevelField5.fieldName());
     getValue(field5Value, filterTermsThirdLevelField5);
 
     // field 6
-    GeoBoundingBoxQueryBuilder filterViewportFouthLevelField6 =
+    var filterViewportFouthLevelField6 =
         (GeoBoundingBoxQueryBuilder) ((BoolQueryBuilder) filterThirdLevel.get(1)).filter().get(0);
-    int delta = 0;
+    var delta = 0;
     assertEquals(field6Name, filterViewportFouthLevelField6.fieldName());
     assertEquals(northEastLat, filterViewportFouthLevelField6.topLeft().getLat(), delta);
     assertEquals(southWestLon, filterViewportFouthLevelField6.topLeft().getLon(), delta);
@@ -1101,7 +1092,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         .parallelStream()
         .forEach(
             request -> {
-              SearchRequest builder = queryAdapter.query(request.build());
+              var builder = queryAdapter.query(request.build());
 
               assertEquals(request.build().getIndex(), builder.indices()[0]);
               assertThat(builder.source().query(), instanceOf(BoolQueryBuilder.class));
@@ -1112,21 +1103,20 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   public void shouldCreateContainsAllQuery() {
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
+        .map(request -> queryAdapter.query(request.filter("x CONTAINS_ALL [1,2,3]").build()))
+        .map(builder -> builder.source().query())
         .forEach(
-            request -> {
-              final SearchRequest builder =
-                  queryAdapter.query(request.filter("x CONTAINS_ALL [1,2,3]").build());
-              final QueryBuilder query = builder.source().query();
+            query -> {
               assertThat(query, instanceOf(BoolQueryBuilder.class));
-              final BoolQueryBuilder boolQuery = (BoolQueryBuilder) query;
-              final AtomicLong counter = new AtomicLong(1);
+              final var boolQuery = (BoolQueryBuilder) query;
+              final var counter = new AtomicLong(1);
               assertEquals(3, boolQuery.filter().size());
               boolQuery
                   .filter()
                   .forEach(
                       filter -> {
                         assertThat(filter, instanceOf(MatchQueryBuilder.class));
-                        final MatchQueryBuilder match = (MatchQueryBuilder) filter;
+                        final var match = (MatchQueryBuilder) filter;
                         assertEquals("x", match.fieldName());
                         assertEquals(counter.getAndIncrement(), match.value());
                       });
@@ -1137,21 +1127,20 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   public void shouldCreateNotContainsAllQuery() {
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
+        .map(request -> queryAdapter.query(request.filter("NOT x CONTAINS_ALL [1,2,3]").build()))
+        .map(builder -> builder.source().query())
         .forEach(
-            request -> {
-              final SearchRequest builder =
-                  queryAdapter.query(request.filter("NOT x CONTAINS_ALL [1,2,3]").build());
-              final QueryBuilder query = builder.source().query();
+            query -> {
               assertThat(query, instanceOf(BoolQueryBuilder.class));
-              final BoolQueryBuilder boolQuery = (BoolQueryBuilder) query;
-              final AtomicLong counter = new AtomicLong(1);
+              final var boolQuery = (BoolQueryBuilder) query;
+              final var counter = new AtomicLong(1);
               assertEquals(3, boolQuery.mustNot().size());
               boolQuery
                   .mustNot()
                   .forEach(
                       filter -> {
                         assertThat(filter, instanceOf(MatchQueryBuilder.class));
-                        final MatchQueryBuilder match = (MatchQueryBuilder) filter;
+                        final var match = (MatchQueryBuilder) filter;
                         assertEquals("x", match.fieldName());
                         assertEquals(counter.getAndIncrement(), match.value());
                       });
@@ -1159,7 +1148,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   }
 
   private String format(final String field, final Object value, final String relationalOperator) {
-    StringBuilder stringBuilder = new StringBuilder();
+    var stringBuilder = new StringBuilder();
     stringBuilder.append(field).append(" ").append(relationalOperator).append(" ");
 
     if (value instanceof String) {

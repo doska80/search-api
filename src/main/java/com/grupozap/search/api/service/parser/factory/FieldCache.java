@@ -13,7 +13,7 @@ import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.IndexSettings;
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,21 +75,17 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
   }
 
   private Map<String, Field> processFieldsForIndex(String indexName, Map<String, Object> settings) {
-    return settings
-        .entrySet()
-        .stream()
+    return settings.entrySet().stream()
         .filter(entry -> entry.getValue() instanceof String)
         .map(entry -> FieldFactory.createField(entry.getKey(), settings))
         .collect(toMap(field -> keyForField(indexName, field.getName()), identity()));
   }
 
   private Map<String, Field> getWhiteListFieldsForIndex(String indexName) {
-    return WHITE_LIST_METAFIELDS
-        .entrySet()
-        .stream()
+    return WHITE_LIST_METAFIELDS.entrySet().stream()
         .map(
             entry -> {
-              LinkedMap linkedMap = new LinkedMap();
+              var linkedMap = new LinkedMap();
               linkedMap.put(entry.getKey(), entry.getValue());
               return linkedMap;
             })

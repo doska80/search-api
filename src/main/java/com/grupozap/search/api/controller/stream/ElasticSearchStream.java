@@ -17,12 +17,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.TimeUnit;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -37,13 +35,13 @@ public class ElasticSearchStream {
   @Autowired private QueryAdapter<?, SearchRequest> queryAdapter;
 
   public void stream(FilterableApiRequest request, OutputStream stream) {
-    String index = request.getIndex();
+    var index = request.getIndex();
 
-    final Scroll scroll = new Scroll(timeValueMillis(ES_SCROLL_KEEP_ALIVE.getValue(index)));
-    SearchRequest searchRequest = new SearchRequest(index);
+    final var scroll = new Scroll(timeValueMillis(ES_SCROLL_KEEP_ALIVE.getValue(index)));
+    var searchRequest = new SearchRequest(index);
     searchRequest.scroll(scroll);
 
-    SearchSourceBuilder searchSourceBuilder =
+    var searchSourceBuilder =
         this.queryAdapter
             .query(request)
             .source()
@@ -53,7 +51,7 @@ public class ElasticSearchStream {
                     ES_CONTROLLER_STREAM_TIMEOUT.getValue(index),
                     TimeUnit.valueOf(ES_QUERY_TIMEOUT_UNIT.getValue(request.getIndex()))));
 
-    int size = MAX_VALUE;
+    var size = MAX_VALUE;
     if (request.getSize() != MAX_VALUE && request.getSize() != 0) {
       size = request.getSize();
       searchSourceBuilder.size(min(request.getSize(), ES_STREAM_SIZE.getValue(index)));
@@ -63,10 +61,9 @@ public class ElasticSearchStream {
     searchRequest.source(searchSourceBuilder);
 
     try {
-      SearchResponse response = client.search(searchRequest, DEFAULT);
+      var response = client.search(searchRequest, DEFAULT);
 
-      SearchApiIterator<SearchHit> searchApiIterator =
-          new SearchApiIterator<>(client, response, scroll, size);
+      var searchApiIterator = new SearchApiIterator<SearchHit>(client, response, scroll, size);
 
       iterate(stream, searchApiIterator, (SearchHit sh) -> toBytes(sh.getSourceRef()));
 

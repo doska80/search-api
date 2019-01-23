@@ -24,9 +24,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.util.Arrays;
-import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
-import org.elasticsearch.action.get.GetResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -42,9 +40,8 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping("/v2")
 @Api("v2")
 @DefaultProperties(
-  defaultFallback = "fallback",
-  ignoreExceptions = {IllegalArgumentException.class}
-)
+    defaultFallback = "fallback",
+    ignoreExceptions = {IllegalArgumentException.class})
 public class SearchController {
 
   private static final BodyBuilder builderOK = ok();
@@ -60,40 +57,36 @@ public class SearchController {
   @Autowired private ExceptionHandler exceptionHandler;
 
   @RequestMapping(
-    value = {"/{index}/{id}"},
-    method = GET,
-    produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-  )
+      value = {"/{index}/{id}"},
+      method = GET,
+      produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ApiOperation(value = "Search by index with id", notes = "Returns index by identifier")
   @ApiResponses(
-    value = {
-      @ApiResponse(code = 200, message = "Successfully get by id"),
-      @ApiResponse(code = 400, message = "Bad parameters request"),
-      @ApiResponse(code = 404, message = "Id not found on cluster"),
-      @ApiResponse(code = 500, message = "Internal Server Error")
-    }
-  )
+      value = {
+        @ApiResponse(code = 200, message = "Successfully get by id"),
+        @ApiResponse(code = 400, message = "Bad parameters request"),
+        @ApiResponse(code = 404, message = "Id not found on cluster"),
+        @ApiResponse(code = 500, message = "Internal Server Error")
+      })
   @HystrixCommand(
-    commandProperties = {
-      @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
-      @HystrixProperty(
-        name = EXECUTION_ISOLATION_SEMAPHORE_MAX_CONCURRENT_REQUESTS,
-        value = "1024"
-      ),
-      @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
-      @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "5000"),
-      @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "100"),
-      @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "90")
-    },
-    threadPoolProperties = {
-      @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
-      @HystrixProperty(name = MAXIMUM_SIZE, value = MAX_SIZE)
-    }
-  )
+      commandProperties = {
+        @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
+        @HystrixProperty(
+            name = EXECUTION_ISOLATION_SEMAPHORE_MAX_CONCURRENT_REQUESTS,
+            value = "1024"),
+        @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
+        @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "5000"),
+        @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "100"),
+        @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "90")
+      },
+      threadPoolProperties = {
+        @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
+        @HystrixProperty(name = MAX_QUEUE_SIZE, value = MAX_SIZE)
+      })
   @Trace(dispatcher = true)
   public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) {
     indexSettings.validateIndex(request);
-    GetResponse response = searchService.getById(request, id);
+    var response = searchService.getById(request, id);
 
     if (!response.isExists()) return notFoundResponse;
 
@@ -101,35 +94,31 @@ public class SearchController {
   }
 
   @RequestMapping(
-    value = "/{index}",
-    method = GET,
-    produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-  )
+      value = "/{index}",
+      method = GET,
+      produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ApiOperation(value = "Search documents", notes = "Returns query-based documents")
   @ApiResponses(
-    value = {
-      @ApiResponse(code = 200, message = "Successfully get documents"),
-      @ApiResponse(code = 400, message = "Bad parameters request"),
-      @ApiResponse(code = 500, message = "Internal Server Error")
-    }
-  )
+      value = {
+        @ApiResponse(code = 200, message = "Successfully get documents"),
+        @ApiResponse(code = 400, message = "Bad parameters request"),
+        @ApiResponse(code = 500, message = "Internal Server Error")
+      })
   @HystrixCommand(
-    commandProperties = {
-      @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
-      @HystrixProperty(
-        name = EXECUTION_ISOLATION_SEMAPHORE_MAX_CONCURRENT_REQUESTS,
-        value = "1024"
-      ),
-      @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
-      @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "10000"),
-      @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "30"),
-      @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "70")
-    },
-    threadPoolProperties = {
-      @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
-      @HystrixProperty(name = MAXIMUM_SIZE, value = MAX_SIZE)
-    }
-  )
+      commandProperties = {
+        @HystrixProperty(name = EXECUTION_ISOLATION_STRATEGY, value = "SEMAPHORE"),
+        @HystrixProperty(
+            name = EXECUTION_ISOLATION_SEMAPHORE_MAX_CONCURRENT_REQUESTS,
+            value = "1024"),
+        @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
+        @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "10000"),
+        @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "30"),
+        @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "70")
+      },
+      threadPoolProperties = {
+        @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
+        @HystrixProperty(name = MAX_QUEUE_SIZE, value = MAX_SIZE)
+      })
   @Trace(dispatcher = true)
   public ResponseEntity<Object> search(SearchApiRequest request) {
     indexSettings.validateIndex(request);
@@ -138,14 +127,13 @@ public class SearchController {
   }
 
   public ResponseEntity<Object> fallback(Throwable e) {
-    ResponseEntity<Map<String, Object>> error = exceptionHandler.error(e);
+    var error = exceptionHandler.error(e);
     return new ResponseEntity<>(error.getBody(), error.getStatusCode());
   }
 
   @RequestMapping(
-    value = {"/force{operation:Open|Closed}/{flag}"},
-    method = GET
-  )
+      value = {"/force{operation:Open|Closed}/{flag}"},
+      method = GET)
   @ApiIgnore
   public ResponseEntity<Object> forceOpen(
       @PathVariable String operation, @PathVariable boolean flag) {

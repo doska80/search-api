@@ -8,19 +8,19 @@ public class RangeValueTest {
 
   @Test
   public void testRangeValueConstructorByInt() {
-    RangeValue rangeValue = new RangeValue(1, 5);
+    var rangeValue = new RangeValue(1, 5);
     assertEquals("[1, 5]", rangeValue.toString());
   }
 
   @Test
   public void testRangeValueConstructorByString() {
-    RangeValue rangeValue = new RangeValue("a", "c");
+    var rangeValue = new RangeValue("a", "c");
     assertEquals("[\"a\", \"c\"]", rangeValue.toString());
   }
 
   @Test
   public void testRangeValueConstructorByDouble() {
-    RangeValue rangeValue = new RangeValue(1.5, 5.5);
+    var rangeValue = new RangeValue(1.5, 5.5);
     assertEquals("[1.5, 5.5]", rangeValue.toString());
   }
 

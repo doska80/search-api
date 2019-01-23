@@ -25,10 +25,9 @@ public class ClusterSettingsController {
   @Autowired private SearchApiEnvService service;
 
   @RequestMapping(
-    value = "/cluster/settings",
-    method = GET,
-    produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-  )
+      value = "/cluster/settings",
+      method = GET,
+      produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ApiOperation(value = "Get all configs", notes = "Returns cluster configurations")
   @ApiResponse(code = 200, message = "Returns successfully all configs")
   public Map<String, Map<String, Object>> getSettings() {
@@ -36,10 +35,9 @@ public class ClusterSettingsController {
   }
 
   @RequestMapping(
-    value = "/properties/local",
-    method = GET,
-    produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-  )
+      value = "/properties/local",
+      method = GET,
+      produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ApiOperation(value = "Get local properties", notes = "Returns all local properties")
   @ApiResponse(code = 200, message = "Returns successfully all local properties")
   public Object getProperties() {
@@ -47,10 +45,9 @@ public class ClusterSettingsController {
   }
 
   @RequestMapping(
-    value = "/properties/remote",
-    method = GET,
-    produces = MediaType.APPLICATION_JSON_UTF8_VALUE
-  )
+      value = "/properties/remote",
+      method = GET,
+      produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
   @ApiOperation(value = "Get remote properties", notes = "Returns all remote properties")
   @ApiResponse(code = 200, message = "Returns successfully all remote properties")
   public Object getRemoteProperties() {

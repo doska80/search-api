@@ -1,5 +1,19 @@
 version: 2
 jobs:
+  install_jdk11:
+    machine:
+      image: circleci/classic:latest
+    steps:
+      - restore_cache:
+          key: jdk11
+      - run: |
+          JAVA_HOME=$PWD/jdk-11.0.1
+          JDK_TAR_FILE=jdk-11.0.1.tar.gz
+          [ -d $JAVA_HOME ] || ( curl https://download.java.net/java/GA/jdk11/13/GPL/openjdk-11.0.1_linux-x64_bin.tar.gz --output $JDK_TAR_FILE && tar -xvf $JDK_TAR_FILE )
+      - save_cache:
+          key: jdk11
+          paths:
+            - jdk-11.0.1
   run_tests:
     machine:
       image: circleci/classic:latest
@@ -12,13 +26,16 @@ jobs:
       - restore_cache:
           key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
 
+      - restore_cache:
+          key: jdk11
+
       - run:
           name: Docker Login
           command: docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
 
       - run:
           name: Building image and running tests
-          command: make GRADLE_EXTRA_ARGS="-PcircleCi -PnewRelicKey=$NEW_RELIC_KEY" build
+          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make GRADLE_EXTRA_ARGS="-PnewRelicKey=$NEW_RELIC_KEY" build
 
       - save_cache:
           key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
@@ -38,6 +55,9 @@ jobs:
       - restore_cache:
           key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
 
+      - restore_cache:
+          key: jdk11
+
       - run:
           name: Docker Login
           command: docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
@@ -52,18 +72,23 @@ jobs:
 
       - run:
           name: Pushing image and sending notification to Slack
-          command: make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test -PnewRelicKey=$NEW_RELIC_KEY" analise-code push-with-notification
+          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test -PnewRelicKey=$NEW_RELIC_KEY" push-with-notification
 
 workflows:
   version: 2
   test-build:
     jobs:
+      - install_jdk11
       - run_tests:
+          requires:
+            - install_jdk11
           filters:
             branches:
               ignore:
                 - master
       - build_image:
+          requires:
+            - install_jdk11
           filters:
             branches:
               only:

@@ -8,12 +8,11 @@ import static java.util.Collections.singletonList;
 import br.com.six2six.fixturefactory.Fixture;
 import br.com.six2six.fixturefactory.Rule;
 import br.com.six2six.fixturefactory.loader.TemplateLoader;
-import com.grupozap.search.api.model.query.*;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.model.query.Filter;
 import com.grupozap.search.api.model.query.QueryFragmentItem;
 import com.grupozap.search.api.model.query.Value;
-import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.collections4.map.LinkedMap;
 
 public class QueryTemplateLoader implements TemplateLoader {
 

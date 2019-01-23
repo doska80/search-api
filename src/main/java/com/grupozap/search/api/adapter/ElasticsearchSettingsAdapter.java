@@ -124,10 +124,8 @@ public class ElasticsearchSettingsAdapter
       Map<String, Object> metadata, Map<String, Map<String, Object>> structuredIndicesAux) {
 
     if (metadata.containsKey("indices")) {
-      Map<String, Object> indices = (Map<String, Object>) metadata.get("indices");
-      indices
-          .keySet()
-          .stream()
+      var indices = (Map<String, Object>) metadata.get("indices");
+      indices.keySet().stream()
           .filter(index -> !startsWith(index, "."))
           .forEach(
               index -> {
@@ -135,7 +133,7 @@ public class ElasticsearchSettingsAdapter
                 newArrayList(SHARDS, REPLICAS)
                     .forEach(
                         setting -> {
-                          String value =
+                          var value =
                               valueOf(
                                   ((Map)
                                           ((Map) ((Map) indices.get(index)).get("settings"))
@@ -164,7 +162,7 @@ public class ElasticsearchSettingsAdapter
           .keySet()
           .forEach(
               script -> {
-                final String index = script.split("_")[0];
+                final var index = script.split("_")[0];
                 if (structuredIndicesAux.containsKey(index)) {
                   structuredIndicesAux.get(index).put(script, FIELD_TYPE_SCRIPT.getDefaultType());
                 } else {
@@ -182,14 +180,12 @@ public class ElasticsearchSettingsAdapter
     try {
       indexInfo.putAll(
           flat(mappings, newArrayList("mappings", "properties", "type", "fields", index)));
-      indexInfo
-          .entrySet()
-          .stream()
+      indexInfo.entrySet().stream()
           .filter(stringObjectEntry -> stringObjectEntry.getKey().contains("."))
           .map(
               stringObjectEntry -> {
                 Set<String> missingParams = new HashSet<>();
-                StringBuilder composeMissingParams = new StringBuilder();
+                var composeMissingParams = new StringBuilder();
                 Stream.of(stringObjectEntry.getKey().split("\\."))
                     .forEach(
                         param -> {

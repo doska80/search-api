@@ -74,14 +74,14 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateMultipleTest() {
-    List<String> even =
+    var even =
         rangeClosed(1, standardDatasetSize)
             .boxed()
             .filter(i -> i % 2 == 0)
             .limit(defaultPageSize)
             .map(String::valueOf)
             .collect(toList());
-    List<String> odd =
+    var odd =
         rangeClosed(1, standardDatasetSize)
             .boxed()
             .filter(i -> i % 2 != 0)
@@ -146,12 +146,12 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
 
     Integer lastMin = Integer.MIN_VALUE;
 
-    for (ArrayList<HashMap> objectArray : nestedArray) {
+    for (var objectArray : nestedArray) {
       Integer currentMin = Integer.MAX_VALUE;
-      for (HashMap object : objectArray) {
+      for (var object : objectArray) {
         if (!"b".equals(object.get("string"))) continue;
 
-        Integer number = (Integer) object.get("number");
+        var number = (Integer) object.get("number");
         if (number < currentMin) currentMin = number;
       }
 
@@ -164,8 +164,8 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateSortNestedArrayRespectingRange() {
-    LinkedList<ArrayList<HashMap>> nestedArray =
-        new LinkedList<>(
+    var nestedArray =
+        new LinkedList<ArrayList<HashMap>>(
             given()
                 .log()
                 .all()
@@ -194,10 +194,10 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
 
       Integer currentMin = Integer.MAX_VALUE;
 
-      for (HashMap object : objectArray) {
+      for (var object : objectArray) {
         if (!"b".equals(object.get("string"))) continue;
 
-        Integer number = (Integer) object.get("number");
+        var number = (Integer) object.get("number");
 
         if (number >= 50 && number <= 5000) {
           if (number < currentMin) currentMin = number;
@@ -240,12 +240,12 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateSortByProximitySameDistance() {
-    int testValueLatitudeLongitude = 15;
+    var testValueLatitudeLongitude = 15;
 
     List<Float> expectedLat = new ArrayList<>();
     List<Float> expectedLon = new ArrayList<>();
 
-    for (int i = 0;
+    for (var i = 0;
         expectedLat.size() < defaultPageSize && expectedLon.size() < defaultPageSize;
         i++) {
 

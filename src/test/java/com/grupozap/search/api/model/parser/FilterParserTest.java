@@ -3,7 +3,6 @@ package com.grupozap.search.api.model.parser;
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
 import static org.junit.Assert.*;
 
-import com.grupozap.search.api.model.query.Filter;
 import com.grupozap.search.api.model.query.Value;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
@@ -24,25 +23,25 @@ public class FilterParserTest {
 
   @Test
   public void testSingleExpressionWithNumberField() {
-    Filter filter = filterParser.get().parse("field10=10");
+    var filter = filterParser.get().parse("field10=10");
     assertEquals("field10 EQUAL 10", filter.toString());
   }
 
   @Test
   public void testSingleExpressionWithSpacesAndSingleQuotes() {
-    Filter filter = filterParser.get().parse("field.field2 = 'space value'");
+    var filter = filterParser.get().parse("field.field2 = 'space value'");
     assertEquals("field.field2 EQUAL \"space value\"", filter.toString());
   }
 
   @Test
   public void testSingleExpressionWithINAndSpaces() {
-    Filter filter = filterParser.get().parse("list IN [\"a\", 'b']");
+    var filter = filterParser.get().parse("list IN [\"a\", 'b']");
     assertEquals("list IN [\"a\", \"b\"]", filter.toString());
   }
 
   @Test
   public void testEqualsLikeAsIN() {
-    Filter filter = filterParser.get().parse("list = [\"a\", 'b']");
+    var filter = filterParser.get().parse("list = [\"a\", 'b']");
     assertEquals("list EQUAL [\"a\", \"b\"]", filter.toString());
   }
 
@@ -53,36 +52,36 @@ public class FilterParserTest {
 
   @Test
   public void testFilterEmpty() {
-    Filter filter = filterParser.get().parse("field = \"\"");
+    var filter = filterParser.get().parse("field = \"\"");
     assertEquals("field EQUAL \"\"", filter.toString());
-    assertFalse(filter.getValue().equals(Value.NULL_VALUE));
+    assertNotEquals(filter.getValue(), Value.NULL_VALUE);
   }
 
   @Test
   public void testFilterNull() {
-    Filter filter = filterParser.get().parse("field = NULL");
+    var filter = filterParser.get().parse("field = NULL");
     assertEquals("field EQUAL NULL", filter.toString());
-    assertTrue(filter.getValue().equals(Value.NULL_VALUE));
+    assertEquals(filter.getValue(), Value.NULL_VALUE);
   }
 
   @Test
   public void testFilterQuotedNull() {
-    Filter filter = filterParser.get().parse("field = 'NULL'");
-    assertFalse(filter.getValue().equals(Value.NULL_VALUE));
+    var filter = filterParser.get().parse("field = 'NULL'");
+    assertNotEquals(filter.getValue(), Value.NULL_VALUE);
   }
 
   @Test
   public void testFilterBooleanTrue() {
-    Filter filterTrue = filterParser.get().parse("field = TRUE");
-    Filter filterTrueLowerCase = filterParser.get().parse("field = true");
+    var filterTrue = filterParser.get().parse("field = TRUE");
+    var filterTrueLowerCase = filterParser.get().parse("field = true");
     assertEquals("field EQUAL true", filterTrue.toString());
     assertEquals(filterTrue.toString(), filterTrueLowerCase.toString());
   }
 
   @Test
   public void testFilterBooleanFalse() {
-    Filter filterFalse = filterParser.get().parse("field = FALSE");
-    Filter filterTrueLowerCase = filterParser.get().parse("field = false");
+    var filterFalse = filterParser.get().parse("field = FALSE");
+    var filterTrueLowerCase = filterParser.get().parse("field = false");
     assertEquals("field EQUAL false", filterFalse.toString());
     assertEquals(filterFalse.toString(), filterTrueLowerCase.toString());
   }
@@ -135,9 +134,9 @@ public class FilterParserTest {
 
   @Test
   public void testMultipleViewports() {
-    String value =
+    var value =
         "address.geoLocation VIEWPORT [[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
-    Filter viewport = filterParser.get().parse(value);
+    var viewport = filterParser.get().parse(value);
     assertEquals(
         "address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]",
         viewport.toString());
@@ -145,15 +144,15 @@ public class FilterParserTest {
 
   @Test(expected = ParserException.class)
   public void testSingleViewports() {
-    String value = "address.geoLocation VIEWPORT [[-23.5534103,-46.6597479]]";
-    Filter viewport = filterParser.get().parse(value);
+    var value = "address.geoLocation VIEWPORT [[-23.5534103,-46.6597479]]";
+    var viewport = filterParser.get().parse(value);
     assertEquals("address.geoLocation VIEWPORT [-23.5534103, -46.6597479]", viewport.toString());
   }
 
   @Test
   public void testMultipleViewportsWithAlias() {
-    String value = "address.geoLocation @ [[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
-    Filter viewport = filterParser.get().parse(value);
+    var value = "address.geoLocation @ [[-23.5534103,-46.6597479],[-23.5534103,-46.6597479]]";
+    var viewport = filterParser.get().parse(value);
     assertEquals(
         "address.geoLocation VIEWPORT [[-23.5534103, -46.6597479], [-23.5534103, -46.6597479]]",
         viewport.toString());
@@ -161,21 +160,21 @@ public class FilterParserTest {
 
   @Test
   public void testSingleLike() {
-    String value = "field LIKE '% \\% _ \\_ * \\n ? \\x'";
-    Filter like = filterParser.get().parse(value);
+    var value = "field LIKE '% \\% _ \\_ * \\n ? \\x'";
+    var like = filterParser.get().parse(value);
     assertEquals("field LIKE \"* % ? _ \\* \n \\? \\x\"", like.toString());
   }
 
   @Test
   public void testSingleRange() {
-    String value = "field RANGE [\"a\", 5]";
-    Filter like = filterParser.get().parse(value);
+    var value = "field RANGE [\"a\", 5]";
+    var like = filterParser.get().parse(value);
     assertEquals("field RANGE [\"a\", 5]", like.toString());
   }
 
   @Test(expected = ParserException.class)
   public void testSingleInvalidRange() {
-    String value = "field RANGE [1,]";
+    var value = "field RANGE [1,]";
     filterParser.get().parse(value);
   }
 }

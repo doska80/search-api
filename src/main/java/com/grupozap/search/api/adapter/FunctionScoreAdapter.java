@@ -11,7 +11,6 @@ import static org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders.
 import com.grupozap.search.api.model.parser.FieldParser;
 import com.grupozap.search.api.model.search.Queryable;
 import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +25,7 @@ public class FunctionScoreAdapter {
 
   public void apply(
       SearchSourceBuilder searchSourceBuilder, QueryBuilder queryBuilder, final Queryable request) {
-    final String indexName = request.getIndex();
+    final var indexName = request.getIndex();
     String factorField =
         isEmpty(request.getFactorField())
             ? SCORE_FACTOR_FIELD.getValue(indexName)
@@ -35,8 +34,7 @@ public class FunctionScoreAdapter {
 
     fieldParser.parse(factorField);
 
-    FieldValueFactorFunctionBuilder fieldValueFactorFunctionBuilder =
-        fieldValueFactorFunction(factorField).missing(0);
+    var fieldValueFactorFunctionBuilder = fieldValueFactorFunction(factorField).missing(0);
 
     final String factorModifier =
         isEmpty(request.getFactorModifier())

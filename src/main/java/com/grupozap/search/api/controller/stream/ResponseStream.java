@@ -18,7 +18,7 @@ public final class ResponseStream {
     if (stream == null) throw new IllegalArgumentException("stream cannot be null");
     try {
       while (iterator.hasNext()) {
-        for (T hit : iterator.next()) {
+        for (var hit : iterator.next()) {
           stream.write(byteFn.apply(hit));
           stream.write(BLANK_LINE);
         }

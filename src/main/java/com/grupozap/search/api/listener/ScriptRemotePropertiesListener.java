@@ -6,6 +6,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
@@ -23,8 +24,7 @@ public class ScriptRemotePropertiesListener
   public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
     List<Object> value = ES_SCRIPTS.getValue(event.getIndex());
     if (!isEmpty(value)) {
-      final Set<ScriptField> indexScript = new HashSet<>();
-      value.forEach(v -> indexScript.add(toScriptField(v)));
+      final var indexScript = value.stream().map(this::toScriptField).collect(Collectors.toSet());
       this.scripts.put(event.getIndex(), indexScript);
     } else {
       this.scripts.put(event.getIndex(), new HashSet<>());

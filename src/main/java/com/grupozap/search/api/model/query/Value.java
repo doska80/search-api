@@ -53,7 +53,7 @@ public class Value {
   }
 
   public <T> T value(int index, int indexList) {
-    T value = (T) contents.get(index);
+    var value = (T) contents.get(index);
 
     if (value instanceof Value) value = ((Value) value).value(indexList);
     else if (value instanceof List) value = (T) ((List) value).get(indexList);
@@ -66,7 +66,7 @@ public class Value {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    Value value = (Value) o;
+    var value = (Value) o;
 
     return Objects.equal(this.contents, value.contents);
   }
@@ -82,7 +82,7 @@ public class Value {
 
     if (size() > 1) return format("[%s]", Joiner.on(", ").join(contents));
 
-    Object simpleValue = contents.get(0);
+    var simpleValue = contents.get(0);
     if (simpleValue instanceof String) {
       return format("\"%s\"", simpleValue);
     }

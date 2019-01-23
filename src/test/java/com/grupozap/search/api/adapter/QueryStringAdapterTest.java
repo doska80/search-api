@@ -15,7 +15,6 @@ import com.google.common.collect.Sets;
 import com.grupozap.search.api.adapter.QueryStringAdapter.QSTemplate;
 import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
-import com.grupozap.search.api.model.http.SearchApiRequest;
 import com.grupozap.search.api.model.search.Queryable;
 import java.util.HashMap;
 import java.util.List;
@@ -42,20 +41,19 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSimpleSearchRequestByQueryString() {
-    String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+    var q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
 
     newArrayList(filterableRequest, fullRequest)
         .parallelStream()
         .forEach(
             request -> {
-              BoolQueryBuilder boolQueryBuilder = boolQuery();
+              var boolQueryBuilder = boolQuery();
               Queryable queryable = request.q(q).build();
 
               queryStringAdapter.apply(boolQueryBuilder, queryable);
               assertEquals(1, boolQueryBuilder.must().size());
               assertTrue(boolQueryBuilder.should().isEmpty());
-              MultiMatchQueryBuilder multiMatchQueryBuilder =
-                  (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
+              var multiMatchQueryBuilder = (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
 
               assertNotNull(multiMatchQueryBuilder);
               assertEquals(q, multiMatchQueryBuilder.value());
@@ -65,16 +63,16 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSimpleSearchRequestByQueryStringWithSpecifiedFieldToSearch() {
-    String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+    var q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
 
-    String fieldName1 = "field1.keyword";
-    float boostValue1 = 1.0f; // default boost value
+    var fieldName1 = "field1.keyword";
+    var boostValue1 = 1.0f; // default boost value
 
-    String fieldName2 = "field2";
-    float boostValue2 = 2.0f;
+    var fieldName2 = "field2";
+    var boostValue2 = 2.0f;
 
-    String fieldName3 = "field3";
-    float boostValue3 = 5.0f;
+    var fieldName3 = "field3";
+    var boostValue3 = 5.0f;
 
     Set<String> fields =
         Sets.newLinkedHashSet(
@@ -87,12 +85,11 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         .parallelStream()
         .forEach(
             request -> {
-              BoolQueryBuilder boolQueryBuilder = boolQuery();
+              var boolQueryBuilder = boolQuery();
               queryStringAdapter.apply(boolQueryBuilder, request.q(q).fields(fields).build());
               assertEquals(1, boolQueryBuilder.must().size());
               assertTrue(boolQueryBuilder.should().isEmpty());
-              MultiMatchQueryBuilder multiMatchQueryBuilder =
-                  (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
+              var multiMatchQueryBuilder = (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
 
               assertNotNull(multiMatchQueryBuilder);
               assertEquals(q, multiMatchQueryBuilder.value());
@@ -102,13 +99,13 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
               fieldsAndWeights.put(fieldName2, boostValue2);
               fieldsAndWeights.put(fieldName3, boostValue3);
 
-              assertTrue(fieldsAndWeights.equals(multiMatchQueryBuilder.fields()));
+              assertEquals(fieldsAndWeights, multiMatchQueryBuilder.fields());
             });
   }
 
   @Test
   public void shouldReturnSearchRequestByQueryStringWithValidMinimalShouldMatch() {
-    String q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
+    var q = "Lorem Ipsum is simply dummy text of the printing and typesetting";
     List<String> validMMs = newArrayList("-100%", "100%", "75%", "-2");
 
     validMMs.forEach(
@@ -117,11 +114,11 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
                 .parallelStream()
                 .forEach(
                     request -> {
-                      BoolQueryBuilder boolQueryBuilder = boolQuery();
+                      var boolQueryBuilder = boolQuery();
                       queryStringAdapter.apply(boolQueryBuilder, request.q(q).mm(mm).build());
                       assertEquals(1, boolQueryBuilder.must().size());
                       assertTrue(boolQueryBuilder.should().isEmpty());
-                      MultiMatchQueryBuilder multiMatchQueryBuilder =
+                      var multiMatchQueryBuilder =
                           (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
 
                       assertNotNull(multiMatchQueryBuilder);
@@ -133,9 +130,9 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldApplyDefaultIndexFieldsForQuery() {
-    SearchApiRequest build = create().index(INDEX_NAME).q("any text to search").build();
+    var build = create().index(INDEX_NAME).q("any text to search").build();
 
-    BoolQueryBuilder boolQueryBuilder = boolQuery();
+    var boolQueryBuilder = boolQuery();
     queryStringAdapter.apply(boolQueryBuilder, build);
 
     Map<String, Float> expectedFields = new HashMap<>();
@@ -144,14 +141,13 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
     assertEquals(1, boolQueryBuilder.must().size());
     assertTrue(boolQueryBuilder.should().isEmpty());
-    MultiMatchQueryBuilder multiMatchQueryBuilder =
-        (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
+    var multiMatchQueryBuilder = (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0);
     assertEquals(expectedFields, multiMatchQueryBuilder.fields());
   }
 
   @Test(expected = InvalidFieldException.class)
   public void shouldThrowExceptionWhenTryQueryOverInvalidField() {
-    SearchApiRequest build =
+    var build =
         create()
             .index(INDEX_NAME)
             .q("search")
@@ -162,9 +158,9 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldUseIndexFieldsAliasForQuery() {
-    QSTemplate qsTemplate = new QSTemplate();
+    var qsTemplate = new QSTemplate();
     qsTemplate.setFieldAliases(
-        new HashMap<String, List<String>>() {
+        new HashMap<>() {
           {
             put("someFieldAlias", newArrayList("field1:8", "field2"));
           }
@@ -173,14 +169,14 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     QS_TEMPLATES.setValue(INDEX_NAME, newArrayList(qsTemplate));
     queryStringAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
 
-    SearchApiRequest build =
+    var build =
         create()
             .index(INDEX_NAME)
             .q("search")
             .fields(newHashSet("someFieldAlias", "existingValidField"))
             .build();
 
-    BoolQueryBuilder boolQueryBuilder = boolQuery();
+    var boolQueryBuilder = boolQuery();
     queryStringAdapter.apply(boolQueryBuilder, build);
 
     assertEquals(1, boolQueryBuilder.must().size());
@@ -191,7 +187,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0),
         BEST_FIELDS,
         1f,
-        new HashMap<String, Float>() {
+        new HashMap<>() {
           {
             put("field1", 8f);
             put("field2", 1f);
@@ -202,20 +198,20 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldHaveManyClausesInsideABoolQueryWhenUseMultipleQueryTemplate() {
-    QSTemplate firstTemplate = new QSTemplate();
+    var firstTemplate = new QSTemplate();
     firstTemplate.setType(PHRASE_PREFIX.name());
     firstTemplate.setBoost(4);
     firstTemplate.setFieldAliases(
-        new HashMap<String, List<String>>() {
+        new HashMap<>() {
           {
             put("anotherAlias", newArrayList("field1:8", "field2:4", "field3:2"));
           }
         });
 
-    QSTemplate secondTemplate = new QSTemplate();
+    var secondTemplate = new QSTemplate();
     secondTemplate.setType(CROSS_FIELDS.name());
     secondTemplate.setFieldAliases(
-        new HashMap<String, List<String>>() {
+        new HashMap<>() {
           {
             put("anotherAlias", newArrayList("field2:3", "field3"));
           }
@@ -225,20 +221,20 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     QS_TEMPLATES.setValue(INDEX_NAME, templates);
     queryStringAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
 
-    SearchApiRequest build =
+    var build =
         create()
             .index(INDEX_NAME)
             .q("search")
             .fields(newHashSet("anotherAlias", "existingValidField"))
             .build();
 
-    BoolQueryBuilder boolQueryBuilder = boolQuery();
+    var boolQueryBuilder = boolQuery();
     queryStringAdapter.apply(boolQueryBuilder, build);
 
     assertEquals(1, boolQueryBuilder.must().size());
     assertTrue(boolQueryBuilder.should().isEmpty());
 
-    BoolQueryBuilder boolQuery = (BoolQueryBuilder) boolQueryBuilder.must().get(0);
+    var boolQuery = (BoolQueryBuilder) boolQueryBuilder.must().get(0);
     assertEquals(templates.size(), boolQuery.should().size());
 
     // Validate first clause
@@ -246,7 +242,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         (MultiMatchQueryBuilder) boolQuery.should().get(0),
         PHRASE_PREFIX,
         4f,
-        new HashMap<String, Float>() {
+        new HashMap<>() {
           {
             put("field1", 8f);
             put("field2", 4f);
@@ -260,7 +256,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         (MultiMatchQueryBuilder) boolQuery.should().get(1),
         CROSS_FIELDS,
         1f,
-        new HashMap<String, Float>() {
+        new HashMap<>() {
           {
             put("field2", 3f);
             put("field3", 1f);
@@ -273,7 +269,7 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
         (MultiMatchQueryBuilder) boolQuery.should().get(2),
         BEST_FIELDS,
         1f,
-        new HashMap<String, Float>() {
+        new HashMap<>() {
           {
             put("anotherAlias", 1f);
             put("existingValidField", 1f);
@@ -288,6 +284,6 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
       Map<String, Float> expectedFields) {
     assertEquals(expectedFields, multiMatchQueryBuilder.fields());
     assertEquals(expectedType, multiMatchQueryBuilder.type());
-    assertTrue(expectedBoost.equals(multiMatchQueryBuilder.boost()));
+    assertEquals(expectedBoost, multiMatchQueryBuilder.boost(), 0.0);
   }
 }

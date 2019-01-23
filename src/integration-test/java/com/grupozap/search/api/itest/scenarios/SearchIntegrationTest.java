@@ -19,7 +19,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -79,7 +78,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void responseOkWhenSearchAnExistingDocumentByIdWithIncludeAndExcludeFields() {
-    int id = standardDatasetSize / 2;
+    var id = standardDatasetSize / 2;
     given()
         .log()
         .all()
@@ -128,7 +127,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateEqualsFilter() {
-    int id = standardDatasetSize / 3;
+    var id = standardDatasetSize / 3;
 
     given()
         .log()
@@ -148,7 +147,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateEqualsFilterForStringDoubleQuoted() {
-    int id = standardDatasetSize / 2;
+    var id = standardDatasetSize / 2;
 
     given()
         .log()
@@ -168,7 +167,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateEqualsFilterForStringSingleQuoted() {
-    int id = standardDatasetSize / 6;
+    var id = standardDatasetSize / 6;
 
     given()
         .log()
@@ -205,7 +204,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateGreaterThanFilter() {
-    int limit = standardDatasetSize / 3;
+    var limit = standardDatasetSize / 3;
 
     given()
         .log()
@@ -226,7 +225,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateGreaterOrEqualsThanFilter() {
-    int limit = 2 * standardDatasetSize / 3;
+    var limit = 2 * standardDatasetSize / 3;
 
     given()
         .log()
@@ -247,7 +246,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateLowerThanFilter() {
-    int limit = standardDatasetSize / 3;
+    var limit = standardDatasetSize / 3;
 
     given()
         .log()
@@ -266,7 +265,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateLowerOrEqualsThanFilter() {
-    int limit = standardDatasetSize / 3;
+    var limit = standardDatasetSize / 3;
 
     given()
         .log()
@@ -287,8 +286,8 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateViewportFilterOnGeoField() {
-    int from = standardDatasetSize / 3;
-    int to = 2 * standardDatasetSize / 3;
+    var from = standardDatasetSize / 3;
+    var to = 2 * standardDatasetSize / 3;
 
     given()
         .log()
@@ -317,7 +316,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateLogicalOperatorAnd() {
-    int from = 1;
+    var from = 1;
     int to = standardDatasetSize;
 
     given()
@@ -347,12 +346,12 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateLogicalOperatorOr() {
-    int from = 1;
-    int firstThird = standardDatasetSize / 3;
-    int secondThird = 2 * standardDatasetSize / 3;
+    var from = 1;
+    var firstThird = standardDatasetSize / 3;
+    var secondThird = 2 * standardDatasetSize / 3;
     int to = standardDatasetSize;
 
-    String filter1 =
+    var filter1 =
         format(
             US,
             "geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]",
@@ -360,7 +359,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
             from * -1f,
             (float) from,
             firstThird * -1f);
-    String filter2 =
+    var filter2 =
         format(
             US,
             "geo VIEWPORT [[%.2f,%.2f],[%.2f,%.2f]]",
@@ -693,13 +692,13 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validatePaginationFromParameter() {
-    int lastPage = (int) ceil(standardDatasetSize / (float) defaultPageSize);
-    int lastPageSize = standardDatasetSize - defaultPageSize * (lastPage - 1);
+    var lastPage = (int) ceil(standardDatasetSize / (float) defaultPageSize);
+    var lastPageSize = standardDatasetSize - defaultPageSize * (lastPage - 1);
 
     rangeClosed(1, lastPage)
         .forEach(
             page -> {
-              int from = defaultPageSize * (page - 1);
+              var from = defaultPageSize * (page - 1);
               given()
                   .log()
                   .all()
@@ -775,14 +774,14 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validatePaginationFromAndSizeParameters() {
-    int pageSize = standardDatasetSize / 7;
-    int lastPage = (int) ceil(standardDatasetSize / (float) pageSize);
-    int lastPageSize = standardDatasetSize - pageSize * (lastPage - 1);
+    var pageSize = standardDatasetSize / 7;
+    var lastPage = (int) ceil(standardDatasetSize / (float) pageSize);
+    var lastPageSize = standardDatasetSize - pageSize * (lastPage - 1);
 
     rangeClosed(1, lastPage)
         .forEach(
             page -> {
-              int from = pageSize * (page - 1);
+              var from = pageSize * (page - 1);
               given()
                   .log()
                   .all()
@@ -801,10 +800,10 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateRecursiveFilter() {
-    int from = standardDatasetSize / 3;
-    int half = standardDatasetSize / 2;
-    int to = 2 * standardDatasetSize / 3;
-    int expected = standardDatasetSize / 6;
+    var from = standardDatasetSize / 3;
+    var half = standardDatasetSize / 2;
+    var to = 2 * standardDatasetSize / 3;
+    var expected = standardDatasetSize / 6;
 
     given()
         .log()
@@ -834,10 +833,10 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateRecursiveFilterWhenNested() {
-    int from = standardDatasetSize / 3;
-    int half = standardDatasetSize / 2;
-    int to = 2 * standardDatasetSize / 3;
-    int expected = standardDatasetSize / 6;
+    var from = standardDatasetSize / 3;
+    var half = standardDatasetSize / 2;
+    var to = 2 * standardDatasetSize / 3;
+    var expected = standardDatasetSize / 6;
 
     given()
         .log()
@@ -1074,7 +1073,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void validateUpdateClusterProperty() throws InterruptedException, IOException {
-    int size = 10;
+    var size = 10;
     esIndexHandler.putStandardProperty("es.default.size", size);
     esIndexHandler.addStandardProperties();
 
@@ -1144,11 +1143,11 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void hystrixStreamWorks() throws Exception {
-    URL stream = new URL(baseUrl.replace("/v2", "") + "/actuator/hystrix.stream");
-    InputStream in = stream.openStream();
-    byte[] buffer = new byte[1024];
+    var stream = new URL(baseUrl.replace("/v2", "") + "/actuator/hystrix.stream");
+    var in = stream.openStream();
+    var buffer = new byte[1024];
     in.read(buffer);
-    String contents = new String(buffer);
+    var contents = new String(buffer);
     assertTrue(
         "Wrong content: \n" + contents, contents.contains("data") || contents.contains("ping"));
     in.close();
@@ -1156,11 +1155,11 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void turbineStreamWorks() throws Exception {
-    URL stream = new URL(baseUrl.replace("/v2", "") + "/turbine.stream");
-    InputStream in = stream.openStream();
-    byte[] buffer = new byte[1024];
+    var stream = new URL(baseUrl.replace("/v2", "") + "/turbine.stream");
+    var in = stream.openStream();
+    var buffer = new byte[1024];
     in.read(buffer);
-    String contents = new String(buffer);
+    var contents = new String(buffer);
     assertTrue(
         "Wrong content: \n" + contents, contents.contains("data") || contents.contains("ping"));
     in.close();
@@ -1168,11 +1167,11 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
   public void searchStreamWorks() throws Exception {
-    URL stream = new URL(format("%s%s/stream?includeFields=id", baseUrl, TEST_DATA_INDEX));
-    InputStream in = stream.openStream();
-    byte[] buffer = new byte[1024];
+    var stream = new URL(format("%s%s/stream?includeFields=id", baseUrl, TEST_DATA_INDEX));
+    var in = stream.openStream();
+    var buffer = new byte[1024];
     in.read(buffer);
-    String contents = new String(buffer);
+    var contents = new String(buffer);
     assertTrue("Wrong content: \n" + contents, contents.contains("id"));
     in.close();
   }
@@ -1194,7 +1193,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
     Function<Integer, Integer> getHits =
         size -> {
           try {
-            byte[] buffer =
+            var buffer =
                 IOUtils.toByteArray(
                     new URL(
                         format(
@@ -1207,7 +1206,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         };
 
     // Increasing blank lines for the end of stream
-    int blankLinesEnd = 1;
+    var blankLinesEnd = 1;
 
     assertEquals(Integer.valueOf(numberShards + blankLinesEnd), getHits.apply(numberShards));
     assertEquals((numberShards + blankLinesEnd) - 1, getHits.apply(numberShards - 1).intValue());

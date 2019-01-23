@@ -2,7 +2,7 @@ package com.grupozap.search.api.model.query;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.google.common.base.Objects;
 import java.util.AbstractList;
@@ -25,7 +25,7 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
   private List<QueryFragment> validateSingleRecursiveQueryFragmentList(
       List<QueryFragment> queryFragments) {
     if (isNotEmpty(queryFragments)) {
-      QueryFragment fragment = queryFragments.get(0);
+      var fragment = queryFragments.get(0);
       if (hasOnlyAnInternalQueryFragmentList(
           queryFragments)) // e.g. ((((queryFragmentList)))), will be extracted to a single
         // (queryFragmentList)
@@ -74,7 +74,7 @@ public class QueryFragmentList extends AbstractList<QueryFragment> implements Qu
     if (o == null || getClass() != o.getClass()) return false;
     if (!super.equals(o)) return false;
 
-    QueryFragmentList that = (QueryFragmentList) o;
+    var that = (QueryFragmentList) o;
 
     return Objects.equal(this.fragments, that.fragments);
   }

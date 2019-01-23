@@ -33,11 +33,10 @@ public class SortParser {
       QueryParser queryParser) {
 
     // SortFilter used in any kind of sort
-    Parser<Optional<QueryFragment>> sortFilterParser = createSortFilterParser(queryParser);
+    var sortFilterParser = createSortFilterParser(queryParser);
 
     // Sort Optional Settings: ASC/DESC || NEAR [GeoPointValue]
-    Parser<SortOptionalSettings> sortOptionalSettingsParser =
-        createSortOptionalSettingsParser(operatorParser, valueParser);
+    var sortOptionalSettingsParser = createSortOptionalSettingsParser(operatorParser, valueParser);
 
     // Single parser to sort facets
     sortSingleParser =

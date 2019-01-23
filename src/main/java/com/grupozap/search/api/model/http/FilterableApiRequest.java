@@ -23,34 +23,29 @@ public class FilterableApiRequest extends BaseApiRequest
   private String factorField;
 
   @ApiModelProperty(
-    value =
-        "Modifier to apply to the field value factor, can be one of: none, log, log1p, log2p, ln, ln1p, ln2p, square, sqrt, or reciprocal. Defaults to none"
-  )
+      value =
+          "Modifier to apply to the field value factor, can be one of: none, log, log1p, log2p, ln, ln1p, ln2p, square, sqrt, or reciprocal. Defaults to none")
   private String factorModifier;
 
   @ApiModelProperty(
-    value = "Query DSL",
-    example = "field1:3 AND field2:2 AND(field3=1 OR (field4 IN [1,\"abc\"] AND field5 <> 3))"
-  )
+      value = "Query DSL",
+      example = "field1:3 AND field2:2 AND(field3=1 OR (field4 IN [1,\"abc\"] AND field5 <> 3))")
   private String filter;
 
   @ApiModelProperty(
-    value = "Determine if the default filter for the index should be applied",
-    example = "ENABLED,DISABLED"
-  )
+      value = "Determine if the default filter for the index should be applied",
+      example = "ENABLED,DISABLED")
   private DefaultFilterMode defaultFilterMode = ENABLED;
 
   @ApiModelProperty(
-    value = "Field list that will be filtered for query string",
-    example = "field1, field2, field3"
-  )
+      value = "Field list that will be filtered for query string",
+      example = "field1, field2, field3")
   private Set<String> fields;
 
   @ApiModelProperty(
-    value =
-        "Sorting in the format: field (ASC|DESC), default sort order is ascending, multiple sort are supported",
-    example = "field1 ASC, field2 DESC"
-  )
+      value =
+          "Sorting in the format: field (ASC|DESC), default sort order is ascending, multiple sort are supported",
+      example = "field1 ASC, field2 DESC")
   private String sort;
 
   @ApiModelProperty(value = "The sort id script stored on ES", example = "scores-a")

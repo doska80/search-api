@@ -21,12 +21,12 @@ public class LikeValue extends Value {
   }
 
   private static String normalizeQuery(final String query) {
-    StringBuilder finalQuery = new StringBuilder();
-    int size = query.length();
+    var finalQuery = new StringBuilder();
+    var size = query.length();
 
-    for (int i = 0; i < size; i++) {
+    for (var i = 0; i < size; i++) {
 
-      char current = query.charAt(i);
+      var current = query.charAt(i);
 
       if (current >= 97 || current == SPACE_ASCII_CODE) {
         finalQuery.append(current);

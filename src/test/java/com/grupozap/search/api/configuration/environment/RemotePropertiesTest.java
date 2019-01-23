@@ -49,10 +49,8 @@ public class RemotePropertiesTest {
       of(RemoteProperties.values())
           .filter(
               p ->
-                  !PROPERTIES_AS_SET.contains(p)
-                      && !INTEGER_PROPERTIES.contains(p)
-                      && !LONG_PROPERTIES.contains(p)
-                      && !TIME_PROPERTIES.contains(p))
+                  Stream.of(PROPERTIES_AS_SET, INTEGER_PROPERTIES, LONG_PROPERTIES, TIME_PROPERTIES)
+                      .noneMatch(remoteProperties -> remoteProperties.contains(p)))
           .collect(toSet());
 
   @Before
@@ -157,7 +155,7 @@ public class RemotePropertiesTest {
         property -> {
           try {
             property.setValue(DEFAULT_INDEX, EMPTY);
-            assertFalse(property.name() + ": Exception should be threw setting empty value", true);
+            fail(property.name() + ": Exception should be threw setting empty value");
           } catch (Exception e) {
             assertTrue(property.name(), e instanceof NumberFormatException);
           }
@@ -174,8 +172,7 @@ public class RemotePropertiesTest {
             property -> {
               try {
                 property.setValue(DEFAULT_INDEX, EMPTY);
-                assertFalse(
-                    property.name() + ": Exception should be threw setting empty value", true);
+                fail(property.name() + ": Exception should be threw setting empty value");
               } catch (Exception e) {
                 assertTrue(property.name(), e instanceof NumberFormatException);
               }
@@ -198,8 +195,7 @@ public class RemotePropertiesTest {
 
   @Test
   public void checkValueIfPropertyNeverSpecified() {
-    Sets.newHashSet(RemoteProperties.values())
-        .stream()
+    Sets.newHashSet(RemoteProperties.values()).stream()
         .filter(property -> !PROPERTIES_AS_SET.contains(property))
         .forEach(
             property -> {

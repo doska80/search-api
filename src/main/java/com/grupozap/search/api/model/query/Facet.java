@@ -21,8 +21,7 @@ public class Facet {
 
     this.sort = sort.orElse(DEFAULT_SORT);
 
-    this.sort
-        .stream()
+    this.sort.stream()
         .filter(this::hasInvalidFieldName)
         .findFirst()
         .ifPresent(

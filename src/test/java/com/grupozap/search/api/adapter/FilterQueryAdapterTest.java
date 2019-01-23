@@ -24,7 +24,7 @@ public class FilterQueryAdapterTest {
   }
 
   private BoolQueryBuilder getQueryBuilder(String field, boolean ignoreNestedQueryBuilder) {
-    BoolQueryBuilder boolQueryBuilder = boolQuery();
+    var boolQueryBuilder = boolQuery();
 
     filterQueryAdapter.apply(
         boolQueryBuilder,
@@ -38,25 +38,25 @@ public class FilterQueryAdapterTest {
 
   @Test
   public void shouldApplyNestedQueryBuilderWhenNecessary() {
-    BoolQueryBuilder boolQueryBuilder = getQueryBuilder("nested.field", false);
+    var boolQueryBuilder = getQueryBuilder("nested.field", false);
     assertEquals(NestedQueryBuilder.class, boolQueryBuilder.filter().get(0).getClass());
   }
 
   @Test
   public void shouldIgnoreNestedQueryBuilderForNestedField() {
-    BoolQueryBuilder boolQueryBuilder = getQueryBuilder("nested.field", true);
+    var boolQueryBuilder = getQueryBuilder("nested.field", true);
     assertNotEquals(NestedQueryBuilder.class, boolQueryBuilder.filter().get(0).getClass());
   }
 
   @Test
   public void shouldNotApplyNestedQueryBuilderForNonNestedField() {
-    BoolQueryBuilder boolQueryBuilder = getQueryBuilder("object.field", false);
+    var boolQueryBuilder = getQueryBuilder("object.field", false);
     assertNotEquals(NestedQueryBuilder.class, boolQueryBuilder.filter().get(0).getClass());
   }
 
   @Test
   public void shouldIgnoreNestedQueryBuilderForNotNestedField() {
-    BoolQueryBuilder boolQueryBuilder = getQueryBuilder("object.field", true);
+    var boolQueryBuilder = getQueryBuilder("object.field", true);
     assertNotEquals(NestedQueryBuilder.class, boolQueryBuilder.filter().get(0).getClass());
   }
 }

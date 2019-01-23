@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.Set;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -57,10 +56,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
             .excludeFields(new HashSet<>())
             .build();
 
-    GetRequest getRequestBuilder = new GetRequest();
+    var getRequestBuilder = new GetRequest();
     sourceFieldAdapter.apply(getRequestBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = getRequestBuilder.fetchSourceContext();
+    var fetchSourceContext = getRequestBuilder.fetchSourceContext();
     assertNotNull(fetchSourceContext);
     assertEquals(1, fetchSourceContext.includes().length);
     assertThat(fetchSourceContext.includes(), arrayContainingInAnyOrder("*"));
@@ -76,10 +75,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
             .excludeFields(newHashSet("*"))
             .build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     sourceFieldAdapter.apply(searchSourceBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = searchSourceBuilder.fetchSource();
+    var fetchSourceContext = searchSourceBuilder.fetchSource();
     assertNotNull(fetchSourceContext);
 
     assertThat(fetchSourceContext.includes(), emptyArray());
@@ -95,10 +94,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
         INDEX_NAME, newArrayList("default.field2", "default.field3", "default.field4"));
 
     sourceFieldAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
-    GetRequest getRequestBuilder = new GetRequest();
+    var getRequestBuilder = new GetRequest();
     sourceFieldAdapter.apply(getRequestBuilder, basic().index(INDEX_NAME).build());
 
-    FetchSourceContext fetchSourceContext = getRequestBuilder.fetchSourceContext();
+    var fetchSourceContext = getRequestBuilder.fetchSourceContext();
     assertNotNull(fetchSourceContext);
     assertEquals(3, fetchSourceContext.includes().length);
     assertThat(
@@ -116,10 +115,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
         INDEX_NAME, newArrayList("default.field2", "default.field3", "default.field4"));
 
     sourceFieldAdapter.onApplicationEvent(new RemotePropertiesUpdatedEvent(this, INDEX_NAME));
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     sourceFieldAdapter.apply(searchSourceBuilder, basic().index(INDEX_NAME).build());
 
-    FetchSourceContext fetchSourceContext = searchSourceBuilder.fetchSource();
+    var fetchSourceContext = searchSourceBuilder.fetchSource();
     assertNotNull(fetchSourceContext);
     assertEquals(3, fetchSourceContext.includes().length);
     assertThat(
@@ -138,10 +137,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
             .excludeFields(new HashSet<>())
             .build();
 
-    GetRequest getRequestBuilder = new GetRequest();
+    var getRequestBuilder = new GetRequest();
     sourceFieldAdapter.apply(getRequestBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = getRequestBuilder.fetchSourceContext();
+    var fetchSourceContext = getRequestBuilder.fetchSourceContext();
     assertNotNull(fetchSourceContext);
     assertThat(fetchSourceContext.includes(), emptyArray());
     assertThat(fetchSourceContext.excludes(), emptyArray());
@@ -156,10 +155,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
             .excludeFields(new HashSet<>())
             .build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     sourceFieldAdapter.apply(searchSourceBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = searchSourceBuilder.fetchSource();
+    var fetchSourceContext = searchSourceBuilder.fetchSource();
     assertNotNull(fetchSourceContext);
     assertThat(fetchSourceContext.includes(), emptyArray());
     assertThat(fetchSourceContext.excludes(), emptyArray());
@@ -173,10 +172,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     Fetchable fetchable =
         basic().index(INDEX_NAME).includeFields(includeFields).excludeFields(excludeFields).build();
 
-    GetRequest getRequestBuilder = new GetRequest();
+    var getRequestBuilder = new GetRequest();
     sourceFieldAdapter.apply(getRequestBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = getRequestBuilder.fetchSourceContext();
+    var fetchSourceContext = getRequestBuilder.fetchSourceContext();
     assertNotNull(fetchSourceContext);
     assertEquals(includeFields.size(), fetchSourceContext.includes().length);
     assertThat(fetchSourceContext.includes(), arrayContainingInAnyOrder("field1", "field2"));
@@ -193,10 +192,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     Fetchable fetchable =
         basic().index(INDEX_NAME).includeFields(includeFields).excludeFields(excludeFields).build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     sourceFieldAdapter.apply(searchSourceBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = searchSourceBuilder.fetchSource();
+    var fetchSourceContext = searchSourceBuilder.fetchSource();
     assertNotNull(fetchSourceContext);
 
     assertNotNull(fetchSourceContext);
@@ -215,11 +214,11 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     Fetchable fetchable =
         basic().index(INDEX_NAME).includeFields(includeFields).excludeFields(excludeFields).build();
 
-    GetRequest getRequestBuilder = new GetRequest();
+    var getRequestBuilder = new GetRequest();
 
     sourceFieldAdapter.apply(getRequestBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = getRequestBuilder.fetchSourceContext();
+    var fetchSourceContext = getRequestBuilder.fetchSourceContext();
     assertNotNull(fetchSourceContext);
     assertEquals(4, fetchSourceContext.includes().length);
     assertThat(
@@ -239,10 +238,10 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     Fetchable fetchable =
         basic().index(INDEX_NAME).includeFields(includeFields).excludeFields(excludeFields).build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     sourceFieldAdapter.apply(searchSourceBuilder, fetchable);
 
-    FetchSourceContext fetchSourceContext = searchSourceBuilder.fetchSource();
+    var fetchSourceContext = searchSourceBuilder.fetchSource();
     assertNotNull(fetchSourceContext);
 
     assertEquals(3, fetchSourceContext.includes().length);
@@ -261,7 +260,7 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     Fetchable fetchable =
         basic().index(INDEX_NAME).includeFields(includeFields).excludeFields(excludeFields).build();
 
-    GetRequest getRequestBuilder = new GetRequest();
+    var getRequestBuilder = new GetRequest();
     sourceFieldAdapter.apply(getRequestBuilder, fetchable);
   }
 
@@ -273,7 +272,7 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
     Fetchable fetchable =
         basic().index(INDEX_NAME).includeFields(includeFields).excludeFields(excludeFields).build();
 
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchSourceBuilder = new SearchSourceBuilder();
     sourceFieldAdapter.apply(searchSourceBuilder, fetchable);
   }
 }

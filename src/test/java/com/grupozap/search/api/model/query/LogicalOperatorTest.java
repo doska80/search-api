@@ -12,7 +12,7 @@ public class LogicalOperatorTest {
 
   @Test
   public void testGetOperators() {
-    String[] operators = getOperators();
+    var operators = getOperators();
     assertNotNull(operators);
     assertTrue(operators.length > 0);
   }

@@ -11,19 +11,19 @@ public class NotParserTest {
 
   @Test
   public void testNot() {
-    Boolean not = notParser.get().parse("NOT ");
+    var not = notParser.get().parse("NOT ");
     assertTrue(not);
   }
 
   @Test
   public void testWithoutNot() {
-    Boolean not = notParser.get().parse("");
+    var not = notParser.get().parse("");
     assertFalse(not);
   }
 
   @Test
   public void testNotWithSpaces() {
-    Boolean not = notParser.get().parse("    NOT   ");
+    var not = notParser.get().parse("    NOT   ");
     assertTrue(not);
   }
 }

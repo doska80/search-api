@@ -23,7 +23,7 @@ public class QueryParser {
             QueryFragmentItem::new);
 
     Parser.Reference<QueryFragment> ref = newReference();
-    Parser<QueryFragment> lazy = ref.lazy();
+    var lazy = ref.lazy();
     recursiveQueryParser =
         lazy.between(isChar('('), isChar(')'))
             .or(

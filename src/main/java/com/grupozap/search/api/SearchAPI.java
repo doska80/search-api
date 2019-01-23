@@ -44,8 +44,7 @@ public class SearchAPI implements WebMvcConfigurer {
 
   @Bean
   public FilterRegistrationBean newRelicFilter() {
-    final FilterRegistrationBean registrationBean =
-        new FilterRegistrationBean(new NewRelicTransactionFilter());
+    final var registrationBean = new FilterRegistrationBean(new NewRelicTransactionFilter());
     registrationBean.addUrlPatterns("/*");
 
     return registrationBean;

@@ -3,9 +3,7 @@ package com.grupozap.search.api.model.parser;
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
 import static org.junit.Assert.assertEquals;
 
-import com.grupozap.search.api.model.query.Field;
 import java.util.stream.Stream;
-import org.jparsec.Parser;
 import org.jparsec.error.ParserException;
 import org.junit.Test;
 
@@ -19,7 +17,7 @@ public class FieldParserTest {
 
   @Test
   public void testValidFieldNames() {
-    String[] fieldNames =
+    var fieldNames =
         new String[] {
           "field",
           "field10",
@@ -27,11 +25,11 @@ public class FieldParserTest {
           "_fieldUnderscoredCamelCase",
           "field1CamelCase2With3Numbers"
         };
-    Parser<Field> parser = fieldParser.get();
+    var parser = fieldParser.get();
     Stream.of(fieldNames)
         .forEach(
             fieldName -> {
-              Field parsedField = parser.parse(fieldName);
+              var parsedField = parser.parse(fieldName);
               assertEquals(fieldName, parsedField.getName());
             });
   }
@@ -58,7 +56,7 @@ public class FieldParserTest {
 
   @Test
   public void testNestedFieldNames() {
-    Field field = fieldParser.get().parse("field.field2.field3");
+    var field = fieldParser.get().parse("field.field2.field3");
     assertEquals(field.getName(), "field.field2.field3");
   }
 
@@ -79,7 +77,7 @@ public class FieldParserTest {
 
   @Test
   public void testStringNames() {
-    Field field = fieldParser.get().parse("field.field2.field3.field4");
+    var field = fieldParser.get().parse("field.field2.field3.field4");
     assertEquals("field.field2.field3.field4", field.toString());
   }
 

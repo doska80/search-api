@@ -14,18 +14,14 @@ import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.listener.ScriptRemotePropertiesListener;
 import com.grupozap.search.api.model.parser.SortParser;
 import com.grupozap.search.api.model.query.GeoPointItem;
-import com.grupozap.search.api.model.query.GeoPointValue;
 import com.grupozap.search.api.model.query.Item;
 import com.grupozap.search.api.model.search.Sortable;
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.Optional;
 import org.elasticsearch.common.geo.GeoPoint;
-import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.GeoDistanceSortBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
@@ -61,9 +57,7 @@ public class SortQueryAdapter {
   public void apply(SearchSourceBuilder searchSourceBuilder, final Sortable request) {
     if (!isBlank(request.getSort())) {
       try {
-        sortParser
-            .parse(request.getSort())
-            .stream()
+        sortParser.parse(request.getSort()).stream()
             .map(item -> asFieldSortBuilder(item, request))
             .filter(Objects::nonNull)
             .forEach(searchSourceBuilder::sort);
@@ -85,18 +79,15 @@ public class SortQueryAdapter {
 
   private SortBuilder asFieldSortBuilder(Item item, final Sortable request)
       throws InvalidFieldException {
-    String fieldName = item.getField().getName();
+    var fieldName = item.getField().getName();
 
     if (fieldName.equals("_score")) return scoreSort();
 
     if (FIELD_TYPE_SCRIPT.typeOf(
         elasticsearchSettingsAdapter.getFieldType(request.getIndex(), fieldName))) {
 
-      Optional<ScriptRemotePropertiesListener.ScriptField> script =
-          this.scriptRemotePropertiesListener
-              .getScripts()
-              .get(request.getIndex())
-              .stream()
+      var script =
+          this.scriptRemotePropertiesListener.getScripts().get(request.getIndex()).stream()
               .filter(scp -> fieldName.equals(scp.getId()))
               .findFirst();
 
@@ -117,8 +108,7 @@ public class SortQueryAdapter {
     }
 
     if (item instanceof GeoPointItem) {
-      GeoDistanceSortBuilder geoDistanceSortBuilder =
-          getGeoDistanceSortBuilder((GeoPointItem) item);
+      var geoDistanceSortBuilder = getGeoDistanceSortBuilder((GeoPointItem) item);
 
       if (FIELD_TYPE_NESTED.typeOf(item.getField().getTypeFirstName()))
         geoDistanceSortBuilder.setNestedSort(getQueryFragment(item, request));
@@ -126,8 +116,7 @@ public class SortQueryAdapter {
       return geoDistanceSortBuilder;
     }
 
-    FieldSortBuilder fieldSortBuilder =
-        fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
+    var fieldSortBuilder = fieldSort(fieldName).order(valueOf(item.getOrderOperator().name()));
 
     if (FIELD_TYPE_NESTED.typeOf(item.getField().getTypeFirstName()))
       fieldSortBuilder.setNestedSort(getQueryFragment(item, request));
@@ -136,19 +125,19 @@ public class SortQueryAdapter {
   }
 
   private GeoDistanceSortBuilder getGeoDistanceSortBuilder(GeoPointItem item) {
-    GeoPointValue geoPointValue = item.getGeoPointValue();
-    GeoPoint geoPoint = new GeoPoint(geoPointValue.value(0, 1), geoPointValue.value(0, 0));
+    var geoPointValue = item.getGeoPointValue();
+    var geoPoint = new GeoPoint(geoPointValue.value(0, 1), geoPointValue.value(0, 0));
 
     return geoDistanceSort(item.getField().getName(), geoPoint);
   }
 
   private NestedSortBuilder getQueryFragment(Item item, Sortable request) {
-    NestedSortBuilder nestedSortBuilder = new NestedSortBuilder(item.getField().firstName());
+    var nestedSortBuilder = new NestedSortBuilder(item.getField().firstName());
 
     item.getQueryFragment()
         .ifPresent(
             qf -> {
-              BoolQueryBuilder queryBuilder = boolQuery();
+              var queryBuilder = boolQuery();
               filterQueryAdapter.apply(queryBuilder, qf, request.getIndex(), new HashMap<>(), true);
               nestedSortBuilder.setFilter(queryBuilder);
             });

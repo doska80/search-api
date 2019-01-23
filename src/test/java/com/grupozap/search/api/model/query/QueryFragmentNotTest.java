@@ -12,7 +12,7 @@ public class QueryFragmentNotTest {
 
   @Test
   public void validTrueNotValue() {
-    QueryFragmentNot queryFragmentNot = new QueryFragmentNot(singletonList(true));
+    var queryFragmentNot = new QueryFragmentNot(singletonList(true));
     assertEquals("NOT", queryFragmentNot.toString());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames(true));
@@ -21,7 +21,7 @@ public class QueryFragmentNotTest {
 
   @Test
   public void validFalseNotValue() {
-    QueryFragmentNot queryFragmentNot = new QueryFragmentNot(singletonList(false));
+    var queryFragmentNot = new QueryFragmentNot(singletonList(false));
     assertEquals("", queryFragmentNot.toString());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames(true));
@@ -30,7 +30,7 @@ public class QueryFragmentNotTest {
 
   @Test
   public void nullNotValue() {
-    QueryFragmentNot queryFragmentNot = new QueryFragmentNot(singletonList(null));
+    var queryFragmentNot = new QueryFragmentNot(singletonList(null));
     assertEquals("", queryFragmentNot.toString());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames(true));
@@ -39,7 +39,7 @@ public class QueryFragmentNotTest {
 
   @Test
   public void emptyNotValue() {
-    QueryFragmentNot queryFragmentNot = new QueryFragmentNot(new ArrayList<>());
+    var queryFragmentNot = new QueryFragmentNot(new ArrayList<>());
     assertEquals("", queryFragmentNot.toString());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames());
     assertEquals(newHashSet(), queryFragmentNot.getFieldNames(true));
@@ -48,7 +48,7 @@ public class QueryFragmentNotTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void multipleNotValue() {
-    QueryFragmentNot queryFragmentNot = new QueryFragmentNot(asList(true, true));
+    var queryFragmentNot = new QueryFragmentNot(asList(true, true));
     assertEquals("", queryFragmentNot.toString());
   }
 }

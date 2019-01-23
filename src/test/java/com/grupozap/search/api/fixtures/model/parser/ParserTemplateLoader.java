@@ -14,22 +14,22 @@ import com.grupozap.search.api.service.parser.factory.FieldCache;
 import com.grupozap.search.api.service.parser.factory.FieldFactory;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.mockito.stubbing.Answer;
 
 public class ParserTemplateLoader {
 
   public static QueryParser queryParserFixture() {
-    OperatorParser operatorParser = new OperatorParser();
-    FieldParser fieldParser = fieldParserFixture();
-    FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
+    var operatorParser = new OperatorParser();
+    var fieldParser = fieldParserFixture();
+    var filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
     return new QueryParser(operatorParser, filterParser, new NotParser());
   }
 
   public static QueryParser queryParserWithOutValidationFixture() {
-    OperatorParser operatorParser = new OperatorParser();
-    FieldParser fieldParser = fieldParserWithoutValidationFixture();
-    FilterParser filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
+    var operatorParser = new OperatorParser();
+    var fieldParser = fieldParserWithoutValidationFixture();
+    var filterParser = new FilterParser(fieldParser, operatorParser, new ValueParser());
     return new QueryParser(operatorParser, filterParser, new NotParser());
   }
 
@@ -50,7 +50,7 @@ public class ParserTemplateLoader {
   }
 
   public static FieldCache fieldCacheFixture() {
-    IndexSettings indexSettings = mock(IndexSettings.class);
+    var indexSettings = mock(IndexSettings.class);
     when(indexSettings.getIndex()).thenReturn(INDEX_NAME);
 
     Map<String, Field> mockPreprocessedFields = mock(Map.class);
@@ -58,18 +58,18 @@ public class ParserTemplateLoader {
         .thenAnswer(
             (Answer<Field>)
                 invocationOnMock -> {
-                  String fieldName = invocationOnMock.getArguments()[0].toString();
+                  var fieldName = invocationOnMock.getArguments()[0].toString();
                   if (fieldName.contains("invalid")) return null;
 
-                  String[] split = fieldName.split("\\.");
-                  List<String> names = asList(split).subList(1, split.length); // Ignore index name
+                  var split = fieldName.split("\\.");
+                  var names = asList(split).subList(1, split.length); // Ignore index name
                   return new Field(mockLinkedMapForField(names));
                 });
     when(mockPreprocessedFields.containsKey(anyString()))
         .thenAnswer(
             invocationOnMock -> !invocationOnMock.getArguments()[0].toString().contains("invalid"));
 
-    FieldCache fieldCache = new FieldCache(new FieldFactory());
+    var fieldCache = new FieldCache(new FieldFactory());
     setInternalState(fieldCache, "validFields", mockPreprocessedFields);
     setInternalState(fieldCache, "indexSettings", indexSettings);
     return fieldCache;

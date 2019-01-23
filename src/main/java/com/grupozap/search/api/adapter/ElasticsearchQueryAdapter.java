@@ -10,12 +10,9 @@ import com.grupozap.search.api.model.http.BaseApiRequest;
 import com.grupozap.search.api.model.http.FilterableApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
 import com.grupozap.search.api.model.parser.QueryParser;
-import com.grupozap.search.api.model.query.QueryFragment;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
 import com.newrelic.api.agent.Trace;
 import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -73,7 +70,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   @Override
   @Trace
   public GetRequest getById(BaseApiRequest request, String id) {
-    final GetRequest getRequest = new GetRequest(request.getIndex(), request.getIndex(), id);
+    final var getRequest = new GetRequest(request.getIndex(), request.getIndex(), id);
     sourceFieldAdapter.apply(getRequest, request);
     LOG.debug("Query getById {}", getRequest);
     return getRequest;
@@ -100,8 +97,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   private SearchRequest prepareQuery(
       BaseApiRequest request, BiConsumer<SearchSourceBuilder, BoolQueryBuilder> builder) {
 
-    SearchRequest searchRequest = new SearchRequest();
-    SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+    var searchRequest = new SearchRequest();
+    var searchSourceBuilder = new SearchSourceBuilder();
 
     searchSourceBuilder.timeout(
         new TimeValue(
@@ -111,7 +108,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     searchRequest.source(searchSourceBuilder);
     searchRequest.indices(request.getIndex());
 
-    BoolQueryBuilder queryBuilder = boolQuery();
+    var queryBuilder = boolQuery();
     builder.accept(searchSourceBuilder, queryBuilder);
 
     if (searchSourceBuilder.query() == null) searchSourceBuilder.query(queryBuilder);
@@ -133,14 +130,13 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   }
 
   private void applyFilter(FilterableApiRequest filterable, BoolQueryBuilder queryBuilder) {
-    Optional<QueryFragment> requestFilter =
+    var requestFilter =
         ofNullable(filterable.getFilter()).filter(StringUtils::isNotEmpty).map(queryParser::parse);
     requestFilter.ifPresent(
         filter -> filterQueryAdapter.apply(queryBuilder, filter, filterable.getIndex()));
 
     if (ENABLED.equals(filterable.getDefaultFilterMode())) {
-      Set<String> requestFields =
-          requestFilter.map(qf -> qf.getFieldNames(false)).orElseGet(HashSet::new);
+      var requestFields = requestFilter.map(qf -> qf.getFieldNames(false)).orElseGet(HashSet::new);
       defaultFilterFactory
           .getDefaultFilters(filterable.getIndex(), requestFields)
           .forEach(applyDefaultFilter(queryBuilder));

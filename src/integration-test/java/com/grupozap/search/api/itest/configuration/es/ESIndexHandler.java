@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.*;
 import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.client.Request;
-import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,13 +60,13 @@ public class ESIndexHandler {
 
   public void truncateIndexData(String index) throws IOException {
 
-    final Request request = new Request("POST", index + "/_delete_by_query?refresh=true");
+    final var request = new Request("POST", index + "/_delete_by_query?refresh=true");
     request.setEntity(
         new NStringEntity(
             "{\n" + "  \"query\": {\n" + "    \"match_all\": {}\n" + "  }\n" + "}",
             APPLICATION_JSON));
 
-    Response response = restClient.performRequest(request);
+    var response = restClient.performRequest(request);
 
     LOG.info(index + " index cleared, deleted " + response + " documents");
   }
@@ -107,8 +106,8 @@ public class ESIndexHandler {
 
   public void addStandardTestData() {
     List<String> entities = new ArrayList<>(standardDatasetSize);
-    for (int id = 1; id <= standardDatasetSize; id++) {
-      String entity =
+    for (var id = 1; id <= standardDatasetSize; id++) {
+      var entity =
           createStandardEntityForId(
               id, (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? 1 : 2));
       if (insertEntityByIndex(TEST_DATA_INDEX, TEST_DATA_TYPE, valueOf(id), entity))
@@ -134,9 +133,9 @@ public class ESIndexHandler {
 
   private boolean insertEntityByIndex(String index, String type, String id, String body) {
     try {
-      final Request request = new Request("POST", index + "/" + type + "/" + id + "?refresh=true");
+      final var request = new Request("POST", index + "/" + type + "/" + id + "?refresh=true");
       request.setEntity(new NStringEntity(body, APPLICATION_JSON));
-      Response response = restClient.performRequest(request);
+      var response = restClient.performRequest(request);
 
       LOG.info(String.format("%s adding document %s documents", index, response));
       return true;

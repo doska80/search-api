@@ -24,15 +24,15 @@ public class QueryFragmentListTest {
   @Test
   public void queryFragmentListWithSingleItem() {
     QueryFragment qfi = from(QueryFragmentItem.class).gimme("qfi");
-    List<QueryFragment> fragmentList = singletonList(qfi);
-    QueryFragmentList qfl = new QueryFragmentList(fragmentList);
+    var fragmentList = singletonList(qfi);
+    var qfl = new QueryFragmentList(fragmentList);
 
     assertEquals(fragmentList.size(), qfl.size());
     assertEquals("(field EQUAL \"value\")", qfl.toString());
     assertEquals(newHashSet("field"), qfl.getFieldNames());
     assertEquals(newHashSet("field"), qfl.getFieldNames(true));
     assertEquals(newHashSet("field"), qfl.getFieldNames(false));
-    for (int i = 0; i < fragmentList.size(); i++) assertEquals(fragmentList.get(i), qfl.get(i));
+    for (var i = 0; i < fragmentList.size(); i++) assertEquals(fragmentList.get(i), qfl.get(i));
   }
 
   @Test
@@ -40,7 +40,7 @@ public class QueryFragmentListTest {
     QueryFragment qfi = from(QueryFragmentItem.class).gimme("qfi");
     QueryFragment qfiNested = from(QueryFragmentItem.class).gimme("qfiNested");
     List<QueryFragment> fragmentList = newArrayList(qfi, qfiNested);
-    QueryFragmentList qfl = new QueryFragmentList(fragmentList);
+    var qfl = new QueryFragmentList(fragmentList);
 
     Set<String> expectedFieldNamesWithoutRoot = newHashSet("field", "field1.field2.field3");
     Set<String> expectedFieldNamesWithRoot =
@@ -52,19 +52,19 @@ public class QueryFragmentListTest {
     assertEquals(expectedFieldNamesWithRoot, qfl.getFieldNames());
     assertEquals(expectedFieldNamesWithRoot, qfl.getFieldNames(true));
     assertEquals(expectedFieldNamesWithoutRoot, qfl.getFieldNames(false));
-    for (int i = 0; i < fragmentList.size(); i++) assertEquals(fragmentList.get(i), qfl.get(i));
+    for (var i = 0; i < fragmentList.size(); i++) assertEquals(fragmentList.get(i), qfl.get(i));
   }
 
   @Test
   public void queryFragmentListWithSingleRecursiveItem() {
     QueryFragment qfi = from(QueryFragmentItem.class).gimme("qfi");
 
-    List<QueryFragment> fragments = singletonList(qfi);
+    var fragments = singletonList(qfi);
     List<QueryFragment> fragments1 = singletonList(new QueryFragmentList(fragments));
     List<QueryFragment> fragments2 = singletonList(new QueryFragmentList(fragments1));
     List<QueryFragment> queryFragmentList = singletonList(new QueryFragmentList(fragments2));
 
-    QueryFragmentList qfl = new QueryFragmentList(queryFragmentList);
+    var qfl = new QueryFragmentList(queryFragmentList);
 
     assertEquals(1, qfl.size());
     assertEquals("(field EQUAL \"value\")", qfl.toString());
@@ -76,14 +76,13 @@ public class QueryFragmentListTest {
   @Test
   public void queryFragmentListWithNestedItem() {
     QueryFragment qfi = from(QueryFragmentItem.class).gimme("qfi");
-    QueryFragmentList recursion =
+    var recursion =
         new QueryFragmentList(
             newArrayList(
                 from(QueryFragmentItem.class).gimme("qfiMultiple"),
                 from(QueryFragmentItem.class).gimme("qfiNested")));
 
-    QueryFragmentList query =
-        new QueryFragmentList(newArrayList(qfi, new QueryFragmentOperator(OR), recursion));
+    var query = new QueryFragmentList(newArrayList(qfi, new QueryFragmentOperator(OR), recursion));
 
     Set<String> expectedFieldNamesWithoutRoot =
         newHashSet("field", "multiple", "field1.field2.field3");

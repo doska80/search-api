@@ -7,10 +7,11 @@ import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.NONE;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.grupozap.search.api.model.mapping.MappingType;
@@ -53,12 +54,12 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     ES_MAPPING_META_FIELDS_ID.setValue(INDEX_NAME, "id");
     SCORE_FACTOR_FIELD.setValue(INDEX_NAME, DEFAULT_SCORE_FACTOR_FIELD);
 
-    PageQueryAdapter pageQueryAdapter = new PageQueryAdapter();
-    QueryStringAdapter queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
-    FunctionScoreAdapter functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
-    FacetQueryAdapter facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
-    FilterQueryAdapter filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
-    DefaultFilterFactory defaultFilterFactory =
+    var pageQueryAdapter = new PageQueryAdapter();
+    var queryStringAdapter = new QueryStringAdapter(fieldCacheFixture());
+    var functionScoreAdapter = new FunctionScoreAdapter(fieldParserFixture());
+    var facetQueryAdapter = new FacetQueryAdapter(facetParserFixture());
+    var filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
+    var defaultFilterFactory =
         new DefaultFilterFactory(queryParserWithOutValidationFixture(), filterQueryAdapter);
 
     this.queryAdapter =
@@ -88,14 +89,14 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestByQueryStringWithDefaultFactorField() {
-    SearchRequest searchRequest = queryAdapter.query(fullRequest.build());
+    var searchRequest = queryAdapter.query(fullRequest.build());
 
     assertEquals(FunctionScoreQueryBuilder.class, searchRequest.source().query().getClass());
 
-    FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders =
+    var filterFunctionBuilders =
         ((FunctionScoreQueryBuilder) searchRequest.source().query()).filterFunctionBuilders();
 
-    assertTrue(filterFunctionBuilders.length == 1);
+    assertEquals(1, filterFunctionBuilders.length);
 
     assertEquals(
         DEFAULT_SCORE_FACTOR_FIELD,
@@ -109,15 +110,15 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void shouldReturnSearchRequestByQueryStringWithFactorField() {
-    String field = "myFactorField";
-    SearchRequest searchRequest = queryAdapter.query(fullRequest.factorField(field).build());
+    var field = "myFactorField";
+    var searchRequest = queryAdapter.query(fullRequest.factorField(field).build());
 
     assertEquals(FunctionScoreQueryBuilder.class, searchRequest.source().query().getClass());
 
-    FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders =
+    var filterFunctionBuilders =
         ((FunctionScoreQueryBuilder) searchRequest.source().query()).filterFunctionBuilders();
 
-    assertTrue(filterFunctionBuilders.length == 1);
+    assertEquals(1, filterFunctionBuilders.length);
 
     assertEquals(
         field,
@@ -130,13 +131,13 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
     Stream.of(FieldValueFactorFunction.Modifier.values())
         .forEach(
             modifier -> {
-              SearchRequest searchRequest =
+              var searchRequest =
                   queryAdapter.query(
                       fullRequest
                           .factorField("myFactorField")
                           .factorModifier(modifier.toString())
                           .build());
-              FunctionScoreQueryBuilder.FilterFunctionBuilder[] filterFunctionBuilders =
+              var filterFunctionBuilders =
                   ((FunctionScoreQueryBuilder) searchRequest.source().query())
                       .filterFunctionBuilders();
 

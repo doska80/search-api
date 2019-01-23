@@ -44,12 +44,12 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
 
   @Before
   public void setup() throws IOException {
-    ApplicationEventPublisher applicationEventPublisher = mock(ApplicationEventPublisher.class);
+    var applicationEventPublisher = mock(ApplicationEventPublisher.class);
     doNothing().when(applicationEventPublisher).publishEvent(any());
 
-    RestClient restClient = mock(RestClient.class);
+    var restClient = mock(RestClient.class);
 
-    Response response = mock(Response.class);
+    var response = mock(Response.class);
     when(restClient.performRequest(any(Request.class))).thenReturn(response);
 
     final HttpEntity entity = new StringEntity(readFileFromResources("cluster_state.json"));
@@ -64,10 +64,10 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
 
   @Test
   public void shouldGetConfigurationByExistKey() {
-    String shards = settingsAdapter.settingsByKey(INDEX_NAME, SHARDS);
+    var shards = settingsAdapter.settingsByKey(INDEX_NAME, SHARDS);
     assertEquals("8", shards);
 
-    String replicas = settingsAdapter.settingsByKey(INDEX_NAME, REPLICAS);
+    var replicas = settingsAdapter.settingsByKey(INDEX_NAME, REPLICAS);
     assertEquals("2", replicas);
   }
 

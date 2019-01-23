@@ -1,6 +1,5 @@
 package com.grupozap.search.api.model.parser.configuration;
 
-import com.grupozap.search.api.model.parser.*;
 import com.grupozap.search.api.model.parser.FieldParser;
 import com.grupozap.search.api.model.parser.FilterParser;
 import com.grupozap.search.api.model.parser.NotParser;

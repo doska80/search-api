@@ -16,7 +16,7 @@ public class ResponseStreamTest {
 
   @Test
   public void shouldSuccessfulIterate() throws IOException {
-    OutputStream mockStream = mock(OutputStream.class);
+    var mockStream = mock(OutputStream.class);
 
     final String[][] data = {
       {"tincas", "urubu", "pizza"},
@@ -41,10 +41,10 @@ public class ResponseStreamTest {
         },
         String::getBytes);
 
-    int lineEndCallCount = 0;
-    int flushCallCount = 0;
-    for (String[] hits : data) {
-      for (String hit : hits) {
+    var lineEndCallCount = 0;
+    var flushCallCount = 0;
+    for (var hits : data) {
+      for (var hit : hits) {
         verify(mockStream, times(1)).write(hit.getBytes());
         ++lineEndCallCount;
       }

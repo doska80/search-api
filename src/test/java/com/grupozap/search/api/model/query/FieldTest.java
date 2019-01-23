@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.junit.Test;
 
 public class FieldTest {
@@ -24,10 +24,10 @@ public class FieldTest {
 
   @Test
   public void testValidSimpleField() {
-    LinkedMap names = new LinkedMap();
+    var names = new LinkedMap();
     names.put("a", "_obj");
 
-    Field field = new Field(names);
+    var field = new Field(names);
     assertFalse(field.isNot());
     assertEquals("a", field.firstName());
     assertEquals("a", field.getName());
@@ -39,10 +39,10 @@ public class FieldTest {
 
   @Test
   public void testValidSimpleFieldWithNot() {
-    LinkedMap names = new LinkedMap();
+    var names = new LinkedMap();
     names.put("z", "geo_point");
 
-    Field field = new Field(true, names);
+    var field = new Field(true, names);
     assertTrue(field.isNot());
     assertEquals("z", field.firstName());
     assertEquals("z", field.getName());
@@ -54,12 +54,12 @@ public class FieldTest {
 
   @Test
   public void testValidNestedField() {
-    LinkedMap names = new LinkedMap();
+    var names = new LinkedMap();
     names.put("a", "_obj");
     names.put("a.b", "nested");
     names.put("a.b.c", "geo_point");
 
-    Field field = new Field(names);
+    var field = new Field(names);
     assertFalse(field.isNot());
     Set<String> expectedGetNames =
         Stream.of("a", "a.b", "a.b.c").collect(toCollection(LinkedHashSet::new));
@@ -73,12 +73,12 @@ public class FieldTest {
 
   @Test
   public void testValidNestedFieldWithNot() {
-    LinkedMap names = new LinkedMap();
+    var names = new LinkedMap();
     names.put("x", "_obj");
     names.put("x.y", "nested");
     names.put("x.y.z", "geo_point");
 
-    Field field = new Field(true, names);
+    var field = new Field(true, names);
     Set<String> expectedGetNames =
         Stream.of("x", "x.y", "x.y.z").collect(toCollection(LinkedHashSet::new));
     assertTrue(field.isNot());

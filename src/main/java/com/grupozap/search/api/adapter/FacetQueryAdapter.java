@@ -5,7 +5,6 @@ import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTE
 import static com.grupozap.search.api.model.query.Facet._COUNT;
 import static com.grupozap.search.api.model.query.Facet._KEY;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.joining;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.nested;
 import static org.elasticsearch.search.aggregations.AggregationBuilders.terms;
 import static org.elasticsearch.search.aggregations.BucketOrder.count;
@@ -17,8 +16,6 @@ import com.grupozap.search.api.model.query.Item;
 import com.grupozap.search.api.model.query.OrderOperator;
 import com.grupozap.search.api.model.search.Facetable;
 import com.grupozap.search.api.service.parser.IndexSettings;
-import java.util.Optional;
-import java.util.Set;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregatorFactories.Builder;
 import org.elasticsearch.search.aggregations.BucketOrder;
@@ -43,15 +40,15 @@ public class FacetQueryAdapter {
   }
 
   public void apply(SearchSourceBuilder searchSourceBuilder, final Facetable request) {
-    Set<String> value = request.getFacets();
+    var value = request.getFacets();
     if (isEmpty(value)) return;
 
-    final String indexName = request.getIndex();
+    final var indexName = request.getIndex();
     request.setFacetingValues(ES_FACET_SIZE.getValue(indexName));
 
-    final int facetSize = request.getFacetSize();
+    final var facetSize = request.getFacetSize();
     facetParser
-        .parse(value.stream().collect(joining(",")))
+        .parse(String.join(",", value))
         .forEach(
             facet -> {
               AggregationBuilder agg =
@@ -69,14 +66,13 @@ public class FacetQueryAdapter {
 
   private void applyFacetsByNestedFields(
       SearchSourceBuilder searchSourceBuilder, final String name, final AggregationBuilder agg) {
-    Optional<AggregationBuilder> nestedAgg =
+    var nestedAgg =
         ofNullable(searchSourceBuilder)
             .map(SearchSourceBuilder::aggregations)
             .map(Builder::getAggregatorFactories)
             .flatMap(
                 aggregations ->
-                    aggregations
-                        .stream()
+                    aggregations.stream()
                         .filter(
                             aggregationBuilder ->
                                 aggregationBuilder instanceof NestedAggregationBuilder
@@ -88,7 +84,7 @@ public class FacetQueryAdapter {
   }
 
   private BucketOrder facetOrder(Item item) {
-    boolean isASC = item.getOrderOperator().equals(OrderOperator.ASC);
+    var isASC = item.getOrderOperator().equals(OrderOperator.ASC);
 
     switch (item.getField().getName()) {
       case _KEY:

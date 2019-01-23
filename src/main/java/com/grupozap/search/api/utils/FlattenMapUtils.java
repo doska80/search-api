@@ -25,8 +25,7 @@ public class FlattenMapUtils {
 
   public static Map<String, Object> flat(Map<String, Object> data, List<String> invalidFields) {
     FlattenMapUtils.invalidFields = invalidFields;
-    return data.entrySet()
-        .stream()
+    return data.entrySet().stream()
         .flatMap(e -> flatten(e, null))
         .collect(HashMap::new, (m, v) -> m.put(v.getKey(), v.getValue()), HashMap::putAll);
   }
@@ -36,9 +35,7 @@ public class FlattenMapUtils {
       Map.Entry<String, Object> entry, String key) {
     if (entry.getValue() instanceof Map)
       return ((Map<String, Object>) entry.getValue())
-          .entrySet()
-          .stream()
-          .flatMap(e -> flatten(e, keyValue.apply(entry, key)));
+          .entrySet().stream().flatMap(e -> flatten(e, keyValue.apply(entry, key)));
     return Stream.of(new AbstractMap.SimpleEntry<>(keyValue.apply(entry, key), entry.getValue()));
   }
 }

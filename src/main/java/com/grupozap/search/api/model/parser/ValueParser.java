@@ -1,6 +1,5 @@
 package com.grupozap.search.api.model.parser;
 
-import static java.lang.String.valueOf;
 import static org.jparsec.Parsers.*;
 import static org.jparsec.Scanners.*;
 
@@ -24,7 +23,7 @@ public class ValueParser {
 
   private final Parser<Value> stringParser =
       or(SINGLE_QUOTE_STRING, DOUBLE_QUOTE_STRING)
-          .map(s -> new Value(valueOf(s.replaceAll("\'", "").replaceAll("\"", "").trim())))
+          .map(s -> new Value(s.replaceAll("\'", "").replaceAll("\"", "").trim()))
           .label("string");
 
   private final Parser<Value> numberParser =

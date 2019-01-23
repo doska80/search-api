@@ -13,15 +13,13 @@ public class BaseApiRequest implements Fetchable {
   private String index;
 
   @ApiModelProperty(
-    value = "Fields that will be included in the result",
-    example = "field1, field2"
-  )
+      value = "Fields that will be included in the result",
+      example = "field1, field2")
   private Set<String> includeFields;
 
   @ApiModelProperty(
-    value = "Fields that will be excluded in the result",
-    example = "field1, field2"
-  )
+      value = "Fields that will be excluded in the result",
+      example = "field1, field2")
   private Set<String> excludeFields;
 
   public String getIndex() {

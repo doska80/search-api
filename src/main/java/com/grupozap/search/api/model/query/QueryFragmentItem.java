@@ -33,7 +33,7 @@ public class QueryFragmentItem implements QueryFragment {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    QueryFragmentItem item = (QueryFragmentItem) o;
+    var item = (QueryFragmentItem) o;
 
     return Objects.equal(this.filter, item.filter)
         && Objects.equal(this.logicalOperator, item.logicalOperator);
@@ -46,7 +46,7 @@ public class QueryFragmentItem implements QueryFragment {
 
   @Override
   public String toString() {
-    StringJoiner sj = new StringJoiner(" ");
+    var sj = new StringJoiner(" ");
     ofNullable(logicalOperator).map(LogicalOperator::toString).ifPresent(sj::add);
     sj.add(filter.toString());
     return sj.toString();
