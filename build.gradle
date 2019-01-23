@@ -267,8 +267,8 @@ if(!project.hasProperty('noDockerCompose')) {
     dockerCompose {
         useComposeFiles = ["${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose.yml"]
         stopContainers = true
-        removeContainers = false
-        removeVolumes = false
+        removeContainers = true
+        removeVolumes = true
         waitForTcpPorts = false
 
         environment.put 'ELASTICSEARCH_VERSION', ELASTICSEARCH_VERSION
