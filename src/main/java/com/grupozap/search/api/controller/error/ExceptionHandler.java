@@ -104,16 +104,18 @@ public class ExceptionHandler {
   }
 
   private HttpStatus getStatusCode(Throwable e, HttpServletRequest request) {
+    if (e != null) {
+      if (e.getCause() instanceof ElasticsearchStatusException) {
+        return HttpStatus.valueOf(
+            ((ElasticsearchStatusException) e.getCause()).status().getStatus());
+      }
 
-    if (e.getCause() instanceof ElasticsearchStatusException) {
-      return HttpStatus.valueOf(((ElasticsearchStatusException) e.getCause()).status().getStatus());
+      if (isBadRequestException(e)) return BAD_REQUEST;
+
+      if (e instanceof QueryTimeoutException
+          || getRootCause(e) instanceof TimeoutException
+          || getRootCause(e) instanceof QueryTimeoutException) return GATEWAY_TIMEOUT;
     }
-
-    if (isBadRequestException(e)) return BAD_REQUEST;
-
-    if (e instanceof QueryTimeoutException
-        || getRootCause(e) instanceof TimeoutException
-        || getRootCause(e) instanceof QueryTimeoutException) return GATEWAY_TIMEOUT;
 
     var statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
     if (statusCode != null) {
