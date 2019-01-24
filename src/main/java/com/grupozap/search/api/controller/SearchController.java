@@ -25,6 +25,8 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletResponse;
+import org.jparsec.error.ParserException;
+import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.MediaType;
@@ -41,7 +43,11 @@ import springfox.documentation.annotations.ApiIgnore;
 @Api("v2")
 @DefaultProperties(
     defaultFallback = "fallback",
-    ignoreExceptions = {IllegalArgumentException.class})
+    ignoreExceptions = {
+      IllegalArgumentException.class,
+      ParserException.class,
+      InvalidPropertyException.class
+    })
 public class SearchController {
 
   private static final BodyBuilder builderOK = ok();
