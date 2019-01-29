@@ -13,6 +13,7 @@ import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertTrue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
@@ -395,5 +396,70 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
                     .limit(defaultPageSize)
                     .map(String::valueOf)
                     .collect(toList())));
+  }
+
+  @Test
+  public void shouldApplyDefaultSortWhenClientNotInformItOnRequest() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?includeFields=numeric")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.numeric",
+            equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList())));
+  }
+
+  @Test
+  public void shouldNotApplySortWhenDisabledSortIsActivatedOnProperties() {
+    esIndexHandler.putStandardProperty("es.sort.disable", true);
+    esIndexHandler.addStandardProperties();
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?includeFields=numeric&sort=numeric ASC")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.numeric",
+            not(
+                equalTo(
+                    rangeClosed(1, defaultPageSize)
+                        .boxed()
+                        .map(String::valueOf)
+                        .collect(toList()))));
+  }
+
+  @Test
+  public void shouldNotApplySortWhenDisabledSortIsActivatedOnRequest() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?includeFields=numeric&sort=numeric ASC&disableSort=true")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.numeric",
+            not(equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList()))));
   }
 }

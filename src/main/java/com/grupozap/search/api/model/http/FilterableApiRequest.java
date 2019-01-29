@@ -48,9 +48,6 @@ public class FilterableApiRequest extends BaseApiRequest
       example = "field1 ASC, field2 DESC")
   private String sort;
 
-  @ApiModelProperty(value = "The sort id script stored on ES", example = "scores-a")
-  private String sortId;
-
   @ApiModelProperty("Disable sorting. If true, the \"sort\" is ignored")
   private Boolean disableSort;
 

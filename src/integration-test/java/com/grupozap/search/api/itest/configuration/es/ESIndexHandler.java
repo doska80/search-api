@@ -75,6 +75,7 @@ public class ESIndexHandler {
   public void setDefaultProperties() {
     putStandardProperty("es.default.size", size);
     putStandardProperty("es.default.sort", "numeric ASC");
+    putStandardProperty("es.sort.disable", false);
     putStandardProperty("es.query.timeout.unit", queryTimeoutUnit);
     putStandardProperty("es.query.timeout.value", queryTimeoutValue);
 
@@ -145,7 +146,7 @@ public class ESIndexHandler {
     return false;
   }
 
-  private void refreshIndex(String index) {
+  public void refreshIndex(String index) {
     try {
       restClient.performRequest(new Request("POST", index + "/_refresh"));
       MICROSECONDS.sleep(timeout);

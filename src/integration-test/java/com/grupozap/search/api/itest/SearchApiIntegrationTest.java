@@ -12,6 +12,7 @@ import com.grupozap.search.api.itest.configuration.data.StandardDatasetAsserts;
 import com.grupozap.search.api.itest.configuration.es.ESIndexHandler;
 import java.io.IOException;
 import javax.annotation.PostConstruct;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -57,6 +58,12 @@ public class SearchApiIntegrationTest {
         .statusCode(SC_OK)
         .when()
         .get("/forceClosed/true");
+  }
+
+  @After
+  public void setupAfter() {
+    esIndexHandler.setDefaultProperties();
+    esIndexHandler.addStandardProperties();
   }
 
   @PostConstruct

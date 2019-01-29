@@ -1,8 +1,11 @@
 package com.grupozap.search.api.adapter;
 
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_SCRIPT;
 import static com.newrelic.api.agent.NewRelic.incrementCounter;
+import static java.lang.Boolean.FALSE;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.script.Script.DEFAULT_SCRIPT_LANG;
@@ -55,9 +58,14 @@ public class SortQueryAdapter {
   }
 
   public void apply(SearchSourceBuilder searchSourceBuilder, final Sortable request) {
-    if (!isBlank(request.getSort())) {
+    if (FALSE.equals(ES_SORT_DISABLE.getValue(request.isDisableSort(), request.getIndex()))) {
       try {
-        sortParser.parse(request.getSort()).stream()
+        sortParser
+            .parse(
+                isBlank(request.getSort())
+                    ? ES_DEFAULT_SORT.getValue(null, request.getIndex())
+                    : request.getSort())
+            .stream()
             .map(item -> asFieldSortBuilder(item, request))
             .filter(Objects::nonNull)
             .forEach(searchSourceBuilder::sort);
