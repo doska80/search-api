@@ -1,8 +1,8 @@
-# Search API [![CircleCI](https://circleci.com/gh/GrupoZapVivaReal/search-api/tree/master.svg?&style=shield&circle-token=ba04762cae23d66aa73b715ef66562f0928dfafb)](https://circleci.com/gh/GrupoZapVivaReal/search-api/tree/master)
+# Search API [![CircleCI](https://circleci.com/gh/grupozap/search-api/tree/master.svg?&style=shield&circle-token=ba04762cae23d66aa73b715ef66562f0928dfafb)](https://circleci.com/gh/grupozap/search-api/tree/master)
 
 ![Search](src/main/resources/static/search.png "SearchAPI")
 
-The **SearchAPI** is a Web API that responsibles to interface our search engine. There is a main controller called [SearchController](src/main/java/com/vivareal/search/api/controller/SearchController.java) to searching documents. You can make queries using features such as filters, facets, sorts and much more. Please, see [API Reference](#api-reference) to more details.
+The **SearchAPI** is a Web API that responsibles to interface our search engine. There is a main controller called [SearchController](src/main/java/com/grupozap/search/api/controller/SearchController.java) to searching documents. You can make queries using features such as filters, facets, sorts and much more. Please, see [API Reference](#api-reference) to more details.
 
 To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolkit (incubating feature).
 
@@ -23,14 +23,14 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
 ## Application Checklist
 
 - [X] [API Docs](http://search-api.vivareal.com/swagger-ui.html)
-- [X] [CD](http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_PROD/build?delay=0sec)
-- [x] [CircleCI](https://circleci.com/gh/GrupoZapVivaReal/search-api)
+- [X] [CD](http://cd.vivareal.io/job/search/job/search-api/build?delay=0sec)
+- [x] [CircleCI](https://circleci.com/gh/grupozap/search-api)
 - [X] [Code Quality](https://sonarqube.vivareal.io/dashboard/index/14469)
 - [X] [DockerHub](https://hub.docker.com/r/vivareal/search-api/)
 - [X] Logs
-    - [X] [Graylog](http://logs-dash.vivareal.com/search?rangetype=relative&fields=message,source&width=1920&highlightMessage=&relative=7200&q=application:search-api)
-    - [X] [Sentry](https://sentry-logs.vivareal.com/vivareal/searchapi)
-- [X] [New Relic](https://rpm.newrelic.com/accounts/645240/applications/47165905)
+    - [X] [Graylog](http://dashboard.logs.vivareal.io/search?rangetype=relative&fields=message,source&width=1920&highlightMessage=&relative=7200&q=application:search-api)
+    - [X] [Sentry](http://sentry.tracking.private.prod.vivareal.io/vivareal/search-api/)
+- [X] [New Relic](https://rpm.newrelic.com/accounts/645240/applications/173367258)
 - [X] [Hystrix/Turbine](http://search-api.vivareal.com/hystrix/monitor?stream=search-api.vivareal.com/actuator/hystrix.stream)
 
 ## Setup
@@ -39,8 +39,8 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
 
 In order to build SearchAPI application you need to have:
 
-- JDK 1.8
-- Setup `JAVA_HOME` environment variables with path to JDK 1.8
+- JDK 11
+- Setup `JAVA_HOME` environment variables with path to JDK 11
 
 ### How to Build
 
@@ -50,7 +50,7 @@ To build this project, first time you try to build you need to run this:
 ./gradlew build
 ```
 
-This projects follow the [code-style](https://github.com/GrupoZapVivaReal/squad-search-ranking/blob/master/code-style/README.md) defined by the [squad-search-ranking](https://github.com/GrupoZapVivaReal/squad-search-ranking). Please check the documentation since the build cannot pass if the codebase does not follow this code-style.
+This projects follow the [code-style](https://github.com/grupozap/squad-search-ranking/blob/master/code-style/README.md) defined by the [squad-search-ranking](https://github.com/grupozap/squad-search-ranking). Please check the documentation since the build cannot pass if the codebase does not follow this code-style.
 
 #### Code style
 
@@ -94,7 +94,7 @@ When you run just `test` the integration tests **always** run together.
 ./gradlew integrationTest
 ```
 
-The `integration tests` are responsible to guarantees a SearchAPI fine integration to ElasticSearch. We are using [Docker Compose](https://github.com/GrupoZapVivaReal/search-api/blob/master/docker-compose.yml) to up Elasticsearch and SearchAPI Docker containers and run [SearchApiIntegrationTest](https://github.com/VivaReal/search-api/blob/master/src/integration-test/java/com/vivareal/search/api/itest/SearchApiIntegrationTest.java) class.
+The `integration tests` are responsible to guarantees a SearchAPI fine integration to ElasticSearch. We are using [Docker Compose](https://github.com/grupozap/search-api/blob/master/docker-compose.yml) to up Elasticsearch and SearchAPI Docker containers and run [SearchApiIntegrationTest](https://github.com/grupozap/search-api/blob/master/src/integration-test/java/com/vivareal/search/api/itest/SearchApiIntegrationTest.java) class.
 
 To skipping:
  - Integration tests just use `-x integrationTest` in your Gradle execution.
@@ -140,20 +140,17 @@ curl -X GET http://api/v2/listings<b>?filter=</b>field1 EQ 'value1' AND (field2 
 
 SearchAPI parses this query using different kind of parsers and generates an Abstract Syntax Tree with the query fragments. To explanation the query fragments, please see the image below:
 
-![QueryDSL](https://github.com/GrupoZapVivaReal/search-api/raw/master/src/main/resources/static/query-dsl.png "Query DSL")
+![QueryDSL](https://github.com/grupozap/search-api/raw/master/src/main/resources/static/query-dsl.png "Query DSL")
 
-You can see more details in [wiki](https://github.com/GrupoZapVivaReal/search-api/wiki).
+You can see more details in [wiki](https://github.com/grupozap/search-api/wiki).
 
 ## How to Deploy
 
-We are deploying SearchAPI with Amazon AWS using [El Asno Alado](https://github.com/GrupoZapVivaReal/el-asno-alado) project and the mainly file to configure deploy is a [Makefile](https://github.com/GrupoZapVivaReal/search-api/blob/master/Makefile) located in the project's root directory.
+The main file to configure deploy is [Makefile](https://github.com/grupozap/search-api/blob/master/Makefile) located in the project's root directory.
 
 First of all, you need to setup your AWS Credentials and sync git submodules:
 
 ```sh
-export AWS_ACCESS_KEY_ID=<YOUR_ACCESS_KEY>
-export AWS_SECRET_ACCESS_KEY=<YOUR_SECRET_KEY>
-
 git submodule init && git submodule update --init --recursive
 ```
 
@@ -164,8 +161,6 @@ After that you can simply run `make deploy` passing all required parameters to d
 ```sh
 make ENV=${ENV} \
      IMAGE_NAME=${IMAGE_NAME} \
-     STACK_ALIAS=${STACK_ALIAS} \
-     AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION} \
      ES_CLUSTER_NAME=${ES_CLUSTER_NAME} \
      deploy
 ```
@@ -174,15 +169,11 @@ make ENV=${ENV} \
 
 - `IMAGE_NAME` is a string with the image pushed to Dockerhub
 
-- `STACK_ALIAS` is a string used to name Cloudformation stack. If not present, the hash of the current commit will be used to identify the stack.
-
-- `AWS_DEFAULT_REGION` is a string with the AWS region to deploy. (Eg. `sa-east-1`)
-
-- `ES_CLUSTER_NAME` is a string with the current [ElasticSearch](https://github.com/VivaReal/search-es) cluster.
+- `ES_CLUSTER_NAME` is a string with the current [ElasticSearch](https://github.com/grupozap/search-es) cluster.
 
 ### Deploying from Jenkins
 
-<a href="http://jenkins.vivareal.com/view/SEARCH-API/job/SEARCH_API_V2_PROD/build?delay=0sec">
+<a href="http://cd.vivareal.io/job/search/job/search-api/build?delay=0sec">
   <img src="http://ftp-chi.osuosl.org/pub/jenkins/art/jenkins-logo/logo+title.svg" alt="Jenkins" width="150">
 </a>
 
@@ -190,7 +181,7 @@ make ENV=${ENV} \
 
 There is a `load-test` sub-project that responsible to execute load tests for **SearchAPI**.
 
-See [Load Test](https://github.com/GrupoZapVivaReal/load-test)
+See [Load Test](https://github.com/grupozap/load-test)
 
 ## Code Benchmark test
 
@@ -204,4 +195,4 @@ make benchmark
 
 ----
 
-Made with <a href="https://www.myinstants.com/media/sounds/i-will-always-love-you-low.mp3">&#9829;</a> by the VivaReal's engineering team.
+Made with <a href="https://www.myinstants.com/media/sounds/i-will-always-love-you-low.mp3">&#9829;</a> by the grupozap's engineering team.

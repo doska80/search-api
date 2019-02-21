@@ -1,6 +1,4 @@
-[submodule "el-asno-alado"]
-	path = el-asno-alado
-	url = git@github.com:grupozap/el-asno-alado.git
 [submodule "make"]
 	path = make
 	url = git@github.com:grupozap/make-snippets.git
+	branch = master

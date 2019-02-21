@@ -10,7 +10,7 @@
 
     <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">
         <dsn>
-            http://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry-logs.vivareal.com/64?options
+            http://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry.tracking.private.prod.vivareal.io/64?options
         </dsn>
         <tags>environment:${environment},version:${version},cluster:${es.cluster.name},server:${java.rmi.server.hostname}</tags>
         <ravenFactory>com.getsentry.raven.DefaultRavenFactory</ravenFactory>
@@ -25,14 +25,7 @@
         </filter>
     </appender>
 
-    <appender name="GELF" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/${application}.log</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${application}.%d{yyyy-MM-dd}-%i.log</fileNamePattern>
-            <maxFileSize>10MB</maxFileSize>
-            <maxHistory>7</maxHistory>
-            <totalSizeCap>1GB</totalSizeCap>
-        </rollingPolicy>
+    <appender name="GELF" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <fieldNames>
                 <levelValue>level</levelValue>

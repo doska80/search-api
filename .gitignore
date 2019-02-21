@@ -36,3 +36,6 @@ deploy/variables/user-data.sh
 load-test/deploy/k8s/dist/*
 
 search-api.iml
+
+# Make Snippets k8s dist
+deploy/k8s/dist/

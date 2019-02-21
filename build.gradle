@@ -34,10 +34,10 @@ apply plugin: 'com.github.ben-manes.versions'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: "me.champeau.gradle.jmh"
 
-group = 'com.vivareal.search'
+group = 'com.grupozap.search'
 
 ext {
-    artifactName = project.hasProperty('artifactName') ? artifactName : 'vivareal-search-api-SNAPSHOT.jar'
+    artifactName = project.hasProperty('artifactName') ? artifactName : 'grupozap-search-api-SNAPSHOT.jar'
 }
 
 eclipse {
@@ -67,7 +67,7 @@ spotless {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'VivaReal Search API v2', 'Implementation-Version': artifactName
+        attributes 'Implementation-Title': 'grupozap Search API v2', 'Implementation-Version': artifactName
     }
 }
 
@@ -107,6 +107,9 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
     compile 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+
+    compile 'io.micrometer:micrometer-core'
+    compile 'io.micrometer:micrometer-registry-prometheus'
 
     compile 'org.elasticsearch:elasticsearch:' + ELASTICSEARCH_VERSION
     compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client:' + ELASTICSEARCH_VERSION
@@ -178,7 +181,7 @@ bootJar.finalizedBy copyJarForDockerCompose
 
 sonarqube {
     properties {
-        property "sonar.projectKey", "br.com.vivareal:search-api"
+        property "sonar.projectKey", "com.grupozap:search-api"
         property "sonar.projectName", "search-api"
         property "sonar.scm.provider", "git"
         property "sonar.host.url", "http://sonarqube.vivareal.io/"

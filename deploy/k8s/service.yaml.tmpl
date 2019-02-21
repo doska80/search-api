@@ -1,0 +1,25 @@
+# Service - generic
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${APP}
+  namespace: search
+  labels:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "8482"
+    prometheus.io/scrape: "true"
+spec:
+  ports:
+    - port: 80
+      name: http
+      targetPort: 8482
+  selector:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+    deploy-group: live
+  type: ClusterIP

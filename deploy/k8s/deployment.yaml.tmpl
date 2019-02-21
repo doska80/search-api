@@ -1,0 +1,261 @@
+# Deployment - On Demand
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${DEPLOY_NAME}-ondemand
+  namespace: search
+  labels:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+    cluster: ${ES_CLUSTER_NAME}
+    deploy: ${DEPLOY_NAME}
+    version: ${VERSION}
+    tier: ondemand
+    deploy-group: ${DEPLOY_GROUP}
+spec:
+  selector:
+    matchLabels:
+      app: ${APP}
+      process: ${PROCESS}
+      product: ${PRODUCT}
+      cluster: ${ES_CLUSTER_NAME}
+      deploy: ${DEPLOY_NAME}
+      version: ${VERSION}
+      tier: ondemand
+      deploy-group: ${DEPLOY_GROUP}
+  replicas: ${ONDEMAND_REPLICAS}
+  progressDeadlineSeconds: 600
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: ${MAX_SURGE}
+  template:
+    metadata:
+      labels:
+        app: ${APP}
+        process: ${PROCESS}
+        product: ${PRODUCT}
+        cluster: ${ES_CLUSTER_NAME}
+        deploy: ${DEPLOY_NAME}
+        version: ${VERSION}
+        tier: ondemand
+        deploy-group: ${DEPLOY_GROUP}
+    spec:
+      nodeSelector:
+        role.vivareal.io/ondemand: "true"
+        beta.kubernetes.io/instance-type: c5.xlarge
+      tolerations:
+      - effect: PreferNoSchedule
+        key: role.vivareal.io/ondemand
+        value: "true"
+      containers:
+        - name: search-api-container
+          image: ${IMAGE_NAME}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: ${ENV}
+            - name: JAVA_OPTS
+              value: ${RUN_OPTS}
+          ports:
+            - containerPort: 8482
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 1
+              memory: ${RUN_MEMORY}Mi
+            limits:
+              cpu: 2
+              memory: ${RUN_MEMORY}Mi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8482
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 6
+            timeoutSeconds: 2
+          readinessProbe:
+            httpGet:
+              path: /v2/listings?size=0
+              port: 8482
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 6
+            timeoutSeconds: 2
+---
+# Deployment - Spot
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${DEPLOY_NAME}-spot
+  namespace: search
+  labels:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+    cluster: ${ES_CLUSTER_NAME}
+    deploy: ${DEPLOY_NAME}
+    version: ${VERSION}
+    tier: spot
+    deploy-group: ${DEPLOY_GROUP}
+spec:
+  selector:
+    matchLabels:
+      app: ${APP}
+      process: ${PROCESS}
+      product: ${PRODUCT}
+      cluster: ${ES_CLUSTER_NAME}
+      deploy: ${DEPLOY_NAME}
+      version: ${VERSION}
+      tier: spot
+      deploy-group: ${DEPLOY_GROUP}
+  replicas: ${SPOT_REPLICAS}
+  progressDeadlineSeconds: 600
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: ${MAX_SURGE}
+  template:
+    metadata:
+      labels:
+        app: ${APP}
+        process: ${PROCESS}
+        product: ${PRODUCT}
+        cluster: ${ES_CLUSTER_NAME}
+        deploy: ${DEPLOY_NAME}
+        version: ${VERSION}
+        tier: spot
+        deploy-group: ${DEPLOY_GROUP}
+    spec:
+      nodeSelector:
+        beta.kubernetes.io/instance-type: c5.xlarge
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: deploy
+                operator: In
+                values:
+                - ${DEPLOY_NAME}
+            topologyKey: kubernetes.io/hostname
+      containers:
+        - name: search-api-container
+          image: ${IMAGE_NAME}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: ${ENV}
+            - name: JAVA_OPTS
+              value: ${RUN_OPTS}
+          ports:
+            - containerPort: 8482
+              protocol: TCP
+          resources:
+            requests:
+              cpu: 1
+              memory: ${RUN_MEMORY}Mi
+            limits:
+              cpu: 2
+              memory: ${RUN_MEMORY}Mi
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8482
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 6
+            timeoutSeconds: 2
+          readinessProbe:
+            httpGet:
+              path: /v2/listings?size=0
+              port: 8482
+            initialDelaySeconds: 60
+            periodSeconds: 15
+            failureThreshold: 6
+            timeoutSeconds: 2
+---
+# HPA
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ${DEPLOY_NAME}-spot
+  namespace: search
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ${DEPLOY_NAME}-spot
+  minReplicas: ${MIN_SPOT_REPLICAS}
+  maxReplicas: ${MAX_SPOT_REPLICAS}
+  targetCPUUtilizationPercentage: 70
+---
+# PDB
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: ${DEPLOY_NAME}
+  namespace: search
+spec:
+  selector:
+    matchLabels:
+      app: ${APP}
+      process: ${PROCESS}
+      product: ${PRODUCT}
+      deploy: ${DEPLOY_NAME}
+  minAvailable: 50%
+---
+# Service - Deploy specific
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${DEPLOY_NAME}
+  namespace: search
+  labels:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+    cluster: ${ES_CLUSTER_NAME}
+    deploy: ${DEPLOY_NAME}
+  annotations:
+    prometheus.io/path: "/actuator/prometheus"
+    prometheus.io/port: "8482"
+    prometheus.io/scrape: "true"
+spec:
+  ports:
+    - port: 80
+      name: http
+      targetPort: 8482
+  selector:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+    cluster: ${ES_CLUSTER_NAME}
+    deploy: ${DEPLOY_NAME}
+  type: ClusterIP
+---
+# Ingress - Deploy specific
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ${DEPLOY_NAME}
+  namespace: search
+  labels:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+    cluster: ${ES_CLUSTER_NAME}
+    deploy: ${DEPLOY_NAME}
+  annotations:
+    kubernetes.io/ingress.class: "private"
+spec:
+  rules:
+    - host: api.search.${DEPLOY_NAME}.private.${ENV}.grupozap.io
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: ${DEPLOY_NAME}
+              servicePort: 80

@@ -7,8 +7,6 @@ PROCESS:=api
 PRODUCT:=search
 include make/pro/Makefile
 
-AWS_DEFAULT_REGION?=us-east-1
-
 NEWRELIC_ENABLED?=false
 
 ENV:=dev
@@ -26,12 +24,12 @@ LOG:=/var/log/$(CONTAINER_NAME)
 CONTAINER_LOG:=/logs
 include make/log/Makefile
 
-RUN_MEMORY:=$(if $(filter prod,$(ENV)),3500,900)
+RUN_MEMORY:=$(if $(filter prod,$(ENV)),2000,1000)
 PORT:=8482
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
-RUN_OPTS+=-server -XX:+PrintFlagsFinal
-RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) \* 5 / 10)m -Xms$(shell expr $(RUN_MEMORY) \* 5 / 10)m
+RUN_OPTS+=-server -XX:+PrintFlagsFinal -Xss256k
+RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 256)m -Xms$(shell expr $(RUN_MEMORY) - 256)m
 RUN_OPTS+=-Dnewrelic.config.agent_enabled=$(NEWRELIC_ENABLED)
 RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
 
@@ -48,41 +46,54 @@ RUN_CMD= docker run \
 		$(REMOVE_CONTAINER_FLAG) --name $(CONTAINER_NAME) \
 		$(DAEMON_FLAG) -m $(RUN_MEMORY)M -ti $(IMAGE_NAME)
 
-run: log es_cluster_name aws_default_region image
+run: log check-es_cluster_name image
 	$(shell echo $(RUN_CMD))
 
-EXTRA_USER_DATA=
-
-ifeq ($(ENV),prod)
-	override EXTRA_USER_DATA+=docker run -d --name=filebeat \
-		-e APPLICATION="$(PROJECT_NAME)" \
-		-e ENV="$(ENV)" \
-		-e INSTANCEID='$$(/usr/bin/curl -s --connect-timeout 2 curl http://169.254.169.254/latest/meta-data/local-ipv4)' \
-		-e LOGSTASH_HOST="$(LOGSTASH_HOST)" \
-		-e LOGSTASH_PORT="5044" \
-		-e PROCESS="$(PROCESS)" \
-		-e PRODUCT="$(PRODUCT)" \
-		-v /var/lib/docker/containers:/var/lib/docker/containers \
-		--log-opt max-size=200m \
-		vivareal/docker-filebeat:v1.4.2
+MAX_SURGE:=1
+ifeq ($(ONDEMAND_REPLICAS),)
+	override ONDEMAND_REPLICAS:=$(if $(filter prod,$(ENV)),2,0)
 endif
+ifeq ($(SPOT_REPLICAS),)
+	override SPOT_REPLICAS:=$(if $(filter prod,$(ENV)),2,1)
+endif
+MIN_SPOT_REPLICAS:=$(SPOT_REPLICAS)
+MAX_SPOT_REPLICAS:=10
+ifeq ($(FRIENDLY_DNS),)
+	override FRIENDLY_DNS:=$(if $(filter prod,$(ENV)),,$(ENV)-)$(PROJECT_NAME).grupozap.io
+endif
+ifeq ($(LEGACY_FRIENDLY_DNS),)
+	override LEGACY_FRIENDLY_DNS:=$(if $(filter prod,$(ENV)),,$(ENV)-)$(PROJECT_NAME).vivareal.com
+endif
+DEPLOY_GROUP:=test
+APP?=$(PROJECT_NAME)
 
-user-data-setup:
-include make/usr/Makefile
+EXTRA_K8S_ARGS?=RUN_MEMORY=$(RUN_MEMORY) APP=$(APP) PROCESS=$(PROCESS) PRODUCT=$(PRODUCT) ES_CLUSTER_NAME=$(ES_CLUSTER_NAME) DEPLOY_GROUP=$(DEPLOY_GROUP) MAX_SURGE=$(MAX_SURGE) ONDEMAND_REPLICAS=$(ONDEMAND_REPLICAS) SPOT_REPLICAS=$(SPOT_REPLICAS) MIN_SPOT_REPLICAS=$(MIN_SPOT_REPLICAS) MAX_SPOT_REPLICAS=$(MAX_SPOT_REPLICAS) FRIENDLY_DNS=$(FRIENDLY_DNS) LEGACY_FRIENDLY_DNS=$(LEGACY_FRIENDLY_DNS)
+ifeq ($(STACK_ALIAS),)
+	override STACK_ALIAS?=$(COMMIT_HASH)
+endif
+DEPLOY_NAME?=$(PROJECT_NAME)-$(ES_CLUSTER_NAME)-$(STACK_ALIAS)
+include make/k8s/Makefile
 
-VARIABLES?=$(ENV)
-REGION_VARIABLES?=$(AWS_DEFAULT_REGION)/$(ENV)
-TEMPLATE?=$(if $(filter prod,$(ENV)),asg-with-double-elb,simple-asg-with-elb)
-STACK_ALIAS?=$(COMMIT_HASH)
-STACK_NAME?=$(ENV)-search-$(PROJECT_NAME)-$(STACK_ALIAS)
-DEPLOY_NAME?=$(STACK_NAME)
-stack-variables-setup: user-data
-include make/asn/Makefile
+deploy: check-es_cluster_name deploy-k8s check-deploy-with-rollback
+deploy-full: check-es_cluster_name deploy-full-k8s check-deploy-with-rollback
+SLK_DEPLOY_URL=https://dashboard.k8s.$(if $(filter prod,$(ENV)),,qa.)vivareal.io/#!/deployment/$(K8S_NAMESPACE)/$(DEPLOY_NAME)?namespace=$(K8S_NAMESPACE)
 
-deploy: aws_default_region es_cluster_name deploy-stack set-cfn-stack-id
-SLK_DEPLOY_URL=https://console.aws.amazon.com/cloudformation/home?region=$(AWS_DEFAULT_REGION)\#/stack/detail?stackId=$(CFN_STACK_ID)
+check-deploy-with-rollback:
+	$(KUBECTL_CMD) rollout status deployment.v1.apps/$(DEPLOY_NAME)-ondemand || { \
+	$(KUBECTL_CMD) get ev | grep $(DEPLOY_NAME)-ondemand ; \
+	$(KUBECTL_CMD) rollout undo deployment.v1.apps/$(DEPLOY_NAME)-ondemand; exit 1; } \
+	&& \
+	$(KUBECTL_CMD) rollout status deployment.v1.apps/$(DEPLOY_NAME)-spot || { \
+	$(KUBECTL_CMD) get ev | grep $(DEPLOY_NAME)-spot ; \
+	$(KUBECTL_CMD) rollout undo deployment.v1.apps/$(DEPLOY_NAME)-spot; exit 1; }
 
-teardown: destroy-stack
+teardown:
+	$(KUBECTL_CMD) delete deploy ${DEPLOY_NAME}-ondemand && \
+	$(KUBECTL_CMD) delete deploy ${DEPLOY_NAME}-spot && \
+	$(KUBECTL_CMD) delete hpa ${DEPLOY_NAME}-spot && \
+	$(KUBECTL_CMD) delete pdb ${DEPLOY_NAME} && \
+	$(KUBECTL_CMD) delete service ${DEPLOY_NAME} && \
+	$(KUBECTL_CMD) delete ingress ${DEPLOY_NAME}
 
 # Notifications config
 SLK_CHANNEL=alerts-search-ranking
@@ -94,11 +105,13 @@ push-with-notification: push notify-success-build
 
 deploy-with-notification: deploy notify-success-deploy
 
-aws_default_region:
-	$(if $(value AWS_DEFAULT_REGION),,$(error "AWS_DEFAULT_REGION is required for Makefile"))
+teardown-with-notification: teardown notify-success-teardown
 
-es_cluster_name:
+check-es_cluster_name-arg:
 	$(if $(value ES_CLUSTER_NAME),,$(error "ES_CLUSTER_NAME is required for Makefile"))
+
+check-es_cluster_name: check-es_cluster_name-arg
+	curl -s -f "http://$(ENV)-search-es-api-$(ES_CLUSTER_NAME).vivareal.com:9200" || (echo "Unable to find ES cluster '$(ES_CLUSTER_NAME)'"; exit 1)
 
 benchmark:
 	./gradlew clean jmh --no-daemon

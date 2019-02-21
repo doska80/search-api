@@ -1,0 +1,28 @@
+# Ingress - Generic
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ${APP}
+  namespace: search
+  labels:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+  annotations:
+    kubernetes.io/ingress.class: "private"
+spec:
+  rules:
+    - host: ${FRIENDLY_DNS}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: ${APP}
+              servicePort: 80
+    - host: ${LEGACY_FRIENDLY_DNS}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: ${APP}
+              servicePort: 80
