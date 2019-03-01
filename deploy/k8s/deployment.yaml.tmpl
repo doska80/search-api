@@ -45,7 +45,6 @@ spec:
     spec:
       nodeSelector:
         role.vivareal.io/ondemand: "true"
-        beta.kubernetes.io/instance-type: c5.xlarge
       tolerations:
       - effect: PreferNoSchedule
         key: role.vivareal.io/ondemand
@@ -129,9 +128,6 @@ spec:
         version: ${VERSION}
         tier: spot
         deploy-group: ${DEPLOY_GROUP}
-    spec:
-      nodeSelector:
-        beta.kubernetes.io/instance-type: c5.xlarge
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
