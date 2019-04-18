@@ -13,8 +13,7 @@ import com.grupozap.search.api.exception.QueryTimeoutException;
 import com.grupozap.search.api.model.http.BaseApiRequest;
 import com.grupozap.search.api.model.http.FilterableApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
-import com.newrelic.api.agent.NewRelic;
-import com.newrelic.api.agent.Trace;
+import datadog.trace.api.Trace;
 import java.io.OutputStream;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.get.GetRequest;
@@ -90,6 +89,5 @@ public class SearchService {
 
     elasticSearch.stream(request, stream);
 
-    if ((nanoTime() - startTime) > FILTER_THRESHOLD) NewRelic.ignoreTransaction();
   }
 }

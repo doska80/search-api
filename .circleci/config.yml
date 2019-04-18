@@ -35,7 +35,7 @@ jobs:
 
       - run:
           name: Building image and running tests
-          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make GRADLE_EXTRA_ARGS="-PnewRelicKey=$NEW_RELIC_KEY" build
+          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH build
 
       - save_cache:
           key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
@@ -72,7 +72,7 @@ jobs:
 
       - run:
           name: Pushing image and sending notification to Slack
-          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test -PnewRelicKey=$NEW_RELIC_KEY" push-with-notification
+          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test" push-with-notification
 
 workflows:
   version: 2

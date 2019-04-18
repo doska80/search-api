@@ -11,7 +11,7 @@ import com.grupozap.search.api.model.http.FilterableApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
 import com.grupozap.search.api.model.parser.QueryParser;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
-import com.newrelic.api.agent.Trace;
+import datadog.trace.api.Trace;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;

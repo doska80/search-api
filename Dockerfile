@@ -2,8 +2,7 @@ FROM openjdk:11-jdk-slim
 
 ARG ARTIFACT
 
-COPY build/libs/newrelic.jar /usr/local/
-COPY build/resources/main/newrelic.yml /usr/local/
+COPY build/libs/datadog.jar /usr/local/
 COPY $ARTIFACT /usr/local/search-api.jar
 
 EXPOSE 8482

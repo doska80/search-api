@@ -4,10 +4,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static org.springframework.http.HttpStatus.*;
 import static springfox.documentation.builders.PathSelectors.regex;
 
-import com.grupozap.search.api.configuration.NewRelicTransactionFilter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cloud.netflix.hystrix.EnableHystrix;
 import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
 import org.springframework.cloud.netflix.turbine.EnableTurbine;
@@ -40,14 +38,6 @@ public class SearchAPI implements WebMvcConfigurer {
 
   public static void main(String[] args) {
     SpringApplication.run(SearchAPI.class, args);
-  }
-
-  @Bean
-  public FilterRegistrationBean newRelicFilter() {
-    final var registrationBean = new FilterRegistrationBean(new NewRelicTransactionFilter());
-    registrationBean.addUrlPatterns("/*");
-
-    return registrationBean;
   }
 
   @Bean

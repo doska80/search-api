@@ -7,8 +7,6 @@ PROCESS:=api
 PRODUCT:=search
 include make/pro/Makefile
 
-NEWRELIC_ENABLED?=false
-
 ENV:=dev
 include make/env/Makefile
 
@@ -30,8 +28,9 @@ PORT:=8482
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 RUN_OPTS+=-server -XX:+PrintFlagsFinal -Xss256k
 RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 256)m -Xms$(shell expr $(RUN_MEMORY) - 256)m
-RUN_OPTS+=-Dnewrelic.config.agent_enabled=$(NEWRELIC_ENABLED)
-RUN_OPTS+=-javaagent:/usr/local/newrelic.jar
+RUN_OPTS+=-javaagent:/usr/local/datadog.jar
+RUN_OPTS+=-Ddd.service.name=search-api
+RUN_OPTS+=-Ddd.jmxfetch.enabled=true
 
 # Elasticsearch
 RUN_OPTS+=-Des.hostname=$(ES_HOSTNAME)

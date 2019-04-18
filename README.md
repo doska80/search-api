@@ -30,7 +30,7 @@ To generating a client, we can use [Haxe](https://haxe.org) cross-platform toolk
 - [X] Logs
     - [X] [Graylog](http://dashboard.logs.vivareal.io/search?rangetype=relative&fields=message,source&width=1920&highlightMessage=&relative=7200&q=application:search-api)
     - [X] [Sentry](http://sentry.tracking.private.prod.vivareal.io/vivareal/search-api/)
-- [X] [New Relic](https://rpm.newrelic.com/accounts/645240/applications/173367258)
+- [X] [DataDog](https://app.datadoghq.com/apm/service/search-api/)
 - [X] [Hystrix/Turbine](http://search-api.vivareal.com/hystrix/monitor?stream=search-api.vivareal.com/actuator/hystrix.stream)
 
 ## Setup

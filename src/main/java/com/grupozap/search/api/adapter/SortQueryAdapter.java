@@ -4,7 +4,6 @@ import static com.grupozap.search.api.configuration.environment.RemoteProperties
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_SCRIPT;
-import static com.newrelic.api.agent.NewRelic.incrementCounter;
 import static java.lang.Boolean.FALSE;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -38,8 +37,6 @@ public class SortQueryAdapter {
 
   private static final Logger LOG = LoggerFactory.getLogger(SortQueryAdapter.class);
 
-  private static final String NEW_RELIC_SORT_ERROR = "Custom/SearchAPI/v2/count/sort/error";
-
   private final SortParser sortParser;
   private final FilterQueryAdapter filterQueryAdapter;
   private final ScriptRemotePropertiesListener scriptRemotePropertiesListener;
@@ -72,7 +69,6 @@ public class SortQueryAdapter {
       } catch (ParserException | InvalidFieldException e) {
         if (isInvalidFieldException(e)) {
           LOG.warn(e.getMessage());
-          incrementCounter(NEW_RELIC_SORT_ERROR);
         } else {
           throw e;
         }
