@@ -10,7 +10,7 @@
 
     <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">
         <dsn>
-            https://513d1511fc2b468dbbac3eb376e927ce@sentry.tracking.private.prod.vivareal.io/64?options
+            https://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry.tracking.private.prod.vivareal.io/64?options
         </dsn>
         <tags>environment:${environment},version:${version},cluster:${es.cluster.name},server:${java.rmi.server.hostname}</tags>
         <ravenFactory>com.getsentry.raven.DefaultRavenFactory</ravenFactory>
