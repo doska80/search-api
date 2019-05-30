@@ -88,6 +88,5 @@ public class SearchService {
     if (request.getSort() == null) request.setDisableSort(true);
 
     elasticSearch.stream(request, stream);
-
   }
 }
