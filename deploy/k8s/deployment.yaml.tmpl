@@ -43,16 +43,12 @@ spec:
         tier: ondemand
         deploy-group: ${DEPLOY_GROUP}
     spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: deploy
-                operator: In
-                values:
-                - ${DEPLOY_NAME}
-            topologyKey: kubernetes.io/hostname
+      nodeSelector:
+        role.vivareal.io/ondemand: "true"
+      tolerations:
+      - effect: PreferNoSchedule
+        key: role.vivareal.io/ondemand
+        value: "true"
       containers:
         - name: search-api-container
           image: ${IMAGE_NAME}
@@ -137,6 +133,16 @@ spec:
         tier: spot
         deploy-group: ${DEPLOY_GROUP}
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: deploy
+                operator: In
+                values:
+                - ${DEPLOY_NAME}
+            topologyKey: kubernetes.io/hostname
       containers:
         - name: search-api-container
           image: ${IMAGE_NAME}
