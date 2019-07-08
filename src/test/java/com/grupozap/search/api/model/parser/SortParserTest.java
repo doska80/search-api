@@ -85,6 +85,12 @@ public class SortParserTest {
     assertEquals("field3 DESC", items.get(2).toString());
   }
 
+  @Test
+  public void testFieldWithAlias() {
+    var sort = sortParser.parse("field_before_alias ASC");
+    assertEquals("field_after_alias ASC", sort.toString());
+  }
+
   /** ********************** Sort Filter ********************** */
   @Test
   public void testSingleWithSortFilter() {

@@ -462,4 +462,49 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
             "result.testdata.numeric",
             not(equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList()))));
   }
+
+  @Test
+  public void validateSortWithFieldAlias() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?sort=field_before_alias ASC")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.id",
+            equalTo(
+                rangeClosed(1, defaultPageSize).boxed().map(String::valueOf).collect(toList())));
+  }
+
+  @Test
+  public void validateSortByProximityWithFieldAlias() {
+    List<Float> expectedLat = new ArrayList<>();
+    List<Float> expectedLon = new ArrayList<>();
+    for (int i = standardDatasetSize; i > standardDatasetSize - defaultPageSize; i--) {
+      expectedLat.add(latitude(i));
+      expectedLon.add(longitude(i));
+    }
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?sort=field_geo_before_alias NEAR [30.0, -30.0]", TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body("result.testdata.field_geo_after_alias.lat", equalTo(expectedLat))
+        .body("result.testdata.field_geo_after_alias.lon", equalTo(expectedLon));
+  }
 }

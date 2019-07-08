@@ -21,6 +21,7 @@ public enum RemoteProperties {
   FILTER_DEFAULT_CLAUSES("filter.default.clauses", AS_SET),
   SCORE_FACTOR_FIELD("score.factor.field"),
   SCORE_FACTOR_MODIFIER("score.factor.modifier"),
+  ES_ALIAS("es.alias"),
   ES_HOSTNAME("es.hostname"),
   ES_REST_PORT("es.rest.port"),
   ES_CLUSTER_NAME("es.cluster.name"),

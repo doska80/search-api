@@ -7,6 +7,7 @@ import com.grupozap.search.api.model.parser.OperatorParser;
 import com.grupozap.search.api.model.parser.QueryParser;
 import com.grupozap.search.api.model.parser.ValueParser;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
+import com.grupozap.search.api.service.parser.factory.SearchAlias;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,8 +18,9 @@ public class QueryParserConfiguration {
 
   @Bean("fieldParser")
   @Primary
-  public FieldParser fieldParserUsingFactory(NotParser notParser, FieldCache fieldCache) {
-    return new FieldParser(notParser, fieldCache);
+  public FieldParser fieldParserUsingFactory(
+      NotParser notParser, SearchAlias searchAlias, FieldCache fieldCache) {
+    return new FieldParser(notParser, searchAlias, fieldCache);
   }
 
   @Bean("filterParser")

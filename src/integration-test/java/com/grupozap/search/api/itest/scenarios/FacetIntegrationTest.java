@@ -254,4 +254,24 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
     assertNotNull(facets);
     assertEquals("{\"A\":18,\"B\":12}", facets.get("facetString").toString());
   }
+
+  @Test
+  public void validateFacetFieldWithAlias() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?facets=field_before_alias")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body("result.testdata", everyItem(notNullValue()))
+        .body("result.facets", notNullValue())
+        .body(
+            "result.facets.field_after_alias.findAll { it.value == 1 }.size()", equalTo(facetSize));
+  }
 }

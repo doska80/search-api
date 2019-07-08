@@ -139,4 +139,14 @@ public class QueryParserTest {
         String.join(" AND ", Collections.nCopies(QueryFragment.MAX_FRAGMENTS + 1, "field:1"));
     queryParser.parse(query);
   }
+
+  @Test
+  public void testMultipleFieldsWithAndWithoutAlias() {
+    var query =
+        queryParser.parse(
+            "field_before_alias EQ 'value1' AND field2 NE 'value2' OR field3 GT 123 AND field4 NE 42");
+    assertEquals(
+        "(field_after_alias EQUAL \"value1\" AND field2 DIFFERENT \"value2\" OR field3 GREATER 123 AND field4 DIFFERENT 42)",
+        query.toString());
+  }
 }

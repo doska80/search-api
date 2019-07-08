@@ -1369,4 +1369,68 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .when()
         .get(format("%s?filter=geo POLYGON [[0.0,0.0],[0.0,3.0]]", TEST_DATA_INDEX));
   }
+
+  @Test
+  public void validateSearchUsingPolygonWithFieldAlias() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(
+            format(
+                "%s?filter=field_geo_before_alias POLYGON [[0.0,0.0],[0.0,3.0],[3.0,-3.0],[-3.0,0.0]]",
+                TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(2))
+        .body(
+            "result.testdata.numeric.sort()", equalTo(rangeClosed(1, 2).boxed().collect(toList())));
+  }
+
+  @Test
+  public void validateFilterFieldWithAliasAndWithoutAlias() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?filter=isEven EQ true AND field_before_alias:10")
+        .then()
+        .body("totalCount", equalTo(1))
+        .body("result.testdata[0].id", equalTo("10"));
+  }
+
+  @Test
+  public void responseBadRequestWhenSearchAnExistingDocumentByFieldWithAliasWithInclude() {
+    var id = standardDatasetSize / 2;
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s/%s?includeFields=field_before_alias", TEST_DATA_INDEX, id));
+  }
+
+  @Test
+  public void responseBadRequestWhenSearchAnExistingDocumentByFieldWithAliasWithExclude() {
+    var id = standardDatasetSize / 3;
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(format("%s/%s?excludeFields=field_before_alias", TEST_DATA_INDEX, id));
+  }
 }

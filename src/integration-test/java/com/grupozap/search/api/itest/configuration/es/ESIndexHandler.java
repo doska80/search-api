@@ -90,6 +90,14 @@ public class ESIndexHandler {
     script.put("params", params);
 
     putStandardProperty("es.scripts", newArrayList(script));
+
+    Map<String, Object> searchAliases = new HashMap<>();
+    Map<String, Object> fieldAliases =
+        Map.of(
+            "field_before_alias", "field_after_alias",
+            "field_geo_before_alias", "field_geo_after_alias");
+    searchAliases.put("fields", fieldAliases);
+    putStandardProperty("es.alias", searchAliases);
   }
 
   public void addStandardProperties() {

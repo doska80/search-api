@@ -8,6 +8,7 @@ import static org.jparsec.Scanners.isChar;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
 import com.grupozap.search.api.service.parser.factory.FieldFactory;
+import com.grupozap.search.api.service.parser.factory.SearchAlias;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.jparsec.Parser;
@@ -18,15 +19,16 @@ public class FieldParser {
   private final Parser<Field> fieldParserWithNot;
 
   public FieldParser(NotParser notParser) {
-    this(notParser, FieldFactory::createField, FieldFactory::createField);
+    this(notParser, fieldName -> fieldName, FieldFactory::createField, FieldFactory::createField);
   }
 
-  public FieldParser(NotParser notParser, FieldCache fieldCache) {
-    this(notParser, fieldCache::getField, FieldFactory::createField);
+  public FieldParser(NotParser notParser, SearchAlias searchAlias, FieldCache fieldCache) {
+    this(notParser, searchAlias::getFieldAlias, fieldCache::getField, FieldFactory::createField);
   }
 
   private FieldParser(
       NotParser notParser,
+      Function<String, String> aliasField,
       Function<String, Field> createField,
       BiFunction<Boolean, Field, Field> createFieldWithNot) {
     fieldParser =
@@ -34,6 +36,7 @@ public class FieldParser {
             .sepBy1(isChar('.'))
             .label("field")
             .map(field -> join(".", field))
+            .map(aliasField)
             .map(createField);
     fieldParserWithNot = sequence(notParser.get(), fieldParser, createFieldWithNot);
   }

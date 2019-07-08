@@ -1147,6 +1147,34 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             });
   }
 
+  @Test
+  public void shouldReturnSearchRequestWithSingleFilterWithAnAliasEqual() {
+    final Object value = "Lorem Ipsum";
+
+    EQUAL
+        .getAlias()
+        .parallelStream()
+        .forEach(
+            op ->
+                newArrayList(filterableRequest, fullRequest)
+                    .parallelStream()
+                    .forEach(
+                        request -> {
+                          var searchRequest =
+                              queryAdapter.query(
+                                  request.filter(format("field_before_alias", value, op)).build());
+                          var filter =
+                              (MatchQueryBuilder)
+                                  ((BoolQueryBuilder) searchRequest.source().query())
+                                      .filter()
+                                      .get(0);
+
+                          assertNotNull(filter);
+                          assertEquals("field_after_alias", filter.fieldName());
+                          assertEquals(value, filter.value());
+                        }));
+  }
+
   private String format(final String field, final Object value, final String relationalOperator) {
     var stringBuilder = new StringBuilder();
     stringBuilder.append(field).append(" ").append(relationalOperator).append(" ");

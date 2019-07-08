@@ -177,4 +177,10 @@ public class FilterParserTest {
     var value = "field RANGE [1,]";
     filterParser.get().parse(value);
   }
+
+  @Test
+  public void testFieldWithAlias() {
+    var filter = filterParser.get().parse("field_before_alias=10");
+    assertEquals("field_after_alias EQUAL 10", filter.toString());
+  }
 }

@@ -1,6 +1,7 @@
 package com.grupozap.search.api.fixtures.model.parser;
 
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.utils.MapperUtils.convertValue;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.IntStream.rangeClosed;
@@ -12,6 +13,9 @@ import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.IndexSettings;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
 import com.grupozap.search.api.service.parser.factory.FieldFactory;
+import com.grupozap.search.api.service.parser.factory.SearchAlias;
+import com.grupozap.search.api.service.parser.factory.SearchAlias.SearchAliasProp;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.map.LinkedMap;
@@ -75,6 +79,24 @@ public class ParserTemplateLoader {
     return fieldCache;
   }
 
+  public static SearchAlias searchAliasFixture() {
+    var indexSettings = mock(IndexSettings.class);
+    when(indexSettings.getIndex()).thenReturn(INDEX_NAME);
+
+    Map<String, SearchAliasProp> mockSearchAlias = mock(Map.class);
+    var props = new HashMap<String, Object>();
+    props.put("fields", Map.of("field_before_alias", "field_after_alias"));
+    props.put("indices", Map.of("index_before_alias", "index_after_alias"));
+
+    var searchAliasProps = convertValue(props, SearchAliasProp.class);
+
+    when(mockSearchAlias.get(anyString())).thenReturn(searchAliasProps);
+
+    var searchAlias = new SearchAlias(indexSettings);
+    setInternalState(searchAlias, "aliases", mockSearchAlias);
+    return searchAlias;
+  }
+
   private static LinkedMap mockLinkedMapForField(List<String> names) {
     return rangeClosed(1, names.size())
         .boxed()
@@ -93,7 +115,7 @@ public class ParserTemplateLoader {
   }
 
   public static FieldParser fieldParserFixture() {
-    return new FieldParser(new NotParser(), fieldCacheFixture());
+    return new FieldParser(new NotParser(), searchAliasFixture(), fieldCacheFixture());
   }
 
   private static FieldParser fieldParserWithoutValidationFixture() {

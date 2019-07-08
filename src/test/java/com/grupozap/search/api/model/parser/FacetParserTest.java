@@ -69,4 +69,17 @@ public class FacetParserTest {
   public void testInvalidFacetFieldName() {
     facetParser.parse("field4 sortFacet :  blabla ASC");
   }
+
+  @Test
+  public void testFieldWithAlias() {
+    var fields = facetParser.parse("field_before_alias");
+    assertEquals("field_after_alias _count DESC", fields.get(0).toString());
+  }
+
+  @Test
+  public void testMultipleFieldsWithAndWithoutAlias() {
+    var fields = facetParser.parse("field_before_alias, field1");
+    assertEquals("field_after_alias _count DESC", fields.get(0).toString());
+    assertEquals("field1 _count DESC", fields.get(1).toString());
+  }
 }

@@ -1,6 +1,7 @@
 package com.grupozap.search.api.model.parser;
 
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
+import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.searchAliasFixture;
 import static org.junit.Assert.assertEquals;
 
 import java.util.stream.Stream;
@@ -12,7 +13,7 @@ public class FieldParserTest {
   private final FieldParser fieldParser;
 
   public FieldParserTest() {
-    this.fieldParser = new FieldParser(new NotParser(), fieldCacheFixture());
+    this.fieldParser = new FieldParser(new NotParser(), searchAliasFixture(), fieldCacheFixture());
   }
 
   @Test
@@ -57,7 +58,7 @@ public class FieldParserTest {
   @Test
   public void testNestedFieldNames() {
     var field = fieldParser.get().parse("field.field2.field3");
-    assertEquals(field.getName(), "field.field2.field3");
+    assertEquals("field.field2.field3", field.getName());
   }
 
   @Test(expected = ParserException.class)
@@ -94,5 +95,11 @@ public class FieldParserTest {
   @Test(expected = ParserException.class)
   public void testNotWithBlankFieldName() {
     fieldParser.get().parse("NOT ");
+  }
+
+  @Test
+  public void testFieldAlias() {
+    var field = fieldParser.get().parse("field_before_alias");
+    assertEquals("field_after_alias", field.getName());
   }
 }

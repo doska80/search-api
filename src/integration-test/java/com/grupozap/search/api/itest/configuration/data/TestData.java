@@ -85,6 +85,8 @@ public class TestData {
     var maxFieldId = id % FIELD_MAX_VALUE;
     data.put("field" + maxFieldId, "value" + maxFieldId);
     data.put("geo", geoField(id));
+    data.put("field_after_alias", id);
+    data.put("field_geo_after_alias", geoField(id));
     data.putAll(facetsData(id, facetValue));
     return data;
   }
