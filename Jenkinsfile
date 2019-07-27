@@ -29,5 +29,5 @@ def sendToSlack(result, imageName, environment) {
     }
 
     def message = "Job <${env.BUILD_URL}/console|#${env.BUILD_NUMBER}> *${env.JOB_NAME}*, in *${environment}* with *${status}* using image_name: *${imageName}*"
-    slackSend channel: '#alerts-search-ranking', color: color, message: "${message}", teamDomain: 'grupozap'
+    slackSend channel: '#notifs-search-ranking', color: color, message: "${message}", teamDomain: 'grupozap'
 }
