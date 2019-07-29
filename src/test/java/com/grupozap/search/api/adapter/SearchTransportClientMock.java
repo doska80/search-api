@@ -12,5 +12,7 @@ public class SearchTransportClientMock {
 
   protected final BasicRequestBuilder basicRequest = basic().index(INDEX_NAME);
 
+  protected final BasicRequestBuilder basicRequestWithIndexAlias = basic().index(INDEX_ALIAS_NAME);
+
   protected final FilterableRequestBuilder filterableRequest = filterable().index(INDEX_NAME);
 }

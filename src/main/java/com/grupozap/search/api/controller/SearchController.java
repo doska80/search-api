@@ -92,7 +92,8 @@ public class SearchController {
   @Trace
   public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) {
     indexSettings.validateIndex(request);
-    var response = searchService.getById(request, id);
+    var response =
+        searchService.getById(request, request.getIndex(), indexSettings.getIndexByAlias(), id);
 
     if (!response.isExists()) return notFoundResponse;
 
@@ -129,7 +130,8 @@ public class SearchController {
   public ResponseEntity<Object> search(SearchApiRequest request) {
     indexSettings.validateIndex(request);
     return builderOK.body(
-        new SearchResponseEnvelope<>(request.getIndex(), searchService.search(request)));
+        new SearchResponseEnvelope<>(
+            indexSettings.getIndexByAlias(), searchService.search(request)));
   }
 
   public ResponseEntity<Object> fallback(Throwable e) {

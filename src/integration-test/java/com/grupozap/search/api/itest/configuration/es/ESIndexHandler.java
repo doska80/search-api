@@ -23,7 +23,9 @@ import org.springframework.stereotype.Service;
 public class ESIndexHandler {
 
   public static final String TEST_DATA_INDEX = "/testdata";
+  public static final String TEST_DATA_INDEX_ALIAS = "/testdata-alias";
   public static final String TEST_DATA_TYPE = "testdata";
+  public static final String TEST_DATA_TYPE_ALIAS = "testdata-alias";
   public static final String SEARCH_API_PROPERTIES_INDEX = "/search-api-properties";
   public static final String SEARCH_API_PROPERTIES_TYPE = "properties";
   private static final Logger LOG = LoggerFactory.getLogger(ESIndexHandler.class);
@@ -33,7 +35,8 @@ public class ESIndexHandler {
   private final int standardDatasetFacetDecrease;
   private final Long timeout;
 
-  private final Map<String, Object> properties;
+  private final Map<String, Object> testdataProperties;
+  private final Map<String, Object> testdataAliasProperties;
 
   @Value("${es.query.timeout.unit}")
   private String queryTimeoutUnit;
@@ -54,7 +57,8 @@ public class ESIndexHandler {
     this.standardDatasetSize = standardDatasetSize;
     this.standardDatasetFacetDecrease = standardDatasetFacetDecrease;
     this.timeout = timeout;
-    this.properties = new LinkedHashMap<>();
+    this.testdataProperties = new LinkedHashMap<>();
+    this.testdataAliasProperties = new LinkedHashMap<>();
     this.setDefaultProperties();
   }
 
@@ -98,19 +102,31 @@ public class ESIndexHandler {
             "field_geo_before_alias", "field_geo_after_alias");
     searchAliases.put("fields", fieldAliases);
     putStandardProperty("es.alias", searchAliases);
+
+    testdataAliasProperties.putAll(testdataProperties);
+    testdataAliasProperties.put("filter.default.clauses", newArrayList("numeric<=10"));
   }
 
   public void addStandardProperties() {
+    // add default properties to index testdata
     insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         SEARCH_API_PROPERTIES_TYPE,
         TEST_DATA_TYPE,
-        writeValueAsStringFromMap(TEST_DATA_TYPE, properties));
+        writeValueAsStringFromMap(TEST_DATA_TYPE, testdataProperties));
+
+    // add default properties to index testdata-alias
+    insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        SEARCH_API_PROPERTIES_TYPE,
+        TEST_DATA_TYPE_ALIAS,
+        writeValueAsStringFromMap(TEST_DATA_TYPE_ALIAS, testdataAliasProperties));
+
     refreshIndex(SEARCH_API_PROPERTIES_INDEX);
   }
 
   public void putStandardProperty(final String key, final Object value) {
-    this.properties.put(key, value);
+    this.testdataProperties.put(key, value);
   }
 
   public void addStandardTestData() {

@@ -34,6 +34,10 @@ public class IndexSettings {
     this.index = indexable.getIndex();
   }
 
+  public String getIndexByAlias() {
+    return settingsAdapter.getIndexByAlias(index);
+  }
+
   public int getShards() {
     return parseInt(settingsAdapter.settingsByKey(index, SHARDS));
   }

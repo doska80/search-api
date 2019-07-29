@@ -8,6 +8,7 @@ import java.util.Set;
 public class SearchApiRequestBuilder {
 
   public static final String INDEX_NAME = "index-name";
+  public static final String INDEX_ALIAS_NAME = "index-name-alias";
 
   private SearchApiRequestBuilder() {}
 

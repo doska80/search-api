@@ -69,8 +69,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
 
   @Override
   @Trace
-  public GetRequest getById(BaseApiRequest request, String id) {
-    final var getRequest = new GetRequest(request.getIndex(), request.getIndex(), id);
+  public GetRequest getById(BaseApiRequest request, String index, String type, String id) {
+    final var getRequest = new GetRequest(index, type, id);
     sourceFieldAdapter.apply(getRequest, request);
     LOG.debug("Query getById {}", getRequest);
     return getRequest;
@@ -130,6 +130,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   }
 
   private void applyFilter(FilterableApiRequest filterable, BoolQueryBuilder queryBuilder) {
+
     var requestFilter =
         ofNullable(filterable.getFilter()).filter(StringUtils::isNotEmpty).map(queryParser::parse);
     requestFilter.ifPresent(

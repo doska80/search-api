@@ -2,6 +2,7 @@ package com.grupozap.search.api.adapter;
 
 import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.REPLICAS;
 import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_ALIAS_NAME;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.grupozap.search.api.model.mapping.MappingType.*;
 import static com.grupozap.search.api.utils.ReadFileUtils.readFileFromResources;
@@ -36,6 +37,7 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   private static final String VALID_FIELD_KEYWORD = "valid.field.keyword";
   private static final String VALID_FIELD_DATE = "valid.field.date";
   private final BaseApiRequest validIndexRequest = basicRequest.build();
+  private final BaseApiRequest validIndexAliasRequest = basicRequestWithIndexAlias.build();
   private final BaseApiRequest invalidIndexRequest = basicRequest.index("not-valid-index").build();
 
   private ElasticsearchSettingsAdapter settingsAdapter;
@@ -80,6 +82,12 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
   public void checkValidIndex() {
     settingsAdapter.checkIndex(validIndexRequest);
     verify(structuredIndices, times(1)).containsKey(validIndexRequest.getIndex());
+  }
+
+  @Test
+  public void checkValidIndexByAlias() {
+    settingsAdapter.checkIndex(validIndexAliasRequest);
+    verify(structuredIndices, times(1)).containsKey(validIndexAliasRequest.getIndex());
   }
 
   @Test(expected = IndexNotFoundException.class)
@@ -188,6 +196,8 @@ public class ElasticsearchSettingsAdapterTest extends SearchTransportClientMock 
     indexSettings.put(VALID_FIELD_DATE, "date");
 
     structuredIndices.put(INDEX_NAME, indexSettings);
+    structuredIndices.put(INDEX_ALIAS_NAME, indexSettings);
+
     return structuredIndices;
   }
 }

@@ -14,12 +14,7 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static org.elasticsearch.index.query.Operator.OR;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -109,7 +104,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         .map(BasicRequestBuilder::build)
         .forEach(
             searchApiRequest -> {
-              var requestBuilder = queryAdapter.getById(searchApiRequest, id);
+              var requestBuilder =
+                  queryAdapter.getById(searchApiRequest, INDEX_NAME, INDEX_NAME, id);
               assertEquals(id, requestBuilder.id());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.index());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.type());

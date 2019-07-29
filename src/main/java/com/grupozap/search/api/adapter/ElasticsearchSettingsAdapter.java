@@ -16,15 +16,13 @@ import com.grupozap.search.api.model.event.ClusterSettingsUpdatedEvent;
 import com.grupozap.search.api.model.mapping.MappingType;
 import com.grupozap.search.api.model.search.Indexable;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Stream;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.RestClient;
+import org.elasticsearch.common.collect.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,12 +47,14 @@ public class ElasticsearchSettingsAdapter
   private final Request request;
 
   private Map<String, Map<String, Object>> structuredIndices;
+  private Map<String, String> aliases;
 
   @Autowired
   public ElasticsearchSettingsAdapter(
       ApplicationEventPublisher applicationEventPublisher, RestClient restClient) {
     this.applicationEventPublisher = applicationEventPublisher;
     this.structuredIndices = new HashMap<>();
+    this.aliases = new HashMap<>();
     this.restClient = restClient;
     this.request = new Request(GET.name(), CLUSTER_STATE_PATH);
 
@@ -88,6 +88,11 @@ public class ElasticsearchSettingsAdapter
   @Override
   public boolean isTypeOf(final String index, final String fieldName, final MappingType type) {
     return type.typeOf(getFieldType(index, fieldName));
+  }
+
+  @Override
+  public String getIndexByAlias(String index) {
+    return this.aliases.getOrDefault(index, index);
   }
 
   @SuppressWarnings("unchecked")
@@ -151,7 +156,32 @@ public class ElasticsearchSettingsAdapter
 
                 structuredIndicesAux.put(index, indexInfo);
               });
+      addIndicesInformationByAliases(indices, structuredIndicesAux);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void addIndicesInformationByAliases(
+      Map<String, Object> indices, Map<String, Map<String, Object>> structuredIndicesAux) {
+    indices.entrySet().stream()
+        .filter(indexSettings -> !indexSettings.getKey().startsWith("."))
+        .filter(
+            indexSettings -> !((List) ((Map) indexSettings.getValue()).get("aliases")).isEmpty())
+        .map(
+            indexSettings ->
+                new Tuple<>(
+                    indexSettings.getKey(),
+                    (List<String>) ((Map) indexSettings.getValue()).get("aliases")))
+        .forEach(
+            indexAliases ->
+                indexAliases
+                    .v2()
+                    .forEach(
+                        aliasName -> {
+                          this.aliases.put(aliasName, indexAliases.v1());
+                          structuredIndicesAux.put(
+                              aliasName, structuredIndicesAux.get(indexAliases.v1()));
+                        }));
   }
 
   @SuppressWarnings("unchecked")

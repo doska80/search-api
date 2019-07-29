@@ -13,5 +13,7 @@ public interface SettingsAdapter<T, U> {
 
   String getFieldType(String index, String fieldName);
 
+  String getIndexByAlias(String index);
+
   boolean isTypeOf(final String index, final String fieldName, final MappingType type);
 }

@@ -88,6 +88,26 @@
       "response": []
     },
     {
+      "name": "Index Alias creation - Test data alias",
+      "request": {
+        "url": "http://${es_host}:${es_port}/_aliases",
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": ""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"actions\":[{\"add\":{\"index\":\"testdata\",\"alias\":\"testdata-alias\"}}]}"
+        },
+        "description": "\"Test data alias\" index creation"
+      },
+      "response": []
+    },
+    {
       "name": "Index template - SearchAPI Properties",
       "request": {
         "url": "http://${es_host}:${es_port}/_template/search-api-properties",
