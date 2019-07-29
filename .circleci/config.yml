@@ -80,7 +80,7 @@ workflows:
     jobs:
       - install_jdk11
       - run_tests:
-          context: docker-access
+          context: build-context
           requires:
             - install_jdk11
           filters:
@@ -88,7 +88,7 @@ workflows:
               ignore:
                 - master
       - build_image:
-          context: docker-access
+          context: build-context
           requires:
             - install_jdk11
           filters:
