@@ -4,6 +4,7 @@ import static com.grupozap.search.api.configuration.environment.RemoteProperties
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
 import static com.grupozap.search.api.model.http.DefaultFilterMode.ENABLED;
 import static java.util.Optional.ofNullable;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 
 import com.grupozap.search.api.model.http.BaseApiRequest;
@@ -15,7 +16,6 @@ import datadog.trace.api.Trace;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.search.SearchRequest;
@@ -129,28 +129,38 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     sortQueryAdapter.apply(searchBuilder, request);
   }
 
-  private void applyFilter(FilterableApiRequest filterable, BoolQueryBuilder queryBuilder) {
+  private void applyFilter(FilterableApiRequest filterable, BoolQueryBuilder esQueryBuilder) {
+    var requestedFiltersQueryBuilder = boolQuery();
+
+    // Reference to query builder to be applied on esQueryBuilder
+    var rootQueryBuilder = requestedFiltersQueryBuilder;
 
     var requestFilter =
         ofNullable(filterable.getFilter()).filter(StringUtils::isNotEmpty).map(queryParser::parse);
     requestFilter.ifPresent(
-        filter -> filterQueryAdapter.apply(queryBuilder, filter, filterable.getIndex()));
+        filter ->
+            filterQueryAdapter.apply(requestedFiltersQueryBuilder, filter, filterable.getIndex()));
 
     if (ENABLED.equals(filterable.getDefaultFilterMode())) {
       var requestFields = requestFilter.map(qf -> qf.getFieldNames(false)).orElseGet(HashSet::new);
-      defaultFilterFactory
-          .getDefaultFilters(filterable.getIndex(), requestFields)
-          .forEach(applyDefaultFilter(queryBuilder));
-    }
-  }
+      var defaultFilters =
+          defaultFilterFactory.getDefaultFilters(filterable.getIndex(), requestFields);
 
-  private Consumer<BoolQueryBuilder> applyDefaultFilter(BoolQueryBuilder queryBuilder) {
-    return defaultFilter -> {
-      queryBuilder.filter().addAll(defaultFilter.filter());
-      queryBuilder.mustNot().addAll(defaultFilter.mustNot());
-      queryBuilder.must().addAll(defaultFilter.must());
-      queryBuilder.should().addAll(defaultFilter.should());
-    };
+      if (!defaultFilters.isEmpty()) {
+        var wrapperFilterQueryBuilder = boolQuery();
+        if (isNotBlank(filterable.getFilter())) {
+          wrapperFilterQueryBuilder.filter().add(requestedFiltersQueryBuilder);
+        }
+        defaultFilters.forEach(df -> wrapperFilterQueryBuilder.filter().add(df));
+        rootQueryBuilder = wrapperFilterQueryBuilder;
+      }
+    }
+
+    // Apply root filter query builder clauses on elastic search query builder
+    esQueryBuilder.filter().addAll(rootQueryBuilder.filter());
+    esQueryBuilder.mustNot().addAll(rootQueryBuilder.mustNot());
+    esQueryBuilder.must().addAll(rootQueryBuilder.must());
+    esQueryBuilder.should().addAll(rootQueryBuilder.should());
   }
 
   private void buildQueryBySearchApiRequest(

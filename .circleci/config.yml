@@ -31,11 +31,11 @@ jobs:
 
       - run:
           name: Docker Login
-          command: docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+          command: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
       - run:
           name: Building image and running tests
-          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH build
+          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make build
 
       - save_cache:
           key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}

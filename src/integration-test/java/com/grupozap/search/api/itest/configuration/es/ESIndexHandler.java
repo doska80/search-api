@@ -3,6 +3,7 @@ package com.grupozap.search.api.itest.configuration.es;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.grupozap.search.api.itest.configuration.data.TestData.createTestData;
 import static java.lang.String.valueOf;
+import static java.util.List.of;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
@@ -77,6 +78,7 @@ public class ESIndexHandler {
 
   @SuppressWarnings("unchecked")
   public void setDefaultProperties() {
+    putStandardProperty("filter.default.clauses", of());
     putStandardProperty("es.default.size", size);
     putStandardProperty("es.default.sort", "numeric ASC");
     putStandardProperty("es.sort.disable", false);

@@ -7,6 +7,7 @@ import static com.jayway.restassured.http.ContentType.JSON;
 import static java.lang.Math.*;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
+import static java.util.List.of;
 import static java.util.Locale.US;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
@@ -1432,5 +1433,44 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .statusCode(SC_BAD_REQUEST)
         .when()
         .get(format("%s/%s?excludeFields=field_before_alias", TEST_DATA_INDEX, id));
+  }
+
+  @Test
+  public void validateSearchUsingOROperatorWithDefaultFilters() throws IOException {
+    esIndexHandler.putStandardProperty("filter.default.clauses", of("isEven=true OR numeric:3"));
+    esIndexHandler.addStandardProperties();
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?filter=object.number <= 20", TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(6))
+        .body("result.testdata[0].id", equalTo("2"));
+  }
+
+  @Test
+  public void validateSearchUsingMultipleDefaultFiltersAndOROperator() throws IOException {
+    esIndexHandler.putStandardProperty(
+        "filter.default.clauses", of("isEven=true", "object.number<=12"));
+    esIndexHandler.addStandardProperties();
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s?filter=numeric:2 OR numeric:4", TEST_DATA_INDEX))
+        .then()
+        .body("totalCount", equalTo(2))
+        .body("result.testdata[0].id", equalTo("2"));
   }
 }
