@@ -92,8 +92,7 @@ public class SearchController {
   @Trace
   public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) {
     indexSettings.validateIndex(request);
-    var response =
-        searchService.getById(request, request.getIndex(), indexSettings.getIndexByAlias(), id);
+    var response = searchService.getById(request, request.getIndex(), id);
 
     if (!response.isExists()) return notFoundResponse;
 

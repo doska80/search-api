@@ -33,14 +33,15 @@ public class BulkESIndexHandler {
     this.restHighLevelClient = restHighLevelClient;
   }
 
-  public void bulkInsert(final String index, final String type, List<Map> sources) {
+  public void bulkInsert(final String index, List<Map> sources) {
     var request = new BulkRequest();
     request.timeout(new TimeValue(30, SECONDS));
     request.setRefreshPolicy(WAIT_UNTIL);
     sources.forEach(
         source ->
             request.add(
-                new IndexRequest(index, type, valueOf(source.get("id")))
+                new IndexRequest(index)
+                    .id(valueOf(source.get("id")))
                     .source(gson.toJson(source), JSON)));
     try {
       var response = restHighLevelClient.bulk(request, DEFAULT);

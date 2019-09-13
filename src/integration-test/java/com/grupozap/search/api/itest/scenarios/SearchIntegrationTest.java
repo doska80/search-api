@@ -200,7 +200,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .then()
         .body("totalCount", equalTo(standardDatasetSize / 2))
         .body("result.testdata", hasSize(min(defaultPageSize, standardDatasetSize / 2)))
-        .body("result.testdata.numeric", everyItem(isIn(asserts.odd())));
+        .body("result.testdata.numeric", everyItem(is(in(asserts.odd()))));
   }
 
   @Test
@@ -221,7 +221,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .body("result.testdata", hasSize(standardDatasetSize - limit))
         .body(
             "result.testdata.numeric",
-            everyItem(isIn(asserts.idsBetween(limit + 1, standardDatasetSize))));
+            everyItem(is(in(asserts.idsBetween(limit + 1, standardDatasetSize)))));
   }
 
   @Test
@@ -242,7 +242,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .body("result.testdata", hasSize(standardDatasetSize - limit + 1))
         .body(
             "result.testdata.numeric",
-            everyItem(isIn(asserts.idsBetween(limit, standardDatasetSize))));
+            everyItem(is(in(asserts.idsBetween(limit, standardDatasetSize)))));
   }
 
   @Test
@@ -402,7 +402,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .then()
         .body("totalCount", equalTo(standardDatasetSize / 2))
         .body("result.testdata", hasSize(standardDatasetSize / 2))
-        .body("result.testdata.numeric", everyItem(isIn(asserts.odd())));
+        .body("result.testdata.numeric", everyItem(is(in(asserts.odd()))));
   }
 
   @Test
@@ -424,7 +424,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
                     .then()
                     .body("totalCount", equalTo(standardDatasetSize / 2))
                     .body("result.testdata", hasSize(min(defaultPageSize, standardDatasetSize / 2)))
-                    .body("result.testdata.numeric", everyItem(isIn(asserts.odd()))));
+                    .body("result.testdata.numeric", everyItem(is(in(asserts.odd())))));
   }
 
   @Test

@@ -2,6 +2,8 @@ package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.grupozap.search.api.adapter.QueryStringAdapter.DEFAULT_BOOST_VALUE;
+import static com.grupozap.search.api.adapter.QueryStringAdapter.DEFAULT_MAX_EXPANSIONS;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldCacheFixture;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
@@ -186,7 +188,8 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     validateMultiMatchQueryBuilder(
         (MultiMatchQueryBuilder) boolQueryBuilder.must().get(0),
         BEST_FIELDS,
-        1f,
+        DEFAULT_BOOST_VALUE,
+        DEFAULT_MAX_EXPANSIONS,
         new HashMap<>() {
           {
             put("field1", 8f);
@@ -200,7 +203,13 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   public void shouldHaveManyClausesInsideABoolQueryWhenUseMultipleQueryTemplate() {
     var firstTemplate = new QSTemplate();
     firstTemplate.setType(PHRASE_PREFIX.name());
-    firstTemplate.setBoost(4);
+
+    float boost = 4.0f;
+    firstTemplate.setBoost(boost);
+
+    int maxExpansions = 3;
+    firstTemplate.setMaxExpansions(maxExpansions);
+
     firstTemplate.setFieldAliases(
         new HashMap<>() {
           {
@@ -241,7 +250,8 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     validateMultiMatchQueryBuilder(
         (MultiMatchQueryBuilder) boolQuery.should().get(0),
         PHRASE_PREFIX,
-        4f,
+        boost,
+        maxExpansions,
         new HashMap<>() {
           {
             put("field1", 8f);
@@ -255,7 +265,8 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     validateMultiMatchQueryBuilder(
         (MultiMatchQueryBuilder) boolQuery.should().get(1),
         CROSS_FIELDS,
-        1f,
+        DEFAULT_BOOST_VALUE,
+        DEFAULT_MAX_EXPANSIONS,
         new HashMap<>() {
           {
             put("field2", 3f);
@@ -268,7 +279,8 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
     validateMultiMatchQueryBuilder(
         (MultiMatchQueryBuilder) boolQuery.should().get(2),
         BEST_FIELDS,
-        1f,
+        DEFAULT_BOOST_VALUE,
+        DEFAULT_MAX_EXPANSIONS,
         new HashMap<>() {
           {
             put("anotherAlias", 1f);
@@ -280,10 +292,12 @@ public class QueryStringAdapterTest extends SearchTransportClientMock {
   private void validateMultiMatchQueryBuilder(
       MultiMatchQueryBuilder multiMatchQueryBuilder,
       Type expectedType,
-      Float expectedBoost,
+      float expectedBoost,
+      int expectedMaxExpansions,
       Map<String, Float> expectedFields) {
     assertEquals(expectedFields, multiMatchQueryBuilder.fields());
     assertEquals(expectedType, multiMatchQueryBuilder.type());
     assertEquals(expectedBoost, multiMatchQueryBuilder.boost(), 0.0);
+    assertEquals(expectedMaxExpansions, multiMatchQueryBuilder.maxExpansions(), 0.0);
   }
 }

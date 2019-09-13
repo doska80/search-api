@@ -53,8 +53,7 @@ public class QueryTimeoutIntegrationTest extends SearchApiIntegrationTest {
             id -> {
               sources.add(TestData.createTestData(id, 1));
               if (sources.size() == 500) {
-                bulkESIndexHandler.bulkInsert(
-                    TEST_DATA_INDEX.replace("/", ""), TEST_DATA_TYPE, sources);
+                bulkESIndexHandler.bulkInsert(TEST_DATA_INDEX.replace("/", ""), sources);
                 sources.clear();
               }
             });

@@ -5,6 +5,7 @@ import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static java.lang.Thread.sleep;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.elasticsearch.index.query.MultiMatchQueryBuilder.Type.PHRASE_PREFIX;
 import static org.hamcrest.Matchers.equalTo;
@@ -91,19 +92,17 @@ public class QueryStringIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void shouldReturnZeroResultWhenCombineQParameterWithInvalidFilter() {
+  public void shouldReturnBadRequestSinceMultiMatchPhraseQueriesAreNotAllowedForNonTextFields() {
     given()
         .log()
         .all()
         .baseUri(baseUrl)
         .contentType(JSON)
         .expect()
-        .statusCode(SC_OK)
+        .statusCode(SC_BAD_REQUEST)
         .when()
         .get(
             TEST_DATA_INDEX
-                + "?q='string with char i'&fields=object.string&filter=numeric < 5&mm=100%")
-        .then()
-        .body("totalCount", equalTo(0));
+                + "?q='string with char i'&fields=object.string&filter=numeric < 5&mm=100%");
   }
 }

@@ -69,7 +69,7 @@ public class ElasticSearchStream {
 
       LOG.info(
           "Stream - Total hits {} - Total sent {}",
-          response.getHits().totalHits,
+          response.getHits().getTotalHits().value,
           searchApiIterator.getCount());
 
     } catch (IOException e) {

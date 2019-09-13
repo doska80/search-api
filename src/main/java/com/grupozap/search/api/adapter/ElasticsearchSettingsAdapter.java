@@ -209,7 +209,7 @@ public class ElasticsearchSettingsAdapter
 
     try {
       indexInfo.putAll(
-          flat(mappings, newArrayList("mappings", "properties", "type", "fields", index)));
+          flat(mappings, newArrayList("mappings", "properties", "type", "fields", "_doc", index)));
       indexInfo.entrySet().stream()
           .filter(stringObjectEntry -> stringObjectEntry.getKey().contains("."))
           .map(

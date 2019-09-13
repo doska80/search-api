@@ -42,7 +42,7 @@ public class ESResponseSerializer extends StdSerializer<SearchResponseEnvelope<S
     jgen.writeNumberField("time", searchResponse.getTook().getMillis());
     if (!isNaN(searchResponse.getHits().getMaxScore()))
       jgen.writeNumberField("maxScore", searchResponse.getHits().getMaxScore());
-    jgen.writeNumberField("totalCount", searchResponse.getHits().getTotalHits());
+    jgen.writeNumberField("totalCount", searchResponse.getHits().getTotalHits().value);
 
     var hits = searchResponse.getHits().getHits();
     jgen.writeObjectFieldStart("result");

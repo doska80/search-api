@@ -104,11 +104,9 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
         .map(BasicRequestBuilder::build)
         .forEach(
             searchApiRequest -> {
-              var requestBuilder =
-                  queryAdapter.getById(searchApiRequest, INDEX_NAME, INDEX_NAME, id);
+              var requestBuilder = queryAdapter.getById(searchApiRequest, INDEX_NAME, id);
               assertEquals(id, requestBuilder.id());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.index());
-              assertEquals(searchApiRequest.getIndex(), requestBuilder.type());
             });
   }
 

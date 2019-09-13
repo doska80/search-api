@@ -36,9 +36,9 @@ public class SearchService {
   @Autowired private RestHighLevelClient restHighLevelClient;
 
   @Trace
-  public GetResponse getById(BaseApiRequest request, String index, String type, String id) {
+  public GetResponse getById(BaseApiRequest request, String index, String id) {
     try {
-      return restHighLevelClient.get(this.queryAdapter.getById(request, index, type, id), DEFAULT);
+      return restHighLevelClient.get(this.queryAdapter.getById(request, index, id), DEFAULT);
     } catch (Exception e) {
       if (getRootCause(e) instanceof IllegalArgumentException)
         throw new IllegalArgumentException(e);

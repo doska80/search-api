@@ -69,8 +69,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
 
   @Override
   @Trace
-  public GetRequest getById(BaseApiRequest request, String index, String type, String id) {
-    final var getRequest = new GetRequest(index, type, id);
+  public GetRequest getById(BaseApiRequest request, String index, String id) {
+    final var getRequest = new GetRequest(index, id);
     sourceFieldAdapter.apply(getRequest, request);
     LOG.debug("Query getById {}", getRequest);
     return getRequest;
@@ -100,6 +100,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     var searchRequest = new SearchRequest();
     var searchSourceBuilder = new SearchSourceBuilder();
 
+    searchSourceBuilder.trackTotalHits(true);
     searchSourceBuilder.timeout(
         new TimeValue(
             ES_QUERY_TIMEOUT_VALUE.getValue(request.getIndex()),

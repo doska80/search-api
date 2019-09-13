@@ -51,8 +51,7 @@ public class ApiBeans implements DisposableBean {
                         requestConfigBuilder
                             .setConnectionRequestTimeout(connRequestTimeout)
                             .setConnectTimeout(connTimeout)
-                            .setSocketTimeout(socketTimeout))
-                .setMaxRetryTimeoutMillis(maxRetryTimeout));
+                            .setSocketTimeout(socketTimeout)));
     return restHighLevelClient;
   }
 

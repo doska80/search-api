@@ -35,7 +35,7 @@ public class NestedIntegrationTest extends SearchApiIntegrationTest {
         .body(
             "result.testdata.nested.id.sort()",
             equalTo(rangeClosed(10, 20).boxed().filter(id -> id % 2 != 0).collect(toList())))
-        .body("result.testdata.nested.even", everyItem(isEmptyOrNullString()));
+        .body("result.testdata.nested.even", everyItem(emptyOrNullString()));
   }
 
   @Test
@@ -74,7 +74,7 @@ public class NestedIntegrationTest extends SearchApiIntegrationTest {
                 + "?filter=nested.even:null AND array_integer:10 AND nested.id <=25 AND nested.object.field:'common' AND object.object.field:'common' AND (nested.string LIKE 'string with char W%' OR nested.string LIKE 'string with char Y%') AND nested.id >=20")
         .then()
         .body("totalCount", equalTo(2))
-        .body("result.testdata.nested.even", everyItem(isEmptyOrNullString()))
+        .body("result.testdata.nested.even", everyItem(emptyOrNullString()))
         .body("result.testdata.nested.id.sort()", equalTo(newArrayList(23, 25)));
   }
 

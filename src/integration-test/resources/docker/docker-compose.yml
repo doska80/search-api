@@ -13,6 +13,7 @@ services:
       - http.host=0.0.0.0
       - transport.host=localhost
       - cluster.name=itest
+      - discovery.type=single-node
     networks:
       - stack
     ulimits:
@@ -35,8 +36,8 @@ services:
       - stack
     environment:
       - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-      - ELASTICSEARCH_URL=http://es:9200
-      - xpack.security.enabled=false
+      - ELASTICSEARCH_HOSTS=http://es:9200/
+      - SERVER_NAME=localhost
     ports:
       - 5601:5601
     healthcheck:

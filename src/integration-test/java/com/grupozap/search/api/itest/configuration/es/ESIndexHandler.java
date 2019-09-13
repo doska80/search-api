@@ -28,7 +28,7 @@ public class ESIndexHandler {
   public static final String TEST_DATA_TYPE = "testdata";
   public static final String TEST_DATA_TYPE_ALIAS = "testdata-alias";
   public static final String SEARCH_API_PROPERTIES_INDEX = "/search-api-properties";
-  public static final String SEARCH_API_PROPERTIES_TYPE = "properties";
+  public static final String DEFAULT_TYPE = "_doc";
   private static final Logger LOG = LoggerFactory.getLogger(ESIndexHandler.class);
   private final RestClient restClient;
 
@@ -113,14 +113,12 @@ public class ESIndexHandler {
     // add default properties to index testdata
     insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
-        SEARCH_API_PROPERTIES_TYPE,
         TEST_DATA_TYPE,
         writeValueAsStringFromMap(TEST_DATA_TYPE, testdataProperties));
 
     // add default properties to index testdata-alias
     insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
-        SEARCH_API_PROPERTIES_TYPE,
         TEST_DATA_TYPE_ALIAS,
         writeValueAsStringFromMap(TEST_DATA_TYPE_ALIAS, testdataAliasProperties));
 
@@ -137,8 +135,7 @@ public class ESIndexHandler {
       var entity =
           createStandardEntityForId(
               id, (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? 1 : 2));
-      if (insertEntityByIndex(TEST_DATA_INDEX, TEST_DATA_TYPE, valueOf(id), entity))
-        entities.add(entity);
+      if (insertEntityByIndex(TEST_DATA_INDEX, valueOf(id), entity)) entities.add(entity);
     }
 
     LOG.info(TEST_DATA_INDEX + " inserted " + entities.size() + " documents");
@@ -158,9 +155,10 @@ public class ESIndexHandler {
     }
   }
 
-  private boolean insertEntityByIndex(String index, String type, String id, String body) {
+  private boolean insertEntityByIndex(String index, String id, String body) {
     try {
-      final var request = new Request("POST", index + "/" + type + "/" + id + "?refresh=true");
+      final var request =
+          new Request("POST", index + "/" + DEFAULT_TYPE + "/" + id + "?refresh=true");
       request.setEntity(new NStringEntity(body, APPLICATION_JSON));
       var response = restClient.performRequest(request);
 

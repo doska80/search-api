@@ -1,6 +1,7 @@
 package com.grupozap.search.api.serializer;
 
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static org.apache.lucene.search.TotalHits.Relation.*;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.elasticsearch.search.SearchHit.createFromMap;
 import static org.junit.Assert.assertEquals;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
@@ -53,7 +55,7 @@ public class ESResponseSerializerTest {
     when(took.getMillis()).thenReturn(123L);
 
     var hits = new SearchHit[2];
-    var searchHits = new SearchHits(hits, hits.length, 0);
+    var searchHits = new SearchHits(hits, new TotalHits(hits.length, EQUAL_TO), 0);
     when(searchResponse.getHits()).thenReturn(searchHits);
 
     Map<String, Object> values1 = new LinkedHashMap<>();
@@ -126,7 +128,7 @@ public class ESResponseSerializerTest {
     when(took.getMillis()).thenReturn(2L);
 
     var hits = new SearchHit[1];
-    var searchHits = new SearchHits(hits, hits.length, 0);
+    var searchHits = new SearchHits(hits, new TotalHits(hits.length, EQUAL_TO), 0);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
@@ -155,7 +157,7 @@ public class ESResponseSerializerTest {
     when(took.getMillis()).thenReturn(1L);
 
     var hits = new SearchHit[0];
-    var searchHits = new SearchHits(hits, 1, Float.NaN);
+    var searchHits = new SearchHits(hits, new TotalHits(1, EQUAL_TO), Float.NaN);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
@@ -173,7 +175,7 @@ public class ESResponseSerializerTest {
     when(took.getMillis()).thenReturn(1L);
 
     var hits = new SearchHit[0];
-    var searchHits = new SearchHits(hits, 1, 1f);
+    var searchHits = new SearchHits(hits, new TotalHits(1, EQUAL_TO), 1f);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
@@ -193,7 +195,7 @@ public class ESResponseSerializerTest {
     when(took.getMillis()).thenReturn(123L);
 
     var hits = new SearchHit[0];
-    var searchHits = new SearchHits(hits, 56789L, 0);
+    var searchHits = new SearchHits(hits, new TotalHits(56789L, EQUAL_TO), 0);
 
     when(searchResponse.getHits()).thenReturn(searchHits);
 
@@ -258,7 +260,7 @@ public class ESResponseSerializerTest {
     when(took.getMillis()).thenReturn(123L);
 
     var hits = new SearchHit[0];
-    var searchHits = new SearchHits(hits, 0, 0);
+    var searchHits = new SearchHits(hits, new TotalHits(0, EQUAL_TO), 0);
     when(searchResponse.getHits()).thenReturn(searchHits);
 
     // create aggregations

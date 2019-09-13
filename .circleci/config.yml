@@ -60,7 +60,7 @@ jobs:
 
       - run:
           name: Docker Login
-          command: docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+          command: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
 
       - run:
           name: Updating apt-get
