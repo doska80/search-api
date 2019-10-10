@@ -13,10 +13,10 @@ buildscript {
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.+'
         classpath 'com.github.ben-manes:gradle-versions-plugin:+'
         classpath 'com.gradle:build-scan-plugin:2.+'
-        classpath 'io.spring.gradle:dependency-management-plugin:1.0.6.RELEASE'
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE'
         classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.8'
         classpath 'org.owasp:dependency-check-gradle:+'
-        classpath 'com.datadoghq:dd-trace-api:0.25.+'
+        classpath 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
     }
 }
 
@@ -32,7 +32,6 @@ apply plugin: 'org.sonarqube'
 apply plugin: 'jacoco'
 apply plugin: 'docker-compose'
 apply plugin: 'com.github.ben-manes.versions'
-apply plugin: 'io.spring.dependency-management'
 apply plugin: "me.champeau.gradle.jmh"
 
 group = 'com.grupozap.search'
@@ -116,8 +115,8 @@ dependencies {
     compile 'org.elasticsearch:elasticsearch'
     compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
-    compile 'com.getsentry.raven:raven-logback:8.0.3'
-    compile 'net.logstash.logback:logstash-logback-encoder:5.2'
+    compile 'io.sentry:sentry-logback:1.7.+'
+    compile 'net.logstash.logback:logstash-logback-encoder:6.+'
 
     compile 'io.springfox:springfox-swagger2:' + SWAGGER
     compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
@@ -125,13 +124,14 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.+'
     compile 'org.apache.commons:commons-collections4:4.+'
 
-    compile 'com.google.code.gson:gson:2.8.5'
+    compile 'com.google.code.gson:gson:2.8.6'
 
     compile 'org.codehaus.janino:janino:3.1.0'
+    compile 'org.codehaus.janino:commons-compiler:3.1.0'
 
     compile 'org.jparsec:jparsec:3.1'
 
-    compile 'com.datadoghq:dd-trace-api:0.25.+'
+    compile 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
     
     datadog 'com.datadoghq:dd-java-agent:' + DATADOG_VERSION
 

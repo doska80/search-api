@@ -8,12 +8,7 @@
     <springProperty scope="context" name="application" source="application.title" defaultValue="search-api"/>
     <springProperty scope="context" name="version" source="application.version"/>
 
-    <appender name="SENTRY" class="com.getsentry.raven.logback.SentryAppender">
-        <dsn>
-            https://513d1511fc2b468dbbac3eb376e927ce:813d7d4f691b4f078f3128f8c514464e@sentry.tracking.private.prod.vivareal.io/64?options
-        </dsn>
-        <tags>environment:${environment},version:${version},cluster:${es.cluster.name},server:${java.rmi.server.hostname}</tags>
-        <ravenFactory>com.getsentry.raven.DefaultRavenFactory</ravenFactory>
+    <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
         </filter>
@@ -25,7 +20,7 @@
         </filter>
     </appender>
 
-    <appender name="GELF" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="GRAYLOG" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
             <fieldNames>
                 <levelValue>level</levelValue>
@@ -40,10 +35,12 @@
 
     <appender name="ASYNC_SENTRY" class="ch.qos.logback.classic.AsyncAppender">
         <appender-ref ref="SENTRY"/>
+        <neverBlock>true</neverBlock>
     </appender>
 
-    <appender name="ASYNC_GELF" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="GELF"/>
+    <appender name="ASYNC_GRAYLOG" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="GRAYLOG"/>
+        <neverBlock>true</neverBlock>
     </appender>
 
     <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
@@ -55,7 +52,7 @@
             <appender-ref ref="ASYNC_CONSOLE"/>
         </springProfile>
         <springProfile name="qa, prod">
-            <appender-ref ref="ASYNC_GELF"/>
+            <appender-ref ref="ASYNC_GRAYLOG"/>
             <appender-ref ref="ASYNC_SENTRY"/>
         </springProfile>
     </root>
