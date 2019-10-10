@@ -65,7 +65,7 @@
         <level value="warn"/>
     </logger>
 
-    <logger name="com.getsentry">
+    <logger name="io.sentry">
         <level value="warn"/>
     </logger>
 
