@@ -8,6 +8,7 @@ import static java.util.stream.IntStream.rangeClosed;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
+import com.grupozap.search.api.listener.SortRescoreListener;
 import com.grupozap.search.api.model.parser.*;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.IndexSettings;
@@ -73,7 +74,7 @@ public class ParserTemplateLoader {
         .thenAnswer(
             invocationOnMock -> !invocationOnMock.getArguments()[0].toString().contains("invalid"));
 
-    var fieldCache = new FieldCache(new FieldFactory());
+    var fieldCache = new FieldCache(new FieldFactory(), new SortRescoreListener());
     setInternalState(fieldCache, "validFields", mockPreprocessedFields);
     setInternalState(fieldCache, "indexSettings", indexSettings);
     return fieldCache;

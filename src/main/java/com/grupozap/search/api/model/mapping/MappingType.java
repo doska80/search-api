@@ -20,6 +20,7 @@ public enum MappingType {
   FIELD_TYPE_NUMBER("integer", "long", "float"),
 
   FIELD_TYPE_OBJECT("_obj"),
+  FIELD_TYPE_RESCORE("_rescore"),
   FIELD_TYPE_SCRIPT("_script");
 
   private final Set<String> types;

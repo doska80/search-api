@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Sets;
 import com.grupozap.search.api.listener.ScriptRemotePropertiesListener;
 import com.grupozap.search.api.listener.ScriptRemotePropertiesListener.ScriptField;
+import com.grupozap.search.api.listener.SortRescoreListener;
 import com.grupozap.search.api.model.parser.OperatorParser;
 import com.grupozap.search.api.model.parser.SortParser;
 import com.grupozap.search.api.model.parser.ValueParser;
@@ -35,6 +36,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   private final SortQueryAdapter sortQueryAdapter;
   private final ScriptRemotePropertiesListener scriptRemotePropertiesListener;
   private final ElasticsearchSettingsAdapter elasticsearchSettingsAdapter;
+  private final SortRescoreListener sortRescoreListener;
 
   public SortQueryAdapterTest() {
     var sortParser =
@@ -43,13 +45,15 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
 
     scriptRemotePropertiesListener = mock(ScriptRemotePropertiesListener.class);
     elasticsearchSettingsAdapter = mock(ElasticsearchSettingsAdapter.class);
+    sortRescoreListener = mock(SortRescoreListener.class);
 
     this.sortQueryAdapter =
         new SortQueryAdapter(
             sortParser,
             mock(FilterQueryAdapter.class),
             scriptRemotePropertiesListener,
-            elasticsearchSettingsAdapter);
+            elasticsearchSettingsAdapter,
+            sortRescoreListener);
   }
 
   @Before

@@ -1,13 +1,16 @@
 package com.grupozap.search.api.service.parser.factory;
 
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_RESCORE;
 import static com.grupozap.search.api.model.query.Facet._COUNT;
 import static com.grupozap.search.api.model.query.Facet._KEY;
+import static com.grupozap.search.api.service.parser.factory.FieldFactory.createField;
 import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableMap;
 import com.grupozap.search.api.exception.InvalidFieldException;
+import com.grupozap.search.api.listener.SortRescoreListener;
 import com.grupozap.search.api.model.event.ClusterSettingsUpdatedEvent;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.IndexSettings;
@@ -33,13 +36,15 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
   private static final Logger LOG = LoggerFactory.getLogger(FieldCache.class);
 
   private final FieldFactory fieldFactory;
+  private final SortRescoreListener sortRescoreListener;
   private Map<String, Field> validFields;
   private IndexSettings indexSettings; // Request scoped
 
   @Autowired
-  public FieldCache(FieldFactory fieldFactory) {
+  public FieldCache(FieldFactory fieldFactory, SortRescoreListener sortRescoreListener) {
     this.fieldFactory = fieldFactory;
     this.validFields = new HashMap<>();
+    this.sortRescoreListener = sortRescoreListener;
   }
 
   @Autowired
@@ -64,9 +69,21 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
   private Map<String, Field> preprocessFieldsForIndexes(
       Map<String, Map<String, Object>> settingsByIndex) {
     Map<String, Field> fields = new HashMap<>();
+
     // Add fields from mapping
     settingsByIndex.forEach(
-        (indexName, settings) -> fields.putAll(processFieldsForIndex(indexName, settings)));
+        (indexName, settings) -> {
+          fields.putAll(processFieldsForIndex(indexName, settings));
+          this.sortRescoreListener
+              .getRescorerOrders(indexName)
+              .keySet()
+              .forEach(
+                  fieldName -> {
+                    Map<String, Object> map = new HashMap<>(1);
+                    map.put(fieldName, FIELD_TYPE_RESCORE.getDefaultType());
+                    fields.put(keyForField(indexName, fieldName), createField(fieldName, map));
+                  });
+        });
     // Add whitelist fields
     settingsByIndex
         .keySet()
@@ -77,7 +94,7 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
   private Map<String, Field> processFieldsForIndex(String indexName, Map<String, Object> settings) {
     return settings.entrySet().stream()
         .filter(entry -> entry.getValue() instanceof String)
-        .map(entry -> FieldFactory.createField(entry.getKey(), settings))
+        .map(entry -> createField(entry.getKey(), settings))
         .collect(toMap(field -> keyForField(indexName, field.getName()), identity()));
   }
 

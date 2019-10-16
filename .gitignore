@@ -39,3 +39,5 @@ search-api.iml
 
 # Make Snippets k8s dist
 deploy/k8s/dist/
+
+.DS_Store
