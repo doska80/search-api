@@ -11,9 +11,7 @@ import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertTrue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
@@ -506,5 +504,42 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         .body("result.testdata", hasSize(defaultPageSize))
         .body("result.testdata.field_geo_after_alias.lat", equalTo(expectedLat))
         .body("result.testdata.field_geo_after_alias.lon", equalTo(expectedLon));
+  }
+
+  @Test
+  public void validateLtrRescoreTest() {
+    var even =
+        rangeClosed(1, standardDatasetSize)
+            .boxed()
+            .filter(i -> i % 2 == 0)
+            .limit(defaultPageSize)
+            .map(String::valueOf)
+            .toArray();
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?size=" + (standardDatasetSize / 2) + "&sort=rescore_default")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata.id", containsInAnyOrder(even));
+  }
+
+  @Test
+  public void shouldReturnBadRequestWhenSortOptionInConjunctionWithRescore() {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_BAD_REQUEST)
+        .when()
+        .get(TEST_DATA_INDEX + "?sort=rescore_default,id DESC");
   }
 }

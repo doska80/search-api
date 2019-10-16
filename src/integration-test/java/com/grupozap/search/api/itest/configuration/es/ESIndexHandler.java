@@ -91,6 +91,21 @@ public class ESIndexHandler {
     script.put("scriptSortType", "number");
     script.put("lang", "painless");
 
+    /* Start configuring LTR rescore */
+    Map<String, Object> esSortRescoreModelConfiguration = new HashMap<>();
+    esSortRescoreModelConfiguration.put("window_size", standardDatasetSize);
+    esSortRescoreModelConfiguration.put("model", "testdata_model");
+    esSortRescoreModelConfiguration.put("query_weight", 1.0);
+    esSortRescoreModelConfiguration.put("rescore_query_weight", 1.0);
+    esSortRescoreModelConfiguration.put("score_mode", "total");
+    esSortRescoreModelConfiguration.put("active_features", newArrayList());
+
+    Map<String, Object> esSortRescoreModel = new HashMap<>();
+    esSortRescoreModel.put("rescore_default", esSortRescoreModelConfiguration);
+
+    putStandardProperty("es.sort.rescore", esSortRescoreModel);
+    /* Finish configuring LTR rescore */
+
     Map<String, Object> params = new HashMap<>();
     params.put("score_factor", 2.0);
     script.put("params", params);

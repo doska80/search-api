@@ -1,4 +1,4 @@
-version: '2.2'
+version: '3.2'
 services:
 
   es:
@@ -22,6 +22,10 @@ services:
       memlock: -1
     ports:
       - 9200:9200
+    user: elasticsearch
+    command: >
+      /bin/sh -c "./bin/elasticsearch-plugin install --batch http://es-learn-to-rank.labs.o19s.com/ltr-${LTR_PLUGIN_VERSION}-es${ELASTICSEARCH_VERSION}.zip;
+      /usr/local/bin/docker-entrypoint.sh"
     healthcheck:
       test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
@@ -30,8 +34,7 @@ services:
     hostname: kibana
     image: docker.elastic.co/kibana/kibana:${ELASTICSEARCH_VERSION}
     depends_on:
-      es:
-        condition: service_healthy
+      - es
     networks:
       - stack
     environment:
@@ -54,10 +57,8 @@ services:
       - stack
     image: search-api:itest-latest
     depends_on:
-      es:
-        condition: service_healthy
-      kibana:
-        condition: service_healthy
+      - es
+      - kibana
     environment:
       - SPRING_PROFILES_ACTIVE=test
       - ES_HOSTNAME=es

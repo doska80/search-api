@@ -216,6 +216,66 @@
         "description": "Painless script"
       },
       "response": []
+    },
+    {
+      "name": "Starting the LTR",
+      "request": {
+        "url": "http://${es_host}:${es_port}/_ltr",
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": ""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": ""
+        },
+        "description": "Starting the LTR"
+      },
+      "response": []
+    },
+    {
+      "name": "Creating features",
+      "request": {
+        "url": "http://${es_host}:${es_port}/_ltr/_featureset/testdata_features",
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": ""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"featureset\":{\"features\":[{\"name\":\"is_even_query\",\"params\":[],\"template_language\":\"mustache\",\"template\":{\"term\":{\"isEven\":{\"value\":true}}}}]}}"
+        },
+        "description": "Creating features"
+      },
+      "response": []
+    },
+    {
+      "name": "Loading simple linear LTR Model",
+      "request": {
+        "url": "http://${es_host}:${es_port}/_ltr/_featureset/testdata_features/_createmodel",
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": ""
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"model\":{\"name\":\"testdata_model\",\"model\":{\"type\":\"model/linear\",\"definition\":{\"is_even_query\":1.0}}}}"
+        },
+        "description": "LTR Model"
+      },
+      "response": []
     }
   ]
 }

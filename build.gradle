@@ -39,6 +39,7 @@ group = 'com.grupozap.search'
 ext {
     artifactName = project.hasProperty('artifactName') ? artifactName : 'grupozap-search-api-SNAPSHOT.jar'
     set('elasticsearch.version', ELASTICSEARCH_VERSION)
+    set('ltr.plugin.version', LTR_PLUGIN_VERSION)
 }
 
 eclipse {
@@ -71,8 +72,6 @@ jar {
         attributes 'Implementation-Title': 'grupozap Search API v2', 'Implementation-Version': artifactName
     }
 }
-
-import org.apache.tools.ant.filters.ReplaceTokens
 
 repositories {
     mavenLocal()
@@ -132,7 +131,7 @@ dependencies {
     compile 'org.jparsec:jparsec:3.1'
 
     compile 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
-    
+
     datadog 'com.datadoghq:dd-java-agent:' + DATADOG_VERSION
 
     // elasticsearch/lucene unit tests
@@ -213,7 +212,7 @@ def isDependencyHealthy(String url) {
 
 def waitForTestDependencyHealthy(name, seconds, healthcheck) {
     println "Waiting until $name becomes healthy"
-    while(!healthcheck() && seconds >= 0) {
+    while (!healthcheck() && seconds >= 0) {
         sleep(1 * 1000)
         println "Waiting another " + (seconds--) + " seconds to $name becomes healthy"
     }
@@ -234,7 +233,7 @@ sourceSets {
     }
 }
 
-configurations{
+configurations {
     integrationTestCompile.extendsFrom testCompile
     integrationTestCompile.extendsFrom testRuntime
 }
@@ -259,7 +258,7 @@ tasks.withType(Test) {
  * Docker compose config
  ****************************/
 
-if(!project.hasProperty('noDockerCompose')) {
+if (!project.hasProperty('noDockerCompose')) {
     dockerCompose {
         useComposeFiles = ["${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose.yml"]
         stopContainers = true
@@ -268,6 +267,7 @@ if(!project.hasProperty('noDockerCompose')) {
         waitForTcpPorts = false
 
         environment.put 'ELASTICSEARCH_VERSION', ELASTICSEARCH_VERSION
+        environment.put 'LTR_PLUGIN_VERSION', LTR_PLUGIN_VERSION
     }
 
     dockerCompose.isRequiredBy(integrationTest)
@@ -285,7 +285,8 @@ jmh {
     timeUnit = 'us'           // Output time unit. Available time units are: [m, s, ms, us, ns].
 
     verbosity = 'NORMAL'      // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
-    benchmarkMode = ['all']   // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
+    benchmarkMode = ['all']
+    // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
     include = ['.*Benchmark']
 }
 
