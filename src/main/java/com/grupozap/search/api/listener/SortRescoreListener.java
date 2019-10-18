@@ -47,12 +47,12 @@ public class SortRescoreListener implements ApplicationListener<RemoteProperties
   public static final class SortRescore {
     private final String model;
 
-    private static final int DEFAULT_WINDOW_SIZE = 500;
-    private static final float DEFAULT_QUERY_WEIGHT = 1.0f;
-    private static final float DEFAULT_RESCORE_QUERY_WEIGHT = 1.0f;
-    private static final String DEFAULT_SCORE_MODE = "total";
-    private static final Map<String, Object> DEFAULT_PARAMS = newHashMap();
-    private static final List<String> DEFAULT_ACTIVE_FEATURES = newArrayList();
+    public static final int DEFAULT_WINDOW_SIZE = 500;
+    public static final float DEFAULT_QUERY_WEIGHT = 1.0f;
+    public static final float DEFAULT_RESCORE_QUERY_WEIGHT = 1.0f;
+    public static final String DEFAULT_SCORE_MODE = "total";
+    public static final Map<String, Object> DEFAULT_PARAMS = newHashMap();
+    public static final List<String> DEFAULT_ACTIVE_FEATURES = newArrayList();
 
     private final int windowSize;
     private final float queryWeight;
@@ -62,32 +62,32 @@ public class SortRescoreListener implements ApplicationListener<RemoteProperties
     private final List<String> activeFeatures;
 
     @SuppressWarnings("unchecked")
-    private static Map<String, SortRescore> build(Map<String, Map> rescore) {
-      Map<String, SortRescore> rescorerOrders = new HashMap<>(rescore.size());
-      rescore.forEach(
-          (key, value) -> {
+    public static Map<String, SortRescore> build(Map<String, Map> rescoreProperties) {
+      Map<String, SortRescore> rescorerOrders = new HashMap<>(rescoreProperties.size());
+      rescoreProperties.forEach(
+          (rescorePropertiesKey, rescorePropertiesValues) -> {
             var rescorerOrder =
                 new SortRescore(
-                    valueOf(value.get("model")),
-                    value.get("window_size") != null
-                        ? parseInt(valueOf(value.get("window_size")))
+                    valueOf(rescorePropertiesValues.get("model")),
+                    rescorePropertiesValues.get("window_size") != null
+                        ? parseInt(valueOf(rescorePropertiesValues.get("window_size")))
                         : DEFAULT_WINDOW_SIZE,
-                    value.get("query_weight") != null
-                        ? parseFloat(valueOf(value.get("query_weight")))
+                    rescorePropertiesValues.get("query_weight") != null
+                        ? parseFloat(valueOf(rescorePropertiesValues.get("query_weight")))
                         : DEFAULT_QUERY_WEIGHT,
-                    value.get("rescore_query_weight") != null
-                        ? parseFloat(valueOf(value.get("rescore_query_weight")))
+                    rescorePropertiesValues.get("rescore_query_weight") != null
+                        ? parseFloat(valueOf(rescorePropertiesValues.get("rescore_query_weight")))
                         : DEFAULT_RESCORE_QUERY_WEIGHT,
-                    value.get("score_mode") != null
-                        ? valueOf(value.get("score_mode"))
+                    rescorePropertiesValues.get("score_mode") != null
+                        ? valueOf(rescorePropertiesValues.get("score_mode"))
                         : DEFAULT_SCORE_MODE,
-                    value.get("params") != null
-                        ? (Map<String, Object>) value.get("params")
+                    rescorePropertiesValues.get("params") != null
+                        ? (Map<String, Object>) rescorePropertiesValues.get("params")
                         : DEFAULT_PARAMS,
-                    value.get("active_features") != null
-                        ? (List<String>) value.get("active_features")
+                    rescorePropertiesValues.get("active_features") != null
+                        ? (List<String>) rescorePropertiesValues.get("active_features")
                         : DEFAULT_ACTIVE_FEATURES);
-            rescorerOrders.put(key, rescorerOrder);
+            rescorerOrders.put(rescorePropertiesKey, rescorerOrder);
           });
       return rescorerOrders;
     }

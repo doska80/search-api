@@ -80,6 +80,18 @@ public class LtrQueryBuilder extends AbstractQueryBuilder<LtrQueryBuilder> {
     return NAME;
   }
 
+  public String getModel() {
+    return model;
+  }
+
+  public Map<String, Object> getParams() {
+    return params;
+  }
+
+  public List<String> getActiveFeatures() {
+    return activeFeatures;
+  }
+
   private static class SltrQuery extends Query {
 
     private final String model;

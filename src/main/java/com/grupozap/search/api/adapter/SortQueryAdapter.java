@@ -5,6 +5,7 @@ import static com.grupozap.search.api.configuration.environment.RemoteProperties
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
 import static com.grupozap.search.api.model.mapping.MappingType.*;
 import static java.lang.Boolean.FALSE;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.script.Script.DEFAULT_SCRIPT_LANG;
@@ -13,6 +14,7 @@ import static org.elasticsearch.search.sort.SortBuilders.*;
 import static org.elasticsearch.search.sort.SortOrder.valueOf;
 
 import com.grupozap.search.api.exception.InvalidFieldException;
+import com.grupozap.search.api.exception.RescoreConjunctionSortException;
 import com.grupozap.search.api.listener.ScriptRemotePropertiesListener;
 import com.grupozap.search.api.listener.SortRescoreListener;
 import com.grupozap.search.api.model.parser.SortParser;
@@ -68,6 +70,7 @@ public class SortQueryAdapter {
                     : request.getSort())
             .forEach(
                 item -> {
+                  validateRescoreCompoudBySort(searchSourceBuilder, request);
                   if (item.getField().getName().equals("_score")) {
                     searchSourceBuilder.sort(scoreSort());
 
@@ -163,5 +166,11 @@ public class SortQueryAdapter {
               nestedSortBuilder.setFilter(queryBuilder);
             });
     return nestedSortBuilder;
+  }
+
+  private void validateRescoreCompoudBySort(
+      SearchSourceBuilder searchSourceBuilder, final Sortable request) {
+    if (!isEmpty(searchSourceBuilder.rescores()))
+      throw new RescoreConjunctionSortException(request.getSort());
   }
 }

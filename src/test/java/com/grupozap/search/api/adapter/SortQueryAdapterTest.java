@@ -1,51 +1,68 @@
 package com.grupozap.search.api.adapter;
 
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
+import static com.grupozap.search.api.listener.SortRescoreListener.SortRescore.*;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_SCRIPT;
+import static com.grupozap.search.api.model.query.OrderOperator.DESC;
 import static com.grupozap.search.api.utils.MapperUtils.convertValue;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.script.ScriptType.STORED;
+import static org.elasticsearch.search.rescore.QueryRescoreMode.fromString;
 import static org.elasticsearch.search.sort.ScriptSortBuilder.ScriptSortType.NUMBER;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
-import static org.elasticsearch.search.sort.SortOrder.DESC;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
+import com.grupozap.search.api.exception.RescoreConjunctionSortException;
 import com.grupozap.search.api.listener.ScriptRemotePropertiesListener;
 import com.grupozap.search.api.listener.ScriptRemotePropertiesListener.ScriptField;
 import com.grupozap.search.api.listener.SortRescoreListener;
 import com.grupozap.search.api.model.parser.OperatorParser;
 import com.grupozap.search.api.model.parser.SortParser;
 import com.grupozap.search.api.model.parser.ValueParser;
+import com.grupozap.search.api.model.query.Field;
+import com.grupozap.search.api.model.query.Sort;
+import com.grupozap.search.api.query.LtrQueryBuilder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import org.apache.commons.collections4.map.LinkedMap;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.sort.*;
 import org.junit.Before;
 import org.junit.Test;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
 
-  private final SortQueryAdapter sortQueryAdapter;
+  private SortQueryAdapter sortQueryAdapter;
   private final ScriptRemotePropertiesListener scriptRemotePropertiesListener;
   private final ElasticsearchSettingsAdapter elasticsearchSettingsAdapter;
   private final SortRescoreListener sortRescoreListener;
+  private final SortParser sortParser;
 
   public SortQueryAdapterTest() {
-    var sortParser =
+    sortParser =
         new SortParser(
             fieldParserFixture(), new OperatorParser(), new ValueParser(), queryParserFixture());
 
     scriptRemotePropertiesListener = mock(ScriptRemotePropertiesListener.class);
     elasticsearchSettingsAdapter = mock(ElasticsearchSettingsAdapter.class);
     sortRescoreListener = mock(SortRescoreListener.class);
+  }
+
+  @Before
+  public void setup() {
+    ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
+    ES_SORT_DISABLE.setValue(INDEX_NAME, false);
 
     this.sortQueryAdapter =
         new SortQueryAdapter(
@@ -56,19 +73,13 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
             sortRescoreListener);
   }
 
-  @Before
-  public void setup() {
-    ES_DEFAULT_SORT.setValue(INDEX_NAME, "id ASC");
-    ES_SORT_DISABLE.setValue(INDEX_NAME, false);
-  }
-
   @Test
   public void shouldApplySortByRequest() {
     var fieldName1 = "id";
     var sortOrder1 = ASC;
 
     var fieldName2 = "nested.field";
-    var sortOrder2 = DESC;
+    var sortOrder2 = SortOrder.DESC;
 
     var requestBuilder = new SearchSourceBuilder();
     var request = fullRequest.build();
@@ -109,7 +120,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     var sortOrder1 = ASC;
 
     var fieldName2 = "nested.field";
-    var sortOrder2 = DESC;
+    var sortOrder2 = SortOrder.DESC;
     var sortFilter2 = "sortFilter: fieldName EQ \"value\"";
 
     var requestBuilder = new SearchSourceBuilder();
@@ -242,12 +253,167 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     sortQueryAdapter.apply(requestBuilder, request);
     var scriptSortBuilder = (ScriptSortBuilder) requestBuilder.sorts().get(0);
 
-    assertEquals(DESC, scriptSortBuilder.order());
+    assertEquals(SortOrder.DESC, scriptSortBuilder.order());
     assertEquals(NUMBER, scriptSortBuilder.type());
     assertNull(scriptSortBuilder.script().getLang());
     assertEquals(scriptSortId, scriptSortBuilder.script().getIdOrCode());
     assertEquals(STORED, scriptSortBuilder.script().getType());
     assertTrue(scriptSortBuilder.script().getParams().containsKey("score_factor"));
     assertEquals("2", scriptSortBuilder.script().getParams().get("score_factor"));
+  }
+
+  @Test
+  public void shouldApplyRescoreOrderWithDefaultPropertyValues() {
+    var model = "model-v2";
+
+    var properties = newHashMap();
+    properties.put("model", model);
+
+    var rescorePropertiesKey = "rescore_default";
+    var rescoreProperties = new HashMap<String, Map>();
+    rescoreProperties.put(rescorePropertiesKey, properties);
+    ES_SORT_RESCORE.setValue(INDEX_NAME, rescoreProperties);
+
+    when(this.sortRescoreListener.getRescorerOrders(INDEX_NAME))
+        .thenReturn(build(rescoreProperties));
+
+    var request = fullRequest.build();
+    request.setSort(rescorePropertiesKey);
+
+    var sortParser = mock(SortParser.class);
+    when(sortParser.parse(request.getSort()))
+        .thenReturn(buildSort(rescorePropertiesKey, "_rescore"));
+
+    sortQueryAdapter =
+        new SortQueryAdapter(
+            sortParser,
+            mock(FilterQueryAdapter.class),
+            scriptRemotePropertiesListener,
+            elasticsearchSettingsAdapter,
+            sortRescoreListener);
+
+    var searchSourceBuilder = new SearchSourceBuilder();
+    sortQueryAdapter.apply(searchSourceBuilder, request);
+
+    var rescores = searchSourceBuilder.rescores();
+    assertEquals(1, rescores.size());
+
+    var queryRescorerBuilder = (QueryRescorerBuilder) rescores.get(0);
+    assertEquals(DEFAULT_WINDOW_SIZE, rescores.get(0).windowSize().intValue());
+    assertEquals(DEFAULT_QUERY_WEIGHT, queryRescorerBuilder.getQueryWeight(), 0.0);
+    assertEquals(DEFAULT_RESCORE_QUERY_WEIGHT, queryRescorerBuilder.getRescoreQueryWeight(), 0.0);
+    assertEquals(fromString(DEFAULT_SCORE_MODE), queryRescorerBuilder.getScoreMode());
+
+    var rescoreQuery = (LtrQueryBuilder) ((QueryRescorerBuilder) rescores.get(0)).getRescoreQuery();
+    assertEquals(model, rescoreQuery.getModel());
+    assertEquals(newArrayList(), rescoreQuery.getActiveFeatures());
+    assertEquals(new HashMap<String, Object>(), rescoreQuery.getParams());
+  }
+
+  @Test
+  public void shouldApplyRescoreOrderWithOverridingTheDefaultPropertyValues() {
+    var model = "model-v2";
+    var windowSize = 5;
+    var queryWeight = 1.3f;
+    var rescoreQueryWeight = 2.5f;
+    var scoreMode = "total";
+    var activeFeatures = newArrayList("feature_1", "feature_2");
+
+    var params = new HashMap<String, Object>();
+    params.put("query_string", "rambo");
+
+    var properties = newHashMap();
+    properties.put("model", model);
+    properties.put("window_size", windowSize);
+    properties.put("query_weight", queryWeight);
+    properties.put("rescore_query_weight", rescoreQueryWeight);
+    properties.put("score_mode", scoreMode);
+    properties.put("active_features", activeFeatures);
+    properties.put("params", params);
+
+    var rescorePropertiesKey = "rescore_default";
+    var rescoreProperties = new HashMap<String, Map>();
+    rescoreProperties.put(rescorePropertiesKey, properties);
+    ES_SORT_RESCORE.setValue(INDEX_NAME, rescoreProperties);
+
+    when(this.sortRescoreListener.getRescorerOrders(INDEX_NAME))
+        .thenReturn(build(rescoreProperties));
+
+    var request = fullRequest.build();
+    request.setSort(rescorePropertiesKey);
+
+    var sortParser = mock(SortParser.class);
+    when(sortParser.parse(request.getSort()))
+        .thenReturn(buildSort(rescorePropertiesKey, "_rescore"));
+
+    sortQueryAdapter =
+        new SortQueryAdapter(
+            sortParser,
+            mock(FilterQueryAdapter.class),
+            scriptRemotePropertiesListener,
+            elasticsearchSettingsAdapter,
+            sortRescoreListener);
+
+    var searchSourceBuilder = new SearchSourceBuilder();
+    sortQueryAdapter.apply(searchSourceBuilder, request);
+
+    var rescores = searchSourceBuilder.rescores();
+    assertEquals(1, rescores.size());
+
+    var queryRescorerBuilder = (QueryRescorerBuilder) rescores.get(0);
+    assertEquals(windowSize, rescores.get(0).windowSize().intValue());
+    assertEquals(queryWeight, queryRescorerBuilder.getQueryWeight(), 0.0);
+    assertEquals(rescoreQueryWeight, queryRescorerBuilder.getRescoreQueryWeight(), 0.0);
+    assertEquals(fromString(scoreMode), queryRescorerBuilder.getScoreMode());
+
+    var rescoreQuery = (LtrQueryBuilder) ((QueryRescorerBuilder) rescores.get(0)).getRescoreQuery();
+    assertEquals(model, rescoreQuery.getModel());
+    assertEquals(activeFeatures, rescoreQuery.getActiveFeatures());
+    assertEquals(params, rescoreQuery.getParams());
+  }
+
+  @Test(expected = RescoreConjunctionSortException.class)
+  public void shouldThrowExceptionWhenSortOptionInConjunctionWithRescore() {
+    var model = "model-v2";
+
+    var properties = newHashMap();
+    properties.put("model", model);
+
+    var rescorePropertiesKey = "rescore_default";
+    var rescoreProperties = new HashMap<String, Map>();
+    rescoreProperties.put(rescorePropertiesKey, properties);
+    ES_SORT_RESCORE.setValue(INDEX_NAME, rescoreProperties);
+
+    when(this.sortRescoreListener.getRescorerOrders(INDEX_NAME))
+        .thenReturn(build(rescoreProperties));
+
+    var request = fullRequest.build();
+    request.setSort(rescorePropertiesKey + ",_id DESC");
+
+    var sortParser = mock(SortParser.class);
+    when(sortParser.parse(request.getSort()))
+        .thenReturn(
+            buildSort(buildSort(rescorePropertiesKey, "_rescore"), buildSort("_id", "_obj")));
+
+    sortQueryAdapter =
+        new SortQueryAdapter(
+            sortParser,
+            mock(FilterQueryAdapter.class),
+            scriptRemotePropertiesListener,
+            elasticsearchSettingsAdapter,
+            sortRescoreListener);
+
+    var searchSourceBuilder = new SearchSourceBuilder();
+    sortQueryAdapter.apply(searchSourceBuilder, request);
+  }
+
+  private Sort buildSort(final String fields, final String type) {
+    var typesByName = new LinkedMap<String, String>();
+    typesByName.put(fields, type);
+    return new Sort(new Field(typesByName), DESC);
+  }
+
+  private Sort buildSort(Sort... sorts) {
+    return new Sort(newArrayList(sorts));
   }
 }
