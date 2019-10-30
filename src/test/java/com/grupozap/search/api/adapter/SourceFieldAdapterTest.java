@@ -207,6 +207,27 @@ public class SourceFieldAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
+  public void shouldReturnFieldIfIsParent() {
+    Set<String> includeFields = newHashSet("field1.field2", "field3.field4");
+    Set<String> excludeFields = newHashSet("field1", "field3");
+
+    Fetchable fetchable =
+        basic().index(INDEX_NAME).includeFields(includeFields).excludeFields(excludeFields).build();
+
+    var searchSourceBuilder = new SearchSourceBuilder();
+    sourceFieldAdapter.apply(searchSourceBuilder, fetchable);
+
+    var fetchSourceContext = searchSourceBuilder.fetchSource();
+    assertNotNull(fetchSourceContext);
+
+    assertEquals(includeFields.size(), fetchSourceContext.includes().length);
+    assertThat(
+        fetchSourceContext.includes(), arrayContainingInAnyOrder("field1.field2", "field3.field4"));
+
+    assertEquals(0, fetchSourceContext.excludes().length);
+  }
+
+  @Test
   public void shouldApplySpecifiedFieldSourcesForRequestByIdWithSameFieldsIntoIncludeAndExclude() {
     Set<String> includeFields = newHashSet("field1", "field2", "field3", "field5");
     Set<String> excludeFields = newHashSet("field3", "field4", "field5");

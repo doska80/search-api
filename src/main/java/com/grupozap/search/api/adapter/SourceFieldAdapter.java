@@ -8,8 +8,7 @@ import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.model.search.Fetchable;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -82,12 +81,22 @@ public class SourceFieldAdapter implements ApplicationListener<RemotePropertiesU
       Set<String> fields, String[] includeFields, String indexName) {
     return SOURCE_EXCLUDES.getValue(fields, indexName).stream()
         .filter(
-            field -> !contains(includeFields, field) && isValidFetchSourceField(indexName, field))
+            field ->
+                !containsField(includeFields, field) && isValidFetchSourceField(indexName, field))
         .toArray(String[]::new);
   }
 
   private String[] getDefaultFetchSourceIncludeFieldsForIndex(String index) {
     return getFetchSourceIncludeFields(null, index);
+  }
+
+  private boolean containsField(final String[] includeFields, final String field) {
+    var parentFields =
+        Arrays.stream(includeFields)
+            .filter(f -> f.contains("."))
+            .map(s -> s.split("\\.")[0])
+            .toArray();
+    return (contains(includeFields, field) || contains(parentFields, field));
   }
 
   private boolean isValidFetchSourceField(String index, String fieldName) {
