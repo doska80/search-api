@@ -51,8 +51,16 @@ public class FilterParser {
                 valueParser.getGeoPointValue(Type.POLYGON),
                 Filter::new)
             .label("POLYGON filter");
+    var radiusParser =
+        sequence(
+                fieldParser.get(),
+                operatorParser.exact(RADIUS),
+                valueParser.getGeoPointRadiusValue(),
+                Filter::new)
+            .label("RADIUS filter");
 
-    filterParser = or(normalParser, rangeParser, likeParser, viewportParser, polygonParser);
+    filterParser =
+        or(normalParser, rangeParser, likeParser, viewportParser, polygonParser, radiusParser);
   }
 
   Parser<Filter> get() {

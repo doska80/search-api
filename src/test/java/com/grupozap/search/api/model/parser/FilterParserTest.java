@@ -1,7 +1,9 @@
 package com.grupozap.search.api.model.parser;
 
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
-import static org.junit.Assert.*;
+import static com.grupozap.search.api.model.query.GeoPointRadiusValue.DEFAULT_RADIUS_DISTANCE_VALUE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 import com.grupozap.search.api.model.query.Value;
 import org.jparsec.error.ParserException;
@@ -182,5 +184,43 @@ public class FilterParserTest {
   public void testFieldWithAlias() {
     var filter = filterParser.get().parse("field_before_alias=10");
     assertEquals("field_after_alias EQUAL 10", filter.toString());
+  }
+
+  @Test
+  public void testRadiusFilterWithDefaultDistance() {
+    var value = "address.geoLocation RADIUS [-46.6597479,-23.5534103]";
+    var radius = filterParser.get().parse(value);
+    assertEquals(
+        "address.geoLocation RADIUS [-46.6597479, -23.5534103], \""
+            + DEFAULT_RADIUS_DISTANCE_VALUE.value()
+            + "\"",
+        radius.toString());
+  }
+
+  @Test
+  public void testRadiusFilterWithDistanceInformedByClient() {
+    var distance = "1km";
+    var value = "address.geoLocation RADIUS [-46.6597479,-23.5534103] DISTANCE:'" + distance + "'";
+    var radius = filterParser.get().parse(value);
+    assertEquals(
+        "address.geoLocation RADIUS [-46.6597479, -23.5534103], \"" + distance + "\"",
+        radius.toString());
+  }
+
+  @Test
+  public void testRadiusFilterWithDistanceInformedByClientUsingCaseInsensitive() {
+    var distance = "1km";
+    var value = "address.geoLocation RADIUS [-46.6597479,-23.5534103] distance:'" + distance + "'";
+    var radius = filterParser.get().parse(value);
+    assertEquals(
+        "address.geoLocation RADIUS [-46.6597479, -23.5534103], \"" + distance + "\"",
+        radius.toString());
+  }
+
+  @Test(expected = ParserException.class)
+  public void shouldLaunchAnExceptionWhenTheRadiusDistanceUnitIsInvalid() {
+    var distance = "1KM";
+    var value = "address.geoLocation RADIUS [-23.5534103,-46.6597479] distance:'" + distance + "'";
+    filterParser.get().parse(value);
   }
 }

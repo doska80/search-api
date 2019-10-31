@@ -1,12 +1,12 @@
 package com.grupozap.search.api.model.parser;
 
+import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
+import static com.grupozap.search.api.model.query.RelationalOperator.RADIUS;
 import static org.jparsec.Parsers.*;
 import static org.jparsec.Scanners.*;
 
-import com.grupozap.search.api.model.query.GeoPointValue;
-import com.grupozap.search.api.model.query.LikeValue;
-import com.grupozap.search.api.model.query.RangeValue;
-import com.grupozap.search.api.model.query.Value;
+import com.grupozap.search.api.model.query.*;
+import java.util.Optional;
 import org.jparsec.Parser;
 import org.springframework.stereotype.Component;
 
@@ -75,6 +75,22 @@ public class ValueParser {
       default:
         throw new IllegalArgumentException("Invalid GeoPoint type");
     }
+  }
+
+  Parser<GeoPointRadiusValue> getGeoPointRadiusValue() {
+    return sequence(
+        get().label(RADIUS.name()).map(value -> new GeoPointValue(value, SINGLE)),
+        createDistanceParser(),
+        GeoPointRadiusValue::new);
+  }
+
+  private Parser<Optional<Value>> createDistanceParser() {
+    return sequence(
+            between(
+                WHITESPACES.skipMany(), stringCaseInsensitive("DISTANCE"), WHITESPACES.skipMany()),
+            between(WHITESPACES.skipMany(), string(":"), WHITESPACES.skipMany()),
+            stringParser.label("distance"))
+        .asOptional();
   }
 
   public static class GeoPoint {

@@ -17,7 +17,8 @@ public enum RelationalOperator {
   LIKE("LK"),
   RANGE("RG"),
   POLYGON("PG"),
-  CONTAINS_ALL("CA");
+  CONTAINS_ALL("CA"),
+  RADIUS("RD");
 
   private final Set<String> alias;
 

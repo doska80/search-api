@@ -301,6 +301,27 @@ public class FilterQueryAdapter {
                             fieldFirstName));
             break;
 
+          case RADIUS:
+            if (!FIELD_TYPE_GEOPOINT.typeOf(fieldType))
+              throw new UnsupportedFieldException(
+                  fieldName, fieldType, FIELD_TYPE_GEOPOINT.toString(), RADIUS);
+
+            final double longitude = filterValue.value(0);
+            final double latitude = filterValue.value(1);
+            final String distance = filterValue.value(2);
+
+            addFilterQuery(
+                nestedMap,
+                queryBuilder,
+                geoDistanceQuery(fieldName)
+                    .point(new GeoPoint(latitude, longitude))
+                    .distance(distance),
+                logicalOperator,
+                not,
+                nested,
+                fieldFirstName);
+            break;
+
           default:
             throw new UnsupportedOperationException(
                 "Unknown Relational Operator " + operator.name());
