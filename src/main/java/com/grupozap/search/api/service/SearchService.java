@@ -22,6 +22,7 @@ import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -34,6 +35,12 @@ public class SearchService {
   @Autowired private ElasticSearchStream elasticSearch;
 
   @Autowired private RestHighLevelClient restHighLevelClient;
+
+  private final Boolean requestCache;
+
+  public SearchService(@Value("${es.index.requests.cache.enable}") Boolean requestCache) {
+    this.requestCache = requestCache;
+  }
 
   @Trace
   public GetResponse getById(BaseApiRequest request, String index, String id) {
@@ -54,7 +61,7 @@ public class SearchService {
 
   @Trace
   public SearchResponse search(SearchApiRequest request, final int retries) {
-    var searchRequest = this.queryAdapter.query(request);
+    var searchRequest = this.queryAdapter.query(request).requestCache(requestCache);
     try {
       var searchResponse = restHighLevelClient.search(searchRequest, DEFAULT);
       if (searchResponse.getFailedShards() != 0)

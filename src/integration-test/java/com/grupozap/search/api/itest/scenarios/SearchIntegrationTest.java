@@ -1451,7 +1451,8 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .get(format("%s?filter=object.number <= 20", TEST_DATA_INDEX))
         .then()
         .body("totalCount", equalTo(6))
-        .body("result.testdata[0].id", equalTo("2"));
+        .body("result.testdata[0].id", equalTo("2"))
+        .body("result.testdata[1].id", equalTo("3"));
   }
 
   @Test

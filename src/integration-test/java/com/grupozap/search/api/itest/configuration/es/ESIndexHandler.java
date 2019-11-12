@@ -3,6 +3,7 @@ package com.grupozap.search.api.itest.configuration.es;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.grupozap.search.api.itest.configuration.data.TestData.createTestData;
 import static java.lang.String.valueOf;
+import static java.lang.Thread.sleep;
 import static java.util.List.of;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
@@ -138,6 +139,13 @@ public class ESIndexHandler {
         writeValueAsStringFromMap(TEST_DATA_TYPE_ALIAS, testdataAliasProperties));
 
     refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
+    try {
+      // waiting for complete ES refresh
+      sleep(100);
+    } catch (InterruptedException e) {
+      LOG.error("Error on sleeping time to refresh the ES index", e);
+    }
   }
 
   public void putStandardProperty(final String key, final Object value) {
