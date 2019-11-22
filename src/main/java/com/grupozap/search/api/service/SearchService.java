@@ -1,8 +1,7 @@
 package com.grupozap.search.api.service;
 
 import static java.lang.String.format;
-import static java.lang.System.nanoTime;
-import static java.util.Optional.ofNullable;
+import static java.util.Optional.of;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 import static org.elasticsearch.client.RequestOptions.DEFAULT;
 
@@ -14,6 +13,7 @@ import com.grupozap.search.api.model.http.BaseApiRequest;
 import com.grupozap.search.api.model.http.FilterableApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
 import datadog.trace.api.Trace;
+import java.io.IOException;
 import java.io.OutputStream;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.get.GetRequest;
@@ -56,11 +56,6 @@ public class SearchService {
 
   @Trace
   public SearchResponse search(SearchApiRequest request) {
-    return search(request, 1);
-  }
-
-  @Trace
-  public SearchResponse search(SearchApiRequest request, final int retries) {
     var searchRequest = this.queryAdapter.query(request).requestCache(requestCache);
     try {
       var searchResponse = restHighLevelClient.search(searchRequest, DEFAULT);
@@ -69,25 +64,20 @@ public class SearchService {
             format(
                 "%d of %d shards failed",
                 searchResponse.getFailedShards(), searchResponse.getTotalShards()),
-            searchRequest.toString());
-      if (searchResponse.isTimedOut()) throw new QueryTimeoutException(searchRequest.toString());
+            searchRequest.source().toString());
+      if (searchResponse.isTimedOut())
+        throw new QueryTimeoutException(searchRequest.source().toString());
       return searchResponse;
 
-    } catch (Exception e) {
-      if (getRootCause(e) instanceof IllegalArgumentException)
-        throw new IllegalArgumentException(e);
-      if (e instanceof ElasticsearchException) {
-        if (retries != 0) return search(request, retries - 1);
-        throw new QueryPhaseExecutionException(
-            ofNullable(searchRequest).map(SearchRequest::toString).orElse("{}"), e);
-      }
+    } catch (ElasticsearchException e) {
+      throw new QueryPhaseExecutionException(
+          of(searchRequest).map(r -> r.source().toString()).orElse("{}"), e);
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
   public void stream(FilterableApiRequest request, OutputStream stream) {
-    final var startTime = nanoTime();
-
     // Default value for stream size: return all results
     if (request.getSize() == Integer.MAX_VALUE) request.setSize(0);
 

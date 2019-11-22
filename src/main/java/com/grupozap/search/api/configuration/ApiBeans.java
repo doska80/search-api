@@ -38,7 +38,6 @@ public class ApiBeans implements DisposableBean {
       @Value("${es.client.socket.timeout}") int socketTimeout,
       @Value("${es.client.conn.timeout}") int connTimeout,
       @Value("${es.client.conn.request.timeout}") int connRequestTimeout,
-      @Value("${es.client.max.retry.timeout}") int maxRetryTimeout,
       @Value("${es.client.http.max.conn.total}") int maxConnTotal,
       @Value("${es.client.http.max.conn.per-route}") int maxConnPerRoute) {
     this.restHighLevelClient =
