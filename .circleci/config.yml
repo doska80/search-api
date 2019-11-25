@@ -72,7 +72,11 @@ jobs:
 
       - run:
           name: Pushing image and sending notification to Slack
-          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test" push-with-notification
+          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make ENV=qa SLK_TOKEN=$SLK_TOKEN GRADLE_EXTRA_ARGS="-x test" push-with-notification compile-test
+
+      - run:
+          name: Executing sonarqube
+          command: SONAR_TOKEN=${SONAR_TOKEN} PROJECT_VERSION=$(git rev-parse --short HEAD) envsubst < sonar-project.template.properties > sonar-project.properties && docker run -v $(pwd):/usr/src vivareal/sonar-scanner:latest
 
 workflows:
   version: 2

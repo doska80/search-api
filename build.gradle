@@ -10,7 +10,6 @@ buildscript {
         classpath 'com.diffplug.spotless:spotless-plugin-gradle:+'
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
         classpath 'gradle.plugin.com.avast.gradle:gradle-docker-compose-plugin:+'
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.+'
         classpath 'com.github.ben-manes:gradle-versions-plugin:+'
         classpath 'com.gradle:build-scan-plugin:2.+'
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE'
@@ -28,7 +27,6 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
-apply plugin: 'org.sonarqube'
 apply plugin: 'jacoco'
 apply plugin: 'docker-compose'
 apply plugin: 'com.github.ben-manes.versions'
@@ -170,20 +168,6 @@ bootJar {
 }
 
 bootJar.finalizedBy copyJarForDockerCompose
-
-sonarqube {
-    properties {
-        property "sonar.projectKey", "com.grupozap:search-api"
-        property "sonar.projectName", "search-api"
-        property "sonar.scm.provider", "git"
-        property "sonar.host.url", "http://sonarqube.vivareal.io/"
-        property "sonar.sourceEncoding", "UTF-8"
-        property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
-        property "sonar.login", "9eb3df2e079962a62dd40c39a9430795c856280e"
-        property "sonar.sources", sourceSets.main.allSource.srcDirs
-        property "sonar.tests", [sourceSets.test.java.srcDirs, 'src/integration-test/java'].flatten()
-    }
-}
 
 test {
     testLogging {
