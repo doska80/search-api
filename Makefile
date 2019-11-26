@@ -28,8 +28,8 @@ RUN_MEMORY:=$(if $(filter prod,$(ENV)),3000,1000)
 PORT:=8482
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
-RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:InitiatingHeapOccupancyPercent=60 -XX:MaxGCPauseMillis=100 -Xss256k
-RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 384)m -Xms$(shell expr $(RUN_MEMORY) - 384)m
+RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:InitiatingHeapOccupancyPercent=45 -XX:MaxGCPauseMillis=100 -Xss256k
+RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 320)m -Xms$(shell expr $(RUN_MEMORY) - 320)m
 
 ifeq ($(DATADOG_ENABLED), true)
 	RUN_OPTS+=-javaagent:/usr/local/datadog.jar
