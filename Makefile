@@ -24,12 +24,12 @@ LOG:=/var/log/$(CONTAINER_NAME)
 CONTAINER_LOG:=/logs
 include make/log/Makefile
 
-RUN_MEMORY:=$(if $(filter prod,$(ENV)),3000,1000)
+RUN_MEMORY:=$(if $(filter prod,$(ENV)),2048,1024)
 PORT:=8482
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
-RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:InitiatingHeapOccupancyPercent=45 -XX:MaxGCPauseMillis=100 -Xss256k
-RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 320)m -Xms$(shell expr $(RUN_MEMORY) - 320)m
+RUN_OPTS+=-server -XX:+PrintFlagsFinal -Xss256k
+RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 512)m -Xms$(shell expr $(RUN_MEMORY) - 512)m
 
 ifeq ($(DATADOG_ENABLED), true)
 	RUN_OPTS+=-javaagent:/usr/local/datadog.jar
