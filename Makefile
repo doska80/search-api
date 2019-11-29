@@ -24,7 +24,7 @@ LOG:=/var/log/$(CONTAINER_NAME)
 CONTAINER_LOG:=/logs
 include make/log/Makefile
 
-RUN_MEMORY:=$(if $(filter prod,$(ENV)),2048,1024)
+RUN_MEMORY:=$(if $(filter prod,$(ENV)),2560,1024)
 PORT:=8482
 
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
