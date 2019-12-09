@@ -4,7 +4,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.grupozap.search.api.itest.configuration.data.TestData.createTestData;
 import static java.lang.String.valueOf;
 import static java.lang.Thread.sleep;
-import static java.util.List.of;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
@@ -79,7 +78,7 @@ public class ESIndexHandler {
 
   @SuppressWarnings("unchecked")
   public void setDefaultProperties() {
-    putStandardProperty("filter.default.clauses", of());
+    putStandardProperty("filter.default.clauses", List.of());
     putStandardProperty("es.default.size", size);
     putStandardProperty("es.default.sort", "numeric ASC");
     putStandardProperty("es.sort.disable", false);
@@ -93,18 +92,30 @@ public class ESIndexHandler {
     script.put("lang", "painless");
 
     /* Start configuring LTR rescore */
-    Map<String, Object> esSortRescoreModelConfiguration = new HashMap<>();
-    esSortRescoreModelConfiguration.put("window_size", standardDatasetSize);
-    esSortRescoreModelConfiguration.put("model", "testdata_model");
-    esSortRescoreModelConfiguration.put("query_weight", 1.0);
-    esSortRescoreModelConfiguration.put("rescore_query_weight", 1.0);
-    esSortRescoreModelConfiguration.put("score_mode", "total");
-    esSortRescoreModelConfiguration.put("active_features", newArrayList());
+    var esSortModelRescoreConfiguration = new HashMap<>();
+    esSortModelRescoreConfiguration.put("window_size", standardDatasetSize);
+    esSortModelRescoreConfiguration.put("query_weight", 1.0);
+    esSortModelRescoreConfiguration.put("rescore_query_weight", 1.0);
+    esSortModelRescoreConfiguration.put("score_mode", "total");
+    esSortModelRescoreConfiguration.put("model", "testdata_model");
+    esSortModelRescoreConfiguration.put("active_features", newArrayList());
+    esSortModelRescoreConfiguration.put("rescore_type", "ltr_rescore");
 
-    Map<String, Object> esSortRescoreModel = new HashMap<>();
-    esSortRescoreModel.put("rescore_default", esSortRescoreModelConfiguration);
+    /* Start configuring random rescore */
+    var esSortRandomRescoreConfiguration = new HashMap<>();
+    esSortRandomRescoreConfiguration.put("window_size", standardDatasetSize);
+    esSortRandomRescoreConfiguration.put("query_weight", 1.0);
+    esSortRandomRescoreConfiguration.put("rescore_query_weight", 1.0);
+    esSortRandomRescoreConfiguration.put("score_mode", "total");
+    esSortRandomRescoreConfiguration.put("seed", 1);
+    esSortRandomRescoreConfiguration.put("field", "_seq_no");
+    esSortRandomRescoreConfiguration.put("rescore_type", "random_rescore");
 
-    putStandardProperty("es.sort.rescore", esSortRescoreModel);
+    var esSortRescore = new HashMap<>();
+    esSortRescore.put("rescore_default", esSortModelRescoreConfiguration);
+    esSortRescore.put("rescore_seed", esSortRandomRescoreConfiguration);
+
+    putStandardProperty("es.sort.rescore", esSortRescore);
     /* Finish configuring LTR rescore */
 
     Map<String, Object> params = new HashMap<>();
@@ -158,7 +169,9 @@ public class ESIndexHandler {
       var entity =
           createStandardEntityForId(
               id, (id <= (standardDatasetSize - standardDatasetFacetDecrease) ? 1 : 2));
-      if (insertEntityByIndex(TEST_DATA_INDEX, valueOf(id), entity)) entities.add(entity);
+      if (insertEntityByIndex(TEST_DATA_INDEX, valueOf(id), entity)) {
+        entities.add(entity);
+      }
     }
 
     LOG.info(TEST_DATA_INDEX + " inserted " + entities.size() + " documents");

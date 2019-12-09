@@ -6,6 +6,7 @@ import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
+import static java.util.Map.of;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
@@ -528,6 +529,78 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         .then()
         .body("totalCount", equalTo(standardDatasetSize))
         .body("result.testdata.id", containsInAnyOrder(even));
+  }
+
+  @Test
+  public void validateRandomRescoreWithDifferentSeedsTest() {
+    var properties = new HashMap<>();
+    properties.put("window_size", standardDatasetSize);
+    properties.put("query_weight", 1.0);
+    properties.put("rescore_query_weight", 1.0);
+    properties.put("score_mode", "total");
+    properties.put("seed", 2);
+    properties.put("field", "_seq_no");
+    properties.put("rescore_type", "random_score");
+
+    esIndexHandler.putStandardProperty("es.sort.rescore", of("rescore_seed_two", properties));
+    esIndexHandler.addStandardProperties();
+
+    var responseFirstSeed =
+        given()
+            .log()
+            .all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+            .expect()
+            .statusCode(SC_OK)
+            .when()
+            .get(TEST_DATA_INDEX + "?size=" + (standardDatasetSize / 2) + "&sort=rescore_seed")
+            .then()
+            .extract()
+            .path("result.testdata");
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?size=" + (standardDatasetSize / 2) + "&sort=rescore_seed_two")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", not(equalTo(responseFirstSeed)));
+  }
+
+  @Test
+  public void validateRandomRescoreWithTheSameSeedTest() {
+    var responseFirstSeed =
+        given()
+            .log()
+            .all()
+            .baseUri(baseUrl)
+            .contentType(JSON)
+            .expect()
+            .statusCode(SC_OK)
+            .when()
+            .get(TEST_DATA_INDEX + "?size=" + (standardDatasetSize / 2) + "&sort=rescore_seed")
+            .then()
+            .extract()
+            .path("result.testdata");
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?size=" + (standardDatasetSize / 2) + "&sort=rescore_seed")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", equalTo(responseFirstSeed));
   }
 
   @Test

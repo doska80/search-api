@@ -21,7 +21,6 @@ import com.grupozap.search.api.model.parser.SortParser;
 import com.grupozap.search.api.model.query.GeoPointItem;
 import com.grupozap.search.api.model.query.Item;
 import com.grupozap.search.api.model.search.Sortable;
-import com.grupozap.search.api.query.LtrQueryBuilder;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
@@ -114,11 +113,7 @@ public class SortQueryAdapter {
       final SearchSourceBuilder searchSourceBuilder, final String index, final Item item) {
     var sortRescore = sortRescoreListener.getRescorerOrders(index).get(item.getField().getName());
     var queryRescorerBuilder =
-        new QueryRescorerBuilder(
-                new LtrQueryBuilder.Builder(sortRescore.getModel())
-                    .params(sortRescore.getParams())
-                    .activeFeatures(sortRescore.getActiveFeatures())
-                    .build())
+        new QueryRescorerBuilder(sortRescore.getQueryBuilder())
             .setScoreMode(QueryRescoreMode.fromString(sortRescore.getScoreMode()))
             .windowSize(sortRescore.getWindowSize())
             .setQueryWeight(sortRescore.getQueryWeight())
