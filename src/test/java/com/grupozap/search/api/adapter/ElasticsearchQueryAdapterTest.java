@@ -83,7 +83,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             queryParserFixture(),
             filterQueryAdapter,
             defaultFilterFactory,
-            facetQueryAdapter);
+            facetQueryAdapter,
+            false);
 
     doNothing().when(sourceFieldAdapter).apply(any(SearchSourceBuilder.class), any());
     doNothing().when(sourceFieldAdapter).apply(any(GetRequest.class), any());
@@ -106,6 +107,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             searchApiRequest -> {
               var requestBuilder = queryAdapter.getById(searchApiRequest, INDEX_NAME, id);
               assertEquals(id, requestBuilder.id());
+              assertFalse(requestBuilder.realtime());
               assertEquals(searchApiRequest.getIndex(), requestBuilder.index());
             });
   }

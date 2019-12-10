@@ -70,7 +70,8 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
             queryParserFixture(),
             filterQueryAdapter,
             defaultFilterFactory,
-            facetQueryAdapter);
+            facetQueryAdapter,
+            false);
 
     doNothing().when(settingsAdapter).checkIndex(any());
     doNothing().when(sortQueryAdapter).apply(any(), any());

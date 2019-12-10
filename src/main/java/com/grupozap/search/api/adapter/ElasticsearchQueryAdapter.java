@@ -25,6 +25,7 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +46,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   private final DefaultFilterFactory defaultFilterFactory;
   private final FacetQueryAdapter facetQueryAdapter;
 
+  private final boolean realtimeEnabled;
+
   @Autowired
   public ElasticsearchQueryAdapter(
       SourceFieldAdapter sourceFieldAdapter,
@@ -55,7 +58,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
       QueryParser queryParser,
       FilterQueryAdapter filterQueryAdapter,
       DefaultFilterFactory defaultFilterFactory,
-      FacetQueryAdapter facetQueryAdapter) {
+      FacetQueryAdapter facetQueryAdapter,
+      @Value("${es.get.by.id.realtime.enabled:false}") boolean realtimeEnabled) {
     this.sourceFieldAdapter = sourceFieldAdapter;
     this.pageQueryAdapter = pageQueryAdapter;
     this.sortQueryAdapter = sortQueryAdapter;
@@ -65,12 +69,13 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     this.filterQueryAdapter = filterQueryAdapter;
     this.defaultFilterFactory = defaultFilterFactory;
     this.facetQueryAdapter = facetQueryAdapter;
+    this.realtimeEnabled = realtimeEnabled;
   }
 
   @Override
   @Trace
   public GetRequest getById(BaseApiRequest request, String index, String id) {
-    final var getRequest = new GetRequest(index, id);
+    final var getRequest = new GetRequest(index, id).realtime(realtimeEnabled);
     sourceFieldAdapter.apply(getRequest, request);
     LOG.debug("Query getById {}", getRequest);
     return getRequest;
