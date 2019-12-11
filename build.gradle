@@ -29,6 +29,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
 apply plugin: 'jacoco'
+apply plugin: 'org.sonarqube'
 apply plugin: 'docker-compose'
 apply plugin: 'com.github.ben-manes.versions'
 apply plugin: "me.champeau.gradle.jmh"
@@ -279,4 +280,28 @@ buildScan {
     termsOfServiceUrl = 'https://gradle.com/terms-of-service'
     termsOfServiceAgree = 'yes'
     publishAlways()
+}
+
+def getCommitId() {
+    def output = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = output
+    }
+    return output.toString()
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "search-api"
+        property "sonar.projectName", "Search-API"
+        property "sonar.scm.provider", "git"
+        property "sonar.host.url", "https://sonar.vivareal.io"
+        property "sonar.projectVersion", "${getCommitId()}"
+        property "sonar.sourceEncoding", "UTF-8"
+        property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
+        property "sonar.login", System.getenv('SONAR_TOKEN')
+        property "sonar.sources", sourceSets.main.allSource.srcDirs
+        property "sonar.tests", [sourceSets.test.java.srcDirs, 'src/integration-test/java'].flatten()
+    }
 }

@@ -119,3 +119,6 @@ check-es_cluster_name: check-es_cluster_name-arg
 
 benchmark:
 	./gradlew clean jmh --no-daemon
+
+sonarqube:
+	./gradlew sonarqube
