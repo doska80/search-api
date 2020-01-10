@@ -35,6 +35,7 @@ ifeq ($(DATADOG_ENABLED), true)
 	RUN_OPTS+=-javaagent:/usr/local/datadog.jar
     RUN_OPTS+=-Ddd.service.name=$(APP)
     RUN_OPTS+=-Ddd.jmxfetch.enabled=true
+    RUN_OPTS+=-Ddd.http.client.error.statuses=500-599
 endif
 
 # Elasticsearch
