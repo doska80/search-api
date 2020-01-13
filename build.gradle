@@ -11,7 +11,6 @@ buildscript {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
         classpath 'gradle.plugin.com.avast.gradle:gradle-docker-compose-plugin:+'
         classpath 'com.github.ben-manes:gradle-versions-plugin:+'
-        classpath 'com.gradle:build-scan-plugin:2.+'
         classpath 'io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE'
         classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.8'
         classpath 'org.owasp:dependency-check-gradle:+'
@@ -22,7 +21,6 @@ buildscript {
 
 apply plugin: 'org.owasp.dependencycheck'
 apply plugin: 'com.diffplug.gradle.spotless'
-apply plugin: 'com.gradle.build-scan'
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'java'
@@ -278,12 +276,6 @@ jmh {
     benchmarkMode = ['all']
     // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
     include = ['.*Benchmark']
-}
-
-buildScan {
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-    publishAlways()
 }
 
 def getCommitId() {

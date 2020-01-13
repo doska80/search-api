@@ -35,7 +35,7 @@ jobs:
 
       - run:
           name: Building image and running tests
-          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make build
+          command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make GRADLE_EXTRA_ARGS=--scan build
 
       - save_cache:
           key: search-api-{{ checksum "gradle.properties" }}-{{ checksum "build.gradle" }}
