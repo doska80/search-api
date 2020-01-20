@@ -1,6 +1,8 @@
 package com.grupozap.search.api.adapter;
 
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.QS_DEFAULT_FIELDS;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.QS_MM;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.QS_TEMPLATES;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.grupozap.search.api.utils.MapperUtils.convertValue;
 import static java.lang.Float.parseFloat;
@@ -13,7 +15,9 @@ import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.apache.commons.lang3.math.NumberUtils.toInt;
 import static org.apache.lucene.search.join.ScoreMode.None;
 import static org.elasticsearch.index.query.MultiMatchQueryBuilder.Type.BEST_FIELDS;
-import static org.elasticsearch.index.query.QueryBuilders.*;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.multiMatchQuery;
+import static org.elasticsearch.index.query.QueryBuilders.nestedQuery;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.grupozap.search.api.exception.InvalidFieldException;
@@ -21,7 +25,14 @@ import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.model.search.Queryable;
 import com.grupozap.search.api.service.parser.factory.FieldCache;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.elasticsearch.index.query.AbstractQueryBuilder;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -260,19 +271,35 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
       return fieldAliases;
     }
 
-    public void setFieldAliases(Map<String, List<String>> fieldAliases) {
+    public void setFieldAliases(Map<String, List<?>> fieldAliases) {
       Map<String, List<QSField>> qsFieldAliases = new HashMap<>();
       ofNullable(fieldAliases)
           .orElseGet(HashMap::new)
           .forEach(
-              (alias, fieldNames) ->
+              (alias, fields) ->
                   qsFieldAliases.put(
                       alias,
-                      ofNullable(fieldNames).orElseGet(ArrayList::new).stream()
-                          .map(qs -> qs.split(":"))
-                          .map(QueryStringAdapter::createQSField)
+                      ofNullable(fields).orElseGet(ArrayList::new).stream()
+                          .filter(Objects::nonNull)
+                          .map(this::toQSField)
                           .collect(toList())));
       this.fieldAliases = qsFieldAliases;
+    }
+
+    private QSField toQSField(Object obj) {
+      if (obj instanceof QSField) {
+        return (QSField) obj;
+      }
+      if (obj instanceof String) {
+        return createQSField(((String) obj).split(":"));
+      }
+      if (obj instanceof Map) {
+        final var qsMap = (Map) obj;
+        return new QSField(
+            (String) qsMap.getOrDefault("fieldName", ""),
+            (Float) qsMap.getOrDefault("boost", DEFAULT_BOOST_VALUE));
+      }
+      throw new RuntimeException("invalid QSField: " + obj.getClass().getName());
     }
   }
 

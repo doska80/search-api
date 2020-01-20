@@ -8,6 +8,7 @@ PRODUCT:=search
 include make/pro/Makefile
 
 DATADOG_ENABLED?=false
+APP?=$(PROJECT_NAME)
 
 ENV:=dev
 include make/env/Makefile
@@ -27,15 +28,16 @@ include make/log/Makefile
 RUN_MEMORY:=$(if $(filter prod,$(ENV)),2560,1024)
 PORT:=8482
 
+RUN_OPTS+=-Djava.security.egd=file:/dev/./urandom
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 RUN_OPTS+=-server -XX:+PrintFlagsFinal -Xss256k
 RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 512)m -Xms$(shell expr $(RUN_MEMORY) - 512)m
 
 ifeq ($(DATADOG_ENABLED), true)
 	RUN_OPTS+=-javaagent:/usr/local/datadog.jar
-    RUN_OPTS+=-Ddd.service.name=$(APP)
-    RUN_OPTS+=-Ddd.jmxfetch.enabled=true
-    RUN_OPTS+=-Ddd.http.client.error.statuses=500-599
+	RUN_OPTS+=-Ddd.service.name=$(APP)
+	RUN_OPTS+=-Ddd.jmxfetch.enabled=true
+	RUN_OPTS+=-Ddd.service.mapping=elasticsearch:$(APP)-elasticsearch
 endif
 
 # Elasticsearch
@@ -70,7 +72,6 @@ ifeq ($(LEGACY_FRIENDLY_DNS),)
 	override LEGACY_FRIENDLY_DNS:=$(if $(filter prod,$(ENV)),,$(ENV)-)$(PROJECT_NAME).vivareal.com
 endif
 DEPLOY_GROUP:=test
-APP?=$(PROJECT_NAME)
 
 EXTRA_K8S_ARGS?=RUN_MEMORY=$(RUN_MEMORY) APP=$(APP) PROCESS=$(PROCESS) PRODUCT=$(PRODUCT) ES_CLUSTER_NAME=$(ES_CLUSTER_NAME) DEPLOY_GROUP=$(DEPLOY_GROUP) MAX_SURGE=$(MAX_SURGE) ONDEMAND_REPLICAS=$(ONDEMAND_REPLICAS) SPOT_REPLICAS=$(SPOT_REPLICAS) MIN_SPOT_REPLICAS=$(MIN_SPOT_REPLICAS) MAX_SPOT_REPLICAS=$(MAX_SPOT_REPLICAS) FRIENDLY_DNS=$(FRIENDLY_DNS) LEGACY_FRIENDLY_DNS=$(LEGACY_FRIENDLY_DNS)
 ifeq ($(STACK_ALIAS),)

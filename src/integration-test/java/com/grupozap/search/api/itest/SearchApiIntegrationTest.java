@@ -2,6 +2,7 @@ package com.grupozap.search.api.itest;
 
 import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
 import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static com.jayway.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static org.apache.http.HttpStatus.SC_OK;
@@ -14,6 +15,7 @@ import java.io.IOException;
 import javax.annotation.PostConstruct;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +48,11 @@ public class SearchApiIntegrationTest {
 
   @Autowired protected ESIndexHandler esIndexHandler;
   @Autowired protected StandardDatasetAsserts asserts;
+
+  @BeforeClass
+  public static void enableLogging() {
+    enableLoggingOfRequestAndResponseIfValidationFails();
+  }
 
   @Before
   public void forceCircuitClosed() {
