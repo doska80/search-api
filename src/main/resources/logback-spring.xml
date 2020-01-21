@@ -12,12 +12,6 @@
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
         </filter>
-        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
-            <evaluator class="ch.qos.logback.classic.boolex.JaninoEventEvaluator">
-                <expression>com.grupozap.search.api.controller.error.ExceptionHandler.isBadRequestException(throwable)</expression>
-            </evaluator>
-            <onMatch>DENY</onMatch>
-        </filter>
     </appender>
 
     <appender name="GRAYLOG" class="ch.qos.logback.core.ConsoleAppender">
@@ -58,18 +52,18 @@
     </root>
 
     <logger name="org.springframework">
-        <level value="warn"/>
+        <level value="WARN"/>
     </logger>
 
     <logger name="com.netflix">
-        <level value="warn"/>
+        <level value="WARN"/>
     </logger>
 
     <logger name="io.sentry">
-        <level value="warn"/>
+        <level value="WARN"/>
     </logger>
 
     <logger name="springfox">
-        <level value="warn"/>
+        <level value="WARN"/>
     </logger>
 </configuration>

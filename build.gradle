@@ -11,11 +11,12 @@ buildscript {
         classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
         classpath 'gradle.plugin.com.avast.gradle:gradle-docker-compose-plugin:+'
         classpath 'com.github.ben-manes:gradle-versions-plugin:+'
-        classpath 'io.spring.gradle:dependency-management-plugin:1.0.8.RELEASE'
+        classpath 'io.spring.gradle:dependency-management-plugin:1.0.9.RELEASE'
         classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.8'
         classpath 'org.owasp:dependency-check-gradle:+'
         classpath 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
         classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:+'
+        classpath 'gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:+'
     }
 }
 
@@ -30,7 +31,8 @@ apply plugin: 'jacoco'
 apply plugin: 'org.sonarqube'
 apply plugin: 'docker-compose'
 apply plugin: 'com.github.ben-manes.versions'
-apply plugin: "me.champeau.gradle.jmh"
+apply plugin: 'me.champeau.gradle.jmh'
+apply plugin: 'com.gorylenko.gradle-git-properties'
 
 group = 'com.grupozap.search'
 
@@ -57,7 +59,7 @@ idea {
 sourceCompatibility = 11
 targetCompatibility = 11
 
-jacoco { toolVersion = "0.8.2" }
+jacoco { toolVersion = "0.8.5" }
 
 spotless {
     java {
@@ -98,7 +100,6 @@ dependencies {
     compile 'javax.xml.bind:jaxb-api:2.+'
 
     compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
-    compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix-dashboard'
     compile 'org.springframework.cloud:spring-cloud-starter-netflix-turbine'
 
     compile 'org.springframework.boot:spring-boot-starter-undertow'
@@ -123,9 +124,6 @@ dependencies {
 
     compile 'com.google.code.gson:gson:2.8.6'
 
-    compile 'org.codehaus.janino:janino:3.1.0'
-    compile 'org.codehaus.janino:commons-compiler:3.1.0'
-
     compile 'org.jparsec:jparsec:3.1'
 
     compile 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
@@ -136,6 +134,8 @@ dependencies {
     testCompile 'org.elasticsearch.test:framework:' + ELASTICSEARCH_VERSION
 
     testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'commons-io:commons-io:2.+'
+
     // Fixtures
     testCompile 'br.com.six2six:fixture-factory:3.1.0'
     testCompile 'com.jayway.restassured:rest-assured:2.9.0'

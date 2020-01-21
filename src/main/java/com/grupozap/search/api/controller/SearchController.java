@@ -2,12 +2,19 @@ package com.grupozap.search.api.controller;
 
 import static com.grupozap.search.api.configuration.ThreadPoolConfig.MAX_SIZE;
 import static com.grupozap.search.api.configuration.ThreadPoolConfig.MIN_SIZE;
-import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.*;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.CORE_SIZE;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.EXECUTION_ISOLATION_SEMAPHORE_MAX_CONCURRENT_REQUESTS;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.EXECUTION_ISOLATION_STRATEGY;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.EXECUTION_TIMEOUT_ENABLED;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.FALLBACK_ENABLED;
+import static com.netflix.hystrix.contrib.javanica.conf.HystrixPropertiesManager.MAX_QUEUE_SIZE;
 import static org.springframework.http.ResponseEntity.notFound;
 import static org.springframework.http.ResponseEntity.ok;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
 
-import com.grupozap.search.api.controller.error.ExceptionHandler;
 import com.grupozap.search.api.model.http.BaseApiRequest;
 import com.grupozap.search.api.model.http.FilterableApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
@@ -42,7 +49,6 @@ import springfox.documentation.annotations.ApiIgnore;
 @RequestMapping("/v2")
 @Api("v2")
 @DefaultProperties(
-    defaultFallback = "fallback",
     ignoreExceptions = {
       IllegalArgumentException.class,
       ParserException.class,
@@ -60,12 +66,10 @@ public class SearchController {
 
   @Autowired private Environment environment;
 
-  @Autowired private ExceptionHandler exceptionHandler;
-
   @RequestMapping(
       value = {"/{index}/{id}"},
       method = GET,
-      produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+      produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(value = "Search by index with id", notes = "Returns index by identifier")
   @ApiResponses(
       value = {
@@ -83,7 +87,8 @@ public class SearchController {
         @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
         @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "5000"),
         @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "100"),
-        @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "90")
+        @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "90"),
+        @HystrixProperty(name = FALLBACK_ENABLED, value = "false")
       },
       threadPoolProperties = {
         @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
@@ -99,10 +104,7 @@ public class SearchController {
     return builderOK.body(new String(response.getSourceAsBytes()));
   }
 
-  @RequestMapping(
-      value = "/{index}",
-      method = GET,
-      produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @RequestMapping(value = "/{index}", method = GET, produces = MediaType.APPLICATION_JSON_VALUE)
   @ApiOperation(value = "Search documents", notes = "Returns query-based documents")
   @ApiResponses(
       value = {
@@ -119,7 +121,8 @@ public class SearchController {
         @HystrixProperty(name = EXECUTION_TIMEOUT_ENABLED, value = "false"),
         @HystrixProperty(name = CIRCUIT_BREAKER_SLEEP_WINDOW_IN_MILLISECONDS, value = "10000"),
         @HystrixProperty(name = CIRCUIT_BREAKER_REQUEST_VOLUME_THRESHOLD, value = "30"),
-        @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "70")
+        @HystrixProperty(name = CIRCUIT_BREAKER_ERROR_THRESHOLD_PERCENTAGE, value = "70"),
+        @HystrixProperty(name = FALLBACK_ENABLED, value = "false")
       },
       threadPoolProperties = {
         @HystrixProperty(name = CORE_SIZE, value = MIN_SIZE),
@@ -131,11 +134,6 @@ public class SearchController {
     return builderOK.body(
         new SearchResponseEnvelope<>(
             indexSettings.getIndexByAlias(), searchService.search(request)));
-  }
-
-  public ResponseEntity<Object> fallback(Throwable e) {
-    var error = exceptionHandler.error(e);
-    return new ResponseEntity<>(error.getBody(), error.getStatusCode());
   }
 
   @RequestMapping(

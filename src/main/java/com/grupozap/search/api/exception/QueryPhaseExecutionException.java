@@ -25,6 +25,11 @@ public class QueryPhaseExecutionException extends RuntimeException {
     this.query = query;
   }
 
+  @Override
+  public String getMessage() {
+    return super.getMessage() + " - query: [" + getQuery() + "]";
+  }
+
   public String getQuery() {
     return valueOf(parser(query, JsonNode.class));
   }

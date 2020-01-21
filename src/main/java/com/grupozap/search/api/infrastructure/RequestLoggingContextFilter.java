@@ -1,6 +1,5 @@
 package com.grupozap.search.api.infrastructure;
 
-import static org.slf4j.MDC.get;
 import static org.slf4j.MDC.put;
 import static org.slf4j.MDC.remove;
 
@@ -30,7 +29,7 @@ public class RequestLoggingContextFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     set(request);
     try {
-      LOG.info(get(REQUEST_URI) + "?" + get(REQUEST_QUERY_STRING));
+      LOG.trace("handling request");
       chain.doFilter(request, response);
     } finally {
       clear();
