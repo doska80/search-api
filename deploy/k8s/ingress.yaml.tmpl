@@ -1,4 +1,4 @@
-# Ingress - Generic
+# Private Ingress - Generic
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -20,6 +20,28 @@ spec:
               serviceName: ${APP}
               servicePort: 80
     - host: ${LEGACY_FRIENDLY_DNS}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: ${APP}
+              servicePort: 80
+---
+# Internal Ingress - Generic
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: ${APP}
+  namespace: search
+  labels:
+    app: ${APP}
+    process: ${PROCESS}
+    product: ${PRODUCT}
+  annotations:
+    kubernetes.io/ingress.class: "internal"
+spec:
+  rules:
+    - host: ${INTERNAL_DNS}
       http:
         paths:
           - path: /
