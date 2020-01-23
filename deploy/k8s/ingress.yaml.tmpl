@@ -39,6 +39,7 @@ metadata:
     product: ${PRODUCT}
   annotations:
     kubernetes.io/ingress.class: "internal"
+    ingress.kubernetes.io/enable-access-log: "false"
 spec:
   rules:
     - host: ${INTERNAL_DNS}
