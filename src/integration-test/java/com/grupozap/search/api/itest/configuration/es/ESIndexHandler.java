@@ -157,7 +157,7 @@ public class ESIndexHandler {
 
     try {
       // waiting for complete ES refresh
-      sleep(100);
+      sleep(500);
     } catch (InterruptedException e) {
       LOG.error("Error on sleeping time to refresh the ES index", e);
     }
