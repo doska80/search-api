@@ -2,7 +2,12 @@ package com.grupozap.search.api.model.query;
 
 import static java.util.stream.Collectors.joining;
 
-import java.util.*;
+import java.util.AbstractSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public final class Sort extends AbstractSet<Item> {
 

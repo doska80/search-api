@@ -4,8 +4,12 @@ import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.SIN
 import static com.grupozap.search.api.model.query.OrderOperator.ASC;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
-import static org.jparsec.Parsers.*;
-import static org.jparsec.Scanners.*;
+import static org.jparsec.Parsers.between;
+import static org.jparsec.Parsers.or;
+import static org.jparsec.Parsers.sequence;
+import static org.jparsec.Scanners.WHITESPACES;
+import static org.jparsec.Scanners.isChar;
+import static org.jparsec.Scanners.string;
 
 import com.grupozap.search.api.model.query.GeoPointValue;
 import com.grupozap.search.api.model.query.OrderOperator;
@@ -85,6 +89,15 @@ public class SortParser {
             SortOptionalSettings::new));
   }
 
+  public Parser<Sort> getSingleSortParser() {
+    return sortSingleParser;
+  }
+
+  @Trace
+  public Sort parse(String string) {
+    return sortParser.parse(string);
+  }
+
   private static class SortOptionalSettings {
     final OrderOperator orderOperator;
     final Optional<GeoPointValue> geoPointValue;
@@ -106,14 +119,5 @@ public class SortParser {
     private Optional<GeoPointValue> getGeoPointValue() {
       return geoPointValue;
     }
-  }
-
-  public Parser<Sort> getSingleSortParser() {
-    return sortSingleParser;
-  }
-
-  @Trace
-  public Sort parse(String string) {
-    return sortParser.parse(string);
   }
 }

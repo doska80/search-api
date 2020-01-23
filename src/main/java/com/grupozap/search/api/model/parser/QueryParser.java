@@ -5,7 +5,11 @@ import static org.jparsec.Parsers.or;
 import static org.jparsec.Parsers.sequence;
 import static org.jparsec.Scanners.isChar;
 
-import com.grupozap.search.api.model.query.*;
+import com.grupozap.search.api.model.query.QueryFragment;
+import com.grupozap.search.api.model.query.QueryFragmentItem;
+import com.grupozap.search.api.model.query.QueryFragmentList;
+import com.grupozap.search.api.model.query.QueryFragmentNot;
+import com.grupozap.search.api.model.query.QueryFragmentOperator;
 import datadog.trace.api.Trace;
 import org.jparsec.Parser;
 

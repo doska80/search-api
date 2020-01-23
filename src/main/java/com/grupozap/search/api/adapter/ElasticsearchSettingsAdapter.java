@@ -16,7 +16,11 @@ import com.grupozap.search.api.model.event.ClusterSettingsUpdatedEvent;
 import com.grupozap.search.api.model.mapping.MappingType;
 import com.grupozap.search.api.model.search.Indexable;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Stream;
 import org.apache.http.util.EntityUtils;
@@ -36,12 +40,10 @@ import org.springframework.stereotype.Component;
 public class ElasticsearchSettingsAdapter
     implements SettingsAdapter<Map<String, Map<String, Object>>, String> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
-  private static final String CLUSTER_STATE_PATH = "/_cluster/state?pretty";
-
   public static final String SHARDS = "number_of_shards";
   public static final String REPLICAS = "number_of_replicas";
-
+  private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchSettingsAdapter.class);
+  private static final String CLUSTER_STATE_PATH = "/_cluster/state?pretty";
   private final ApplicationEventPublisher applicationEventPublisher;
   private final RestClient restClient;
   private final Request request;

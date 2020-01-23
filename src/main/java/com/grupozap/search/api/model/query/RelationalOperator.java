@@ -3,7 +3,11 @@ package com.grupozap.search.api.model.query;
 import static com.grupozap.search.api.model.query.RelationalOperator.RelationalOperatorMap.OPERATORS;
 import static java.util.Optional.ofNullable;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public enum RelationalOperator {
   DIFFERENT("NE", "<>"),

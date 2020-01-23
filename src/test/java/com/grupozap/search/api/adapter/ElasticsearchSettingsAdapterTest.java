@@ -4,11 +4,26 @@ import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.REPLI
 import static com.grupozap.search.api.adapter.ElasticsearchSettingsAdapter.SHARDS;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_ALIAS_NAME;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static com.grupozap.search.api.model.mapping.MappingType.*;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_BOOLEAN;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_DATE;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_FLOAT;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_GEOPOINT;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_KEYWORD;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_LONG;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NUMBER;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_STRING;
+import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_TEXT;
 import static com.grupozap.search.api.utils.ReadFileUtils.readFileFromResources;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.grupozap.search.api.exception.IndexNotFoundException;

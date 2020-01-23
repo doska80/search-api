@@ -1,10 +1,20 @@
 package com.grupozap.search.api.itest.scenarios;
 
-import static com.grupozap.search.api.itest.configuration.data.TestData.*;
-import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.*;
+import static com.grupozap.search.api.itest.configuration.data.TestData.floatForId;
+import static com.grupozap.search.api.itest.configuration.data.TestData.isEven;
+import static com.grupozap.search.api.itest.configuration.data.TestData.isOdd;
+import static com.grupozap.search.api.itest.configuration.data.TestData.latitude;
+import static com.grupozap.search.api.itest.configuration.data.TestData.longitude;
+import static com.grupozap.search.api.itest.configuration.data.TestData.normalTextForId;
+import static com.grupozap.search.api.itest.configuration.data.TestData.numberForId;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_TYPE;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
-import static java.lang.Math.*;
+import static java.lang.Math.ceil;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.String.format;
 import static java.lang.Thread.sleep;
 import static java.util.List.of;
@@ -13,12 +23,27 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
 import static java.util.stream.Stream.concat;
-import static org.apache.http.HttpStatus.*;
-import static org.hamcrest.Matchers.*;
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.apache.http.HttpStatus.SC_SERVICE_UNAVAILABLE;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.emptyArray;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.in;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker.State;
 import java.io.IOException;
 import java.net.URL;
 import java.util.function.Function;
@@ -1098,7 +1123,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void openCircuit() {
+  public void shouldReportOpenCircuit() {
     given()
         .log()
         .all()
@@ -1107,7 +1132,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get("/forceOpen/true");
+        .get("/circuits/actions/state/" + State.OPEN);
 
     given()
         .log()
@@ -1115,11 +1140,9 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .baseUri(baseUrl)
         .contentType(JSON)
         .expect()
-        .statusCode(SC_INTERNAL_SERVER_ERROR)
+        .statusCode(SC_SERVICE_UNAVAILABLE)
         .when()
-        .get(format("%s", TEST_DATA_INDEX))
-        .then()
-        .body("message", containsString("Hystrix circuit short-circuited and is OPEN"));
+        .get(format("%s", TEST_DATA_INDEX));
 
     given()
         .log()
@@ -1129,7 +1152,7 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get("/forceOpen/false");
+        .get("/circuits/actions/state/" + State.CLOSED);
 
     given()
         .log()
@@ -1143,27 +1166,53 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void hystrixStreamWorks() throws Exception {
-    var stream = new URL(baseUrl.replace("/v2", "") + "/actuator/hystrix.stream");
-    var in = stream.openStream();
-    var buffer = new byte[1024];
-    in.read(buffer);
-    var contents = new String(buffer);
-    assertTrue(
-        "Wrong content: \n" + contents, contents.contains("data") || contents.contains("ping"));
-    in.close();
+  public void shouldRecoverFromAnOpenCircuit() throws InterruptedException {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get("/circuits/actions/state/" + State.OPEN);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_SERVICE_UNAVAILABLE)
+        .when()
+        .get(format("%s", TEST_DATA_INDEX + "/1"));
+
+    sleep(6000);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(format("%s", TEST_DATA_INDEX + "/1"));
   }
 
   @Test
-  public void turbineStreamWorks() throws Exception {
-    var stream = new URL(baseUrl.replace("/v2", "") + "/turbine.stream");
-    var in = stream.openStream();
-    var buffer = new byte[1024];
-    in.read(buffer);
-    var contents = new String(buffer);
-    assertTrue(
-        "Wrong content: \n" + contents, contents.contains("data") || contents.contains("ping"));
-    in.close();
+  public void shouldHaveCreatedCircuits() throws Exception {
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get("/circuits/")
+        .then()
+        .body("circuits", not(emptyArray()));
   }
 
   @Test

@@ -1,6 +1,8 @@
 package com.grupozap.search.api.configuration.environment;
 
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.FieldsParser.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.FieldsParser.AS_LONG;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.FieldsParser.AS_SET;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.FieldsParser.AS_TIME_VALUE_MILLIS;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_EMPTY_COLLECTION;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.IsRequestValidFunction.NON_NULL_OBJECT;
 import static java.lang.Long.parseLong;
@@ -8,7 +10,14 @@ import static java.util.Optional.ofNullable;
 import static java.util.function.Function.identity;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import org.elasticsearch.common.unit.TimeValue;
 import org.springframework.util.CollectionUtils;
@@ -64,6 +73,15 @@ public enum RemoteProperties {
     this.indexProperties = new HashMap<>();
   }
 
+  private static Function<Object, Boolean> getIsRequestValueValidForParser(
+      Function<Object, ?> parser) {
+    return AS_SET.equals(parser) ? NON_EMPTY_COLLECTION : NON_NULL_OBJECT;
+  }
+
+  private static Object getDefaultValueIfNeverSetForParser(Function<Object, ?> parser) {
+    return AS_SET.equals(parser) ? new HashSet<>() : null;
+  }
+
   String getProperty() {
     return property;
   }
@@ -86,15 +104,6 @@ public enum RemoteProperties {
 
   public void setValue(final String index, final Object value) {
     this.indexProperties.put(index, parser.apply(value));
-  }
-
-  private static Function<Object, Boolean> getIsRequestValueValidForParser(
-      Function<Object, ?> parser) {
-    return AS_SET.equals(parser) ? NON_EMPTY_COLLECTION : NON_NULL_OBJECT;
-  }
-
-  private static Object getDefaultValueIfNeverSetForParser(Function<Object, ?> parser) {
-    return AS_SET.equals(parser) ? new HashSet<>() : null;
   }
 
   static class FieldsParser {

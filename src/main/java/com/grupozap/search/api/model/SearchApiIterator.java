@@ -13,10 +13,10 @@ import org.elasticsearch.search.Scroll;
 
 public class SearchApiIterator<T> implements Iterator<T[]> {
 
-  private RestHighLevelClient client;
-  private SearchResponse response;
   private final Scroll scroll;
   private final int size;
+  private RestHighLevelClient client;
+  private SearchResponse response;
   private int count;
 
   public SearchApiIterator(

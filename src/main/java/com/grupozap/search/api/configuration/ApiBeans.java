@@ -1,7 +1,6 @@
 package com.grupozap.search.api.configuration;
 
 import static org.elasticsearch.client.RestClient.builder;
-import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_SINGLETON;
 
 import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
 import com.grupozap.search.api.serializer.ESResponseSerializer;
@@ -13,12 +12,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-public class ApiBeans implements DisposableBean {
+class ApiBeans implements DisposableBean {
 
   private RestClient restClient = null;
   private RestHighLevelClient restHighLevelClient = null;
@@ -33,8 +31,7 @@ public class ApiBeans implements DisposableBean {
   private String clusterName;
 
   @Bean
-  @Scope(SCOPE_SINGLETON)
-  public RestHighLevelClient restHighLevelClient(
+  RestHighLevelClient restHighLevelClient(
       @Value("${es.client.socket.timeout}") int socketTimeout,
       @Value("${es.client.conn.timeout}") int connTimeout,
       @Value("${es.client.conn.request.timeout}") int connRequestTimeout,
@@ -55,15 +52,13 @@ public class ApiBeans implements DisposableBean {
   }
 
   @Bean
-  @Scope(SCOPE_SINGLETON)
-  public RestClient restClient() {
+  RestClient restClient() {
     restClient = RestClient.builder(new HttpHost(hostname, restPort, "http")).build();
     return restClient;
   }
 
   @Bean
-  @Scope(SCOPE_SINGLETON)
-  public Jackson2ObjectMapperBuilderCustomizer addCustomSearchResponseDeserialization() {
+  Jackson2ObjectMapperBuilderCustomizer addCustomSearchResponseDeserialization() {
     return jacksonObjectMapperBuilder ->
         jacksonObjectMapperBuilder.serializerByType(
             SearchResponseEnvelope.class, new ESResponseSerializer());

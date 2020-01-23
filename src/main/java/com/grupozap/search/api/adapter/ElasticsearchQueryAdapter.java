@@ -74,8 +74,8 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
 
   @Override
   @Trace
-  public GetRequest getById(BaseApiRequest request, String index, String id) {
-    final var getRequest = new GetRequest(index, id).realtime(realtimeEnabled);
+  public GetRequest getById(BaseApiRequest request, String id) {
+    final var getRequest = new GetRequest(request.getIndex(), id).realtime(realtimeEnabled);
     sourceFieldAdapter.apply(getRequest, request);
     LOG.debug("Query getById {}", getRequest);
     return getRequest;

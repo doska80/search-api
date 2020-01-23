@@ -13,7 +13,11 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
 import com.grupozap.search.api.query.LtrQueryBuilder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
@@ -57,6 +61,34 @@ public class SortRescoreListener implements ApplicationListener<RemoteProperties
       LOG.info("Refreshing es.sort.rescore. {}", this.rescorerOrders.toString());
     } else {
       this.rescorerOrders.remove(event.getIndex());
+    }
+  }
+
+  public enum RescoreType {
+    LTR_RESCORE("ltr_rescore", LtrRescore.class),
+    RANDOM_RESCORE("random_rescore", RandomRescore.class);
+
+    private final String alias;
+    private final Class<? extends SortRescore> rescoreClass;
+
+    RescoreType(String alias, Class<? extends SortRescore> rescoreClass) {
+      this.alias = alias;
+      this.rescoreClass = rescoreClass;
+    }
+
+    public static RescoreType fromString(String alias) {
+      return Arrays.stream(RescoreType.values())
+          .filter(r -> r.alias.equalsIgnoreCase(alias))
+          .findFirst()
+          .orElseThrow();
+    }
+
+    public String getAlias() {
+      return alias;
+    }
+
+    public Class<? extends SortRescore> getRescoreClass() {
+      return rescoreClass;
     }
   }
 
@@ -134,34 +166,6 @@ public class SortRescoreListener implements ApplicationListener<RemoteProperties
           .params(this.params)
           .activeFeatures(this.activeFeatures)
           .build();
-    }
-  }
-
-  public enum RescoreType {
-    LTR_RESCORE("ltr_rescore", LtrRescore.class),
-    RANDOM_RESCORE("random_rescore", RandomRescore.class);
-
-    private final String alias;
-    private final Class<? extends SortRescore> rescoreClass;
-
-    RescoreType(String alias, Class<? extends SortRescore> rescoreClass) {
-      this.alias = alias;
-      this.rescoreClass = rescoreClass;
-    }
-
-    public String getAlias() {
-      return alias;
-    }
-
-    public Class<? extends SortRescore> getRescoreClass() {
-      return rescoreClass;
-    }
-
-    public static RescoreType fromString(String alias) {
-      return Arrays.stream(RescoreType.values())
-          .filter(r -> r.alias.equalsIgnoreCase(alias))
-          .findFirst()
-          .orElseThrow();
     }
   }
 }

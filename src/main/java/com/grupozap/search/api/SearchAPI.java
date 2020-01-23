@@ -9,8 +9,6 @@ import static springfox.documentation.builders.PathSelectors.regex;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.netflix.hystrix.EnableHystrix;
-import org.springframework.cloud.netflix.turbine.EnableTurbine;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -33,8 +31,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @EnableAsync
 @ComponentScan(basePackages = {"com.grupozap.search.api"})
 @EnableSwagger2
-@EnableHystrix
-@EnableTurbine
 public class SearchAPI implements WebMvcConfigurer {
 
   public static void main(String[] args) {

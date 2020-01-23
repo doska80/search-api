@@ -45,13 +45,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class QueryStringAdapter implements ApplicationListener<RemotePropertiesUpdatedEvent> {
 
+  public static final float DEFAULT_BOOST_VALUE = 1.0f;
+  public static final int DEFAULT_MAX_EXPANSIONS = 5;
   private static final String NOT_NESTED = "not_nested";
   private static final String MM_ERROR_MESSAGE =
       "Minimum Should Match (mm) should be a valid integer number (-100 <> +100)";
-
-  public static final float DEFAULT_BOOST_VALUE = 1.0f;
-  public static final int DEFAULT_MAX_EXPANSIONS = 5;
-
   private static final Set<QSTemplate> DEFAULT_QS_TEMPLATE = singleton(new QSTemplate());
 
   private final FieldCache fieldCache;
@@ -61,6 +59,12 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
   public QueryStringAdapter(FieldCache fieldCache) {
     this.fieldCache = fieldCache;
     this.queryTemplatePerIndex = new ConcurrentHashMap<>();
+  }
+
+  private static QSField createQSField(String[] boostFieldValues) {
+    return new QSField(
+        boostFieldValues[0],
+        boostFieldValues.length == 2 ? parseFloat(boostFieldValues[1]) : DEFAULT_BOOST_VALUE);
   }
 
   public void apply(BoolQueryBuilder queryBuilder, final Queryable request) {
@@ -170,12 +174,6 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
               }
             });
     return qsFields;
-  }
-
-  private static QSField createQSField(String[] boostFieldValues) {
-    return new QSField(
-        boostFieldValues[0],
-        boostFieldValues.length == 2 ? parseFloat(boostFieldValues[1]) : DEFAULT_BOOST_VALUE);
   }
 
   private void checkMM(final String mm) {

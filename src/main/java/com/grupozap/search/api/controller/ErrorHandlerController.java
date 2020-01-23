@@ -3,10 +3,11 @@ package com.grupozap.search.api.controller;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.GATEWAY_TIMEOUT;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 import com.grupozap.search.api.exception.QueryPhaseExecutionException;
 import com.grupozap.search.api.exception.QueryTimeoutException;
-import com.netflix.hystrix.exception.HystrixRuntimeException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -57,22 +58,14 @@ public class ErrorHandlerController extends ResponseEntityExceptionHandler {
     return handleExceptionInternal(ex, null, new HttpHeaders(), status, request);
   }
 
+  @ExceptionHandler(value = {CallNotPermittedException.class})
+  public ResponseEntity<Object> handleOpenCircuit(Exception ex, WebRequest request) {
+    return handleExceptionInternal(ex, null, new HttpHeaders(), SERVICE_UNAVAILABLE, request);
+  }
+
   @ExceptionHandler(value = {Exception.class})
   public ResponseEntity<Object> handleAll(Exception ex, WebRequest request) {
     return handleExceptionInternal(ex, null, new HttpHeaders(), INTERNAL_SERVER_ERROR, request);
-  }
-
-  @ExceptionHandler(value = {HystrixRuntimeException.class})
-  public ResponseEntity<Object> handleHystrixException(
-      HystrixRuntimeException ex, WebRequest request) {
-    final var cause = (Exception) (null != ex.getCause() ? ex.getCause() : ex);
-    if (cause instanceof QueryTimeoutException || cause instanceof TimeoutException) {
-      return handleTimeout(cause, request);
-    } else if (cause instanceof QueryPhaseExecutionException) {
-      return handleQueryPhaseExecution(cause, request);
-    } else {
-      return handleAll(cause, request);
-    }
   }
 
   @Override

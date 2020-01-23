@@ -4,7 +4,9 @@ import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static org.apache.http.HttpStatus.SC_OK;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.nullValue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
 import org.junit.Test;

@@ -1,6 +1,13 @@
 package com.grupozap.search.api.adapter;
 
-import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.*;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.ComplexRequestBuilder;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.FilterableRequestBuilder;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_ALIAS_NAME;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.basic;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.create;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.filterable;
 
 import com.carrotsearch.randomizedtesting.annotations.ThreadLeakScope;
 

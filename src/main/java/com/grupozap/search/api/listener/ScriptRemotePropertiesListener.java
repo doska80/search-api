@@ -5,7 +5,11 @@ import static com.grupozap.search.api.utils.MapperUtils.convertValue;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;

@@ -2,7 +2,9 @@ package com.grupozap.search.api.configuration.environment;
 
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
 import static com.grupozap.search.api.utils.MapperUtils.parser;
-import static java.lang.Boolean.*;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+import static java.lang.Boolean.parseBoolean;
 import static java.util.Arrays.stream;
 import static org.apache.commons.lang3.math.NumberUtils.createNumber;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;

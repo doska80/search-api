@@ -12,7 +12,10 @@ import com.grupozap.search.api.model.query.RelationalOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-import org.jparsec.*;
+import org.jparsec.Parser;
+import org.jparsec.Parsers;
+import org.jparsec.Scanners;
+import org.jparsec.Tokens;
 import org.springframework.stereotype.Component;
 
 @Component

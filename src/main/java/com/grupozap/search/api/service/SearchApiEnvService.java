@@ -3,9 +3,9 @@ package com.grupozap.search.api.service;
 import com.grupozap.search.api.configuration.environment.SearchApiEnv;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class SearchApiEnvService {
 
   @Autowired private SearchApiEnv searchApiEnv;

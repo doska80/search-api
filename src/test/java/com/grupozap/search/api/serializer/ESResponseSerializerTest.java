@@ -1,7 +1,7 @@
 package com.grupozap.search.api.serializer;
 
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
-import static org.apache.lucene.search.TotalHits.Relation.*;
+import static org.apache.lucene.search.TotalHits.Relation.EQUAL_TO;
 import static org.assertj.core.util.Lists.newArrayList;
 import static org.elasticsearch.search.SearchHit.createFromMap;
 import static org.junit.Assert.assertEquals;

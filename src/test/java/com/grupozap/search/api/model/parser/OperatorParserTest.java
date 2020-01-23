@@ -4,7 +4,9 @@ import static com.grupozap.search.api.model.query.LogicalOperator.AND;
 import static com.grupozap.search.api.model.query.RelationalOperator.EQUAL;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Stream.of;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
 
 import org.jparsec.error.ParserException;

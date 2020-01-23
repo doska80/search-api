@@ -1,6 +1,9 @@
 package com.grupozap.search.api.controller.stream;
 
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_STREAM_TIMEOUT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_UNIT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SCROLL_KEEP_ALIVE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_STREAM_SIZE;
 import static com.grupozap.search.api.controller.stream.ResponseStream.iterate;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Math.min;

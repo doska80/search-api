@@ -2,7 +2,9 @@ package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_RESCORE;
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.fieldParserFixture;
 import static com.grupozap.search.api.fixtures.model.parser.ParserTemplateLoader.queryParserFixture;
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
@@ -15,7 +17,9 @@ import static org.elasticsearch.script.ScriptType.STORED;
 import static org.elasticsearch.search.rescore.QueryRescoreMode.fromString;
 import static org.elasticsearch.search.sort.ScriptSortBuilder.ScriptSortType.NUMBER;
 import static org.elasticsearch.search.sort.SortOrder.ASC;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -41,17 +45,22 @@ import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.RandomScoreFunctionBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
-import org.elasticsearch.search.sort.*;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.GeoDistanceSortBuilder;
+import org.elasticsearch.search.sort.ScoreSortBuilder;
+import org.elasticsearch.search.sort.ScriptSortBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.junit.Before;
 import org.junit.Test;
 
 public class SortQueryAdapterTest extends SearchTransportClientMock {
 
-  private SortQueryAdapter sortQueryAdapter;
   private final ScriptRemotePropertiesListener scriptRemotePropertiesListener;
   private final ElasticsearchSettingsAdapter elasticsearchSettingsAdapter;
   private final SortRescoreListener sortRescoreListener;
   private final SortParser sortParser;
+  private SortQueryAdapter sortQueryAdapter;
 
   public SortQueryAdapterTest() {
     sortParser =

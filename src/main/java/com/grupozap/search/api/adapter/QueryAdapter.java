@@ -12,7 +12,7 @@ import com.grupozap.search.api.model.http.SearchApiRequest;
  */
 public interface QueryAdapter<Q1, Q2> {
 
-  Q1 getById(BaseApiRequest request, String index, String id);
+  Q1 getById(BaseApiRequest request, String id);
 
   Q2 query(FilterableApiRequest request);
 

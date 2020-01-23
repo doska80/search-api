@@ -8,7 +8,9 @@ import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_N
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.basic;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.emptyArray;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.contains;
 import static org.mockito.Mockito.when;

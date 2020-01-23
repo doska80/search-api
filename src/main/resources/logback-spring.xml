@@ -1,69 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+  <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <springProperty scope="context" name="environment" source="spring.profiles.active"/>
+  <springProperty scope="context" name="environment" source="spring.profiles.active"/>
+  <springProperty scope="context" name="application" source="application.title"
+    defaultValue="search-api"/>
+  <springProperty scope="context" name="version" source="application.version"/>
 
-    <springProperty scope="context" name="application" source="application.title" defaultValue="search-api"/>
-    <springProperty scope="context" name="version" source="application.version"/>
+  <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>ERROR</level>
+    </filter>
+  </appender>
 
-    <appender name="SENTRY" class="io.sentry.logback.SentryAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>ERROR</level>
-        </filter>
-    </appender>
+  <appender name="GRAYLOG" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+      <fieldNames>
+        <levelValue>level</levelValue>
+        <level>Severity</level>
+      </fieldNames>
+      <customFields>
+        {"_product":"search","_cluster":"${es.cluster.name}","_server":"${java.rmi.server.hostname}","_log_type":"application"}"
+      </customFields>
+    </encoder>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>INFO</level>
+    </filter>
+  </appender>
 
-    <appender name="GRAYLOG" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <fieldNames>
-                <levelValue>level</levelValue>
-                <level>Severity</level>
-            </fieldNames>
-            <customFields>{"_product":"search","_cluster":"${es.cluster.name}","_server":"${java.rmi.server.hostname}","_log_type":"application"}"</customFields>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-    </appender>
+  <appender name="ASYNC_SENTRY" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="SENTRY"/>
+    <neverBlock>true</neverBlock>
+  </appender>
 
-    <appender name="ASYNC_SENTRY" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="SENTRY"/>
-        <neverBlock>true</neverBlock>
-    </appender>
+  <appender name="ASYNC_GRAYLOG" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="GRAYLOG"/>
+    <neverBlock>true</neverBlock>
+  </appender>
 
-    <appender name="ASYNC_GRAYLOG" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="GRAYLOG"/>
-        <neverBlock>true</neverBlock>
-    </appender>
+  <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+    <appender-ref ref="CONSOLE"/>
+  </appender>
 
-    <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
-        <appender-ref ref="CONSOLE"/>
-    </appender>
+  <root level="INFO">
+    <springProfile name="dev, test">
+      <appender-ref ref="ASYNC_CONSOLE"/>
+    </springProfile>
+    <springProfile name="qa, prod">
+      <appender-ref ref="ASYNC_GRAYLOG"/>
+      <appender-ref ref="ASYNC_SENTRY"/>
+    </springProfile>
+  </root>
 
-    <root level="INFO">
-        <springProfile name="dev, test">
-            <appender-ref ref="ASYNC_CONSOLE"/>
-        </springProfile>
-        <springProfile name="qa, prod">
-            <appender-ref ref="ASYNC_GRAYLOG"/>
-            <appender-ref ref="ASYNC_SENTRY"/>
-        </springProfile>
-    </root>
+  <logger name="org.springframework">
+    <level value="WARN"/>
+  </logger>
 
-    <logger name="org.springframework">
-        <level value="WARN"/>
-    </logger>
+  <logger name="com.netflix">
+    <level value="WARN"/>
+  </logger>
 
-    <logger name="com.netflix">
-        <level value="WARN"/>
-    </logger>
+  <logger name="io.sentry">
+    <level value="WARN"/>
+  </logger>
 
-    <logger name="io.sentry">
-        <level value="WARN"/>
-    </logger>
-
-    <logger name="springfox">
-        <level value="WARN"/>
-    </logger>
+  <logger name="springfox">
+    <level value="WARN"/>
+  </logger>
 </configuration>

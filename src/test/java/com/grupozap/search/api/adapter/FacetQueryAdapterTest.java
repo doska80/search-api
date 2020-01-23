@@ -9,7 +9,9 @@ import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_N
 import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.create;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.countMatches;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

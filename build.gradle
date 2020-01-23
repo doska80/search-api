@@ -90,7 +90,6 @@ configurations {
 
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.cloud:spring-cloud-dependencies:' + SPRING_CLOUD_VERSION
         mavenBom 'org.springframework.boot:spring-boot-dependencies:' + SPRING_BOOT_VERSION
     }
 }
@@ -98,9 +97,6 @@ dependencyManagement {
 dependencies {
     // java >= 9 modules compatibility
     compile 'javax.xml.bind:jaxb-api:2.+'
-
-    compile 'org.springframework.cloud:spring-cloud-starter-netflix-hystrix'
-    compile 'org.springframework.cloud:spring-cloud-starter-netflix-turbine'
 
     compile 'org.springframework.boot:spring-boot-starter-undertow'
     compile 'org.springframework.boot:spring-boot-starter-web'
@@ -125,9 +121,10 @@ dependencies {
     compile 'com.google.code.gson:gson:2.8.6'
 
     compile 'org.jparsec:jparsec:3.1'
+    compile 'io.github.resilience4j:resilience4j-circuitbreaker:1.2.0'
+
 
     compile 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
-
     datadog 'com.datadoghq:dd-java-agent:' + DATADOG_VERSION
 
     // elasticsearch/lucene unit tests

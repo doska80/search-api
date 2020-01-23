@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupozap.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.grupozap.search.api.itest.configuration.data.StandardDatasetAsserts;
 import com.grupozap.search.api.itest.configuration.es.ESIndexHandler;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker.State;
 import java.io.IOException;
 import javax.annotation.PostConstruct;
 import org.junit.After;
@@ -55,7 +56,7 @@ public class SearchApiIntegrationTest {
   }
 
   @Before
-  public void forceCircuitClosed() {
+  public void disableAllCircuits() {
     given()
         .log()
         .all()
@@ -64,7 +65,7 @@ public class SearchApiIntegrationTest {
         .expect()
         .statusCode(SC_OK)
         .when()
-        .get("/forceClosed/true");
+        .get("/circuits/actions/state/" + State.DISABLED);
   }
 
   @After

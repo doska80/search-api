@@ -1,8 +1,9 @@
 package com.grupozap.search.api.service;
 
+import static com.grupozap.search.api.service.CircuitBreakerService.CircuitType.GET_BY_ID;
+import static com.grupozap.search.api.service.CircuitBreakerService.CircuitType.SEARCH;
 import static java.lang.String.format;
 import static java.util.Optional.of;
-import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCause;
 import static org.elasticsearch.client.RequestOptions.DEFAULT;
 
 import com.grupozap.search.api.adapter.QueryAdapter;
@@ -23,58 +24,29 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class SearchService {
 
-  private static final long FILTER_THRESHOLD = 5000000000L; // 5 seconds
-
-  @Autowired private QueryAdapter<GetRequest, SearchRequest> queryAdapter;
-
-  @Autowired private ElasticSearchStream elasticSearch;
-
-  @Autowired private RestHighLevelClient restHighLevelClient;
-
   private final Boolean requestCache;
+  @Autowired private CircuitBreakerService circuitBreakerService;
+  @Autowired private QueryAdapter<GetRequest, SearchRequest> queryAdapter;
+  @Autowired private ElasticSearchStream elasticSearch;
+  @Autowired private RestHighLevelClient restHighLevelClient;
 
   public SearchService(@Value("${es.index.requests.cache.enable}") Boolean requestCache) {
     this.requestCache = requestCache;
   }
 
   @Trace
-  public GetResponse getById(BaseApiRequest request, String index, String id) {
-    try {
-      return restHighLevelClient.get(this.queryAdapter.getById(request, index, id), DEFAULT);
-    } catch (Exception e) {
-      if (getRootCause(e) instanceof IllegalArgumentException)
-        throw new IllegalArgumentException(e);
-      if (e instanceof ElasticsearchException) throw new QueryPhaseExecutionException(e);
-      throw new RuntimeException(e);
-    }
+  public GetResponse getById(BaseApiRequest request, String id) {
+    return circuitBreakerService.execute(GET_BY_ID, request.getIndex(), () -> doGet(request, id));
   }
 
   @Trace
   public SearchResponse search(SearchApiRequest request) {
-    var searchRequest = this.queryAdapter.query(request).requestCache(requestCache);
-    try {
-      var searchResponse = restHighLevelClient.search(searchRequest, DEFAULT);
-      if (searchResponse.getFailedShards() != 0)
-        throw new QueryPhaseExecutionException(
-            format(
-                "%d of %d shards failed",
-                searchResponse.getFailedShards(), searchResponse.getTotalShards()),
-            searchRequest.source().toString());
-      if (searchResponse.isTimedOut())
-        throw new QueryTimeoutException(searchRequest.source().toString());
-      return searchResponse;
-
-    } catch (ElasticsearchException e) {
-      throw new QueryPhaseExecutionException(
-          of(searchRequest).map(r -> r.source().toString()).orElse("{}"), e);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return circuitBreakerService.execute(SEARCH, request.getIndex(), () -> doSearch(request));
   }
 
   public void stream(FilterableApiRequest request, OutputStream stream) {
@@ -85,5 +57,34 @@ public class SearchService {
     if (request.getSort() == null) request.setDisableSort(true);
 
     elasticSearch.stream(request, stream);
+  }
+
+  private GetResponse doGet(BaseApiRequest baseApiRequest, String id) {
+    final var request = this.queryAdapter.getById(baseApiRequest, id);
+    try {
+      return restHighLevelClient.get(request, DEFAULT);
+    } catch (ElasticsearchException e) {
+      throw new QueryPhaseExecutionException(e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private SearchResponse doSearch(SearchApiRequest searchRequest) {
+    final var request = this.queryAdapter.query(searchRequest).requestCache(requestCache);
+    try {
+      final var response = restHighLevelClient.search(request, DEFAULT);
+      if (response.getFailedShards() != 0)
+        throw new QueryPhaseExecutionException(
+            format("%d of %d shards failed", response.getFailedShards(), response.getTotalShards()),
+            request.source().toString());
+      if (response.isTimedOut()) throw new QueryTimeoutException(request.source().toString());
+      return response;
+    } catch (ElasticsearchException e) {
+      throw new QueryPhaseExecutionException(
+          of(request).map(r -> r.source().toString()).orElse("{}"), e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

@@ -2,7 +2,7 @@ package com.grupozap.search.api.model.query;
 
 import static com.google.common.base.Objects.equal;
 import static java.lang.String.format;
-import static org.apache.commons.lang.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import com.google.common.base.Objects;
 import java.util.Optional;

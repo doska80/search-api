@@ -2,10 +2,24 @@ package com.grupozap.search.api.model.parser;
 
 import static com.grupozap.search.api.model.parser.ValueParser.GeoPoint.Type.SINGLE;
 import static com.grupozap.search.api.model.query.RelationalOperator.RADIUS;
-import static org.jparsec.Parsers.*;
-import static org.jparsec.Scanners.*;
+import static org.jparsec.Parsers.between;
+import static org.jparsec.Parsers.longer;
+import static org.jparsec.Parsers.or;
+import static org.jparsec.Parsers.sequence;
+import static org.jparsec.Scanners.DECIMAL;
+import static org.jparsec.Scanners.DOUBLE_QUOTE_STRING;
+import static org.jparsec.Scanners.INTEGER;
+import static org.jparsec.Scanners.SINGLE_QUOTE_STRING;
+import static org.jparsec.Scanners.WHITESPACES;
+import static org.jparsec.Scanners.isChar;
+import static org.jparsec.Scanners.string;
+import static org.jparsec.Scanners.stringCaseInsensitive;
 
-import com.grupozap.search.api.model.query.*;
+import com.grupozap.search.api.model.query.GeoPointRadiusValue;
+import com.grupozap.search.api.model.query.GeoPointValue;
+import com.grupozap.search.api.model.query.LikeValue;
+import com.grupozap.search.api.model.query.RangeValue;
+import com.grupozap.search.api.model.query.Value;
 import java.util.Optional;
 import org.jparsec.Parser;
 import org.springframework.stereotype.Component;

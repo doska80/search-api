@@ -16,12 +16,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class RequestLoggingContextFilter extends OncePerRequestFilter {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RequestLoggingContextFilter.class);
-
   static final String REQUEST_URI = "request_url";
   static final String REQUEST_QUERY_STRING = "request_query_string";
   static final String REQUEST_USER_AGENT = "request_user_agent";
   static final String REQUEST_HEADER_USER_AGENT = "User-Agent";
+  private static final Logger LOG = LoggerFactory.getLogger(RequestLoggingContextFilter.class);
 
   @Override
   protected void doFilterInternal(

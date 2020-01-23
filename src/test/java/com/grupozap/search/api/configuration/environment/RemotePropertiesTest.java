@@ -1,7 +1,20 @@
 package com.grupozap.search.api.configuration.environment;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.*;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_SEARCH_TIMEOUT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_CONTROLLER_STREAM_TIMEOUT;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SIZE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_FACET_SIZE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_MAX_SIZE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SCROLL_KEEP_ALIVE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_STREAM_SIZE;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.FILTER_DEFAULT_CLAUSES;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.QS_DEFAULT_FIELDS;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.QS_TEMPLATES;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SOURCE_EXCLUDES;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SOURCE_INCLUDES;
 import static java.lang.Integer.MAX_VALUE;
 import static java.lang.Integer.MIN_VALUE;
 import static java.util.Collections.EMPTY_SET;
@@ -10,7 +23,9 @@ import static java.util.stream.Stream.of;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.assertj.core.util.Sets.newLinkedHashSet;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.springframework.test.util.AssertionErrors.assertTrue;
 
 import com.google.common.collect.Sets;

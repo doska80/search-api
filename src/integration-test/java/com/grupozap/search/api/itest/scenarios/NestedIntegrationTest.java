@@ -8,7 +8,10 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.rangeClosed;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.assertj.core.util.Lists.newArrayList;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;

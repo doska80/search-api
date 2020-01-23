@@ -3,7 +3,7 @@ package com.grupozap.search.api.model.query;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static java.util.regex.Pattern.compile;
-import static org.apache.commons.lang.math.NumberUtils.isNumber;
+import static org.apache.commons.lang3.math.NumberUtils.isParsable;
 
 import com.grupozap.search.api.exception.InvalidDistanceException;
 import java.util.Arrays;
@@ -37,7 +37,7 @@ public class GeoPointRadiusValue extends Value {
       var number = matcher.group(1);
       var unit = matcher.group(2);
 
-      if (!isNumber(number)) {
+      if (!isParsable(number)) {
         throw new InvalidDistanceException(distance, UnitDistances.getAllowedUnitDistances());
       }
 
@@ -65,7 +65,6 @@ public class GeoPointRadiusValue extends Value {
     MILLIMETER("mm", "millimeters"),
     NAUTICAL_MILE("NM", "nmi,", "nauticalmiles");
 
-    private final String[] unitDistances;
     private static final List<String> allowedUnitDistances;
 
     static {
@@ -75,6 +74,8 @@ public class GeoPointRadiusValue extends Value {
               distancesAllowed ->
                   allowedUnitDistances.addAll(asList(distancesAllowed.unitDistances)));
     }
+
+    private final String[] unitDistances;
 
     UnitDistances(String... unitDistances) {
       this.unitDistances = unitDistances;
