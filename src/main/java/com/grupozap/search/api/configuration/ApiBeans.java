@@ -23,7 +23,6 @@ class ApiBeans {
       @Value("${es.rest.port}") Integer port,
       @Value("${es.client.socket.timeout}") int socketTimeout,
       @Value("${es.client.conn.timeout}") int connTimeout,
-      @Value("${es.client.conn.request.timeout}") int connRequestTimeout,
       @Value("${es.client.http.max.conn.total}") int maxConnTotal,
       @Value("${es.client.http.max.conn.per-route}") int maxConnPerRoute) {
     return new RestHighLevelClient(
@@ -33,7 +32,6 @@ class ApiBeans {
             .setRequestConfigCallback(
                 requestConfigBuilder ->
                     requestConfigBuilder
-                        .setConnectionRequestTimeout(connRequestTimeout)
                         .setConnectTimeout(connTimeout)
                         .setSocketTimeout(socketTimeout)));
   }

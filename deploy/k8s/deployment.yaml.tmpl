@@ -26,6 +26,7 @@ spec:
       deploy-group: ${DEPLOY_GROUP}
   replicas: ${ONDEMAND_REPLICAS}
   progressDeadlineSeconds: 600
+  minReadySeconds: 30
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -76,7 +77,7 @@ spec:
               path: /actuator/health
               port: 8482
             initialDelaySeconds: 60
-            periodSeconds: 15
+            periodSeconds: 20
             failureThreshold: 6
             timeoutSeconds: 2
           readinessProbe:
@@ -84,8 +85,9 @@ spec:
               path: /v2/listings?size=0
               port: 8482
             initialDelaySeconds: 60
-            periodSeconds: 15
+            periodSeconds: 20
             failureThreshold: 6
+            successThreshold: 3
             timeoutSeconds: 2
 ---
 # Deployment - Spot
@@ -116,6 +118,7 @@ spec:
       deploy-group: ${DEPLOY_GROUP}
   replicas: ${SPOT_REPLICAS}
   progressDeadlineSeconds: 600
+  minReadySeconds: 30
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -170,17 +173,18 @@ spec:
               path: /actuator/health
               port: 8482
             initialDelaySeconds: 60
-            periodSeconds: 15
+            periodSeconds: 20
             failureThreshold: 6
-            timeoutSeconds: 2
+            timeoutSeconds: 3
           readinessProbe:
             httpGet:
               path: /v2/listings?size=0
               port: 8482
             initialDelaySeconds: 60
-            periodSeconds: 15
+            periodSeconds: 20
             failureThreshold: 6
-            timeoutSeconds: 2
+            successThreshold: 3
+            timeoutSeconds: 3
 ---
 # HPA
 apiVersion: autoscaling/v1
@@ -195,7 +199,7 @@ spec:
     name: ${DEPLOY_NAME}-spot
   minReplicas: ${MIN_SPOT_REPLICAS}
   maxReplicas: ${MAX_SPOT_REPLICAS}
-  targetCPUUtilizationPercentage: 70
+  targetCPUUtilizationPercentage: 75
 ---
 # PDB
 apiVersion: policy/v1beta1
