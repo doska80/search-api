@@ -42,6 +42,7 @@
 
   <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
     <appender-ref ref="CONSOLE"/>
+    <neverBlock>true</neverBlock>
   </appender>
 
   <root level="INFO">

@@ -28,10 +28,10 @@ include make/log/Makefile
 RUN_MEMORY:=$(if $(filter prod,$(ENV)),2560,1024)
 PORT:=8482
 
+RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:+UseG1GC -Xss256k
 RUN_OPTS+=-Djava.security.egd=file:/dev/./urandom
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
-RUN_OPTS+=-server -XX:+PrintFlagsFinal -Xss256k
-RUN_OPTS+=-Xmx$(shell expr $(RUN_MEMORY) - 512)m -Xms$(shell expr $(RUN_MEMORY) - 512)m
+RUN_OPTS+=-Xms$(shell expr $(RUN_MEMORY) - 512)m -Xmx$(shell expr $(RUN_MEMORY) - 512)m
 
 ifeq ($(DATADOG_ENABLED), true)
 	RUN_OPTS+=-javaagent:/usr/local/datadog.jar
@@ -44,7 +44,9 @@ endif
 RUN_OPTS+=-Des.hostname=$(ES_HOSTNAME)
 RUN_OPTS+=-Des.cluster.name=$(ES_CLUSTER_NAME)
 
-include make/jmx/Makefile
+ifneq ($(ENV), "prod")
+	include make/jmx/Makefile
+endif
 
 RUN_CMD= docker run \
 		$(DOCKER_NET_CONFIG) \

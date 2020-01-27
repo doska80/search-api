@@ -21,7 +21,7 @@ public class CircuitBreakerController {
   @Autowired private CircuitBreakerService service;
 
   @GetMapping("/")
-  public ResponseEntity<?> list() {
+  public ResponseEntity<Object> list() {
     return ok().body(of("circuits", service.list()));
   }
 

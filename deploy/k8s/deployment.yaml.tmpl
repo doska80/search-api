@@ -44,6 +44,17 @@ spec:
         tier: ondemand
         deploy-group: ${DEPLOY_GROUP}
     spec:
+      terminationGracePeriodSeconds: 30
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: deploy
+                operator: In
+                values:
+                - ${DEPLOY_NAME}
+            topologyKey: kubernetes.io/hostname
       nodeSelector:
         role.vivareal.io/ondemand: "true"
       tolerations:
@@ -67,7 +78,7 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: 1
+              cpu: 2
               memory: ${RUN_MEMORY}Mi
             limits:
               cpu: 2
@@ -79,7 +90,7 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 20
             failureThreshold: 6
-            timeoutSeconds: 2
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /v2/listings?size=0
@@ -88,7 +99,7 @@ spec:
             periodSeconds: 20
             failureThreshold: 6
             successThreshold: 3
-            timeoutSeconds: 2
+            timeoutSeconds: 5
 ---
 # Deployment - Spot
 apiVersion: apps/v1
@@ -136,6 +147,7 @@ spec:
         tier: spot
         deploy-group: ${DEPLOY_GROUP}
     spec:
+      terminationGracePeriodSeconds: 30
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -163,7 +175,7 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: 1
+              cpu: 2
               memory: ${RUN_MEMORY}Mi
             limits:
               cpu: 2
@@ -175,7 +187,7 @@ spec:
             initialDelaySeconds: 60
             periodSeconds: 20
             failureThreshold: 6
-            timeoutSeconds: 3
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /v2/listings?size=0
@@ -184,10 +196,10 @@ spec:
             periodSeconds: 20
             failureThreshold: 6
             successThreshold: 3
-            timeoutSeconds: 3
+            timeoutSeconds: 5
 ---
 # HPA
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
   name: ${DEPLOY_NAME}-spot
@@ -199,7 +211,13 @@ spec:
     name: ${DEPLOY_NAME}-spot
   minReplicas: ${MIN_SPOT_REPLICAS}
   maxReplicas: ${MAX_SPOT_REPLICAS}
-  targetCPUUtilizationPercentage: 75
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 75
 ---
 # PDB
 apiVersion: policy/v1beta1

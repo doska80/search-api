@@ -101,12 +101,9 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-undertow'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
-    compile 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
-    compile 'io.micrometer:micrometer-core'
     compile 'io.micrometer:micrometer-registry-prometheus'
 
-    compile 'org.elasticsearch:elasticsearch'
     compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
     compile 'io.sentry:sentry-logback:1.7.+'
