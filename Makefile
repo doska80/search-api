@@ -32,6 +32,7 @@ RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:+UseG1GC -Xss256k
 RUN_OPTS+=-Djava.security.egd=file:/dev/./urandom
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
 RUN_OPTS+=-Xms$(shell expr $(RUN_MEMORY) - 512)m -Xmx$(shell expr $(RUN_MEMORY) - 512)m
+RUN_OPTS+=-Dapplication.version=$(VERSION)
 
 ifeq ($(DATADOG_ENABLED), true)
 	RUN_OPTS+=-javaagent:/usr/local/datadog.jar
@@ -44,7 +45,7 @@ endif
 RUN_OPTS+=-Des.hostname=$(ES_HOSTNAME)
 RUN_OPTS+=-Des.cluster.name=$(ES_CLUSTER_NAME)
 
-ifneq ($(ENV), "prod")
+ifneq ($(ENV), prod)
 	include make/jmx/Makefile
 endif
 

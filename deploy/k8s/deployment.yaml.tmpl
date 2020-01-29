@@ -44,7 +44,7 @@ spec:
         tier: ondemand
         deploy-group: ${DEPLOY_GROUP}
     spec:
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: 90
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -89,7 +89,7 @@ spec:
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
-            failureThreshold: 6
+            failureThreshold: 3
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
@@ -97,7 +97,7 @@ spec:
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
-            failureThreshold: 6
+            failureThreshold: 3
             successThreshold: 3
             timeoutSeconds: 5
 ---
@@ -147,7 +147,7 @@ spec:
         tier: spot
         deploy-group: ${DEPLOY_GROUP}
     spec:
-      terminationGracePeriodSeconds: 30
+      terminationGracePeriodSeconds: 90
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -186,7 +186,7 @@ spec:
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
-            failureThreshold: 6
+            failureThreshold: 3
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
@@ -194,7 +194,7 @@ spec:
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
-            failureThreshold: 6
+            failureThreshold: 3
             successThreshold: 3
             timeoutSeconds: 5
 ---
@@ -277,6 +277,7 @@ metadata:
     deploy: ${DEPLOY_NAME}
   annotations:
     kubernetes.io/ingress.class: "private"
+    ingress.kubernetes.io/enable-access-log: "false"
 spec:
   rules:
     - host: api.search.${DEPLOY_NAME}.private.${ENV}.grupozap.io
