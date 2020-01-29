@@ -85,7 +85,7 @@ spec:
               memory: ${RUN_MEMORY}Mi
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/ping
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
@@ -93,7 +93,7 @@ spec:
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /v2/listings?size=0
+              path: /actuator/health/elasticsearchRest
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
@@ -182,7 +182,7 @@ spec:
               memory: ${RUN_MEMORY}Mi
           livenessProbe:
             httpGet:
-              path: /actuator/health
+              path: /actuator/health/ping
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
@@ -190,7 +190,7 @@ spec:
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
-              path: /v2/listings?size=0
+              path: /actuator/health/elasticsearchRest
               port: 8482
             initialDelaySeconds: 60
             periodSeconds: 20
