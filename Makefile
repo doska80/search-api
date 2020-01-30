@@ -62,10 +62,10 @@ run: log check-es_cluster_name image
 
 MAX_SURGE:=1
 ifeq ($(ONDEMAND_REPLICAS),)
-	override ONDEMAND_REPLICAS:=$(if $(filter prod,$(ENV)),2,0)
+	override ONDEMAND_REPLICAS:=$(if $(filter prod,$(ENV)),3,0)
 endif
 ifeq ($(SPOT_REPLICAS),)
-	override SPOT_REPLICAS:=$(if $(filter prod,$(ENV)),2,1)
+	override SPOT_REPLICAS:=$(if $(filter prod,$(ENV)),3,1)
 endif
 MIN_SPOT_REPLICAS:=$(SPOT_REPLICAS)
 MAX_SPOT_REPLICAS:=10

@@ -82,8 +82,6 @@ repositories {
 }
 
 configurations {
-    compile.exclude module: 'spring-boot-starter-tomcat'
-    compile.exclude module: 'undertow-websockets-jsr'
     compile.exclude module: 'hibernate-validator'
     datadog
 }
@@ -98,7 +96,6 @@ dependencies {
     // java >= 9 modules compatibility
     compile 'javax.xml.bind:jaxb-api:2.+'
 
-    compile 'org.springframework.boot:spring-boot-starter-undertow'
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.boot:spring-boot-starter-actuator'
 
