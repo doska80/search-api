@@ -26,12 +26,13 @@ CONTAINER_LOG:=/logs
 include make/log/Makefile
 
 RUN_MEMORY:=$(if $(filter prod,$(ENV)),2560,1024)
+JVM_MEMORY:=$(if $(filter prod,$(ENV)),1792,512)
 PORT:=8482
 
 RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:+UseG1GC -Xss256k
+RUN_OPTS+=-Xms$(JVM_MEMORY)m -Xmx$(JVM_MEMORY)m
 RUN_OPTS+=-Djava.security.egd=file:/dev/./urandom
 RUN_OPTS+=-Dspring.profiles.active=$(ENV)
-RUN_OPTS+=-Xms$(shell expr $(RUN_MEMORY) - 512)m -Xmx$(shell expr $(RUN_MEMORY) - 512)m
 RUN_OPTS+=-Dapplication.version=$(VERSION)
 
 ifeq ($(DATADOG_ENABLED), true)

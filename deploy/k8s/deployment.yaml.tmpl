@@ -44,7 +44,7 @@ spec:
         tier: ondemand
         deploy-group: ${DEPLOY_GROUP}
     spec:
-      terminationGracePeriodSeconds: 90
+      terminationGracePeriodSeconds: 30
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -87,18 +87,17 @@ spec:
             httpGet:
               path: /actuator/health/ping
               port: 8482
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            failureThreshold: 3
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            failureThreshold: 6
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /actuator/health/elasticsearchRest
               port: 8482
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            failureThreshold: 3
-            successThreshold: 3
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            failureThreshold: 6
             timeoutSeconds: 5
 ---
 # Deployment - Spot
@@ -147,7 +146,7 @@ spec:
         tier: spot
         deploy-group: ${DEPLOY_GROUP}
     spec:
-      terminationGracePeriodSeconds: 90
+      terminationGracePeriodSeconds: 30
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -184,18 +183,17 @@ spec:
             httpGet:
               path: /actuator/health/ping
               port: 8482
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            failureThreshold: 3
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            failureThreshold: 6
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /actuator/health/elasticsearchRest
               port: 8482
-            initialDelaySeconds: 60
-            periodSeconds: 20
-            failureThreshold: 3
-            successThreshold: 3
+            initialDelaySeconds: 25
+            periodSeconds: 15
+            failureThreshold: 6
             timeoutSeconds: 5
 ---
 # HPA
