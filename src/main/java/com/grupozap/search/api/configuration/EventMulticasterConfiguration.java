@@ -2,18 +2,24 @@ package com.grupozap.search.api.configuration;
 
 import static java.util.concurrent.Executors.newSingleThreadExecutor;
 
+import java.util.concurrent.Executor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ApplicationEventMulticaster;
 import org.springframework.context.event.SimpleApplicationEventMulticaster;
 
 @Configuration
-class AsynchronousSpringEventsConfig {
+class EventMulticasterConfiguration {
 
   @Bean
-  ApplicationEventMulticaster simpleApplicationEventMulticaster() {
+  ApplicationEventMulticaster simpleApplicationEventMulticaster(Executor multicasterExecutor) {
     var eventMulticaster = new SimpleApplicationEventMulticaster();
-    eventMulticaster.setTaskExecutor(newSingleThreadExecutor());
+    eventMulticaster.setTaskExecutor(multicasterExecutor);
     return eventMulticaster;
+  }
+
+  @Bean
+  Executor multicasterExecutor() {
+    return newSingleThreadExecutor();
   }
 }

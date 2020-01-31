@@ -1,7 +1,5 @@
 package com.grupozap.search.api.controller;
 
-import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.GATEWAY_TIMEOUT;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -11,11 +9,11 @@ import static org.springframework.http.HttpStatus.valueOf;
 import com.grupozap.search.api.exception.QueryPhaseExecutionException;
 import com.grupozap.search.api.exception.QueryTimeoutException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
-import java.io.IOException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import org.apache.catalina.connector.ClientAbortException;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.jparsec.error.ParserException;
 import org.slf4j.Logger;
@@ -66,12 +64,9 @@ public class ErrorHandlerController extends ResponseEntityExceptionHandler {
     return handleExceptionInternal(ex, null, new HttpHeaders(), SERVICE_UNAVAILABLE, request);
   }
 
-  @ExceptionHandler(value = {IOException.class})
-  public ResponseEntity<Object> handleBrokenPipe(Exception ex, WebRequest request) {
-    if (containsIgnoreCase("Broken pipe", getRootCauseMessage(ex))) {
-      return null;
-    }
-    return handleAll(ex, request);
+  @ExceptionHandler(value = {ClientAbortException.class})
+  public void handleBrokenPipe(Exception ex, WebRequest request) {
+    LOG.debug("broken pipe {}", request.getContextPath(), ex);
   }
 
   @ExceptionHandler(value = {Exception.class})

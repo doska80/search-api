@@ -26,7 +26,6 @@ spec:
       deploy-group: ${DEPLOY_GROUP}
   replicas: ${ONDEMAND_REPLICAS}
   progressDeadlineSeconds: 600
-  minReadySeconds: 30
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -128,7 +127,6 @@ spec:
       deploy-group: ${DEPLOY_GROUP}
   replicas: ${SPOT_REPLICAS}
   progressDeadlineSeconds: 600
-  minReadySeconds: 30
   strategy:
     type: RollingUpdate
     rollingUpdate:

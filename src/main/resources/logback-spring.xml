@@ -51,6 +51,8 @@
     </springProfile>
     <springProfile name="qa, prod">
       <appender-ref ref="ASYNC_GRAYLOG"/>
+    </springProfile>
+    <springProfile name="prod">
       <appender-ref ref="ASYNC_SENTRY"/>
     </springProfile>
   </root>
