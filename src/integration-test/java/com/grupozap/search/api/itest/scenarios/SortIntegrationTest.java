@@ -152,10 +152,14 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     for (var objectArray : nestedArray) {
       Integer currentMin = Integer.MAX_VALUE;
       for (var object : objectArray) {
-        if (!"b".equals(object.get("string"))) continue;
+        if (!"b".equals(object.get("string"))) {
+          continue;
+        }
 
         var number = (Integer) object.get("number");
-        if (number < currentMin) currentMin = number;
+        if (number < currentMin) {
+          currentMin = number;
+        }
       }
 
       if (currentMin != Integer.MAX_VALUE) {
@@ -198,12 +202,16 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
       Integer currentMin = Integer.MAX_VALUE;
 
       for (var object : objectArray) {
-        if (!"b".equals(object.get("string"))) continue;
+        if (!"b".equals(object.get("string"))) {
+          continue;
+        }
 
         var number = (Integer) object.get("number");
 
         if (number >= 50 && number <= 5000) {
-          if (number < currentMin) currentMin = number;
+          if (number < currentMin) {
+            currentMin = number;
+          }
         } else {
           break firstSort;
         }
@@ -617,5 +625,47 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         .statusCode(SC_BAD_REQUEST)
         .when()
         .get(TEST_DATA_INDEX + "?sort=rescore_default,id DESC");
+  }
+
+  @Test
+  public void validateLtrRescoreWithFunctionRescore() {
+    var properties = new HashMap<>();
+    properties.put("rescore_type", "function_score");
+    properties.put("window_size", 30);
+    properties.put("weight", 10);
+
+    var script = new HashMap<>();
+    script.put("source", "return doc['numeric'].value;");
+    var params = new HashMap<>();
+    params.put("default_value", 1);
+    script.put("params", params);
+    properties.put("script", script);
+
+    esIndexHandler.putStandardPropertyInArray("es.sort.rescore", "rescore_default", properties);
+    esIndexHandler.addStandardProperties();
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?size=" + (standardDatasetSize) + "&sort=rescore_default")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(standardDatasetSize))
+        .body(
+            "result.testdata.id",
+            equalTo(
+                rangeClosed(1, standardDatasetSize)
+                    .boxed()
+                    .map(i -> standardDatasetSize - i + 1)
+                    .limit(standardDatasetSize)
+                    .map(String::valueOf)
+                    .collect(toList())));
+
+    esIndexHandler.setDefaultProperties();
   }
 }

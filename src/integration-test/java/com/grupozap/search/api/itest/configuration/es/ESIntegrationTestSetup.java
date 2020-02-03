@@ -52,12 +52,10 @@ public class ESIntegrationTestSetup {
   public ESIntegrationTestSetup(
       @Value("${es.hostname}") String elasticSearchHost,
       @Value("${es.rest.port}") String elasticSearchRestPort,
-      @Value("${kibana.port:5601}") String kibanaPort,
       ESIndexHandler esIndexHandler) {
     Map<String, String> bootVariables = new HashMap<>();
     bootVariables.put("es_host", elasticSearchHost);
     bootVariables.put("es_port", elasticSearchRestPort);
-    bootVariables.put("kibana_port", kibanaPort);
 
     this.boostrapVariables = new StrSubstitutor(bootVariables);
     this.boostrapConfiguration = new LinkedHashMap<>();
@@ -75,8 +73,7 @@ public class ESIntegrationTestSetup {
     try {
       LOG.info("Parsing configuration file");
       this.boostrapConfiguration =
-          new ObjectMapper()
-              .readValue(getBoostrapConfig(), new TypeReference<Map<String, Object>>() {});
+          new ObjectMapper().readValue(getBoostrapConfig(), new TypeReference<>() {});
     } catch (IOException e) {
       throw new RuntimeException("Cannot read es boostrap file config", e);
     }

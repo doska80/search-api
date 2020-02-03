@@ -96,7 +96,8 @@ public class ESIndexHandler {
     script.put("lang", "painless");
 
     /* Start configuring LTR rescore */
-    var esSortModelRescoreConfiguration = new HashMap<>();
+    var rescoreDefault = new ArrayList();
+    var esSortModelRescoreConfiguration = new LinkedHashMap<>();
     esSortModelRescoreConfiguration.put("window_size", standardDatasetSize);
     esSortModelRescoreConfiguration.put("query_weight", 1.0);
     esSortModelRescoreConfiguration.put("rescore_query_weight", 1.0);
@@ -104,9 +105,11 @@ public class ESIndexHandler {
     esSortModelRescoreConfiguration.put("model", "testdata_model");
     esSortModelRescoreConfiguration.put("active_features", newArrayList());
     esSortModelRescoreConfiguration.put("rescore_type", "ltr_rescore");
+    rescoreDefault.add(esSortModelRescoreConfiguration);
 
     /* Start configuring random rescore */
-    var esSortRandomRescoreConfiguration = new HashMap<>();
+    var rescoreRandom = new ArrayList();
+    var esSortRandomRescoreConfiguration = new LinkedHashMap<>();
     esSortRandomRescoreConfiguration.put("window_size", standardDatasetSize);
     esSortRandomRescoreConfiguration.put("query_weight", 1.0);
     esSortRandomRescoreConfiguration.put("rescore_query_weight", 1.0);
@@ -114,10 +117,11 @@ public class ESIndexHandler {
     esSortRandomRescoreConfiguration.put("seed", 1);
     esSortRandomRescoreConfiguration.put("field", "_seq_no");
     esSortRandomRescoreConfiguration.put("rescore_type", "random_rescore");
+    rescoreRandom.add(esSortRandomRescoreConfiguration);
 
     var esSortRescore = new HashMap<>();
-    esSortRescore.put("rescore_default", esSortModelRescoreConfiguration);
-    esSortRescore.put("rescore_seed", esSortRandomRescoreConfiguration);
+    esSortRescore.put("rescore_default", rescoreDefault);
+    esSortRescore.put("rescore_seed", rescoreRandom);
 
     putStandardProperty("es.sort.rescore", esSortRescore);
     /* Finish configuring LTR rescore */
@@ -165,6 +169,15 @@ public class ESIndexHandler {
 
   public void putStandardProperty(final String key, final Object value) {
     this.testdataProperties.put(key, value);
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public void putStandardPropertyInArray(
+      final String mapName, final String arrayName, final Object value) {
+    var map = (Map) this.testdataProperties.get(mapName);
+    var list = (ArrayList) map.get(arrayName);
+    list.add(value);
+    this.testdataProperties.replace(mapName, map);
   }
 
   public void addStandardTestData() {

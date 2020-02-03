@@ -116,14 +116,16 @@ public class SortQueryAdapter {
 
   private void applyRescoreQuery(
       final SearchSourceBuilder searchSourceBuilder, final String index, final Item item) {
-    var sortRescore = sortRescoreListener.getRescorerOrders(index).get(item.getField().getName());
-    var queryRescorerBuilder =
-        new QueryRescorerBuilder(sortRescore.getQueryBuilder())
-            .setScoreMode(QueryRescoreMode.fromString(sortRescore.getScoreMode()))
-            .windowSize(sortRescore.getWindowSize())
-            .setQueryWeight(sortRescore.getQueryWeight())
-            .setRescoreQueryWeight(sortRescore.getRescoreQueryWeight());
-    searchSourceBuilder.addRescorer(queryRescorerBuilder);
+    var rescores = sortRescoreListener.getRescorerOrders(index).get(item.getField().getName());
+    for (SortRescoreListener.SortRescore sortRescore : rescores) {
+      var queryRescorerBuilder =
+          new QueryRescorerBuilder(sortRescore.getQueryBuilder())
+              .setScoreMode(QueryRescoreMode.fromString(sortRescore.getScoreMode()))
+              .windowSize(sortRescore.getWindowSize())
+              .setQueryWeight(sortRescore.getQueryWeight())
+              .setRescoreQueryWeight(sortRescore.getRescoreQueryWeight());
+      searchSourceBuilder.addRescorer(queryRescorerBuilder);
+    }
   }
 
   private void applyScriptSortQuery(

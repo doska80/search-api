@@ -1502,6 +1502,10 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .body("totalCount", equalTo(6))
         .body("result.testdata[0].id", equalTo("2"))
         .body("result.testdata[1].id", equalTo("3"));
+
+    esIndexHandler.truncateIndexData(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.setDefaultProperties();
+    esIndexHandler.addStandardProperties();
   }
 
   @Test
@@ -1522,5 +1526,9 @@ public class SearchIntegrationTest extends SearchApiIntegrationTest {
         .then()
         .body("totalCount", equalTo(2))
         .body("result.testdata[0].id", equalTo("2"));
+
+    esIndexHandler.truncateIndexData(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.setDefaultProperties();
+    esIndexHandler.addStandardProperties();
   }
 }
