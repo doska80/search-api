@@ -1,13 +1,12 @@
 package com.grupozap.search.api.configuration;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import org.apache.catalina.connector.Connector;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
-import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,13 +20,7 @@ import org.springframework.context.event.ContextClosedEvent;
 class GracefulTerminationConfiguration {
 
   @Bean
-  WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatCustomizer(
-      GracefulConnector gracefulConnector) {
-    return factory -> factory.addConnectorCustomizers(gracefulConnector);
-  }
-
-  @Bean
-  GracefulConnector gracefulConnector(
+  TomcatConnectorCustomizer gracefulConnector(
       @Value("${application.termination.grace-period:25000}") long gracePeriod) {
     return new GracefulConnector(gracePeriod);
   }
@@ -36,7 +29,7 @@ class GracefulTerminationConfiguration {
       implements TomcatConnectorCustomizer, ApplicationListener<ContextClosedEvent> {
 
     private final long gracePeriod;
-    private volatile Connector connector;
+    private Connector connector;
 
     GracefulConnector(long gracePeriod) {
       this.gracePeriod = gracePeriod;
@@ -49,13 +42,13 @@ class GracefulTerminationConfiguration {
 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
-      this.connector.pause();
-      final var executor = this.connector.getProtocolHandler().getExecutor();
+      connector.pause();
+      final var executor = connector.getProtocolHandler().getExecutor();
       if (executor instanceof ThreadPoolExecutor) {
         try {
           final var poolExecutor = (ThreadPoolExecutor) executor;
           poolExecutor.shutdown();
-          poolExecutor.awaitTermination(gracePeriod, TimeUnit.MILLISECONDS);
+          poolExecutor.awaitTermination(gracePeriod, MILLISECONDS);
         } catch (InterruptedException ignored) {
           Thread.currentThread().interrupt();
         }

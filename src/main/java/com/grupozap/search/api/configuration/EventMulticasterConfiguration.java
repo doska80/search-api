@@ -13,9 +13,9 @@ class EventMulticasterConfiguration {
 
   @Bean
   ApplicationEventMulticaster simpleApplicationEventMulticaster(Executor multicasterExecutor) {
-    var eventMulticaster = new SimpleApplicationEventMulticaster();
-    eventMulticaster.setTaskExecutor(multicasterExecutor);
-    return eventMulticaster;
+    var multicaster = new SimpleApplicationEventMulticaster();
+    multicaster.setTaskExecutor(multicasterExecutor);
+    return multicaster;
   }
 
   @Bean
