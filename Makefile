@@ -109,8 +109,8 @@ teardown:
 	$(KUBECTL_CMD) delete ingress ${DEPLOY_NAME}
 
 # Notifications config
-SLK_CHANNEL=notifs-search-ranking
-SLK_USER_GROUP=search-ranking
+SLK_CHANNEL=notifs-matching
+SLK_USER_GROUP=matching
 SLK_CD_URL=$(CD_URL)ENV=$(ENV)&IMAGE_NAME=$(IMAGE_NAME)&STACK_ALIAS=$(STACK_ALIAS)&BRANCH=$(GIT_BRANCH)&delay=0sec
 include make/slk/Makefile
 

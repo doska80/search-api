@@ -28,6 +28,8 @@ def sendToSlack(result, imageName, environment) {
         status = 'ERROR'
     }
 
-    def message = "Job <${env.BUILD_URL}/console|#${env.BUILD_NUMBER}> *${env.JOB_NAME}*, in *${environment}* with *${status}* using image_name: *${imageName}*"
+    def message = "Job <${env.BUILD_URL}/console|#${env.BUILD_NUMBER}> *${env.JOB_NAME}*, *${env.OPERATION}* in *${environment}* with *${status}*"
+    if (imageName != null && !imageName.trim().isEmpty()) message += " using image_name: *${imageName}*"
+    
     slackSend channel: '#notifs-search-ranking', color: color, message: "${message}", teamDomain: 'grupozap'
 }
