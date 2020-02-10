@@ -2,9 +2,10 @@ package com.grupozap.search.api.listener;
 
 import static com.google.common.collect.Maps.newHashMap;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_RESCORE;
-import static com.grupozap.search.api.listener.SortRescoreListener.RescoreType.*;
+import static com.grupozap.search.api.listener.SortRescoreListener.RescoreType.fromString;
 import static com.grupozap.search.api.utils.MapperUtils.convertValue;
 import static java.util.Objects.nonNull;
+import static org.elasticsearch.common.lucene.search.function.FunctionScoreQuery.ScoreMode.SUM;
 import static org.elasticsearch.index.query.functionscore.ScoreFunctionBuilders.scriptFunction;
 import static org.elasticsearch.script.Script.DEFAULT_SCRIPT_LANG;
 import static org.elasticsearch.script.ScriptType.INLINE;
@@ -174,13 +175,14 @@ public class SortRescoreListener implements ApplicationListener<RemoteProperties
     @Override
     public QueryBuilder getQueryBuilder() {
       return new FunctionScoreQueryBuilder(
-          scriptFunction(
-                  new Script(
-                      INLINE,
-                      DEFAULT_SCRIPT_LANG,
-                      this.script.getSource(),
-                      this.script.getParams()))
-              .setWeight(this.getWeight()));
+              scriptFunction(
+                      new Script(
+                          INLINE,
+                          DEFAULT_SCRIPT_LANG,
+                          this.script.getSource(),
+                          this.script.getParams()))
+                  .setWeight(this.getWeight()))
+          .scoreMode(SUM);
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)

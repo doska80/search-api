@@ -10,6 +10,7 @@ import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_N
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_SCRIPT;
 import static com.grupozap.search.api.model.query.OrderOperator.DESC;
 import static com.grupozap.search.api.utils.MapperUtils.convertValue;
+import static org.elasticsearch.common.lucene.search.function.FunctionScoreQuery.ScoreMode.SUM;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.script.ScriptType.STORED;
 import static org.elasticsearch.search.rescore.QueryRescoreMode.fromString;
@@ -574,6 +575,10 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     assertEquals(
         FunctionScoreQueryBuilder.class,
         ((QueryRescorerBuilder) rescores.get(1)).getRescoreQuery().getClass());
+    assertEquals(
+        SUM,
+        ((FunctionScoreQueryBuilder) ((QueryRescorerBuilder) rescores.get(1)).getRescoreQuery())
+            .scoreMode());
   }
 
   private Map<String, List<SortRescore>> build(Map<String, ArrayList> rescore) {
