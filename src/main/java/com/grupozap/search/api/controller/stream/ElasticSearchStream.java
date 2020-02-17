@@ -26,6 +26,7 @@ import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.SearchHit;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -33,7 +34,9 @@ public class ElasticSearchStream {
 
   private static final Logger LOG = getLogger(ElasticSearchStream.class);
 
-  @Autowired private RestHighLevelClient client;
+  @Autowired
+  @Qualifier("restHighLevelClientForStream")
+  private RestHighLevelClient client;
 
   @Autowired private QueryAdapter<?, SearchRequest> queryAdapter;
 

@@ -17,11 +17,13 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 class ElasticsearchClientConfiguration {
 
   @Bean
+  @Primary
   RestHighLevelClient restHighLevelClient(
       @Value("${es.hostname}") String hostname,
       @Value("${es.rest.port}") Integer port,
@@ -38,6 +40,18 @@ class ElasticsearchClientConfiguration {
                     requestConfigBuilder
                         .setConnectTimeout(connTimeout)
                         .setSocketTimeout(socketTimeout)));
+  }
+
+  @Bean(name = "restHighLevelClientForStream")
+  RestHighLevelClient restHighLevelClientForStream(
+      @Value("${es.hostname}") String hostname,
+      @Value("${es.rest.port}") Integer port,
+      @Value("${es.client.socket.streams.timeout}") int socketTimeout,
+      @Value("${es.client.conn.streams.timeout}") int connTimeout,
+      @Value("${es.client.http.max.conn.total}") int maxConnTotal,
+      @Value("${es.client.http.max.conn.per-route}") int maxConnPerRoute) {
+    return restHighLevelClient(
+        hostname, port, socketTimeout, connTimeout, maxConnTotal, maxConnPerRoute);
   }
 
   @Bean
