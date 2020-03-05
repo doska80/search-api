@@ -5,6 +5,7 @@ import static com.grupozap.search.api.itest.configuration.data.TestData.createTe
 import static java.lang.String.valueOf;
 import static java.lang.Thread.sleep;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.entity.ContentType.APPLICATION_JSON;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -199,7 +200,7 @@ public class ESIndexHandler {
     return writeValueAsStringFromMap(id, createTestData(id, facetValue));
   }
 
-  private String writeValueAsStringFromMap(Object id, Map<String, Object> data) {
+  public String writeValueAsStringFromMap(Object id, Map<String, Object> data) {
     try {
       return new ObjectMapper().writeValueAsString(data);
     } catch (JsonProcessingException e) {
@@ -208,7 +209,7 @@ public class ESIndexHandler {
     }
   }
 
-  private boolean insertEntityByIndex(String index, String id, String body) {
+  public boolean insertEntityByIndex(String index, String id, String body) {
     try {
       final var request =
           new Request("POST", index + "/" + DEFAULT_TYPE + "/" + id + "?refresh=true");
@@ -230,6 +231,23 @@ public class ESIndexHandler {
       LOG.info("Forced commit into index: " + index);
     } catch (IOException | InterruptedException e) {
       LOG.error("Unable to force commit into index: " + index, e);
+    }
+  }
+
+  public void deleteIndex(String index) {
+    try {
+      var response = restClient.performRequest(new Request("DELETE", index));
+      if (SC_OK == response.getStatusLine().getStatusCode()) {
+        LOG.info("Index {} deleted with success", index);
+      } else {
+        throw new RuntimeException(
+            "Error deleting index "
+                + index
+                + " - Status-code: "
+                + response.getStatusLine().getStatusCode());
+      }
+    } catch (IOException e) {
+      LOG.error("Error deleting index {}", index, e);
     }
   }
 }

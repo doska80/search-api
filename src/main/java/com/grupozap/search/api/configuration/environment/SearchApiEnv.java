@@ -40,7 +40,8 @@ public class SearchApiEnv {
 
   private static final Logger LOG = LoggerFactory.getLogger(SearchApiEnv.class);
 
-  private static final String SEARCH_API_CONFIG_ENDPOINT = "/search-api-properties/_search";
+  private static final String SEARCH_API_CONFIG_ENDPOINT =
+      "/search-api-properties/_search?size=100";
   private static final Header SEARCH_API_HEADERS =
       new BasicHeader("Content-Type", "application/json; charset=UTF-8");
 
