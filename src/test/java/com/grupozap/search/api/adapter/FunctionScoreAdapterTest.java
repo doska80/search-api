@@ -52,6 +52,8 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
 
   @Mock private SortQueryAdapter sortQueryAdapter;
 
+  @Mock private RankFeatureQueryAdapter rankFeatureQueryAdapter;
+
   @Before
   public void setup() {
     initMocks(this);
@@ -87,6 +89,7 @@ public class FunctionScoreAdapterTest extends SearchTransportClientMock {
             filterQueryAdapter,
             defaultFilterFactory,
             facetQueryAdapter,
+            rankFeatureQueryAdapter,
             false);
 
     doNothing().when(settingsAdapter).checkIndex(any());

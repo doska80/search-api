@@ -89,6 +89,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   private QueryStringAdapter queryStringAdapter;
   private FunctionScoreAdapter functionScoreAdapter;
   private FacetQueryAdapter facetQueryAdapter;
+  private RankFeatureQueryAdapter rankFeatureQueryAdapter;
 
   @Mock private ElasticsearchSettingsAdapter settingsAdapter;
 
@@ -116,6 +117,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     this.filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
     this.defaultFilterFactory =
         new DefaultFilterFactory(queryParserWithOutValidationFixture(), filterQueryAdapter);
+    this.rankFeatureQueryAdapter = new RankFeatureQueryAdapter();
 
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
@@ -128,6 +130,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
             filterQueryAdapter,
             defaultFilterFactory,
             facetQueryAdapter,
+            rankFeatureQueryAdapter,
             false);
 
     doNothing().when(sourceFieldAdapter).apply(any(SearchSourceBuilder.class), any());

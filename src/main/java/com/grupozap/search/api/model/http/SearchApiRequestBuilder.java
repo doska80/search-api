@@ -72,6 +72,7 @@ public class SearchApiRequestBuilder {
     protected String filter;
     protected String sort;
     protected String q;
+    protected Boolean disableRfq;
 
     private FilterableRequestBuilder() {}
 
@@ -132,6 +133,11 @@ public class SearchApiRequestBuilder {
       return this;
     }
 
+    public FilterableRequestBuilder disableRfq(boolean disableRfq) {
+      this.disableRfq = disableRfq;
+      return this;
+    }
+
     @Override
     public FilterableApiRequest build() {
       var request = new FilterableApiRequest();
@@ -155,6 +161,8 @@ public class SearchApiRequestBuilder {
       if (allNotNull(filter)) request.setFilter(filter);
 
       if (allNotNull(sort)) request.setSort(sort);
+
+      if (allNotNull(disableRfq)) request.setDisableRfq(disableRfq);
 
       return request;
     }

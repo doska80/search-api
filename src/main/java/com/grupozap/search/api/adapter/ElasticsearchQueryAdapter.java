@@ -39,6 +39,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   private final SortQueryAdapter sortQueryAdapter;
   private final QueryStringAdapter queryStringAdapter;
   private final FunctionScoreAdapter functionScoreAdapter;
+  private final RankFeatureQueryAdapter rankFeatureQueryAdapter;
 
   private final QueryParser queryParser;
   private final FilterQueryAdapter filterQueryAdapter;
@@ -58,6 +59,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
       FilterQueryAdapter filterQueryAdapter,
       DefaultFilterFactory defaultFilterFactory,
       FacetQueryAdapter facetQueryAdapter,
+      RankFeatureQueryAdapter rankFeatureQueryAdapter,
       @Value("${es.get.by.id.realtime.enabled:false}") boolean realtimeEnabled) {
     this.sourceFieldAdapter = sourceFieldAdapter;
     this.pageQueryAdapter = pageQueryAdapter;
@@ -68,6 +70,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     this.filterQueryAdapter = filterQueryAdapter;
     this.defaultFilterFactory = defaultFilterFactory;
     this.facetQueryAdapter = facetQueryAdapter;
+    this.rankFeatureQueryAdapter = rankFeatureQueryAdapter;
     this.realtimeEnabled = realtimeEnabled;
   }
 
@@ -113,7 +116,9 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     var queryBuilder = boolQuery();
     builder.accept(searchSourceBuilder, queryBuilder);
 
-    if (searchSourceBuilder.query() == null) searchSourceBuilder.query(queryBuilder);
+    if (searchSourceBuilder.query() == null) {
+      searchSourceBuilder.query(queryBuilder);
+    }
 
     LOG.debug("Request: {} - Builder: {}", request, searchSourceBuilder);
     return searchRequest;
@@ -129,6 +134,7 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     functionScoreAdapter.apply(searchBuilder, queryBuilder, request);
     applyFilter(request, queryBuilder);
     sortQueryAdapter.apply(searchBuilder, request);
+    rankFeatureQueryAdapter.apply(queryBuilder, request);
   }
 
   private void applyFilter(FilterableApiRequest filterable, BoolQueryBuilder esQueryBuilder) {

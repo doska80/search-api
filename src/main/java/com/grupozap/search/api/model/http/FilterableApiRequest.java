@@ -6,12 +6,13 @@ import com.google.common.base.MoreObjects.ToStringHelper;
 import com.grupozap.search.api.model.search.Filterable;
 import com.grupozap.search.api.model.search.Pageable;
 import com.grupozap.search.api.model.search.Queryable;
+import com.grupozap.search.api.model.search.Rankable;
 import com.grupozap.search.api.model.search.Sortable;
 import io.swagger.annotations.ApiModelProperty;
 import java.util.Set;
 
 public class FilterableApiRequest extends BaseApiRequest
-    implements Filterable, Queryable, Pageable, Sortable {
+    implements Filterable, Queryable, Pageable, Sortable, Rankable {
 
   @ApiModelProperty(value = "Query string")
   private String q;
@@ -48,14 +49,18 @@ public class FilterableApiRequest extends BaseApiRequest
       example = "field1 ASC, field2 DESC")
   private String sort;
 
-  @ApiModelProperty("Disable sorting. If true, the \"sort\" is ignored")
-  private Boolean disableSort;
-
   @ApiModelProperty("From index to start the search from")
   private int from = 0;
 
   @ApiModelProperty("The number of search hits to return")
   private int size = Integer.MAX_VALUE;
+
+  @ApiModelProperty("Disable sorting. If true, the \"sort\" is ignored")
+  private Boolean disableSort;
+
+  @ApiModelProperty(
+      "Disable Rank Feature Query. If true, the feature \"RFQ\" is ignored. Default value is true (disabled)")
+  private Boolean disableRfq = true;
 
   public String getQ() {
     return q;
@@ -127,6 +132,14 @@ public class FilterableApiRequest extends BaseApiRequest
 
   public void setDisableSort(Boolean disableSort) {
     this.disableSort = disableSort;
+  }
+
+  public Boolean isDisableRfq() {
+    return disableRfq;
+  }
+
+  public void setDisableRfq(Boolean disableRfq) {
+    this.disableRfq = disableRfq;
   }
 
   public int getFrom() {

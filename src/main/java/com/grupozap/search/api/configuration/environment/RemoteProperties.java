@@ -36,6 +36,7 @@ public enum RemoteProperties {
   ES_CLUSTER_NAME("es.cluster.name"),
   ES_DEFAULT_SIZE("es.default.size"),
   ES_DEFAULT_SORT("es.default.sort"),
+  ES_RFQ("es.rfq"),
   ES_SORT_RESCORE("es.sort.rescore"),
   ES_SORT_DISABLE("es.sort.disable"),
   ES_SCRIPTS("es.scripts"),
