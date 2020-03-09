@@ -1,23 +1,23 @@
 buildscript {
-    repositories {
-        jcenter()
-        mavenCentral()
-        maven { url "http://repo.spring.io/release" }
-        maven { url "http://repo.spring.io/milestone" }
-        maven { url 'https://plugins.gradle.org/m2/' }
-    }
-    dependencies {
-        classpath 'com.diffplug.spotless:spotless-plugin-gradle:+'
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
-        classpath 'gradle.plugin.com.avast.gradle:gradle-docker-compose-plugin:+'
-        classpath 'com.github.ben-manes:gradle-versions-plugin:+'
-        classpath 'io.spring.gradle:dependency-management-plugin:+'
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.8'
-        classpath 'org.owasp:dependency-check-gradle:+'
-        classpath 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
-        classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:+'
-        classpath 'gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:+'
-    }
+  repositories {
+    jcenter()
+    mavenCentral()
+    maven { url "http://repo.spring.io/release" }
+    maven { url "http://repo.spring.io/milestone" }
+    maven { url 'https://plugins.gradle.org/m2/' }
+  }
+  dependencies {
+    classpath 'com.diffplug.spotless:spotless-plugin-gradle:+'
+    classpath 'org.springframework.boot:spring-boot-gradle-plugin:' + SPRING_BOOT_VERSION
+    classpath 'gradle.plugin.com.avast.gradle:gradle-docker-compose-plugin:+'
+    classpath 'com.github.ben-manes:gradle-versions-plugin:+'
+    classpath 'io.spring.gradle:dependency-management-plugin:+'
+    classpath 'me.champeau.gradle:jmh-gradle-plugin:0.4.8'
+    classpath 'org.owasp:dependency-check-gradle:+'
+    classpath 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
+    classpath 'org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:+'
+    classpath 'gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:+'
+  }
 }
 
 apply plugin: 'org.owasp.dependencycheck'
@@ -37,23 +37,23 @@ apply plugin: 'com.gorylenko.gradle-git-properties'
 group = 'com.grupozap.search'
 
 ext {
-    artifactName = project.hasProperty('artifactName') ? artifactName : 'grupozap-search-api-SNAPSHOT.jar'
-    set('elasticsearch.version', ELASTICSEARCH_VERSION)
-    set('ltr.plugin.version', LTR_PLUGIN_VERSION)
+  artifactName = project.hasProperty('artifactName') ? artifactName : 'grupozap-search-api-SNAPSHOT.jar'
+  set('elasticsearch.version', ELASTICSEARCH_VERSION)
+  set('ltr.plugin.version', LTR_PLUGIN_VERSION)
 }
 
 eclipse {
-    classpath {
-        downloadSources = true
-        downloadJavadoc = false
-    }
+  classpath {
+    downloadSources = true
+    downloadJavadoc = false
+  }
 }
 
 idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = false
-    }
+  module {
+    downloadSources = true
+    downloadJavadoc = false
+  }
 }
 
 sourceCompatibility = 11
@@ -62,114 +62,120 @@ targetCompatibility = 11
 jacoco { toolVersion = "0.8.5" }
 
 spotless {
-    java {
-        googleJavaFormat('1.7')
-    }
+  java {
+    googleJavaFormat('1.7')
+  }
+  groovyGradle {
+    target '*.gradle'
+    greclipse()
+    indentWithSpaces(2)
+  }
 }
 
 jar {
-    manifest {
-        attributes 'Implementation-Title': 'grupozap Search API v2', 'Implementation-Version': artifactName
-    }
+  manifest {
+    attributes 'Implementation-Title': 'grupozap Search API v2', 'Implementation-Version': artifactName
+  }
 }
 
 repositories {
-    mavenLocal()
-    mavenCentral()
-    maven { url "http://repo.spring.io/release" }
-    maven { url "http://repo.spring.io/milestone" }
-    jcenter()
+  mavenLocal()
+  mavenCentral()
+  maven { url "http://repo.spring.io/release" }
+  maven { url "http://repo.spring.io/milestone" }
+  jcenter()
 }
 
 configurations {
-    compile.exclude module: 'hibernate-validator'
-    datadog
+  compile.exclude module: 'hibernate-validator'
+  datadog
 }
 
 dependencyManagement {
-    imports {
-        mavenBom 'org.springframework.boot:spring-boot-dependencies:' + SPRING_BOOT_VERSION
-    }
+  imports {
+    mavenBom 'org.springframework.boot:spring-boot-dependencies:' + SPRING_BOOT_VERSION
+  }
 }
 
 dependencies {
-    // java >= 9 modules compatibility
-    compile 'javax.xml.bind:jaxb-api:2.+'
+  // java >= 9 modules compatibility
+  compile 'javax.xml.bind:jaxb-api:2.+'
 
-    compile 'org.springframework.boot:spring-boot-starter-web'
-    compile 'org.springframework.boot:spring-boot-starter-actuator'
+  compile 'org.springframework.boot:spring-boot-starter-web'
+  compile 'org.springframework.boot:spring-boot-starter-actuator'
 
-    compile 'io.micrometer:micrometer-registry-prometheus'
+  compile 'io.micrometer:micrometer-registry-prometheus'
 
-    compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
+  compile 'org.elasticsearch.client:elasticsearch-rest-high-level-client'
 
-    compile 'io.sentry:sentry-logback:1.7.+'
-    compile 'net.logstash.logback:logstash-logback-encoder:6.+'
+  compile 'io.sentry:sentry-logback:1.7.+'
+  compile 'net.logstash.logback:logstash-logback-encoder:6.+'
 
-    compile 'io.springfox:springfox-swagger2:' + SWAGGER
-    compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
+  compile 'io.springfox:springfox-swagger2:' + SWAGGER
+  compile 'io.springfox:springfox-swagger-ui:' + SWAGGER
 
-    compile 'org.apache.commons:commons-lang3:3.+'
-    compile 'org.apache.commons:commons-collections4:4.+'
+  compile 'org.apache.commons:commons-lang3:3.+'
+  compile 'org.apache.commons:commons-collections4:4.+'
 
-    compile 'com.google.code.gson:gson:2.8.6'
+  compile 'com.google.code.gson:gson:2.8.6'
 
-    compile 'org.jparsec:jparsec:3.1'
-    compile 'io.github.resilience4j:resilience4j-circuitbreaker:1.3.1'
+  compile 'org.jparsec:jparsec:3.1'
+  compile 'io.github.resilience4j:resilience4j-circuitbreaker:1.3.1'
 
+  datadog 'com.datadoghq:dd-java-agent:' + DATADOG_VERSION
 
-    compile 'com.datadoghq:dd-trace-api:' + DATADOG_VERSION
-    datadog 'com.datadoghq:dd-java-agent:' + DATADOG_VERSION
+  // elasticsearch/lucene unit tests
+  testCompile 'org.elasticsearch.test:framework:' + ELASTICSEARCH_VERSION
 
-    // elasticsearch/lucene unit tests
-    testCompile 'org.elasticsearch.test:framework:' + ELASTICSEARCH_VERSION
+  testCompile 'org.springframework.boot:spring-boot-starter-test'
+  testCompile 'commons-io:commons-io:2.+'
 
-    testCompile 'org.springframework.boot:spring-boot-starter-test'
-    testCompile 'commons-io:commons-io:2.+'
-
-    // Fixtures
-    testCompile 'br.com.six2six:fixture-factory:3.1.0'
-    testCompile 'com.jayway.restassured:rest-assured:2.9.0'
-    testCompile 'org.mockito:mockito-core:3.2.4'
-    testCompile 'org.powermock:powermock-core:2.0.4'
-    testCompile 'org.powermock:powermock-module-junit4:2.0.4'
-    testCompile 'org.powermock:powermock-api-mockito2:2.0.4'
+  // Fixtures
+  testCompile 'br.com.six2six:fixture-factory:3.1.0'
+  testCompile 'com.jayway.restassured:rest-assured:2.9.0'
+  testCompile 'org.mockito:mockito-core:3.2.4'
+  testCompile 'org.powermock:powermock-core:2.0.4'
+  testCompile 'org.powermock:powermock-module-junit4:2.0.4'
+  testCompile 'org.powermock:powermock-api-mockito2:2.0.4'
 }
 
 bootRun {
-    systemProperties = System.properties
-    jvmArgs = ["-Xdebug", "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"]
+  systemProperties = System.properties
+  jvmArgs = [
+    "-Xdebug",
+    "-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005"
+  ]
 }
 
 task datadogDeps(dependsOn: 'bootJar') {
-    doLast {
-        copy {
-            from configurations.datadog
-            into './build/libs'
-            rename('dd-java-agent-' + DATADOG_VERSION + '.jar', 'datadog.jar')
-        }
+  doLast {
+    copy {
+      from configurations.datadog
+      into './build/libs'
+      rename('dd-java-agent-' + DATADOG_VERSION + '.jar', 'datadog.jar')
     }
+  }
 }
 
 task copyJarForDockerCompose(dependsOn: 'datadogDeps', type: Copy) {
-    from bootJar
-    into './build/libs/'
-    rename { 'search-api.jar' }
+  from bootJar
+  into './build/libs/'
+  rename { 'search-api.jar' }
 }
 
 bootJar {
-    baseName = artifactName - '.jar'
-    launchScript()
+  baseName = artifactName - '.jar'
+  launchScript()
 }
 
 bootJar.finalizedBy copyJarForDockerCompose
 
 test {
-    testLogging {
-        events 'skipped', 'failed'
-        showStackTraces true
-        exceptionFormat 'full'
-    }
+  testLogging {
+    events 'skipped', 'failed'
+    showStackTraces true
+    exceptionFormat 'full'
+  }
 }
 
 /****************************
@@ -177,24 +183,24 @@ test {
  ****************************/
 
 def isSearchApiHealthy = {
-    return isDependencyHealthy('http://localhost:8482/actuator/health')
+  return isDependencyHealthy('http://localhost:8482/actuator/health')
 }
 
 def isDependencyHealthy(String url) {
-    try {
-        url.toURL().text
-        return true
-    } catch (e) {
-        return false
-    }
+  try {
+    url.toURL().text
+    return true
+  } catch (e) {
+    return false
+  }
 }
 
 def waitForTestDependencyHealthy(name, seconds, healthcheck) {
-    println "Waiting until $name becomes healthy"
-    while (!healthcheck() && seconds >= 0) {
-        sleep(1 * 1000)
-        println "Waiting another " + (seconds--) + " seconds to $name becomes healthy"
-    }
+  println "Waiting until $name becomes healthy"
+  while (!healthcheck() && seconds >= 0) {
+    sleep(1 * 1000)
+    println "Waiting another " + (seconds--) + " seconds to $name becomes healthy"
+  }
 }
 
 /****************************
@@ -202,35 +208,35 @@ def waitForTestDependencyHealthy(name, seconds, healthcheck) {
  ****************************/
 
 sourceSets {
-    integrationTest {
-        java {
-            compileClasspath += main.output + test.output
-            runtimeClasspath += main.output + test.output
-            srcDir file('src/integration-test/java')
-        }
-        resources.srcDir file('src/integration-test/resources')
+  integrationTest {
+    java {
+      compileClasspath += main.output + test.output
+      runtimeClasspath += main.output + test.output
+      srcDir file('src/integration-test/java')
     }
+    resources.srcDir file('src/integration-test/resources')
+  }
 }
 
 configurations {
-    integrationTestCompile.extendsFrom testCompile
-    integrationTestCompile.extendsFrom testRuntime
+  integrationTestCompile.extendsFrom testCompile
+  integrationTestCompile.extendsFrom testRuntime
 }
 
 task integrationTest(type: Test) {
-    testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    classpath = sourceSets.integrationTest.runtimeClasspath
-    outputs.upToDateWhen { false }
-    mustRunAfter test
-    jacoco {
-        destinationFile = file("$buildDir/jacoco/jacocoIntegrationTest.exec")
-    }
+  testClassesDirs = sourceSets.integrationTest.output.classesDirs
+  classpath = sourceSets.integrationTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+  mustRunAfter test
+  jacoco {
+    destinationFile = file("$buildDir/jacoco/jacocoIntegrationTest.exec")
+  }
 }
 
 test.finalizedBy(integrationTest)
 
 tasks.withType(Test) {
-    reports.html.destination = file("${reporting.baseDir}/${name}")
+  reports.html.destination = file("${reporting.baseDir}/${name}")
 }
 
 /****************************
@@ -238,57 +244,62 @@ tasks.withType(Test) {
  ****************************/
 
 if (!project.hasProperty('noDockerCompose')) {
-    dockerCompose {
-        useComposeFiles = ["${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose.yml"]
-        stopContainers = true
-        removeContainers = true
-        removeVolumes = true
-        waitForTcpPorts = false
+  dockerCompose {
+    useComposeFiles = [
+      "${project.projectDir.toString()}/src/integration-test/resources/docker/docker-compose.yml"
+    ]
+    stopContainers = true
+    removeContainers = true
+    removeVolumes = true
+    waitForTcpPorts = false
 
-        environment.put 'ELASTICSEARCH_VERSION', ELASTICSEARCH_VERSION
-        environment.put 'LTR_PLUGIN_VERSION', LTR_PLUGIN_VERSION
-    }
+    environment.put 'ELASTICSEARCH_VERSION', ELASTICSEARCH_VERSION
+    environment.put 'LTR_PLUGIN_VERSION', LTR_PLUGIN_VERSION
+  }
 
-    dockerCompose.isRequiredBy(integrationTest)
+  dockerCompose.isRequiredBy(integrationTest)
 
-    composeUp.doLast {
-        waitForTestDependencyHealthy('searchApi', 120, isSearchApiHealthy)
-    }
+  composeUp.doLast {
+    waitForTestDependencyHealthy('searchApi', 120, isSearchApiHealthy)
+  }
 }
 
 jmh {
-    iterations = 1
-    fork = 1
-    threads = 4
-    batchSize = 1
-    timeUnit = 'us'           // Output time unit. Available time units are: [m, s, ms, us, ns].
+  iterations = 1
+  fork = 1
+  threads = 4
+  batchSize = 1
+  timeUnit = 'us'           // Output time unit. Available time units are: [m, s, ms, us, ns].
 
-    verbosity = 'NORMAL'      // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
-    benchmarkMode = ['all']
-    // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
-    include = ['.*Benchmark']
+  verbosity = 'NORMAL'      // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
+  benchmarkMode = ['all']
+  // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
+  include = ['.*Benchmark']
 }
 
 def getCommitId() {
-    def output = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
-        standardOutput = output
-    }
-    return output.toString()
+  def output = new ByteArrayOutputStream()
+  exec {
+    commandLine 'git', 'rev-parse', '--short', 'HEAD'
+    standardOutput = output
+  }
+  return output.toString()
 }
 
 sonarqube {
-    properties {
-        property "sonar.projectKey", "search-api"
-        property "sonar.projectName", "Search-API"
-        property "sonar.scm.provider", "git"
-        property "sonar.host.url", "https://sonar.vivareal.io"
-        property "sonar.projectVersion", "${getCommitId()}"
-        property "sonar.sourceEncoding", "UTF-8"
-        property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
-        property "sonar.login", System.getenv('SONAR_TOKEN')
-        property "sonar.sources", sourceSets.main.allSource.srcDirs
-        property "sonar.tests", [sourceSets.test.java.srcDirs, 'src/integration-test/java'].flatten()
-    }
+  properties {
+    property "sonar.projectKey", "search-api"
+    property "sonar.projectName", "Search-API"
+    property "sonar.scm.provider", "git"
+    property "sonar.host.url", "https://sonar.vivareal.io"
+    property "sonar.projectVersion", "${getCommitId()}"
+    property "sonar.sourceEncoding", "UTF-8"
+    property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
+    property "sonar.login", System.getenv('SONAR_TOKEN')
+    property "sonar.sources", sourceSets.main.allSource.srcDirs
+    property "sonar.tests", [
+      sourceSets.test.java.srcDirs,
+      'src/integration-test/java'
+    ].flatten()
+  }
 }

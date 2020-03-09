@@ -12,7 +12,6 @@ import com.grupozap.search.api.model.http.FilterableApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
 import com.grupozap.search.api.model.parser.QueryParser;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
-import datadog.trace.api.Trace;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
@@ -73,7 +72,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   }
 
   @Override
-  @Trace
   public GetRequest getById(BaseApiRequest request, String id) {
     final var getRequest = new GetRequest(request.getIndex(), id).realtime(realtimeEnabled);
     sourceFieldAdapter.apply(getRequest, request);
@@ -82,7 +80,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   }
 
   @Override
-  @Trace
   public SearchRequest query(FilterableApiRequest request) {
     return prepareQuery(
         request,
@@ -91,7 +88,6 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
   }
 
   @Override
-  @Trace
   public SearchRequest query(SearchApiRequest request) {
     return prepareQuery(
         request,

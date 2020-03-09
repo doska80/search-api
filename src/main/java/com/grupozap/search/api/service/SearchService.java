@@ -25,7 +25,6 @@ import com.grupozap.search.api.exception.QueryTimeoutException;
 import com.grupozap.search.api.model.http.BaseApiRequest;
 import com.grupozap.search.api.model.http.FilterableApiRequest;
 import com.grupozap.search.api.model.http.SearchApiRequest;
-import datadog.trace.api.Trace;
 import java.io.IOException;
 import java.io.OutputStream;
 import org.elasticsearch.ElasticsearchException;
@@ -52,12 +51,10 @@ public class SearchService {
     this.requestCache = requestCache;
   }
 
-  @Trace
   public GetResponse getById(BaseApiRequest request, String id) {
     return circuitBreakerService.execute(GET_BY_ID, request.getIndex(), () -> doGet(request, id));
   }
 
-  @Trace
   public SearchResponse search(SearchApiRequest request) {
     return circuitBreakerService.execute(SEARCH, request.getIndex(), () -> doSearch(request));
   }

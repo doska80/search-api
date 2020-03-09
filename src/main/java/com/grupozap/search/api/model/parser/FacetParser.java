@@ -7,7 +7,6 @@ import static org.jparsec.Scanners.isChar;
 import static org.jparsec.Scanners.string;
 
 import com.grupozap.search.api.model.query.Facet;
-import datadog.trace.api.Trace;
 import java.util.List;
 import org.jparsec.Parser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +34,6 @@ public class FacetParser {
             .label("sort");
   }
 
-  @Trace
   public List<Facet> parse(String string) {
     return facetParser.parse(string);
   }

@@ -10,7 +10,6 @@ import com.grupozap.search.api.model.query.QueryFragmentItem;
 import com.grupozap.search.api.model.query.QueryFragmentList;
 import com.grupozap.search.api.model.query.QueryFragmentNot;
 import com.grupozap.search.api.model.query.QueryFragmentOperator;
-import datadog.trace.api.Trace;
 import org.jparsec.Parser;
 
 public class QueryParser {
@@ -45,7 +44,6 @@ public class QueryParser {
     return recursiveQueryParser;
   }
 
-  @Trace
   public QueryFragment parse(String string) {
     return recursiveQueryParser.parse(string);
   }

@@ -10,7 +10,6 @@ import com.grupozap.search.api.model.http.SearchApiRequest;
 import com.grupozap.search.api.model.serializer.SearchResponseEnvelope;
 import com.grupozap.search.api.service.SearchService;
 import com.grupozap.search.api.service.parser.IndexSettings;
-import datadog.trace.api.Trace;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -46,7 +45,6 @@ public class SearchController {
         @ApiResponse(code = 404, message = "Id not found on cluster"),
         @ApiResponse(code = 500, message = "Internal Server Error")
       })
-  @Trace
   public ResponseEntity<Object> id(BaseApiRequest request, @PathVariable String id) {
     indexSettings.validateIndex(request);
     final var response = searchService.getById(request, id);
@@ -62,7 +60,6 @@ public class SearchController {
         @ApiResponse(code = 400, message = "Bad parameters request"),
         @ApiResponse(code = 500, message = "Internal Server Error")
       })
-  @Trace
   public ResponseEntity<Object> search(SearchApiRequest request) {
     indexSettings.validateIndex(request);
     final var alias = indexSettings.getIndexByAlias();
@@ -72,7 +69,6 @@ public class SearchController {
 
   @GetMapping("/{index}/stream")
   @ApiIgnore
-  @Trace
   public StreamingResponseBody stream(
       FilterableApiRequest request, HttpServletResponse httpServletResponse) {
     indexSettings.validateIndex(request);
