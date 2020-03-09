@@ -68,4 +68,9 @@
   <logger name="springfox">
     <level value="WARN"/>
   </logger>
+
+  <logger name="org.elasticsearch.client">
+    <level value="ERROR"/>
+  </logger>
+
 </configuration>
