@@ -15,9 +15,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class RankFeatureQueryAdapter {
 
+  public static final String RANK_FEATURE_QUERY_PREFIX = "priority";
+
   public void apply(BoolQueryBuilder queryBuilder, FilterableApiRequest request) {
     final String fieldFactor = ES_RFQ.getValue(request.getIndex());
-    if (!request.isDisableRfq() && !isEmpty(fieldFactor)) {
+
+    if (!isEmpty(fieldFactor)
+        && (!request.isDisableRfq()
+            || (request.getSort() != null
+                && request.getSort().toLowerCase().contains(RANK_FEATURE_QUERY_PREFIX)))) {
+
       var fieldFactorValue = fieldFactor.split(":");
       queryBuilder
           .should()

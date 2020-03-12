@@ -76,7 +76,7 @@ public class TestData {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("id", valueOf(id));
     data.put("numeric", id);
-    data.put("priority", id);
+    data.put("priority_x", id);
     data.put("isEven", isEven(id));
     data.put("array_integer", rangeClosed(1, id).boxed().collect(toList()));
     data.put("nested", nestedObject);

@@ -20,10 +20,42 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class RankFeatureQueryIntegrationTest extends SearchApiIntegrationTest {
 
   @Test
+  public void
+      shouldReturnTheResultOrderedByPriorityDescUsingTheRankFeatureQueryWhenSortStartsWithPriority()
+          throws InterruptedException {
+
+    esIndexHandler.putStandardProperty("es.rfq", "priority_x:4");
+    esIndexHandler.addStandardProperties();
+
+    esIndexHandler.refreshIndex("");
+
+    sleep(1000);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?disableSort=true&sort=priority_x")
+        .then()
+        .body(
+            "result.testdata.priority_x",
+            equalTo(
+                range(1, standardDatasetSize)
+                    .boxed()
+                    .map(i -> standardDatasetSize - i + 1)
+                    .limit(defaultPageSize)
+                    .collect(toList())));
+  }
+
+  @Test
   public void shouldReturnTheResultOrderedByPriorityDescUsingTheRankFeatureQuery()
       throws InterruptedException {
 
-    esIndexHandler.putStandardProperty("es.rfq", "priority:4");
+    esIndexHandler.putStandardProperty("es.rfq", "priority_x:4");
     esIndexHandler.addStandardProperties();
 
     esIndexHandler.refreshIndex("");
@@ -41,7 +73,7 @@ public class RankFeatureQueryIntegrationTest extends SearchApiIntegrationTest {
         .get(TEST_DATA_INDEX + "?disableSort=true&disableRfq=false")
         .then()
         .body(
-            "result.testdata.priority",
+            "result.testdata.priority_x",
             equalTo(
                 range(1, standardDatasetSize)
                     .boxed()
@@ -53,7 +85,7 @@ public class RankFeatureQueryIntegrationTest extends SearchApiIntegrationTest {
   @Test
   public void shouldReturnTheResultOrderedByDefaultWhenRFQIsDisabled() throws InterruptedException {
 
-    esIndexHandler.putStandardProperty("es.rfq", "priority:4");
+    esIndexHandler.putStandardProperty("es.rfq", "priority_x:4");
     esIndexHandler.addStandardProperties();
 
     esIndexHandler.refreshIndex("");
@@ -71,7 +103,7 @@ public class RankFeatureQueryIntegrationTest extends SearchApiIntegrationTest {
         .get(TEST_DATA_INDEX + "?disableSort=true&disableRfq=true")
         .then()
         .body(
-            "result.testdata.priority",
+            "result.testdata.priority_x",
             is(
                 not(
                     range(1, standardDatasetSize)
