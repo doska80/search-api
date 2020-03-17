@@ -35,6 +35,7 @@ jobs:
 
       - run:
           name: Building image and running tests
+          no_output_timeout: 20m
           command: export JAVA_HOME=$PWD/jdk-11.0.1 && export PATH=$JAVA_HOME/bin:$PATH && make GRADLE_EXTRA_ARGS=--scan build
 
       - save_cache:

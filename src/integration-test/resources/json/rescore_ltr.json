@@ -1,0 +1,23 @@
+{
+  "es.sort": {
+    "disabled": false,
+    "sorts": [
+      {
+        "rescore_default": {
+          "rescores": [
+            {
+              "window_size": 30,
+              "query_weight": 1,
+              "rescore_query_weight": 1,
+              "score_mode": "total",
+              "model": "testdata_model",
+              "active_features": [],
+              "rescore_type": "ltr_rescore"
+            }
+          ],
+          "rfq": null
+        }
+      }
+    ]
+  }
+}

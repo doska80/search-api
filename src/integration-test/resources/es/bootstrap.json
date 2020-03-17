@@ -160,7 +160,7 @@
           },
           {
             "key": "kbn-version",
-            "value": "7.4.2",
+            "value": "7.6.0",
             "description": ""
           }
         ],
@@ -185,7 +185,7 @@
           },
           {
             "key": "kbn-version",
-            "value": "7.4.2",
+            "value": "7.6.0",
             "description": ""
           }
         ],

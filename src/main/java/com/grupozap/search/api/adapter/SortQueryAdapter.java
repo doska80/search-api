@@ -1,12 +1,8 @@
 package com.grupozap.search.api.adapter;
 
 import static com.google.common.collect.Maps.newHashMap;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_SORT_DISABLE;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_NESTED;
 import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_RESCORE;
-import static com.grupozap.search.api.model.mapping.MappingType.FIELD_TYPE_SCRIPT;
-import static java.lang.Boolean.FALSE;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.logging.log4j.util.Strings.isBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -20,12 +16,14 @@ import static org.elasticsearch.search.sort.SortOrder.valueOf;
 
 import com.grupozap.search.api.exception.InvalidFieldException;
 import com.grupozap.search.api.exception.RescoreConjunctionSortException;
-import com.grupozap.search.api.listener.ScriptRemotePropertiesListener;
-import com.grupozap.search.api.listener.SortRescoreListener;
+import com.grupozap.search.api.listener.ESSortListener;
+import com.grupozap.search.api.model.listener.rescore.SortRescore;
+import com.grupozap.search.api.model.listener.script.ScriptField;
 import com.grupozap.search.api.model.parser.SortParser;
 import com.grupozap.search.api.model.query.GeoPointItem;
 import com.grupozap.search.api.model.query.Item;
 import com.grupozap.search.api.model.search.Sortable;
+import java.util.List;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
@@ -33,7 +31,6 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.rescore.QueryRescoreMode;
 import org.elasticsearch.search.rescore.QueryRescorerBuilder;
 import org.elasticsearch.search.sort.NestedSortBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
 import org.jparsec.error.ParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,45 +43,37 @@ public class SortQueryAdapter {
 
   private final SortParser sortParser;
   private final FilterQueryAdapter filterQueryAdapter;
-  private final ScriptRemotePropertiesListener scriptRemotePropertiesListener;
-  private final ElasticsearchSettingsAdapter elasticsearchSettingsAdapter;
-  private final SortRescoreListener sortRescoreListener;
+  private final ESSortListener esSortListener;
 
   public SortQueryAdapter(
-      SortParser sortParser,
-      FilterQueryAdapter filterQueryAdapter,
-      ScriptRemotePropertiesListener scriptRemotePropertiesListener,
-      ElasticsearchSettingsAdapter elasticsearchSettingsAdapter,
-      SortRescoreListener sortRescoreListener) {
+      SortParser sortParser, FilterQueryAdapter filterQueryAdapter, ESSortListener esSortListener) {
 
     this.sortParser = sortParser;
     this.filterQueryAdapter = filterQueryAdapter;
-    this.scriptRemotePropertiesListener = scriptRemotePropertiesListener;
-    this.elasticsearchSettingsAdapter = elasticsearchSettingsAdapter;
-    this.sortRescoreListener = sortRescoreListener;
+    this.esSortListener = esSortListener;
   }
 
   public void apply(SearchSourceBuilder searchSourceBuilder, final Sortable request) {
-    if (FALSE.equals(ES_SORT_DISABLE.getValue(request.isDisableSort(), request.getIndex()))) {
+    var esSortDisabled =
+        request.isDisableSort()
+            || this.esSortListener.getSearchSort(request.getIndex()).isDisabled();
+
+    if (!esSortDisabled) {
       try {
         sortParser
             .parse(
                 isBlank(request.getSort())
-                    ? ES_DEFAULT_SORT.getValue(request.getIndex())
+                    ? this.esSortListener.getSearchSort(request.getIndex()).getDefaultSort()
                     : request.getSort())
             .forEach(
                 item -> {
                   validateRescoreCompoudBySort(searchSourceBuilder, request);
+
                   if (item.getField().getName().equals("_score")) {
                     searchSourceBuilder.sort(scoreSort());
 
                   } else if (FIELD_TYPE_RESCORE.typeOf(item.getField().getType())) {
                     applyRescoreQuery(searchSourceBuilder, request.getIndex(), item);
-
-                  } else if (FIELD_TYPE_SCRIPT.typeOf(
-                      elasticsearchSettingsAdapter.getFieldType(
-                          request.getIndex(), item.getField().getName()))) {
-                    applyScriptSortQuery(searchSourceBuilder, request.getIndex(), item);
 
                   } else if (item instanceof GeoPointItem) {
                     applyGeoDistanceSortBuilder(
@@ -116,25 +105,32 @@ public class SortQueryAdapter {
 
   private void applyRescoreQuery(
       final SearchSourceBuilder searchSourceBuilder, final String index, final Item item) {
-    var rescores = sortRescoreListener.getRescorerOrders(index).get(item.getField().getName());
-    for (SortRescoreListener.SortRescore sortRescore : rescores) {
-      var queryRescorerBuilder =
-          new QueryRescorerBuilder(sortRescore.getQueryBuilder())
-              .setScoreMode(QueryRescoreMode.fromString(sortRescore.getScoreMode()))
-              .windowSize(sortRescore.getWindowSize())
-              .setQueryWeight(sortRescore.getQueryWeight())
-              .setRescoreQueryWeight(sortRescore.getRescoreQueryWeight());
-      searchSourceBuilder.addRescorer(queryRescorerBuilder);
-    }
+    var multiSort = esSortListener.getSearchSort(index).getSorts().get(item.getField().getName());
+    buildRescoreQuery(searchSourceBuilder, multiSort.getRescores());
+    buildScriptSortQuery(searchSourceBuilder, multiSort.getScripts(), item);
   }
 
-  private void applyScriptSortQuery(
-      final SearchSourceBuilder searchSourceBuilder, final String index, final Item item) {
-    this.scriptRemotePropertiesListener.getScripts().get(index).stream()
-        .filter(scp -> item.getField().getName().equals(scp.getId()))
-        .findFirst()
-        .<SortBuilder>map(
-            scriptField ->
+  private void buildRescoreQuery(
+      SearchSourceBuilder searchSourceBuilder, List<SortRescore> rescores) {
+
+    rescores.forEach(
+        rescore ->
+            searchSourceBuilder.addRescorer(
+                new QueryRescorerBuilder(rescore.getQueryBuilder())
+                    .setScoreMode(QueryRescoreMode.fromString(rescore.getScoreMode()))
+                    .windowSize(rescore.getWindowSize())
+                    .setQueryWeight(rescore.getQueryWeight())
+                    .setRescoreQueryWeight(rescore.getRescoreQueryWeight())));
+  }
+
+  private void buildScriptSortQuery(
+      final SearchSourceBuilder searchSourceBuilder,
+      List<ScriptField> scriptFields,
+      final Item item) {
+
+    scriptFields.forEach(
+        scriptField ->
+            searchSourceBuilder.sort(
                 scriptSort(
                         new Script(
                             ScriptType.valueOf(scriptField.getScriptType().toUpperCase()),
@@ -144,8 +140,7 @@ public class SortQueryAdapter {
                             scriptField.getId(),
                             scriptField.getParams()),
                         fromString(scriptField.getScriptSortType()))
-                    .order(valueOf(item.getOrderOperator().name())))
-        .ifPresent(searchSourceBuilder::sort);
+                    .order(valueOf(item.getOrderOperator().name()))));
   }
 
   private void applyGeoDistanceSortBuilder(

@@ -1,0 +1,23 @@
+{
+  "es.sort": {
+    "default_sort": "numeric ASC",
+    "disabled": false,
+    "sorts": [
+      {
+        "testdata_numericsort": {
+          "scripts": [
+            {
+              "scriptSortType": "number",
+              "scriptType": "stored",
+              "id": "testdata_numericsort",
+              "lang": "painless",
+              "params": {
+                "score_factor": 2
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

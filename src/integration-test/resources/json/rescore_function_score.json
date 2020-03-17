@@ -1,0 +1,26 @@
+{
+  "es.sort": {
+    "disabled": false,
+    "sorts": [
+      {
+        "rescore_default": {
+          "rescores": [
+            {
+              "window_size": 30,
+              "rescore_type": "function_score",
+              "rescore_query_weight": 1,
+              "weight": 1,
+              "query_weight": 1,
+              "script": {
+                "source": "return doc['numeric'].value;",
+                "params": {
+                  "default_value": 0
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

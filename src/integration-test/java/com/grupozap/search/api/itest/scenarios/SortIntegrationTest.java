@@ -2,11 +2,12 @@ package com.grupozap.search.api.itest.scenarios;
 
 import static com.grupozap.search.api.itest.configuration.data.TestData.latitude;
 import static com.grupozap.search.api.itest.configuration.data.TestData.longitude;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.SEARCH_API_PROPERTIES_INDEX;
 import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_INDEX;
+import static com.grupozap.search.api.itest.configuration.es.ESIndexHandler.TEST_DATA_TYPE;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.http.ContentType.JSON;
 import static java.lang.String.format;
-import static java.util.Map.of;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static java.util.stream.IntStream.rangeClosed;
@@ -19,6 +20,7 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertTrue;
 
 import com.grupozap.search.api.itest.SearchApiIntegrationTest;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -364,72 +366,8 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateScriptSortASC() {
-    given()
-        .log()
-        .all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_OK)
-        .when()
-        .get(TEST_DATA_INDEX + "?sort=testdata_numericsort ASC")
-        .then()
-        .body("totalCount", equalTo(standardDatasetSize))
-        .body("result.testdata", hasSize(defaultPageSize))
-        .body(
-            "result.testdata.id",
-            equalTo(
-                rangeClosed(1, defaultPageSize).boxed().map(String::valueOf).collect(toList())));
-  }
-
-  @Test
-  public void validateScriptSortDESC() {
-    given()
-        .log()
-        .all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_OK)
-        .when()
-        .get(TEST_DATA_INDEX + "?sort=testdata_numericsort DESC")
-        .then()
-        .body("totalCount", equalTo(standardDatasetSize))
-        .body("result.testdata", hasSize(defaultPageSize))
-        .body(
-            "result.testdata.id",
-            equalTo(
-                range(1, standardDatasetSize)
-                    .boxed()
-                    .map(i -> standardDatasetSize - i + 1)
-                    .limit(defaultPageSize)
-                    .map(String::valueOf)
-                    .collect(toList())));
-  }
-
-  @Test
-  public void shouldApplyDefaultSortWhenClientNotInformItOnRequest() {
-    given()
-        .log()
-        .all()
-        .baseUri(baseUrl)
-        .contentType(JSON)
-        .expect()
-        .statusCode(SC_OK)
-        .when()
-        .get(TEST_DATA_INDEX + "?includeFields=numeric")
-        .then()
-        .body("totalCount", equalTo(standardDatasetSize))
-        .body("result.testdata", hasSize(defaultPageSize))
-        .body(
-            "result.testdata.numeric",
-            equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList())));
-  }
-
-  @Test
   public void shouldNotApplySortWhenDisabledSortIsActivatedOnProperties() {
-    esIndexHandler.putStandardProperty("es.sort.disable", true);
+    esIndexHandler.putStandardProperty("es.sort.disabled", true);
     esIndexHandler.addStandardProperties();
 
     given()
@@ -452,6 +390,8 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
                         .boxed()
                         .map(String::valueOf)
                         .collect(toList()))));
+
+    esIndexHandler.setDefaultProperties();
   }
 
   @Test
@@ -471,6 +411,8 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         .body(
             "result.testdata.numeric",
             not(equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList()))));
+
+    esIndexHandler.setDefaultProperties();
   }
 
   @Test
@@ -491,6 +433,8 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
             "result.testdata.id",
             equalTo(
                 rangeClosed(1, defaultPageSize).boxed().map(String::valueOf).collect(toList())));
+
+    esIndexHandler.setDefaultProperties();
   }
 
   @Test
@@ -516,10 +460,19 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
         .body("result.testdata", hasSize(defaultPageSize))
         .body("result.testdata.field_geo_after_alias.lat", equalTo(expectedLat))
         .body("result.testdata.field_geo_after_alias.lon", equalTo(expectedLon));
+
+    esIndexHandler.setDefaultProperties();
   }
 
   @Test
-  public void validateLtrRescoreTest() {
+  public void validateLtrRescoreTest() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/rescore_ltr.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
     var even =
         rangeClosed(1, standardDatasetSize)
             .boxed()
@@ -543,18 +496,13 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateRandomRescoreWithDifferentSeedsTest() {
-    var properties = new HashMap<>();
-    properties.put("window_size", standardDatasetSize);
-    properties.put("query_weight", 1.0);
-    properties.put("rescore_query_weight", 1.0);
-    properties.put("score_mode", "total");
-    properties.put("seed", 2);
-    properties.put("field", "_seq_no");
-    properties.put("rescore_type", "random_score");
-
-    esIndexHandler.putStandardProperty("es.sort.rescore", of("rescore_seed_two", properties));
-    esIndexHandler.addStandardProperties();
+  public void validateRandomRescoreWithDifferentSeedsTest() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/rescore_different_seed.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     var responseFirstSeed =
         given()
@@ -585,7 +533,14 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateRandomRescoreWithTheSameSeedTest() {
+  public void validateRandomRescoreWithTheSameSeedTest() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/rescore_seed.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
     var responseFirstSeed =
         given()
             .log()
@@ -615,7 +570,14 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void shouldReturnBadRequestWhenSortOptionInConjunctionWithRescore() {
+  public void shouldReturnBadRequestWhenSortOptionInConjunctionWithRescore() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/rescore_ltr.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
     given()
         .log()
         .all()
@@ -628,21 +590,13 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateLtrRescoreWithFunctionRescore() {
-    var properties = new HashMap<>();
-    properties.put("rescore_type", "function_score");
-    properties.put("window_size", 30);
-    properties.put("weight", 10);
-
-    var script = new HashMap<>();
-    script.put("source", "return doc['numeric'].value;");
-    var params = new HashMap<>();
-    params.put("default_value", 1);
-    script.put("params", params);
-    properties.put("script", script);
-
-    esIndexHandler.putStandardPropertyInArray("es.sort.rescore", "rescore_default", properties);
-    esIndexHandler.addStandardProperties();
+  public void validateLtrRescoreWithFunctionRescore() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/rescore_function_score.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()
         .log()
@@ -665,7 +619,90 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
                     .limit(standardDatasetSize)
                     .map(String::valueOf)
                     .collect(toList())));
+  }
 
-    esIndexHandler.setDefaultProperties();
+  @Test
+  public void validateScriptSortASC() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/script_sort.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?sort=testdata_numericsort ASC")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.id",
+            equalTo(
+                rangeClosed(1, defaultPageSize).boxed().map(String::valueOf).collect(toList())));
+  }
+
+  @Test
+  public void validateScriptSortDESC() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/script_sort.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?sort=testdata_numericsort DESC")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.id",
+            equalTo(
+                range(1, standardDatasetSize)
+                    .boxed()
+                    .map(i -> standardDatasetSize - i + 1)
+                    .limit(defaultPageSize)
+                    .map(String::valueOf)
+                    .collect(toList())));
+  }
+
+  @Test
+  public void shouldApplyDefaultSortWhenClientNotInformItOnRequest() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        jsonFileUtils.getBoostrapConfig("/json/script_sort.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?includeFields=numeric")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(defaultPageSize))
+        .body(
+            "result.testdata.numeric",
+            equalTo(rangeClosed(1, defaultPageSize).boxed().collect(toList())));
   }
 }

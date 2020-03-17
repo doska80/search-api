@@ -1,0 +1,36 @@
+{
+  "es.sort": {
+    "disabled": false,
+    "disable_rfq": false,
+    "sorts": [
+      {
+        "priority_sort": {
+          "rfq": {
+            "field": "priority_x",
+            "function": "log",
+            "scaling_factor": 4,
+            "boost": 1,
+            "pivot": 0,
+            "exponent": 0
+          },
+          "rescores": [
+            {
+              "window_size": 30,
+              "rescore_type": "function_score",
+              "score_mode": "max",
+              "rescore_query_weight": 1,
+              "weight": 1,
+              "query_weight": 1,
+              "script": {
+                "source": "return doc['decreasing_number'].value",
+                "params": {
+                  "default_value": 0
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

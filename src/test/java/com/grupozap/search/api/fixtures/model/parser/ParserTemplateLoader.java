@@ -10,7 +10,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.reflection.Whitebox.setInternalState;
 
-import com.grupozap.search.api.listener.SortRescoreListener;
+import com.grupozap.search.api.listener.ESSortListener;
 import com.grupozap.search.api.model.parser.FacetParser;
 import com.grupozap.search.api.model.parser.FieldParser;
 import com.grupozap.search.api.model.parser.FilterParser;
@@ -83,7 +83,7 @@ public class ParserTemplateLoader {
         .thenAnswer(
             invocationOnMock -> !invocationOnMock.getArguments()[0].toString().contains("invalid"));
 
-    var fieldCache = new FieldCache(new FieldFactory(), new SortRescoreListener());
+    var fieldCache = new FieldCache(new FieldFactory(), new ESSortListener());
     setInternalState(fieldCache, "validFields", mockPreprocessedFields);
     setInternalState(fieldCache, "indexSettings", indexSettings);
     return fieldCache;

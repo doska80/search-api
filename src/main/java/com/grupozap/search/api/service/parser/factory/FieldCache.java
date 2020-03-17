@@ -10,7 +10,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.google.common.collect.ImmutableMap;
 import com.grupozap.search.api.exception.InvalidFieldException;
-import com.grupozap.search.api.listener.SortRescoreListener;
+import com.grupozap.search.api.listener.ESSortListener;
 import com.grupozap.search.api.model.event.ClusterSettingsUpdatedEvent;
 import com.grupozap.search.api.model.query.Field;
 import com.grupozap.search.api.service.parser.IndexSettings;
@@ -36,15 +36,15 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
   private static final Logger LOG = LoggerFactory.getLogger(FieldCache.class);
 
   private final FieldFactory fieldFactory;
-  private final SortRescoreListener sortRescoreListener;
+  private final ESSortListener esSortListener;
   private Map<String, Field> validFields;
   private IndexSettings indexSettings; // Request scoped
 
   @Autowired
-  public FieldCache(FieldFactory fieldFactory, SortRescoreListener sortRescoreListener) {
+  public FieldCache(FieldFactory fieldFactory, ESSortListener esSortListener) {
     this.fieldFactory = fieldFactory;
     this.validFields = new HashMap<>();
-    this.sortRescoreListener = sortRescoreListener;
+    this.esSortListener = esSortListener;
   }
 
   @Autowired
@@ -74,15 +74,19 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
     settingsByIndex.forEach(
         (indexName, settings) -> {
           fields.putAll(processFieldsForIndex(indexName, settings));
-          this.sortRescoreListener
-              .getRescorerOrders(indexName)
-              .keySet()
-              .forEach(
-                  fieldName -> {
-                    Map<String, Object> map = new HashMap<>(1);
-                    map.put(fieldName, FIELD_TYPE_RESCORE.getDefaultType());
-                    fields.put(keyForField(indexName, fieldName), createField(fieldName, map));
-                  });
+
+          if (this.esSortListener.getSearchSort(indexName) != null) {
+            this.esSortListener
+                .getSearchSort(indexName)
+                .getSorts()
+                .keySet()
+                .forEach(
+                    fieldName -> {
+                      Map<String, Object> map = new HashMap<>(1);
+                      map.put(fieldName, FIELD_TYPE_RESCORE.getDefaultType());
+                      fields.put(keyForField(indexName, fieldName), createField(fieldName, map));
+                    });
+          }
         });
     // Add whitelist fields
     settingsByIndex

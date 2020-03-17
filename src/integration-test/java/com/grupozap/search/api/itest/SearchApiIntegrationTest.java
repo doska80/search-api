@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grupozap.search.api.itest.configuration.SearchApiIntegrationTestContext;
 import com.grupozap.search.api.itest.configuration.data.StandardDatasetAsserts;
 import com.grupozap.search.api.itest.configuration.es.ESIndexHandler;
+import com.grupozap.search.api.itest.utils.JsonFileUtils;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker.State;
 import java.io.IOException;
 import javax.annotation.PostConstruct;
@@ -34,6 +35,7 @@ import org.springframework.test.context.TestPropertySource;
 public class SearchApiIntegrationTest {
 
   protected static final ObjectMapper mapper = new ObjectMapper();
+  protected JsonFileUtils jsonFileUtils = new JsonFileUtils();
 
   @Value("${itest.standard.dataset.size}")
   protected Integer standardDatasetSize;

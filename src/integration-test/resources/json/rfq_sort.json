@@ -1,0 +1,20 @@
+{
+  "es.sort": {
+    "disabled": false,
+    "disable_rfq": false,
+    "sorts": [
+      {
+        "priority_sort": {
+          "rfq": {
+            "field": "priority_x",
+            "function": "log",
+            "scaling_factor": 4,
+            "boost": 1,
+            "pivot": 0,
+            "exponent": 0
+          }
+        }
+      }
+    ]
+  }
+}

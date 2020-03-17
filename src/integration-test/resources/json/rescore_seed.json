@@ -1,0 +1,22 @@
+{
+  "es.sort": {
+    "disabled": false,
+    "sorts": [
+      {
+        "rescore_seed": {
+          "rescores": [
+            {
+              "window_size": 30,
+              "query_weight": 1,
+              "rescore_query_weight": 1,
+              "score_mode": "total",
+              "seed": 1,
+              "field": "_seq_no",
+              "rescore_type": "random_rescore"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

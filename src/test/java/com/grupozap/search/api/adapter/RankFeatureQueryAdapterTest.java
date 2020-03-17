@@ -1,39 +1,41 @@
 package com.grupozap.search.api.adapter;
 
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.DEFAULT_INDEX;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_RFQ;
+import static com.grupozap.search.api.model.http.SearchApiRequestBuilder.INDEX_NAME;
+import static com.grupozap.search.api.model.listener.rfq.Rfq.build;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.grupozap.search.api.listener.ESSortListener;
+import com.grupozap.search.api.model.listener.rfq.Rfq;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchAllQueryBuilder;
 import org.elasticsearch.index.query.RankFeatureQueryBuilder;
 import org.elasticsearch.index.query.TermQueryBuilder;
-import org.junit.Before;
 import org.junit.Test;
 
 public class RankFeatureQueryAdapterTest extends SearchTransportClientMock {
 
-  private RankFeatureQueryAdapter queryAdapter = new RankFeatureQueryAdapter();
-
-  @Before
-  public void setup() {
-    ES_RFQ.setValue(DEFAULT_INDEX, null);
-    ES_DEFAULT_SORT.setValue(DEFAULT_INDEX, null);
-  }
+  private ESSortListener esSortListener = mock(ESSortListener.class);
+  private RankFeatureQueryAdapter queryAdapter = new RankFeatureQueryAdapter(esSortListener);
 
   @Test
-  public void
-      shouldApplyTheRankFeatureQueryIfDefaultSortIsConfiguredOnSearchApiPropertiesAndTheContainsPriorityOnFieldName() {
+  public void shouldApplyTheRankFeatureQueryIfConfiguredOnSearchApiProperties() {
 
-    ES_RFQ.setValue(DEFAULT_INDEX, "field1:4");
-    ES_DEFAULT_SORT.setValue(DEFAULT_INDEX, "rescore_priority_x");
+    var request = filterableRequest.index(INDEX_NAME).build();
+
+    when(this.esSortListener.getRfq(request)).thenReturn(buildRfq());
 
     var queryBuilder = new BoolQueryBuilder();
     queryBuilder.filter().add(termQuery("id", 1));
-    queryAdapter.apply(queryBuilder, filterableRequest.index(DEFAULT_INDEX).build());
+    queryAdapter.apply(queryBuilder, request);
 
     assertEquals(1, queryBuilder.should().size());
     assertEquals(RankFeatureQueryBuilder.class, queryBuilder.should().get(0).getClass());
@@ -48,56 +50,14 @@ public class RankFeatureQueryAdapterTest extends SearchTransportClientMock {
 
   @Test
   public void
-      shouldApplyTheRankFeatureQueryIfIsConfiguredOnSearchApiPropertiesAndTheSortStartsWithPriority() {
+      shouldApplyTheRFQIfConfiguredOnSearchApiPropertiesAndIncludeTheMatchAllQueryWhenFilterIsEmpty() {
 
-    ES_RFQ.setValue(DEFAULT_INDEX, "field1:4");
+    var request = filterableRequest.index(INDEX_NAME).disableRfq(false).build();
 
-    var queryBuilder = new BoolQueryBuilder();
-    queryBuilder.filter().add(termQuery("id", 1));
-    queryAdapter.apply(
-        queryBuilder, filterableRequest.index(DEFAULT_INDEX).sort("priority_x").build());
-
-    assertEquals(1, queryBuilder.should().size());
-    assertEquals(RankFeatureQueryBuilder.class, queryBuilder.should().get(0).getClass());
-
-    assertEquals(1, queryBuilder.filter().size());
-    assertEquals(TermQueryBuilder.class, queryBuilder.filter().get(0).getClass());
-
-    assertEquals(
-        "{\"rank_feature\":{\"field\":\"field1\",\"log\":{\"scaling_factor\":4.0},\"boost\":1.0}}",
-        queryBuilder.should().get(0).toString().replaceAll("[\n|\\s]", ""));
-  }
-
-  @Test
-  public void shouldApplyTheRankFeatureQueryIfIsConfiguredOnSearchApiProperties() {
-
-    ES_RFQ.setValue(DEFAULT_INDEX, "field1:4");
+    when(this.esSortListener.getRfq(request)).thenReturn(buildRfq());
 
     var queryBuilder = new BoolQueryBuilder();
-    queryBuilder.filter().add(termQuery("id", 1));
-    queryAdapter.apply(
-        queryBuilder, filterableRequest.index(DEFAULT_INDEX).disableRfq(false).build());
-
-    assertEquals(1, queryBuilder.should().size());
-    assertEquals(RankFeatureQueryBuilder.class, queryBuilder.should().get(0).getClass());
-
-    assertEquals(1, queryBuilder.filter().size());
-    assertEquals(TermQueryBuilder.class, queryBuilder.filter().get(0).getClass());
-
-    assertEquals(
-        "{\"rank_feature\":{\"field\":\"field1\",\"log\":{\"scaling_factor\":4.0},\"boost\":1.0}}",
-        queryBuilder.should().get(0).toString().replaceAll("[\n|\\s]", ""));
-  }
-
-  @Test
-  public void
-      shouldApplyTheRFQIfIsConfiguredOnSearchApiPropertiesAndIncludeTheMatchAllQueryWithoutAnyFilter() {
-
-    ES_RFQ.setValue(DEFAULT_INDEX, "field1:4");
-
-    var queryBuilder = new BoolQueryBuilder();
-    queryAdapter.apply(
-        queryBuilder, filterableRequest.index(DEFAULT_INDEX).disableRfq(false).build());
+    queryAdapter.apply(queryBuilder, request);
 
     assertEquals(1, queryBuilder.should().size());
     assertEquals(RankFeatureQueryBuilder.class, queryBuilder.should().get(0).getClass());
@@ -111,48 +71,32 @@ public class RankFeatureQueryAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldNotApplyTheRFQWhenDisabledOnRequest() {
+  public void shouldNotApplyTheRFQWhenNotConfiguredOnSearchApiProperties() {
 
-    ES_RFQ.setValue(DEFAULT_INDEX, "field1:4");
+    var request = filterableRequest.index(INDEX_NAME).disableRfq(false).build();
+
+    when(this.esSortListener.getRfq(request)).thenReturn(empty());
 
     var queryBuilder = new BoolQueryBuilder();
-    queryAdapter.apply(
-        queryBuilder, filterableRequest.index(DEFAULT_INDEX).disableRfq(true).build());
+    queryAdapter.apply(queryBuilder, request);
 
     assertTrue(queryBuilder.should().isEmpty());
     assertTrue(queryBuilder.filter().isEmpty());
   }
 
-  @Test
-  public void shouldNotApplyTheRFQWhenNotExplicitEnabledOnRequest() {
+  @SuppressWarnings("ConstantConditions")
+  private Optional<Rfq> buildRfq() {
+    var map = new LinkedHashMap<String, Object>();
+    map.put("field", "field1");
+    map.put("function", "log");
+    map.put("boost", 0.0);
+    map.put("scaling_factor", (float) 4.0);
+    map.put("pivot", 0.0);
+    map.put("exponent", 0.0);
 
-    ES_RFQ.setValue(DEFAULT_INDEX, "field1:4");
+    var entryValue = new LinkedHashMap<String, Map<String, Object>>();
+    entryValue.put("rfq", map);
 
-    var queryBuilder = new BoolQueryBuilder();
-    queryAdapter.apply(queryBuilder, filterableRequest.index(DEFAULT_INDEX).build());
-
-    assertTrue(queryBuilder.should().isEmpty());
-    assertTrue(queryBuilder.filter().isEmpty());
-  }
-
-  @Test
-  public void shouldNotApplyTheRankFeatureQueryWhenEmptyPropertyOnSearchApiProperties() {
-
-    ES_RFQ.setValue(DEFAULT_INDEX, "");
-
-    var queryBuilder = new BoolQueryBuilder();
-    queryAdapter.apply(queryBuilder, filterableRequest.index(DEFAULT_INDEX).build());
-
-    assertTrue(queryBuilder.should().isEmpty());
-    assertTrue(queryBuilder.filter().isEmpty());
-  }
-
-  @Test
-  public void shouldNotApplyTheRankFeatureQueryWhenNullPropertyOnSearchApiProperties() {
-    var queryBuilder = new BoolQueryBuilder();
-    queryAdapter.apply(queryBuilder, filterableRequest.index(DEFAULT_INDEX).build());
-
-    assertTrue(queryBuilder.should().isEmpty());
-    assertTrue(queryBuilder.filter().isEmpty());
+    return of(build(entryValue));
   }
 }

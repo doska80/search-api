@@ -85,53 +85,18 @@ public class ESIndexHandler {
   public void setDefaultProperties() {
     putStandardProperty("filter.default.clauses", List.of());
     putStandardProperty("es.default.size", size);
-    putStandardProperty("es.default.sort", "numeric ASC");
-    putStandardProperty("es.sort.disable", false);
     putStandardProperty("es.query.timeout.unit", queryTimeoutUnit);
     putStandardProperty("es.query.timeout.value", queryTimeoutValue);
 
-    Map<String, Object> script = new HashMap<>();
-    script.put("id", "testdata_numericsort");
-    script.put("scriptType", "stored");
-    script.put("scriptSortType", "number");
-    script.put("lang", "painless");
+    var esSortMap = new HashMap<String, Object>();
+    var sortList = new ArrayList<>();
+    var sortsMap = new LinkedHashMap<String, LinkedHashMap<String, Object>>();
 
-    /* Start configuring LTR rescore */
-    var rescoreDefault = new ArrayList();
-    var esSortModelRescoreConfiguration = new LinkedHashMap<>();
-    esSortModelRescoreConfiguration.put("window_size", standardDatasetSize);
-    esSortModelRescoreConfiguration.put("query_weight", 1.0);
-    esSortModelRescoreConfiguration.put("rescore_query_weight", 1.0);
-    esSortModelRescoreConfiguration.put("score_mode", "total");
-    esSortModelRescoreConfiguration.put("model", "testdata_model");
-    esSortModelRescoreConfiguration.put("active_features", newArrayList());
-    esSortModelRescoreConfiguration.put("rescore_type", "ltr_rescore");
-    rescoreDefault.add(esSortModelRescoreConfiguration);
-
-    /* Start configuring random rescore */
-    var rescoreRandom = new ArrayList();
-    var esSortRandomRescoreConfiguration = new LinkedHashMap<>();
-    esSortRandomRescoreConfiguration.put("window_size", standardDatasetSize);
-    esSortRandomRescoreConfiguration.put("query_weight", 1.0);
-    esSortRandomRescoreConfiguration.put("rescore_query_weight", 1.0);
-    esSortRandomRescoreConfiguration.put("score_mode", "total");
-    esSortRandomRescoreConfiguration.put("seed", 1);
-    esSortRandomRescoreConfiguration.put("field", "_seq_no");
-    esSortRandomRescoreConfiguration.put("rescore_type", "random_rescore");
-    rescoreRandom.add(esSortRandomRescoreConfiguration);
-
-    var esSortRescore = new HashMap<>();
-    esSortRescore.put("rescore_default", rescoreDefault);
-    esSortRescore.put("rescore_seed", rescoreRandom);
-
-    putStandardProperty("es.sort.rescore", esSortRescore);
-    /* Finish configuring LTR rescore */
-
-    Map<String, Object> params = new HashMap<>();
-    params.put("score_factor", 2.0);
-    script.put("params", params);
-
-    putStandardProperty("es.scripts", newArrayList(script));
+    esSortMap.put("disabled", false);
+    esSortMap.put("default_sort", "numeric ASC");
+    sortList.add(sortsMap);
+    esSortMap.put("sorts", sortList);
+    putStandardProperty("es.sort", esSortMap);
 
     Map<String, Object> searchAliases = new HashMap<>();
     Map<String, Object> fieldAliases =

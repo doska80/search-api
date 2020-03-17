@@ -49,7 +49,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.google.common.collect.Sets;
+import com.grupozap.search.api.listener.ESSortListener;
 import com.grupozap.search.api.model.http.SearchApiRequestBuilder.BasicRequestBuilder;
+import com.grupozap.search.api.model.listener.SearchSort;
 import com.grupozap.search.api.model.mapping.MappingType;
 import com.grupozap.search.api.service.parser.factory.DefaultFilterFactory;
 import java.util.Arrays;
@@ -90,6 +92,7 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
   private FunctionScoreAdapter functionScoreAdapter;
   private FacetQueryAdapter facetQueryAdapter;
   private RankFeatureQueryAdapter rankFeatureQueryAdapter;
+  private ESSortListener ESSortListener;
 
   @Mock private ElasticsearchSettingsAdapter settingsAdapter;
 
@@ -117,7 +120,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     this.filterQueryAdapter = new FilterQueryAdapter(queryParserFixture());
     this.defaultFilterFactory =
         new DefaultFilterFactory(queryParserWithOutValidationFixture(), filterQueryAdapter);
-    this.rankFeatureQueryAdapter = new RankFeatureQueryAdapter();
+    this.ESSortListener = mock(ESSortListener.class);
+    this.rankFeatureQueryAdapter = new RankFeatureQueryAdapter(ESSortListener);
 
     this.queryAdapter =
         new ElasticsearchQueryAdapter(
@@ -141,6 +145,8 @@ public class ElasticsearchQueryAdapterTest extends SearchTransportClientMock {
     when(settingsAdapter.settingsByKey(INDEX_NAME, SHARDS)).thenReturn("8");
     when(settingsAdapter.isTypeOf(anyString(), anyString(), any(MappingType.class)))
         .thenReturn(false);
+    when(this.ESSortListener.getSearchSort(INDEX_NAME))
+        .thenReturn(new SearchSort.SearchSortBuilder().disabled(false).build());
   }
 
   @Test

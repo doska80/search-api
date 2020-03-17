@@ -55,12 +55,11 @@ public class FilterableApiRequest extends BaseApiRequest
   @ApiModelProperty("The number of search hits to return")
   private int size = Integer.MAX_VALUE;
 
-  @ApiModelProperty("Disable sorting. If true, the \"sort\" is ignored")
-  private Boolean disableSort;
+  @ApiModelProperty("Disable sorting. If true, the \"sort\" is ignored. Default is false")
+  private Boolean disableSort = false;
 
-  @ApiModelProperty(
-      "Disable Rank Feature Query. If true, the feature \"RFQ\" is ignored. Default value is true (disabled)")
-  private Boolean disableRfq = true;
+  @ApiModelProperty("Disable Rank Feature Query. If true, the feature \"RFQ\" is ignored.")
+  private Boolean disableRfq;
 
   public String getQ() {
     return q;

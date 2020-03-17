@@ -1,12 +1,9 @@
 package com.grupozap.search.api.adapter;
 
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
-import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_RFQ;
-import static java.lang.Integer.parseInt;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+import com.grupozap.search.api.listener.ESSortListener;
 import com.grupozap.search.api.model.http.FilterableApiRequest;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.RankFeatureQueryBuilder;
@@ -16,31 +13,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class RankFeatureQueryAdapter {
 
-  public static final String RANK_FEATURE_QUERY_PREFIX = "priority";
+  private final ESSortListener esSortListener;
+
+  public RankFeatureQueryAdapter(ESSortListener esSortListener) {
+    this.esSortListener = esSortListener;
+  }
 
   public void apply(BoolQueryBuilder queryBuilder, FilterableApiRequest request) {
-    final String fieldFactor = ES_RFQ.getValue(request.getIndex());
-    final String defaultSort = ES_DEFAULT_SORT.getValue(request.getIndex());
+    this.esSortListener
+        .getRfq(request)
+        .ifPresent(
+            rfq -> {
+              queryBuilder
+                  .should()
+                  .add(
+                      new RankFeatureQueryBuilder(rfq.getField(), new Log(rfq.getScalingFactor())));
 
-    if (!isEmpty(fieldFactor)
-        && (!request.isDisableRfq()
-            || (request.getSort() != null
-                && request.getSort().toLowerCase().contains(RANK_FEATURE_QUERY_PREFIX))
-            || (!isEmpty(defaultSort) && defaultSort.contains(RANK_FEATURE_QUERY_PREFIX)))) {
-
-      var fieldFactorValue = fieldFactor.split(":");
-      queryBuilder
-          .should()
-          .add(
-              new RankFeatureQueryBuilder(
-                  fieldFactorValue[0], new Log(parseInt(fieldFactorValue[1]))));
-
-      /* for empty search filters, we need to include the match_all query builder */
-      if (isEmpty(queryBuilder.filter())
-          && isEmpty(queryBuilder.must())
-          && isEmpty(queryBuilder.mustNot())) {
-        queryBuilder.filter().add(matchAllQuery());
-      }
-    }
+              /* for empty search filters, we need to include the match_all query builder */
+              if (isEmpty(queryBuilder.filter())
+                  && isEmpty(queryBuilder.must())
+                  && isEmpty(queryBuilder.mustNot())) {
+                queryBuilder.filter().add(matchAllQuery());
+              }
+            });
   }
 }
