@@ -1,5 +1,6 @@
 package com.grupozap.search.api.adapter;
 
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_DEFAULT_SORT;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_RFQ;
 import static java.lang.Integer.parseInt;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
@@ -19,11 +20,13 @@ public class RankFeatureQueryAdapter {
 
   public void apply(BoolQueryBuilder queryBuilder, FilterableApiRequest request) {
     final String fieldFactor = ES_RFQ.getValue(request.getIndex());
+    final String defaultSort = ES_DEFAULT_SORT.getValue(request.getIndex());
 
     if (!isEmpty(fieldFactor)
         && (!request.isDisableRfq()
             || (request.getSort() != null
-                && request.getSort().toLowerCase().contains(RANK_FEATURE_QUERY_PREFIX)))) {
+                && request.getSort().toLowerCase().contains(RANK_FEATURE_QUERY_PREFIX))
+            || (!isEmpty(defaultSort) && defaultSort.contains(RANK_FEATURE_QUERY_PREFIX)))) {
 
       var fieldFactorValue = fieldFactor.split(":");
       queryBuilder
