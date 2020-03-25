@@ -25,8 +25,8 @@ LOG:=/var/log/$(CONTAINER_NAME)
 CONTAINER_LOG:=/logs
 include make/log/Makefile
 
-RUN_MEMORY:=$(if $(filter prod,$(ENV)),2560,1024)
-JVM_MEMORY:=$(if $(filter prod,$(ENV)),1792,512)
+RUN_MEMORY:=$(if $(filter prod,$(ENV)),1152,512)
+JVM_MEMORY:=$(if $(filter prod,$(ENV)),640,128)
 PORT:=8482
 
 RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:+UseG1GC -Xss256k
@@ -62,7 +62,7 @@ run: log check-es_cluster_name image
 
 MAX_SURGE:=1
 ifeq ($(ONDEMAND_REPLICAS),)
-	override ONDEMAND_REPLICAS:=$(if $(filter prod,$(ENV)),2,0)
+	override ONDEMAND_REPLICAS:=$(if $(filter prod,$(ENV)),1,0)
 endif
 ifeq ($(SPOT_REPLICAS),)
 	override SPOT_REPLICAS:=$(if $(filter prod,$(ENV)),2,1)

@@ -77,10 +77,10 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: 2
+              cpu: 512m
               memory: ${RUN_MEMORY}Mi
             limits:
-              cpu: 2
+              cpu: 1
               memory: ${RUN_MEMORY}Mi
           livenessProbe:
             httpGet:
@@ -89,7 +89,7 @@ spec:
             initialDelaySeconds: 25
             periodSeconds: 15
             failureThreshold: 6
-            timeoutSeconds: 5
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /actuator/health/elasticsearchRest
@@ -97,7 +97,7 @@ spec:
             initialDelaySeconds: 25
             periodSeconds: 15
             failureThreshold: 6
-            timeoutSeconds: 5
+            timeoutSeconds: 10
 ---
 # Deployment - Spot
 apiVersion: apps/v1
@@ -172,10 +172,10 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: 2
+              cpu: 512m
               memory: ${RUN_MEMORY}Mi
             limits:
-              cpu: 2
+              cpu: 1
               memory: ${RUN_MEMORY}Mi
           livenessProbe:
             httpGet:
@@ -184,7 +184,7 @@ spec:
             initialDelaySeconds: 25
             periodSeconds: 15
             failureThreshold: 6
-            timeoutSeconds: 5
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /actuator/health/elasticsearchRest
@@ -192,7 +192,7 @@ spec:
             initialDelaySeconds: 25
             periodSeconds: 15
             failureThreshold: 6
-            timeoutSeconds: 5
+            timeoutSeconds: 10
 ---
 # HPA
 apiVersion: autoscaling/v2beta2
