@@ -25,8 +25,11 @@ LOG:=/var/log/$(CONTAINER_NAME)
 CONTAINER_LOG:=/logs
 include make/log/Makefile
 
-RUN_MEMORY:=$(if $(filter prod,$(ENV)),1152,512)
-JVM_MEMORY:=$(if $(filter prod,$(ENV)),640,128)
+MAX_SURGE:=1
+MIN_REPLICAS:=$(if $(filter prod,$(ENV)),3,1)
+MAX_REPLICAS:=$(if $(filter prod,$(ENV)),6,1)
+RUN_MEMORY:=$(if $(filter prod,$(ENV)),1152,384)
+JVM_MEMORY:=$(if $(filter prod,$(ENV)),512,128)
 PORT:=8482
 
 RUN_OPTS+=-server -XX:+PrintFlagsFinal -XX:+UseG1GC -Xss256k
@@ -60,15 +63,6 @@ RUN_CMD= docker run \
 run: log check-es_cluster_name image
 	$(shell echo $(RUN_CMD))
 
-MAX_SURGE:=1
-ifeq ($(ONDEMAND_REPLICAS),)
-	override ONDEMAND_REPLICAS:=$(if $(filter prod,$(ENV)),1,0)
-endif
-ifeq ($(SPOT_REPLICAS),)
-	override SPOT_REPLICAS:=$(if $(filter prod,$(ENV)),2,1)
-endif
-MIN_SPOT_REPLICAS:=$(SPOT_REPLICAS)
-MAX_SPOT_REPLICAS:=10
 ifeq ($(FRIENDLY_DNS),)
 	override FRIENDLY_DNS:=$(if $(filter prod,$(ENV)),,$(ENV)-)$(PROJECT_NAME).grupozap.io
 endif
@@ -80,7 +74,7 @@ INTERNAL_DNS:=$(if $(filter prod,$(ENV)),,$(ENV)-)$(PROJECT_NAME).internal.$(ENV
 
 DEPLOY_GROUP:=test
 
-EXTRA_K8S_ARGS?=RUN_MEMORY=$(RUN_MEMORY) APP=$(APP) PROCESS=$(PROCESS) PRODUCT=$(PRODUCT) ES_CLUSTER_NAME=$(ES_CLUSTER_NAME) DEPLOY_GROUP=$(DEPLOY_GROUP) MAX_SURGE=$(MAX_SURGE) ONDEMAND_REPLICAS=$(ONDEMAND_REPLICAS) SPOT_REPLICAS=$(SPOT_REPLICAS) MIN_SPOT_REPLICAS=$(MIN_SPOT_REPLICAS) MAX_SPOT_REPLICAS=$(MAX_SPOT_REPLICAS) FRIENDLY_DNS=$(FRIENDLY_DNS) LEGACY_FRIENDLY_DNS=$(LEGACY_FRIENDLY_DNS) INTERNAL_DNS=$(INTERNAL_DNS)
+EXTRA_K8S_ARGS?=RUN_MEMORY=$(RUN_MEMORY) APP=$(APP) PROCESS=$(PROCESS) PRODUCT=$(PRODUCT) ES_CLUSTER_NAME=$(ES_CLUSTER_NAME) DEPLOY_GROUP=$(DEPLOY_GROUP) MAX_SURGE=$(MAX_SURGE) MIN_REPLICAS=$(MIN_REPLICAS) MAX_REPLICAS=$(MAX_REPLICAS) FRIENDLY_DNS=$(FRIENDLY_DNS) LEGACY_FRIENDLY_DNS=$(LEGACY_FRIENDLY_DNS) INTERNAL_DNS=$(INTERNAL_DNS)
 ifeq ($(STACK_ALIAS),)
 	override STACK_ALIAS?=$(COMMIT_HASH)
 endif
@@ -92,18 +86,13 @@ deploy-full: check-es_cluster_name deploy-full-k8s check-deploy-with-rollback
 SLK_DEPLOY_URL=https://dashboard.k8s.$(if $(filter prod,$(ENV)),,qa.)vivareal.io/#!/deployment/$(K8S_NAMESPACE)/$(DEPLOY_NAME)?namespace=$(K8S_NAMESPACE)
 
 check-deploy-with-rollback:
-	$(KUBECTL_CMD) rollout status deployment.v1.apps/$(DEPLOY_NAME)-ondemand || { \
-	$(KUBECTL_CMD) get ev | grep $(DEPLOY_NAME)-ondemand ; \
-	$(KUBECTL_CMD) rollout undo deployment.v1.apps/$(DEPLOY_NAME)-ondemand; exit 1; } \
-	&& \
-	$(KUBECTL_CMD) rollout status deployment.v1.apps/$(DEPLOY_NAME)-spot || { \
-	$(KUBECTL_CMD) get ev | grep $(DEPLOY_NAME)-spot ; \
-	$(KUBECTL_CMD) rollout undo deployment.v1.apps/$(DEPLOY_NAME)-spot; exit 1; }
+	$(KUBECTL_CMD) rollout status deployment.v1.apps/$(DEPLOY_NAME) || { \
+	$(KUBECTL_CMD) get ev | grep $(DEPLOY_NAME) ; \
+	$(KUBECTL_CMD) rollout undo deployment.v1.apps/$(DEPLOY_NAME); exit 1; }
 
 teardown:
-	$(KUBECTL_CMD) delete deploy ${DEPLOY_NAME}-ondemand && \
-	$(KUBECTL_CMD) delete deploy ${DEPLOY_NAME}-spot && \
-	$(KUBECTL_CMD) delete hpa ${DEPLOY_NAME}-spot && \
+	$(KUBECTL_CMD) delete deploy ${DEPLOY_NAME} \
+	$(KUBECTL_CMD) delete hpa ${DEPLOY_NAME} && \
 	$(KUBECTL_CMD) delete pdb ${DEPLOY_NAME} && \
 	$(KUBECTL_CMD) delete service ${DEPLOY_NAME} && \
 	$(KUBECTL_CMD) delete ingress ${DEPLOY_NAME}

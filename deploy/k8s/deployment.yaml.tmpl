@@ -1,8 +1,7 @@
-# Deployment - On Demand
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ${DEPLOY_NAME}-ondemand
+  name: ${DEPLOY_NAME}
   namespace: search
   labels:
     app: ${APP}
@@ -11,7 +10,6 @@ metadata:
     cluster: ${ES_CLUSTER_NAME}
     deploy: ${DEPLOY_NAME}
     version: ${VERSION}
-    tier: ondemand
     deploy-group: ${DEPLOY_GROUP}
 spec:
   selector:
@@ -22,9 +20,8 @@ spec:
       cluster: ${ES_CLUSTER_NAME}
       deploy: ${DEPLOY_NAME}
       version: ${VERSION}
-      tier: ondemand
       deploy-group: ${DEPLOY_GROUP}
-  replicas: ${ONDEMAND_REPLICAS}
+  replicas: ${MIN_REPLICAS}
   progressDeadlineSeconds: 600
   strategy:
     type: RollingUpdate
@@ -40,108 +37,6 @@ spec:
         cluster: ${ES_CLUSTER_NAME}
         deploy: ${DEPLOY_NAME}
         version: ${VERSION}
-        tier: ondemand
-        deploy-group: ${DEPLOY_GROUP}
-    spec:
-      terminationGracePeriodSeconds: 30
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: deploy
-                operator: In
-                values:
-                - ${DEPLOY_NAME}
-            topologyKey: kubernetes.io/hostname
-      nodeSelector:
-        role.vivareal.io/ondemand: "true"
-      tolerations:
-      - effect: PreferNoSchedule
-        key: role.vivareal.io/ondemand
-        value: "true"
-      containers:
-        - name: search-api-container
-          image: ${IMAGE_NAME}
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: ${ENV}
-            - name: JAVA_OPTS
-              value: ${RUN_OPTS}
-            - name: DD_AGENT_HOST
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.hostIP
-          ports:
-            - containerPort: 8482
-              protocol: TCP
-          resources:
-            requests:
-              cpu: 512m
-              memory: ${RUN_MEMORY}Mi
-            limits:
-              cpu: 1
-              memory: ${RUN_MEMORY}Mi
-          livenessProbe:
-            httpGet:
-              path: /actuator/health/ping
-              port: 8482
-            initialDelaySeconds: 25
-            periodSeconds: 15
-            failureThreshold: 6
-            timeoutSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /actuator/health/elasticsearchRest
-              port: 8482
-            initialDelaySeconds: 25
-            periodSeconds: 15
-            failureThreshold: 6
-            timeoutSeconds: 10
----
-# Deployment - Spot
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${DEPLOY_NAME}-spot
-  namespace: search
-  labels:
-    app: ${APP}
-    process: ${PROCESS}
-    product: ${PRODUCT}
-    cluster: ${ES_CLUSTER_NAME}
-    deploy: ${DEPLOY_NAME}
-    version: ${VERSION}
-    tier: spot
-    deploy-group: ${DEPLOY_GROUP}
-spec:
-  selector:
-    matchLabels:
-      app: ${APP}
-      process: ${PROCESS}
-      product: ${PRODUCT}
-      cluster: ${ES_CLUSTER_NAME}
-      deploy: ${DEPLOY_NAME}
-      version: ${VERSION}
-      tier: spot
-      deploy-group: ${DEPLOY_GROUP}
-  replicas: ${SPOT_REPLICAS}
-  progressDeadlineSeconds: 600
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: ${MAX_SURGE}
-  template:
-    metadata:
-      labels:
-        app: ${APP}
-        process: ${PROCESS}
-        product: ${PRODUCT}
-        cluster: ${ES_CLUSTER_NAME}
-        deploy: ${DEPLOY_NAME}
-        version: ${VERSION}
-        tier: spot
         deploy-group: ${DEPLOY_GROUP}
     spec:
       terminationGracePeriodSeconds: 30
@@ -172,7 +67,7 @@ spec:
               protocol: TCP
           resources:
             requests:
-              cpu: 512m
+              cpu: 768m
               memory: ${RUN_MEMORY}Mi
             limits:
               cpu: 1
@@ -193,20 +88,19 @@ spec:
             periodSeconds: 15
             failureThreshold: 6
             timeoutSeconds: 10
----
 # HPA
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: ${DEPLOY_NAME}-spot
+  name: ${DEPLOY_NAME}
   namespace: search
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: ${DEPLOY_NAME}-spot
-  minReplicas: ${MIN_SPOT_REPLICAS}
-  maxReplicas: ${MAX_SPOT_REPLICAS}
+    name: ${DEPLOY_NAME}
+  minReplicas: ${MIN_REPLICAS}
+  maxReplicas: ${MAX_REPLICAS}
   metrics:
   - type: Resource
     resource:
