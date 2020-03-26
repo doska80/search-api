@@ -1,3 +1,4 @@
+# Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -88,6 +89,7 @@ spec:
             periodSeconds: 15
             failureThreshold: 6
             timeoutSeconds: 10
+---
 # HPA
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
@@ -124,7 +126,7 @@ spec:
       deploy: ${DEPLOY_NAME}
   minAvailable: 50%
 ---
-# Service - Deploy specific
+# Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -153,7 +155,7 @@ spec:
     deploy: ${DEPLOY_NAME}
   type: ClusterIP
 ---
-# Ingress - Deploy specific
+# Ingress
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
