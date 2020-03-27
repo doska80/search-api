@@ -1,7 +1,9 @@
 package com.grupozap.search.api.adapter;
 
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_FIELD;
+import static com.grupozap.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_MAX_BOOST;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.SCORE_FACTOR_MODIFIER;
+import static java.lang.Double.valueOf;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.elasticsearch.common.lucene.search.function.FieldValueFactorFunction.Modifier.fromString;
@@ -34,7 +36,8 @@ public class FunctionScoreAdapter {
 
     fieldParser.parse(factorField);
 
-    var fieldValueFactorFunctionBuilder = fieldValueFactorFunction(factorField).missing(0);
+    var fieldValueFactorFunctionBuilder =
+        fieldValueFactorFunction(factorField).missing(0);
 
     final String factorModifier =
         isEmpty(request.getFactorModifier())
@@ -43,6 +46,12 @@ public class FunctionScoreAdapter {
     if (isNotEmpty(factorModifier))
       fieldValueFactorFunctionBuilder.modifier(fromString(factorModifier));
 
-    searchSourceBuilder.query(functionScoreQuery(queryBuilder, fieldValueFactorFunctionBuilder));
+    final var maxBoost =
+        SCORE_FACTOR_MAX_BOOST.getValue(request.getIndex()) != null
+            ? valueOf(SCORE_FACTOR_MAX_BOOST.getValue(request.getIndex()) + "").floatValue()
+            : 1.0f;
+
+    searchSourceBuilder.query(
+        functionScoreQuery(queryBuilder, fieldValueFactorFunctionBuilder).maxBoost(maxBoost));
   }
 }

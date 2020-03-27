@@ -30,6 +30,7 @@ public enum RemoteProperties {
   FILTER_DEFAULT_CLAUSES("filter.default.clauses", AS_SET),
   SCORE_FACTOR_FIELD("score.factor.field"),
   SCORE_FACTOR_MODIFIER("score.factor.modifier"),
+  SCORE_FACTOR_MAX_BOOST("score.factor.max_boost"),
   ES_ALIAS("es.alias"),
   ES_HOSTNAME("es.hostname"),
   ES_REST_PORT("es.rest.port"),
@@ -47,7 +48,8 @@ public enum RemoteProperties {
   ES_STREAM_SIZE("es.stream.size"),
   ES_SCROLL_KEEP_ALIVE("es.scroll.keep.alive", AS_LONG),
   SOURCE_INCLUDES("source.default.includes", AS_SET),
-  SOURCE_EXCLUDES("source.default.excludes", AS_SET);
+  SOURCE_EXCLUDES("source.default.excludes", AS_SET),
+  SHOULD_ROOT("should.root.match_phrase_prefix");
 
   public static final String DEFAULT_INDEX = "default";
 

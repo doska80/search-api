@@ -47,6 +47,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
 
   public static final float DEFAULT_BOOST_VALUE = 1.0f;
   public static final int DEFAULT_MAX_EXPANSIONS = 5;
+  public static final int DEFAULT_SLOP = 2;
   private static final String NOT_NESTED = "not_nested";
   private static final String MM_ERROR_MESSAGE =
       "Minimum Should Match (mm) should be a valid integer number (-100 <> +100)";
@@ -88,6 +89,7 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
                             var field = fieldCache.getField(qsField.getFieldName());
                             var boost = qsField.getBoost();
                             var maxExpansion = qsTemplate.getMaxExpansions();
+                            var slop = qsTemplate.getSlop();
                             if (FIELD_TYPE_NESTED.typeOf(field.getTypeFirstName())) {
                               var nestedField = field.firstName();
 
@@ -101,7 +103,8 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
                                     field,
                                     boost,
                                     mm,
-                                    maxExpansion);
+                                    maxExpansion,
+                                    slop);
                               else
                                 queryStringQueries.put(
                                     nestedField,
@@ -114,7 +117,8 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
                                             field,
                                             boost,
                                             mm,
-                                            maxExpansion),
+                                            maxExpansion,
+                                            slop),
                                         None));
                             } else {
                               if (queryStringQueries.containsKey(NOT_NESTED))
@@ -125,7 +129,8 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
                                     field,
                                     boost,
                                     mm,
-                                    maxExpansion);
+                                    maxExpansion,
+                                    slop);
                               else
                                 queryStringQueries.put(
                                     NOT_NESTED,
@@ -136,7 +141,8 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
                                         field,
                                         boost,
                                         mm,
-                                        maxExpansion));
+                                        maxExpansion,
+                                        slop));
                             }
                           });
 
@@ -196,7 +202,8 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
       Field field,
       float fieldBoost,
       final String mm,
-      final int maxExpansions) {
+      final int maxExpansions,
+      final int slop) {
     if (multiMatchQueryBuilder == null) multiMatchQueryBuilder = multiMatchQuery(q);
     multiMatchQueryBuilder
         .field(field.getName(), fieldBoost)
@@ -204,7 +211,8 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
         .tieBreaker(0.2f)
         .type(qsTemplate.getType())
         .boost(qsTemplate.getBoost())
-        .maxExpansions(maxExpansions);
+        .maxExpansions(maxExpansions)
+        .slop(slop);
     return multiMatchQueryBuilder;
   }
 
@@ -232,12 +240,14 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
     private Type type;
     private float boost;
     private int maxExpansions;
+    private int slop;
     private Map<String, List<QSField>> fieldAliases;
 
     public QSTemplate() {
       this.type = BEST_FIELDS;
       this.boost = DEFAULT_BOOST_VALUE;
       this.maxExpansions = DEFAULT_MAX_EXPANSIONS;
+      this.slop = DEFAULT_SLOP;
       this.fieldAliases = new HashMap<>();
     }
 
@@ -263,6 +273,14 @@ public class QueryStringAdapter implements ApplicationListener<RemotePropertiesU
 
     public void setMaxExpansions(int maxExpansions) {
       this.maxExpansions = maxExpansions;
+    }
+
+    public int getSlop() {
+      return slop;
+    }
+
+    public void setSlop(int slop) {
+      this.slop = slop;
     }
 
     public Map<String, List<QSField>> getFieldAliases() {

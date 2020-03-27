@@ -1,11 +1,13 @@
 package com.grupozap.search.api.adapter;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_UNIT;
 import static com.grupozap.search.api.configuration.environment.RemoteProperties.ES_QUERY_TIMEOUT_VALUE;
 import static com.grupozap.search.api.model.http.DefaultFilterMode.ENABLED;
 import static java.util.Optional.ofNullable;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchPhraseQuery;
 
 import com.grupozap.search.api.model.http.BaseApiRequest;
 import com.grupozap.search.api.model.http.FilterableApiRequest;
@@ -114,6 +116,19 @@ public class ElasticsearchQueryAdapter implements QueryAdapter<GetRequest, Searc
     searchRequest.indices(request.getIndex());
 
     var queryBuilder = boolQuery();
+
+    var field =
+        newArrayList(((SearchApiRequest) request).getFields()).get(0).contains("street")
+            ? "address.street.perfect_match"
+            : newArrayList(((SearchApiRequest) request).getFields()).get(0).contains("neighborhood")
+                ? "address.neighborhood.perfect_match"
+                : "address.city.perfect_match";
+
+    var matchPhrasePrefixQueryBuilder =
+        matchPhraseQuery(field, ((SearchApiRequest) request).getQ()).boost(0.3f);
+
+    queryBuilder.should().add(matchPhrasePrefixQueryBuilder);
+
     builder.accept(searchSourceBuilder, queryBuilder);
 
     if (searchSourceBuilder.query() == null) {
