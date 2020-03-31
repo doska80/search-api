@@ -81,9 +81,20 @@ endif
 DEPLOY_NAME?=$(PROJECT_NAME)-$(ES_CLUSTER_NAME)-$(STACK_ALIAS)
 include make/k8s/Makefile
 
-deploy: check-es_cluster_name deploy-k8s check-deploy-with-rollback
+deploy: check-es_cluster_name deploy-k8s deploy-pdb-and-hpa check-deploy-with-rollback
 deploy-full: check-es_cluster_name deploy-full-k8s check-deploy-with-rollback
 SLK_DEPLOY_URL=https://dashboard.k8s.$(if $(filter prod,$(ENV)),,qa.)vivareal.io/#!/deployment/$(K8S_NAMESPACE)/$(DEPLOY_NAME)?namespace=$(K8S_NAMESPACE)
+
+deploy-pdb-and-hpa:
+ifeq ($(ENV), prod)
+	echo $(ENVSUBST_RUN)
+	echo $(K8S_TMPL_DIR)
+	echo $(K8S_DIST_DIR)
+	$(ENVSUBST_RUN) < $(K8S_TMPL_DIR)/pdb.yaml.tmpl > $(K8S_DIST_DIR)/pdb.yaml
+	$(ENVSUBST_RUN) < $(K8S_TMPL_DIR)/hpa.yaml.tmpl > $(K8S_DIST_DIR)/hpa.yaml
+	$(KUBECTL_CMD) apply --record -f $(K8S_DIST_DIR)/pdb.yaml
+	$(KUBECTL_CMD) apply --record -f $(K8S_DIST_DIR)/hpa.yaml
+endif
 
 check-deploy-with-rollback:
 	$(KUBECTL_CMD) rollout status deployment.v1.apps/$(DEPLOY_NAME) || { \
@@ -91,11 +102,13 @@ check-deploy-with-rollback:
 	$(KUBECTL_CMD) rollout undo deployment.v1.apps/$(DEPLOY_NAME); exit 1; }
 
 teardown:
-	$(KUBECTL_CMD) delete deploy ${DEPLOY_NAME} \
-	$(KUBECTL_CMD) delete hpa ${DEPLOY_NAME} && \
-	$(KUBECTL_CMD) delete pdb ${DEPLOY_NAME} && \
-	$(KUBECTL_CMD) delete service ${DEPLOY_NAME} && \
+	$(KUBECTL_CMD) delete deploy ${DEPLOY_NAME}
+	$(KUBECTL_CMD) delete service ${DEPLOY_NAME}
 	$(KUBECTL_CMD) delete ingress ${DEPLOY_NAME}
+ifeq ($(ENV), prod)
+	$(KUBECTL_CMD) delete hpa ${DEPLOY_NAME}
+	$(KUBECTL_CMD) delete pdb ${DEPLOY_NAME}
+endif
 
 # Notifications config
 SLK_CHANNEL=notifs-matching

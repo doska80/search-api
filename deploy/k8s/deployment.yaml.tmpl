@@ -90,42 +90,6 @@ spec:
             failureThreshold: 6
             timeoutSeconds: 10
 ---
-# HPA
-apiVersion: autoscaling/v2beta2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: ${DEPLOY_NAME}
-  namespace: search
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: ${DEPLOY_NAME}
-  minReplicas: ${MIN_REPLICAS}
-  maxReplicas: ${MAX_REPLICAS}
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 75
----
-# PDB
-apiVersion: policy/v1beta1
-kind: PodDisruptionBudget
-metadata:
-  name: ${DEPLOY_NAME}
-  namespace: search
-spec:
-  selector:
-    matchLabels:
-      app: ${APP}
-      process: ${PROCESS}
-      product: ${PRODUCT}
-      deploy: ${DEPLOY_NAME}
-  minAvailable: 50%
----
 # Service
 apiVersion: v1
 kind: Service

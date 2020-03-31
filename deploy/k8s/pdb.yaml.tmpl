@@ -1,0 +1,13 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: ${DEPLOY_NAME}
+  namespace: search
+spec:
+  selector:
+    matchLabels:
+      app: ${APP}
+      process: ${PROCESS}
+      product: ${PRODUCT}
+      deploy: ${DEPLOY_NAME}
+  minAvailable: 50%
