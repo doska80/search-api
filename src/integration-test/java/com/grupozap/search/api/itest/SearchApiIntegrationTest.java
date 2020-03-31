@@ -34,8 +34,8 @@ import org.springframework.test.context.TestPropertySource;
 @ContextConfiguration(classes = SearchApiIntegrationTestContext.class)
 public class SearchApiIntegrationTest {
 
-  protected static final ObjectMapper mapper = new ObjectMapper();
-  protected JsonFileUtils jsonFileUtils = new JsonFileUtils();
+  protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  protected static final JsonFileUtils JSON_FILE_UTILS = new JsonFileUtils();
 
   @Value("${itest.standard.dataset.size}")
   protected Integer standardDatasetSize;

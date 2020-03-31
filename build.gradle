@@ -171,11 +171,13 @@ bootJar {
 bootJar.finalizedBy copyJarForDockerCompose
 
 test {
+  failFast = true
   testLogging {
-    events 'skipped', 'failed'
-    showStackTraces true
+    events "standardError", "skipped", "failed", "passed"
     exceptionFormat 'full'
   }
+  reports.html.enabled = false
+  reports.junitXml.enabled = false
 }
 
 /****************************

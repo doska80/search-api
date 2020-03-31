@@ -109,6 +109,6 @@ public class NestedIntegrationTest extends SearchApiIntegrationTest {
                     TEST_DATA_INDEX, standardDatasetSize, query))
             .body()
             .print();
-    return mapper.readTree(response).get("result").asText();
+    return OBJECT_MAPPER.readTree(response).get("result").asText();
   }
 }

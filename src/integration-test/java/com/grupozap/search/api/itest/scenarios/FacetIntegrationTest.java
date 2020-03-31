@@ -107,23 +107,23 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    var facets = mapper.readTree(response).get("result").get("facets");
+    var facets = OBJECT_MAPPER.readTree(response).get("result").get("facets");
     assertNotNull(facets);
 
     List<Integer> facetString =
-        new ArrayList(mapper.convertValue(facets.get("facetString"), Map.class).values());
+        new ArrayList(OBJECT_MAPPER.convertValue(facets.get("facetString"), Map.class).values());
     assertTrue(facetString.get(0) >= facetString.get(1));
 
     List<Integer> facetInteger =
-        new ArrayList(mapper.convertValue(facets.get("facetInteger"), Map.class).values());
+        new ArrayList(OBJECT_MAPPER.convertValue(facets.get("facetInteger"), Map.class).values());
     assertTrue(facetInteger.get(0) >= facetInteger.get(1));
 
     List<Integer> facetBoolean =
-        new ArrayList(mapper.convertValue(facets.get("facetBoolean"), Map.class).values());
+        new ArrayList(OBJECT_MAPPER.convertValue(facets.get("facetBoolean"), Map.class).values());
     assertTrue(facetBoolean.get(0) >= facetBoolean.get(1));
 
     List<Integer> facetArray =
-        new ArrayList(mapper.convertValue(facets.get("array_integer"), Map.class).values());
+        new ArrayList(OBJECT_MAPPER.convertValue(facets.get("array_integer"), Map.class).values());
     assertEquals(facetArray.size(), (int) standardDatasetSize);
     var index = 0;
     while ((index + 1) < standardDatasetSize) {
@@ -149,7 +149,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    var facets = mapper.readTree(response).get("result").get("facets");
+    var facets = OBJECT_MAPPER.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"A\":18,\"B\":12}", facets.get("facetString").toString());
     assertEquals("{\"false\":15,\"true\":15}", facets.get("isEven").toString());
@@ -170,7 +170,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    var facets = mapper.readTree(response).get("result").get("facets");
+    var facets = OBJECT_MAPPER.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"false\":15,\"true\":15}", facets.get("nested.boolean").toString());
   }
@@ -190,7 +190,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    var facets = mapper.readTree(response).get("result").get("facets");
+    var facets = OBJECT_MAPPER.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"B\":12,\"A\":18}", facets.get("facetString").toString());
   }
@@ -210,7 +210,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    var facets = mapper.readTree(response).get("result").get("facets");
+    var facets = OBJECT_MAPPER.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"true\":15,\"false\":15}", facets.get("nested.boolean").toString());
   }
@@ -230,7 +230,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    var facets = mapper.readTree(response).get("result").get("facets");
+    var facets = OBJECT_MAPPER.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"B\":12,\"A\":18}", facets.get("facetString").toString());
   }
@@ -250,7 +250,7 @@ public class FacetIntegrationTest extends SearchApiIntegrationTest {
             .body()
             .asString();
 
-    var facets = mapper.readTree(response).get("result").get("facets");
+    var facets = OBJECT_MAPPER.readTree(response).get("result").get("facets");
     assertNotNull(facets);
     assertEquals("{\"A\":18,\"B\":12}", facets.get("facetString").toString());
   }

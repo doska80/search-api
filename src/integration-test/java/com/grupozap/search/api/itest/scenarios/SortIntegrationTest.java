@@ -470,7 +470,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rescore_ltr.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rescore_ltr.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     var even =
@@ -501,7 +501,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rescore_different_seed.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rescore_different_seed.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     var responseFirstSeed =
@@ -538,7 +538,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rescore_seed.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rescore_seed.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     var responseFirstSeed =
@@ -575,7 +575,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rescore_ltr.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rescore_ltr.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()
@@ -595,7 +595,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rescore_function_score.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rescore_function_score.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()
@@ -627,7 +627,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/script_sort.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/script_sort.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()
@@ -654,7 +654,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/script_sort.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/script_sort.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()
@@ -686,7 +686,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/script_sort.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/script_sort.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()

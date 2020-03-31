@@ -1,12 +1,10 @@
 package com.grupozap.search.api.itest.utils;
 
-import static java.util.stream.Collectors.joining;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class JsonFileUtils {
 
@@ -21,9 +19,8 @@ public class JsonFileUtils {
   }
 
   public String getBoostrapConfig(String filePath) throws IOException {
-    try (var buffer =
-        new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(filePath)))) {
-      return buffer.lines().collect(joining("\n"));
+    try (final var stream = getClass().getResourceAsStream(filePath)) {
+      return new String(stream.readAllBytes(), UTF_8);
     }
   }
 }

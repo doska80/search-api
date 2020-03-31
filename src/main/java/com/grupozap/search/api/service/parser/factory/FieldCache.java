@@ -54,7 +54,9 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
 
   public Field getField(String fieldName) {
     // TODO - Remove this issue when fix the parser :'(
-    if ("NOT".equalsIgnoreCase(fieldName)) return null;
+    if ("NOT".equalsIgnoreCase(fieldName)) {
+      return null;
+    }
 
     return ofNullable(validFields.get(keyForField(indexSettings.getIndex(), fieldName)))
         .orElseThrow(() -> new InvalidFieldException(fieldName, indexSettings.getIndex()));
@@ -82,8 +84,8 @@ public class FieldCache implements ApplicationListener<ClusterSettingsUpdatedEve
                 .keySet()
                 .forEach(
                     fieldName -> {
-                      Map<String, Object> map = new HashMap<>(1);
-                      map.put(fieldName, FIELD_TYPE_RESCORE.getDefaultType());
+                      Map<String, Object> map =
+                          Map.of(fieldName, FIELD_TYPE_RESCORE.getDefaultType());
                       fields.put(keyForField(indexName, fieldName), createField(fieldName, map));
                     });
           }

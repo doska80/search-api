@@ -69,14 +69,20 @@ public class ESSortListener implements ApplicationListener<RemotePropertiesUpdat
   public void onApplicationEvent(RemotePropertiesUpdatedEvent event) {
     Map<String, Object> esSort = ES_SORT.getValue(event.getIndex());
     if (nonNull(esSort)) {
-      searchSortMap.put(
-          event.getIndex(),
-          new SearchSortBuilder()
-              .disabled((boolean) esSort.getOrDefault("disabled", true))
-              .disableRfq((boolean) esSort.getOrDefault("disable_rfq", true))
-              .defaultSort(valueOf(esSort.get("default_sort")))
-              .sorts(esSort)
-              .build());
+      try {
+        searchSortMap.put(
+            event.getIndex(),
+            new SearchSortBuilder()
+                .disabled((boolean) esSort.getOrDefault("disabled", true))
+                .disableRfq((boolean) esSort.getOrDefault("disable_rfq", true))
+                .defaultSort(valueOf(esSort.get("default_sort")))
+                .sorts(esSort)
+                .build());
+      } catch (Exception e) {
+        LOG.error("There is an error in the sort schema on search-api-properties ;(", e);
+        searchSortMap.put(
+            event.getIndex(), new SearchSortBuilder().disabled(true).disableRfq(true).build());
+      }
 
       LOG.info("Refreshing es.sort. {}", this.searchSortMap.toString());
     } else {

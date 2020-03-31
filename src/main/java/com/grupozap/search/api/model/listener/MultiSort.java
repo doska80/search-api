@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MultiSort {
-  private Rfq rfq;
-  private List<SortRescore> rescores;
-  private List<ScriptField> scripts;
+  private final Rfq rfq;
+  private final List<SortRescore> rescores;
+  private final List<ScriptField> scripts;
 
   private MultiSort(MultiSortBuilder multiSortBuilder) {
     this.rfq = multiSortBuilder.rfq;

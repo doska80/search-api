@@ -31,7 +31,7 @@ public class RankFeatureQueryIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rfq_with_function_score.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rfq_with_function_score.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()
@@ -63,7 +63,7 @@ public class RankFeatureQueryIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rfq_sort.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rfq_sort.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()
@@ -93,7 +93,7 @@ public class RankFeatureQueryIntegrationTest extends SearchApiIntegrationTest {
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
-        jsonFileUtils.getBoostrapConfig("/json/rfq_sort.json"));
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rfq_sort.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()

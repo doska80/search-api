@@ -1,5 +1,8 @@
 package com.grupozap.search.api.utils;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +33,7 @@ public class EsSortUtils {
           "scriptType", "stored",
           "scriptSortType", "number",
           "lang", "painless",
-          "params", Map.of());
+          "params", emptyMap());
 
   private static final Map<String, Object> RESCORE_LTR =
       Map.of(
@@ -45,7 +48,7 @@ public class EsSortUtils {
           "model",
           "model_v2",
           "active_features",
-          List.of(),
+          emptyList(),
           "query_weight",
           1);
 

@@ -1,11 +1,15 @@
 package com.grupozap.search.api.model.listener;
 
+import static java.util.stream.Collectors.toMap;
+
+import com.grupozap.search.api.model.listener.MultiSort.MultiSortBuilder;
 import com.grupozap.search.api.model.listener.rescore.SortRescore;
 import com.grupozap.search.api.model.listener.rfq.Rfq;
 import com.grupozap.search.api.model.listener.script.ScriptField;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class SearchSort {
 
@@ -61,22 +65,20 @@ public class SearchSort {
 
     @SuppressWarnings("unchecked")
     public SearchSortBuilder sorts(Map<String, Object> esSort) {
-      var sorts = new HashMap<String, MultiSort>();
-      ((List<Map<String, Map<String, Map<String, Object>>>>) esSort.get("sorts"))
-          .forEach(
-              sort ->
-                  sort.forEach(
-                      (key, entryValue) -> {
-                        var multiSort =
-                            new MultiSort.MultiSortBuilder()
-                                .rfq(Rfq.build(entryValue))
-                                .rescores(SortRescore.build(entryValue))
-                                .scripts(ScriptField.build(entryValue))
-                                .build();
-                        sorts.put(key, multiSort);
-                      }));
+      this.sorts =
+          ((List<Map<String, Map<String, Map<String, Object>>>>) esSort.get("sorts"))
+              .stream()
+                  .flatMap(v -> v.entrySet().stream())
+                  .collect(
+                      toMap(
+                          Entry::getKey,
+                          entry ->
+                              new MultiSortBuilder()
+                                  .rfq(Rfq.build(entry.getValue()))
+                                  .rescores(SortRescore.build(entry.getValue()))
+                                  .scripts(ScriptField.build(entry.getValue()))
+                                  .build()));
 
-      this.sorts = sorts;
       return this;
     }
 

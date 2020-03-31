@@ -29,24 +29,6 @@ services:
     healthcheck:
       test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
-  kibana:
-    container_name: kibana
-    hostname: kibana
-    image: docker.elastic.co/kibana/kibana:${ELASTICSEARCH_VERSION}
-    depends_on:
-      - es
-    networks:
-      - stack
-    environment:
-      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
-      - ELASTICSEARCH_HOSTS=http://es:9200/
-      - SERVER_NAME=localhost
-    ports:
-      - 5601:5601
-    healthcheck:
-      test: ["CMD", "curl", "-s", "-f", "http://localhost:5601/login"]
-      retries: 6
-
   search-api:
     container_name: search-api
     build:
@@ -58,7 +40,6 @@ services:
     image: search-api:itest-latest
     depends_on:
       - es
-      - kibana
     environment:
       - SPRING_PROFILES_ACTIVE=test
       - ES_HOSTNAME=es
