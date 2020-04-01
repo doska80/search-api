@@ -11,6 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import com.grupozap.search.api.model.event.RemotePropertiesUpdatedEvent;
+import com.grupozap.search.api.query.LtrQueryBuilder;
 import com.grupozap.search.api.utils.EsSortUtils;
 import java.util.List;
 import org.junit.Test;
@@ -41,11 +42,20 @@ public class ESSortListenerTest {
     assertEquals(DEFAULT_SORT, searchSort.getDefaultSort());
 
     // validating RFQ
-    assertEquals("field1", searchSort.getSorts().get(DEFAULT_SORT).getRfq().getField());
-    assertEquals("log", searchSort.getSorts().get(DEFAULT_SORT).getRfq().getFunction());
-    assertEquals(4.0, searchSort.getSorts().get(DEFAULT_SORT).getRfq().getScalingFactor(), 0);
-    assertEquals(1.0, searchSort.getSorts().get(DEFAULT_SORT).getRfq().getBoost(), 0);
-    assertEquals(0.0, searchSort.getSorts().get(DEFAULT_SORT).getRfq().getExponent(), 0);
-    assertEquals(0.0, searchSort.getSorts().get(DEFAULT_SORT).getRfq().getPivot(), 0);
+    var rqfSort = searchSort.getSorts().get(DEFAULT_SORT).getRfq();
+    assertEquals("field1", rqfSort.getField());
+    assertEquals("log", rqfSort.getFunction());
+    assertEquals(4.0, rqfSort.getScalingFactor(), 0);
+    assertEquals(1.0, rqfSort.getBoost(), 0);
+    assertEquals(0.0, rqfSort.getExponent(), 0);
+    assertEquals(0.0, rqfSort.getPivot(), 0);
+
+    // validating LTR_RESCORE
+    var rescores = searchSort.getSorts().get(DEFAULT_SORT).getRescores();
+    assertEquals(1, rescores.size());
+    assertEquals(500.0, rescores.get(0).getWindowSize(), 0);
+    assertEquals(1.0, rescores.get(0).getQueryWeight(), 0);
+    assertEquals(1.0, rescores.get(0).getQueryWeight(), 0);
+    assertEquals(LtrQueryBuilder.class, rescores.get(0).getQueryBuilder().getClass());
   }
 }

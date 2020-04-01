@@ -148,56 +148,6 @@
       "response": []
     },
     {
-      "name": "Kibana Index Patterns",
-      "request": {
-        "url": "http://${es_host}:5601/api/saved_objects/_bulk_create",
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "description": ""
-          },
-          {
-            "key": "kbn-version",
-            "value": "7.6.0",
-            "description": ""
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "[{\"type\": \"index-pattern\", \"id\": \"testdata\", \"attributes\": {\"title\": \"testdata*\"} }]"
-        },
-        "description": "Create index patterns to be used with Discover view"
-      },
-      "response": []
-    },
-    {
-      "name": "Kibana Default Index",
-      "request": {
-        "url": "http://${es_host}:5601/api/kibana/settings",
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json",
-            "description": ""
-          },
-          {
-            "key": "kbn-version",
-            "value": "7.6.0",
-            "description": ""
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\"changes\": {\"defaultIndex\": \"testdata\"} }"
-        },
-        "description": "Set default index"
-      },
-      "response": []
-    },
-    {
       "name": "Adding painless script",
       "request": {
         "url": "http://${es_host}:${es_port}/_scripts/testdata_numericsort",
