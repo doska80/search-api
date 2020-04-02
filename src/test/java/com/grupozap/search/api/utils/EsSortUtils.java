@@ -62,7 +62,7 @@ public class EsSortUtils {
           "rescore_query_weight", 1,
           "query_weight", 1);
 
-  private static final Map<String, Object> RESCORE_FUNCTION =
+  private static final Map<String, Object> FUNCTION_SCORE_RESCORE =
       Map.of(
           "rescore_type", "function_score",
           "window_size", 1000,
@@ -70,6 +70,16 @@ public class EsSortUtils {
           "weight", 1,
           "query_weight", 1,
           "script", Map.of("source", "doc['default'].value"));
+
+  private static final Map<String, Object> FIELD_VALUE_FACTOR_RESCORE =
+      Map.of(
+          "rescore_type", "field_value_factor_rescore",
+          "window_size", 1000,
+          "score_mode", "total",
+          "rescore_query_weight", 1,
+          "query_weight", 1,
+          "field", "likes",
+          "missing", 1);
 
   public Map<String, Object> buildEsSort(String sortName, Map<String, Object> sort) {
     var map = new LinkedHashMap<String, Object>();
@@ -92,7 +102,8 @@ public class EsSortUtils {
     SCRIPT_SORT_TYPE(SCRIPT_SORT),
     LTR_RESCORE_TYPE(RESCORE_LTR),
     RANDOM_RESCORE_TYPE(RESCORE_RANDOM),
-    FUNCTION_RESCORE_TYPE(RESCORE_FUNCTION);
+    FUNCTION_SCORE_RESCORE_TYPE(FUNCTION_SCORE_RESCORE),
+    FIELD_VALUE_FACTOR_RESCORE_TYPE(FIELD_VALUE_FACTOR_RESCORE);
 
     private Map<String, Object> sortType;
 

@@ -5,7 +5,8 @@ import static java.util.Arrays.stream;
 public enum RescoreType {
   LTR_RESCORE("ltr_rescore", LtrRescore.class),
   RANDOM_RESCORE("random_rescore", RandomRescore.class),
-  FUNCTION_SCORE_RESCORE("function_score", FunctionScoreRescore.class);
+  FUNCTION_SCORE_RESCORE("function_score", FunctionScoreRescore.class),
+  FIELD_VALUE_FACTOR_RESCORE("field_value_factor_rescore", FieldValueFactorRescore.class);
 
   private final String alias;
   private final Class<? extends SortRescore> rescoreClass;

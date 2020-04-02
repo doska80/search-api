@@ -35,6 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.collections4.map.LinkedMap;
+import org.elasticsearch.index.query.functionscore.FieldValueFactorFunctionBuilder;
 import org.elasticsearch.index.query.functionscore.FunctionScoreQueryBuilder;
 import org.elasticsearch.index.query.functionscore.RandomScoreFunctionBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -461,7 +462,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
   }
 
   @Test
-  public void shouldApplyRescoreModelWithFunctionRescore() {
+  public void shouldApplyLtrRescoreWithFunctionScoreRescore() {
     var rescoreFunction = new LinkedHashMap<String, Object>();
     var weight = 10;
     var script = new LinkedHashMap<>();
@@ -479,7 +480,7 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
     var rescorePropertiesKey = "rescore_defaut";
 
     var functionRescoreMap =
-        esSortUtils.buildSortTypeWithCustomProperties(rescoreFunction, FUNCTION_RESCORE_TYPE);
+        esSortUtils.buildSortTypeWithCustomProperties(rescoreFunction, FUNCTION_SCORE_RESCORE_TYPE);
 
     var esSortMap =
         esSortUtils.buildEsSort(
@@ -549,6 +550,68 @@ public class SortQueryAdapterTest extends SearchTransportClientMock {
         LtrQueryBuilder.class,
         ((QueryRescorerBuilder) rescores.get(0)).getRescoreQuery().getClass());
     assertEquals(ScriptSortBuilder.class, searchBuilder.sorts().get(0).getClass());
+  }
+
+  @Test
+  public void shouldApplyFieldValueFactorRescore() {
+    var rescorePropertiesKey = "rescore_defaut";
+    var esSortMap =
+        esSortUtils.buildEsSort(
+            rescorePropertiesKey,
+            Map.of("rescores", List.of(FIELD_VALUE_FACTOR_RESCORE_TYPE.getSortType())));
+
+    when(this.ESSortListener.getSearchSort(INDEX_NAME))
+        .thenReturn(
+            new SearchSort.SearchSortBuilder()
+                .disabled(false)
+                .defaultSort(rescorePropertiesKey)
+                .sorts(esSortMap)
+                .build());
+
+    var rescores = buildSearchSourceBuilder(rescorePropertiesKey, "_rescore").rescores();
+    var queryRescorerBuilder = (QueryRescorerBuilder) rescores.get(0);
+
+    assertEquals(1000, queryRescorerBuilder.windowSize().intValue());
+    assertEquals(1, queryRescorerBuilder.getQueryWeight(), 0.0);
+    assertEquals(1, queryRescorerBuilder.getRescoreQueryWeight(), 0.0);
+    assertEquals(fromString("total"), queryRescorerBuilder.getScoreMode());
+
+    var rescoreQuery = (FunctionScoreQueryBuilder) queryRescorerBuilder.getRescoreQuery();
+    var fieldValue =
+        (FieldValueFactorFunctionBuilder)
+            rescoreQuery.filterFunctionBuilders()[0].getScoreFunction();
+    assertEquals("likes", fieldValue.fieldName());
+    assertEquals(1.0, fieldValue.missing(), 0);
+  }
+
+  @Test
+  public void shouldApplyLtrRescoreWithFieldValueFactorRescore() {
+    var rescorePropertiesKey = "rescore_defaut";
+    var esSortMap =
+        esSortUtils.buildEsSort(
+            rescorePropertiesKey,
+            Map.of(
+                "rescores",
+                List.of(
+                    FIELD_VALUE_FACTOR_RESCORE_TYPE.getSortType(),
+                    LTR_RESCORE_TYPE.getSortType())));
+
+    when(this.ESSortListener.getSearchSort(INDEX_NAME))
+        .thenReturn(
+            new SearchSort.SearchSortBuilder()
+                .disabled(false)
+                .defaultSort(rescorePropertiesKey)
+                .sorts(esSortMap)
+                .build());
+
+    var rescores = buildSearchSourceBuilder(rescorePropertiesKey, "_rescore").rescores();
+    assertEquals(2, rescores.size());
+    assertEquals(
+        FunctionScoreQueryBuilder.class,
+        ((QueryRescorerBuilder) rescores.get(0)).getRescoreQuery().getClass());
+    assertEquals(
+        LtrQueryBuilder.class,
+        ((QueryRescorerBuilder) rescores.get(1)).getRescoreQuery().getClass());
   }
 
   private SearchSourceBuilder buildSearchSourceBuilder(String sortParameter, String sortType) {

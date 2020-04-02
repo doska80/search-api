@@ -496,7 +496,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateRandomRescoreWithDifferentSeedsTest() throws IOException {
+  public void validateRandomRescoreWithDifferentSeeds() throws IOException {
     esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
@@ -533,7 +533,7 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateRandomRescoreWithTheSameSeedTest() throws IOException {
+  public void validateRandomRescoreWithTheSameSeed() throws IOException {
     esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
@@ -590,12 +590,44 @@ public class SortIntegrationTest extends SearchApiIntegrationTest {
   }
 
   @Test
-  public void validateLtrRescoreWithFunctionRescore() throws IOException {
+  public void validateRescoreWithFunctionScore() throws IOException {
     esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
     esIndexHandler.insertEntityByIndex(
         SEARCH_API_PROPERTIES_INDEX,
         TEST_DATA_TYPE,
         JSON_FILE_UTILS.getBoostrapConfig("/json/rescore_function_score.json"));
+    esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
+
+    given()
+        .log()
+        .all()
+        .baseUri(baseUrl)
+        .contentType(JSON)
+        .expect()
+        .statusCode(SC_OK)
+        .when()
+        .get(TEST_DATA_INDEX + "?size=" + (standardDatasetSize) + "&sort=rescore_default")
+        .then()
+        .body("totalCount", equalTo(standardDatasetSize))
+        .body("result.testdata", hasSize(standardDatasetSize))
+        .body(
+            "result.testdata.id",
+            equalTo(
+                rangeClosed(1, standardDatasetSize)
+                    .boxed()
+                    .map(i -> standardDatasetSize - i + 1)
+                    .limit(standardDatasetSize)
+                    .map(String::valueOf)
+                    .collect(toList())));
+  }
+
+  @Test
+  public void validateRescoreWithFieldValueFactor() throws IOException {
+    esIndexHandler.deleteIndex(SEARCH_API_PROPERTIES_INDEX);
+    esIndexHandler.insertEntityByIndex(
+        SEARCH_API_PROPERTIES_INDEX,
+        TEST_DATA_TYPE,
+        JSON_FILE_UTILS.getBoostrapConfig("/json/rescore_field_value_factor.json"));
     esIndexHandler.refreshIndex(SEARCH_API_PROPERTIES_INDEX);
 
     given()

@@ -1,0 +1,21 @@
+{
+  "es.sort": {
+    "disabled": false,
+    "sorts": [
+      {
+        "rescore_default": {
+          "rescores": [
+            {
+              "window_size": 30,
+              "rescore_type": "field_value_factor_rescore",
+              "rescore_query_weight": 1,
+              "query_weight": 1,
+              "field": "numeric",
+              "missing": 1
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

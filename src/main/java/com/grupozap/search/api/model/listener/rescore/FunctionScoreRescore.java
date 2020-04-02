@@ -18,7 +18,6 @@ import org.elasticsearch.script.Script;
 public class FunctionScoreRescore extends SortRescore {
 
   private int weight;
-
   private ScriptScore script;
 
   public ScriptScore getScript() {
